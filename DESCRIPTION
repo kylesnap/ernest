@@ -1,0 +1,24 @@
+Package: ernest
+Title: The Nested Sampling Toolkit
+Version: 0.0.0.9000
+Authors@R: 
+    person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-2132-8083"))
+Description: A complete implementation of the nested sampling algorithm
+    for R, allowing users to estimate the evidence and posterior of a
+    statistical model.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Imports: 
+    cli,
+    glue,
+    lifecycle,
+    rlang,
+    withr
+LinkingTo: 
+    cpp11
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

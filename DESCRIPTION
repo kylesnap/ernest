@@ -16,7 +16,9 @@ Imports:
     distributions3,
     glue,
     lifecycle,
+    purrr,
     rlang,
+    tibble,
     withr
 LinkingTo: 
     cpp11

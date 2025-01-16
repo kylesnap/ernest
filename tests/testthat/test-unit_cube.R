@@ -23,7 +23,7 @@ test_that("refresh.unit_cube refreshes the sampler correctly", {
 test_that("validate.unit_cube calls the NextMethod correctly", {
   num_dim <- 3
   sampler <- unit_cube(num_dim)
-  expect_silent(validate(sampler))
+  expect_silent(validate_sampler(sampler))
 })
 
 test_that("lrps.unit_cube returns a valid point", {

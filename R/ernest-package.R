@@ -5,6 +5,7 @@
 #' @import rlang
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
+#' @importFrom tibble tibble
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL

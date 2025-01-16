@@ -15,7 +15,7 @@
 #' @export
 unit_cube <- function(num_dim) {
   obj <- new_unit_cube(num_dim = num_dim)
-  validate(obj)
+  validate_sampler(obj)
 }
 
 #' Class constructor
@@ -36,11 +36,11 @@ new_unit_cube <- function(log_lik = NULL, prior = NULL,
 #' @noRd
 refresh.unit_cube <- function(sampler) {
   obj <- do.call(new_unit_cube, as.list(sampler))
-  validate(obj)
+  validate_sampler(obj)
 }
 
 #' @export
-#' @rdName lrps
+#' @rdname lrps
 lrps.unit_cube <- function(sampler, u_point, log_lik_criterion, ...) {
   for (i in 1:1e7) {
     u_point <- runif(sampler$num_dim)

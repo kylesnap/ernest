@@ -22,27 +22,23 @@ new_sampler <- function(log_lik = NULL, prior = NULL,
 }
 
 #' Refresh a sampler
+#'
+#' @export
 refresh <- function(sampler) {
   UseMethod("refresh")
 }
 
+#' @rdname refresh
+#' @export
 refresh.sampler <- function(sampler) {
   obj <- do.call(new_sampler, as.list(sampler))
-  validate(obj)
+  validate_sampler(obj)
 }
 
 #' Check an LRPS object for validity
 #'
 #' @noRd
-validate <- function(object) {
-  UseMethod("validate")
-}
-
-validate.default <- function(object) {
-  rlang::abort("`validate` method not implemented for this object")
-}
-
-validate.sampler <- function(sampler) {
+validate_sampler <- function(sampler) {
   if (sampler$num_dim <= 0) {
     rlang::abort("num_dim must be a positive integer")
   }
@@ -67,6 +63,8 @@ propose <- function(x) {
   UseMethod("propose")
 }
 
+#' @rdname propose
+#' @export
 propose.sampler <- function(sampler) {
   for (i in 1:1e7) {
     u_point <- runif(sampler$num_dim)
@@ -74,7 +72,7 @@ propose.sampler <- function(sampler) {
     log_lik <- sampler$log_lik(point)
     if (is.finite(log_lik)) {
       return(
-        list(u_point = u_point, point = point, log_lik = log_lik)
+        list(u_point = u_point, point = point, log_lik = log_lik, num_call = i)
       )
     }
   }
@@ -89,11 +87,15 @@ propose.sampler <- function(sampler) {
 #' @param ... Additional arguments that are ignored
 #'
 #' @returns A particle list, containing the unit point, the point in the
-#' original parameter space, and the log-likelihood
+#' original parameter space, and the log-likelihood.
+#'
+#' @export
 lrps <- function(object, u_point, log_lik_criterion, ...) {
   UseMethod("lrps")
 }
 
+#' @rdname lrps
+#' @export
 lrps.sampler <- function(sampler, u_point, log_lik_criterion, ...) {
   rlang::abort(
     "The 'lrps' method should be overwritten by a subclass of sampler"
@@ -108,14 +110,12 @@ lrps.sampler <- function(sampler, u_point, log_lik_criterion, ...) {
 #'
 #' @returns An updated sampler, with the new parameters.
 #' @export
-update <- function(sampler, live_points) {
-  UseMethod("update")
+update_sampler <- function(sampler, live_points) {
+  UseMethod("update_sampler")
 }
 
-update.default <- function(sampler, live_points) {
-  rlang::abort("`refresh` method not implemented for this object")
-}
-
-update.sampler <- function(sampler, live_points) {
+#' @rdname update_sampler
+#' @export
+update_sampler.sampler <- function(sampler, live_points) {
   sampler
 }

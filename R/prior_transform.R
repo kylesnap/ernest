@@ -1,101 +1,92 @@
-#' Define a prior transformation
+#' Specify a prior transformation for nested sampling
 #'
-#' @param x A generic object.
-#' @param ... Additional arguments that are all ignored.
+#' @param x Either a distribution3 distribution, a function, or a prior_transform object.
+#' @param names A vector of character strings, naming each transformed variable.
+#' @param lb,ub If 'x' is a function, the lower and upper bound for the
+#' transformed variable, respectively.
+#' @param ... If 'x' is a prior transform object, additional prior_transform
+#' objects to combine together. Else, these dots should be empty.
 #'
-#' @return A prior_transform object that can be used by ernest.
+#' @returns A prior_transform object.
 #' @export
-prior_transform <- function(x, ...) {
-  UseMethod("prior_transform")
+set_prior_transform <- function(x, ...) {
+  UseMethod("set_prior_transform")
 }
 
-#' @rdname prior_transform
+#' @rdname set_prior_transform
 #' @export
-prior_transform.default <- function(x, ...) {
-  rlang::abort("The prior transformation must be either a distrubtion3 object or a valid R function.")
-}
-
-#' @rdname prior_transform
-#'
-#' @param distribution A distribution object from the `distrubtion3` package.
-#' @param name A character string to name the prior transformation.
-#'
-#' @return A prior_transform object that can be used by ernest.
-prior_transform.distribution <- function(distribution, name = NULL, ...) {
-  fn <- function(q) quantile(distribution, q)
-  support <- unname(distributions3::support(distribution))
+set_prior_transform.distribution <- function(x, names, ...) {
+  fn <- \(p) stats::quantile(x, probs = p)
+  sup <- unname(distributions3::support(x))
   obj <- new_prior_transform(
-    fn,
-    name = name,
-    description = paste(distribution),
-    support = support
+    fn = fn,
+    dim = length(names),
+    names = names,
+    description = rep(as.character(x), length(names)),
+    lb = rep(sup[1], length(names)),
+    ub = rep(sup[2], length(names))
   )
   validate_prior_transform(obj)
 }
 
-#' @rdname prior_transform
-#'
-#' @param fn A function that maps values unit hypercube to the support of the
-#' prior.
-#' @param name A character string to name the prior transformation.
-#' @param support A numeric vector of length 2 that defines the support of the
-#' prior.
-#'
-#' @details If support is `NULL`, ernest will try to infer the support by
-#' passing zero and one to `fn`.
-#'
+#' @rdname set_prior_transform
 #' @export
-prior_transform.function <- function(fn, name = NULL, support = NULL, ...) {
-  support <- if (is.null(support)) {
-    c(fn(0), fn(1))
-  } else {
-    unname(support)
+set_prior_transform.function <- function(x, names, lb = -Inf, ub = Inf, ...) {
+  obj <- new_prior_transform(
+    fn = x,
+    dim = length(names),
+    names = names,
+    description = rep("user function", length(names)),
+    lb = lb,
+    ub = ub
+  )
+  validate_prior_transform(obj)
+}
+
+#' @rdname set_prior_transform
+#' @export
+set_prior_transform.prior_transform <- function(...) {
+  priors <- list2(...)
+  # Check that every object in priors inherits "prior_transform"
+  if (any(map_lgl(priors, \(x) !inherits(x, "prior_transform")))) {
+    stop("All arguments must be prior_transform objects.")
   }
+  dim <- list_c(map_int(priors, \(x) x$dim))
+  fn <- seq_func(map(priors, \(x) x$fn), dim)
   obj <- new_prior_transform(
-    fn,
-    name = name,
-    description = "User-provided function",
-    support = support
+    fn = fn,
+    dim = dim,
+    names = unlist(map(priors, \(x) x$name)),
+    description = unlist(map(priors, \(x) x$description)),
+    lb = unlist(map(priors, \(x) x$lb)),
+    ub = unlist(map(priors, \(x) x$ub))
   )
   validate_prior_transform(obj)
+}
+
+#' @rdname set_prior_transform
+#' @export
+set_prior_transform.list <- function(x) {
+  set_prior_transform.prior_transform(!!!x)
 }
 
 #' Constructor
-new_prior_transform <- function(
-    fn = NULL,
-    name = NULL,
-    description = NULL,
-    support = c(-Inf, Inf)
-  ) {
+new_prior_transform <- function(fn = NULL, dim = NULL,
+                                names = NULL, description = NULL,
+                                lb = NULL, ub = NULL) {
   structure(
     list(
-      fn = fn,
-      name = name,
-      description = description,
-      support = support
+      "fn" = fn,
+      "dim" = dim,
+      "names" = names,
+      "description" = description,
+      "lb" = lb,
+      "ub" = ub
     ),
     class = "prior_transform"
   )
 }
 
-#' Validator
-validate_prior_transform <- function(prior_transform) {
-  if (!rlang::is_function(prior_transform$fn)) {
-    stop("The `transform_function` must be a valid R function.")
-  }
-  if (!is.null(prior_transform$name) && !is.character(prior_transform$name)) {
-    stop("The `name` must be a character string or NULL.")
-  }
-  if (!is.null(prior_transform$description) &&
-    !is.character(prior_transform$description)) {
-      stop("The `description` must be a character string or NULL.")
-  }
-  if (!is.numeric(prior_transform$support) ||
-    length(prior_transform$support) != 2) {
-      stop("The `support` must be a numeric vector of length 2.")
-  }
-  if (prior_transform$support[1] >= prior_transform$support[2]) {
-    stop("The lower bound of the support must be less than the upper bound.")
-  }
-  prior_transform
+validate_prior_transform <- function(obj) {
+  obj
 }

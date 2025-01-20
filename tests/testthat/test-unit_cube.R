@@ -1,45 +1,35 @@
-test_that("unit_cube constructor works correctly", {
-  num_dim <- 3
-  sampler <- unit_cube(num_dim)
-  expect_s3_class(sampler, "unit_cube")
-  expect_equal(sampler$num_dim, num_dim)
+test_that("unit_cube creates a valid unit_cube object", {
+  sampler <- unit_cube()
+
+  expect_s3_class(sampler, c("unit_cube", "ernest_sampler"))
+  expect_null(sampler$log_lik)
+  expect_null(sampler$prior_transform)
+  expect_equal(sampler$num_dim, 0)
+  expect_equal(sampler$name, "Unit Cube Sampler")
+  expect_equal(sampler$description, "Uses the unit hypercube to bound the set of live points.")
 })
 
-test_that("new_unit_cube creates a valid sampler object", {
-  num_dim <- 3
-  sampler <- new_unit_cube(num_dim = num_dim)
-  expect_s3_class(sampler, "unit_cube")
-  expect_equal(sampler$num_dim, num_dim)
-})
-
-test_that("refresh.unit_cube refreshes the sampler correctly", {
-  num_dim <- 3
-  sampler <- unit_cube(num_dim)
-  refreshed_sampler <- refresh(sampler)
-  expect_s3_class(refreshed_sampler, "unit_cube")
-  expect_equal(refreshed_sampler$num_dim, num_dim)
-})
-
-test_that("validate.unit_cube calls the NextMethod correctly", {
-  num_dim <- 3
-  sampler <- unit_cube(num_dim)
-  expect_silent(validate_sampler(sampler))
-})
-
-test_that("lrps.unit_cube returns a valid point", {
-  num_dim <- 3
+test_that("unit_cube can be updated", {
+  sampler <- unit_cube()
   log_lik <- function(x) sum(dnorm(x, log = TRUE))
-  prior <- function(u) qnorm(u)
-  sampler <- unit_cube(num_dim = num_dim)
-  sampler$log_lik <- log_lik
-  sampler$prior <- prior
-  sampler <- refresh(sampler)
-  u_point <- runif(num_dim)
-  log_lik_criterion <- -10
-  result <- lrps.unit_cube(sampler, u_point, log_lik_criterion)
-  expect_true(is.list(result))
-  expect_true(is.numeric(result$u_point))
-  expect_true(is.numeric(result$point))
-  expect_true(is.finite(result$log_lik))
-  expect_true(result$log_lik > log_lik_criterion)
+  prior <- set_prior_transform(list(
+    set_prior_transform(\(u) qnorm(u), "V1"),
+    set_prior_transform(\(u) qnorm(u), "V2")
+  ))
+
+  updated_sampler <- update_sampler(
+    sampler,
+    log_lik = log_lik,
+    prior_transform = prior,
+    num_dim = 2
+  )
+
+  expect_s3_class(updated_sampler, c("unit_cube", "ernest_sampler"))
+  expect_equal(updated_sampler$log_lik, log_lik)
+  expect_equal(updated_sampler$prior_transform, prior)
+  expect_equal(updated_sampler$num_dim, 2)
+  expect_equal(updated_sampler$name, "Unit Cube Sampler")
+  expect_equal(updated_sampler$description, "Uses the unit hypercube to bound the set of live points.")
 })
+
+

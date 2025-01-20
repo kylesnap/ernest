@@ -1,55 +1,51 @@
-test_that("prior_transform.default throws an error for invalid input", {
-  expect_error(prior_transform(42), "The prior transformation must be either a distrubtion3 object or a valid R function.")
-})
-
-test_that("prior_transform.distribution creates a valid prior_transform object", {
+test_that("set_prior_transform with distribution", {
   dist <- distributions3::Normal(0, 1)
-  pt <- prior_transform(dist, name = "normal_prior")
+  names <- c("var1", "var2")
+  pt <- set_prior_transform(dist, names)
+  supp <- unname(distributions3::support(dist))
 
   expect_s3_class(pt, "prior_transform")
-  expect_equal(pt$name, "normal_prior")
-  expect_equal(pt$description, "Normal(mu = 0, sigma = 1)")
-  expect_equal(pt$support, c(-Inf, Inf))
-  expect_true(is.function(pt$fn))
+  expect_equal(pt$dim, 2)
+  expect_equal(pt$names, names)
+  expect_equal(pt$description, rep(as.character(dist), length(names)))
+  expect_equal(pt$lb, c(-Inf, -Inf))
+  expect_equal(pt$ub, c(Inf, Inf))
 })
 
-test_that("prior_transform.function creates a valid prior_transform object", {
-  fn <- function(q) q * 2
-  pt <- prior_transform(fn, name = "linear_prior", support = c(0, 2))
+test_that("set_prior_transform with function", {
+  fn <- function(x) x^2
+  names <- c("var1", "var2")
+  lb <- 0
+  ub <- 1
+  pt <- set_prior_transform(fn, names, lb, ub)
 
   expect_s3_class(pt, "prior_transform")
-  expect_equal(pt$name, "linear_prior")
-  expect_equal(pt$description, "User-provided function")
-  expect_equal(pt$support, c(0, 2))
-  expect_true(is.function(pt$fn))
+  expect_equal(pt$dim, length(names))
+  expect_equal(pt$names, names)
+  expect_equal(pt$description, rep("user function", length(names)))
+  expect_equal(pt$lb, lb)
+  expect_equal(pt$ub, ub)
 })
 
-test_that("prior_transform.function infers support if not provided", {
-  fn <- function(q) q * 2
-  pt <- prior_transform(fn, name = "linear_prior")
+test_that("set_prior_transform with prior_transform", {
+  dist <- distributions3::Normal(0, 1)
+  names1 <- "var1"
+  pt1 <- set_prior_transform(dist, names1)
 
-  expect_equal(pt$support, c(0, 2))
-})
+  fn <- function(x) x^2
+  names2 <- "var2"
+  pt2 <- set_prior_transform(fn, names2, 0, 1)
 
-test_that("validate_prior_transform checks for valid prior_transform object", {
-  valid_fn <- function(q) q * 2
-  valid_pt <- new_prior_transform(valid_fn, "valid_prior", "Valid description", c(0, 2))
+  pt_combined <- set_prior_transform(pt1, pt2)
 
-  expect_silent(validate_prior_transform(valid_pt))
+  expect_s3_class(pt_combined, "prior_transform")
+  expect_equal(pt_combined$dim, c(1, 1))
+  expect_equal(pt_combined$names, c("var1", "var2"))
+  expect_equal(pt_combined$description, c(as.character(dist), "user function"))
+  expect_equal(pt_combined$lb, c(-Inf, 0))
+  expect_equal(pt_combined$ub, c(Inf, 1))
 
-  invalid_pt <- valid_pt
-  invalid_pt$fn <- NULL
-  expect_error(validate_prior_transform(invalid_pt), "The `transform_function` must be a valid R function.")
-
-  invalid_pt <- valid_pt
-  invalid_pt$name <- 123
-  expect_error(validate_prior_transform(invalid_pt), "The `name` must be a character string or NULL.")
-
-  invalid_pt <- valid_pt
-  invalid_pt$description <- 123
-  expect_error(validate_prior_transform(invalid_pt), "The `description` must be a character string or NULL.")
-
-  invalid_pt <- valid_pt
-  invalid_pt$support <- c(2, 1)
-  expect_error(validate_prior_transform(invalid_pt), "The lower bound of the support must be less than the upper bound.")
+  expect_equal(pt_combined$fn(c(0.5, 0.5)), c(0, 0.25))
+  expect_equal(pt_combined$fn(c(0.25, 0.75)), c(qnorm(0.25), 0.75^2))
+  expect_equal(pt_combined$fn(c(0.75, 0.25)), c(qnorm(0.75), 0.25^2))
 })

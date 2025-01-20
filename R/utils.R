@@ -1,21 +1,14 @@
-#' Process a list of probability transformations for ernest
-#'
-#' @param prior_transforms A list of objects of class "prior_transforms"
-#'
-#' @returns A list containing the merged probability transformation, a list
-#' of parameter names, and a list of the supports.
-#' @noRd
-merge_transformations <- function(prior_list) {
-  if (!every(prior_list, \(x) inherits(x, "prior_transform"))) {
-    rlang::abort("All elements of prior_transforms must be of class 'prior_transform'")
+seq_func <- function(func_list, dims) {
+  # Create the combined function
+  function(params) {
+    # Split the parameters for each function
+    param_splits <- split(params, rep(seq_along(dims), dims))
+
+    # Apply each function to its parameters and concatenate the results
+    result <- unlist(mapply(function(fun, args) fun(args),
+                            func_list, param_splits, SIMPLIFY = FALSE))
+    return(result)
   }
-  composite_fn <- \(x) {
-    map2_dbl(prior_list, x, \(pt, val) pt$fn(val))
-  }
-  names <- map_chr(prior_list, \(x) ifelse(is.null(x$name), "V", x$name)) |>
-    make.names(unique = TRUE)
-  supports <- map(prior_list, \(x) x$support)
-  list(composite_fn = composite_fn, names = names, supports = supports)
 }
 
 #' =====
@@ -59,6 +52,19 @@ compute_integral <- function(log_lik, log_vol) {
     "log_z_var" = log_z_var,
     "information" = h
   )
+}
+
+#' From hardhat
+check_unique_names <- function(x, ..., arg = caller_arg(x), call = caller_env()) {
+  nms <- names(x)
+  if (length(nms) != length(x) || any(is.na(nms) | nms == "")) {
+    cli::cli_abort("All elements of {.arg {arg}} must be named.")
+  }
+  if (anyDuplicated(nms)) {
+    cli::cli_abort("All elements of {.arg {arg}} must have unique names.")
+  }
+  !anyDuplicated(nms)
+  return(invisible(NULL))
 }
 
 

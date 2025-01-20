@@ -1,121 +1,189 @@
-#' Likelihood-Restricted Prior Sampler
+#' Make a likelihood-restricted prior sampler
 #'
-#' The `sampler` class is a generic class for likelihood-restricted prior
-#' samplers. It should never be called by nested.
+#' This is the base class for creating a likelihood-based prior sampler. All
+#' of ernest's samplers inherit from this superclass.
 #'
-#' @param log_lik A function returning the log-likelihood
-#' @param prior A function transforming the unit cube to the prior space
-#' @param num_dim The number of dimensions
-#' @noRd
-new_sampler <- function(log_lik = NULL, prior = NULL,
-                        name = "LRPS Internal Sampler",
-                        num_dim = NULL, ..., subclass = character()) {
-  structure(
-    list(
-      log_lik = log_lik,
-      prior = prior,
-      name = name,
-      num_dim = as.integer(num_dim)
-    ),
-    class = c(subclass, "sampler")
+#' @param log_lik A function that takes in one vector of parameters and returns
+#' a scalar log-likelihood value.
+#' @param prior_transform An object of class "prior_transform" used to transform
+#' values in the unit hypercube values to the original parameter space.
+#' @param num_dim An integer number of dimensions in the parameter space.
+#' @param name A name for the given sampler.
+#' @param description A short description of the sampler.
+#' @param ... Name-value pairs for additional elements of samplers that
+#' subclass this sampler.
+#' @param subclass The subclasses of this sampler.
+#'
+#' @returns A `sampler` object, used to propose new particles under a likelihood
+#' constraint.
+#'
+#' @export
+new_sampler <- function(log_lik = NULL, prior_transform = NULL, num_dim = 0,
+                        name = "Sampler Superclass",
+                        description = "Powers LRPS within Ernest",
+                        ...,
+                        subclass = character())  {
+  check_function(log_lik, allow_null = TRUE)
+  if (!is.null(prior_transform) && !inherits(prior_transform, "prior_transform")) {
+    cli::cli_abort("`prior_transform` must be an object of class 'prior_transform'.")
+  }
+  check_number_whole(num_dim, min = 0)
+  check_string(name)
+  check_string(description)
+  check_character(subclass)
+
+  elems <- list(
+    log_lik = log_lik,
+    prior_transform = prior_transform,
+    num_dim = num_dim,
+    name = name,
+    description = description
   )
+
+  elems <- if (!rlang::is_empty(list2(...))) {
+    check_unique_names(rlang::list2(...))
+    c(elems, rlang::list2(...))
+  } else {
+    elems
+  }
+  structure(elems, class = c(subclass, "ernest_sampler"))
 }
 
 #' Refresh a sampler
 #'
-#' @export
-refresh <- function(sampler) {
-  UseMethod("refresh")
-}
-
-#' @rdname refresh
-#' @export
-refresh.sampler <- function(sampler) {
-  obj <- do.call(new_sampler, as.list(sampler))
-  validate_sampler(obj)
-}
-
-#' Check an LRPS object for validity
+#' This runs the sampler through the method-specific `new_*_sampler()` function
+#' to ensure that all of the elements of the sampler are still valid.
 #'
-#' @noRd
-validate_sampler <- function(sampler) {
-  if (sampler$num_dim <= 0) {
-    rlang::abort("num_dim must be a positive integer")
+#' @param sampler A sampler.
+#'
+#' @returns The `sampler` after a call to the corresponding constructor.
+#'
+#' @export
+refresh_sampler <- function(sampler) {
+  UseMethod("refresh_sampler")
+}
+
+#' @export
+refresh_sampler.ernest_sampler <- function(sampler) {
+  do.call(new_sampler, as.list(sampler))
+}
+
+#' Update a sampler object
+#'
+#' Updates the parameters within a sampler object. Unlike using `$`,
+#' this function checks that the updated name already exists in the object,
+#' and runs `refresh_sampler()` afterwards to check validity.
+#'
+#' @inheritParams refresh_sampler
+#' @param ... Name-value pairs of _existing_ elements in `sampler` that should
+#' be updated.
+#'
+#' @export
+update_sampler <- function(sampler, ...) {
+  if (!inherits(sampler, "ernest_sampler")) {
+    cli::cli_abort("`sampler` must be an object of class 'ernest_sampler'.")
   }
-  if (
-    !any(rlang::is_function(sampler$log_lik), rlang::is_null(sampler$log_lik))
-  ) {
-    rlang::abort("log_lik must be a function or NULL")
+
+  args <- rlang::list2(...)
+  check_unique_names(args)
+
+  names_new <- names(args)
+  names_old <- names(sampler)
+  names_exist <- names_new %in% names_old
+
+  if (any(!names_exist)) {
+    loc <- which(!names_exist)
+    names <- names_new[loc]
+    message <- c(
+      "All elements of {.arg ...} must already exist.",
+      i = "The following fields are new: {.str {names}}."
+    )
+    cli::cli_abort(message)
   }
-  if (!any(rlang::is_function(sampler$prior), rlang::is_null(sampler$prior))) {
-    rlang::abort("prior must be a function or NULL")
-  }
+
+  sampler <- update_sampler0(sampler, !!!args)
+  refresh_sampler(sampler)
+}
+
+update_sampler0 <- function(sampler, ...) {
+  # Performance variant only for internal use
+  args <- list2(...)
+  names <- names2(args)
+  sampler[names] <- args
   sampler
 }
 
-#' Propose a valid point in the unit-cube parameter space
+#' Propose a new live point by randomly sampling within the unit hypercube.
 #'
-#' @param object An object of class `LRPS`
+#' @param sampler The sampler object, inheriting from `ernest_sampler`
+#' @param min_lik The log-likelihood criterion for the new particle.
 #'
-#' @returns A particle list, containing the unit point, the point in the
-#' original parameter space, and the log-likelihood
-propose <- function(x) {
-  UseMethod("propose")
+#' @returns A particle, which is a list with four components: "unit", "parameter",
+#' "log_lik", and "num_calls". Returns NULL if the log-likelihood cannot be
+#' overcome after a million tries.
+#'
+#' @export
+propose_uniform <- function(sampler, min_lik) {
+  UseMethod("propose_uniform")
 }
 
-#' @rdname propose
+#' @noRd
 #' @export
-propose.sampler <- function(sampler) {
-  for (i in 1:1e7) {
-    u_point <- runif(sampler$num_dim)
-    point <- sampler$prior(u_point)
-    log_lik <- sampler$log_lik(point)
-    if (is.finite(log_lik)) {
-      return(
-        list(u_point = u_point, point = point, log_lik = log_lik, num_call = i)
-      )
+propose_uniform.ernest_sampler <- function(sampler, min_lik) {
+  for (i in 1:1e7L) {
+    unit <- runif(sampler$num_dim)
+    parameter <- sampler$prior_transform$fn(unit)
+    log_lik <- sampler$log_lik(parameter)
+    if (log_lik > min_lik) {
+      return(list(
+        unit = unit,
+        parameter = parameter,
+        log_lik = log_lik,
+        num_calls = i
+      ))
     }
   }
-  rlang::abort("Failed to find a valid point after 1e7 iterations")
+  cli::cli_warn("Could not propose a new particle after 1e7 tries.")
+  NULL
 }
 
-#' Likelihood restricted prior sampling
+#' Propose a point by sampling from the bounded prior distribution.
 #'
-#' @param object An object of class `sampler`
-#' @param u_point The unit point that seeds the sampling process
-#' @param log_lik_criterion The log-likelihood criterion
-#' @param ... Additional arguments that are ignored
+#' @param sampler The sampler object, inheriting from `ernest_sampler`
+#' @param original The original position of the live point.
+#' @param min_lik The log-likelihood criterion for the new particle.
 #'
-#' @returns A particle list, containing the unit point, the point in the
-#' original parameter space, and the log-likelihood.
+#' @returns A particle, which is a list with four components: "unit", "parameter",
+#' "log_lik", and "num_calls". Returns NULL if the log-likelihood cannot be
+#' overcome after a million tries.
 #'
+#' @noRd
 #' @export
-lrps <- function(object, u_point, log_lik_criterion, ...) {
-  UseMethod("lrps")
+propose_live <- function(sampler, original, min_lik) {
+  UseMethod("propose_live")
 }
 
-#' @rdname lrps
+#' @noRd
 #' @export
-lrps.sampler <- function(sampler, u_point, log_lik_criterion, ...) {
-  rlang::abort(
-    "The 'lrps' method should be overwritten by a subclass of sampler"
-  )
+propose_live.ernest_sampler <- function(sampler, original, min_lik) {
+  cli::cli_warn("This sampler should be a subclass of `ernest_sampler`. Defaulting
+                to unit-cube proposal.")
+  propose_uniform(sampler, min_lik)
 }
 
-#' Update the parameters of a given sampler
+#' Update the bounds of a given sampler with the current distribution
+#' of live points
 #'
-#' @param sampler An object of class `sampler`
-#' @param live_points A matrix, detailing the current live points within the
-#' sampler
+#' @param sampler The current live points
+#' @param live The current live points
 #'
-#' @returns An updated sampler, with the new parameters.
-#' @export
-update_sampler <- function(sampler, live_points) {
-  UseMethod("update_sampler")
+#' @returns A sampler, with its bounding behaviour updated.
+update_bounds <- function(sampler, live) {
+  UseMethod("update_bounds")
 }
 
-#' @rdname update_sampler
+#' @noRd
 #' @export
-update_sampler.sampler <- function(sampler, live_points) {
+update_bounds.ernest_sampler <- function(sampler, live) {
   sampler
 }

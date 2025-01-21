@@ -16,6 +16,7 @@ Imports:
     distributions3,
     glue,
     lifecycle,
+    prettyunits,
     purrr,
     rlang (>= 1.1.0),
     tibble,

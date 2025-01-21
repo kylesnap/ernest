@@ -1,3 +1,29 @@
+#' Print a summary of the results
+#'
+#' @param run An `ernest` run
+#' @param digits The number of digits to output
+#'
+#' @returns The run object, invisibly.
+#' @export
+print.ernest_run <- function(run, digits = max(3, getOption("digits") - 3)) {
+  cli::cli_h3("Nested Sampling Run with `ernest`")
+  num_points <- run$control$num_points
+  num_iter <- nrow(run$progress)
+  num_calls <- tail(run$progress$num_calls, 1)
+  log_z <- tail(run$integration$log_z, 1)
+  log_z_var <- tail(run$integration$log_z_var, 1)
+  cli::cli_dl(c(
+    "Live Points" = "{prettyunits::pretty_num(num_points)}",
+    "Iterations" = "{prettyunits::pretty_num(num_iter)}",
+    "Calls" = "{prettyunits::pretty_num(num_calls)}",
+    "Efficiency" = "{prettyunits::pretty_round(num_iter/num_calls * 100, digits = digits)}%",
+    "Log. Evidence" = "{prettyunits::pretty_signif(log_z, digits = digits)} \U00B1
+    {prettyunits::pretty_signif(log_z_var, digits = digits)}"
+  ))
+}
+
+#' Create a sequence of functions
+#' @noRd
 seq_func <- function(func_list, dims) {
   # Create the combined function
   function(params) {
@@ -11,14 +37,13 @@ seq_func <- function(func_list, dims) {
   }
 }
 
-#' =====
-
-#' Compute an integral
+#' Compute the integral table
 #'
-#'  @param log_lik Vector of log likelihoods
-#'  @param log_vol Vector of log volumes
+#' @param log_lik Vector of log likelihoods
+#' @param log_vol Vector of log volumes
 #'
-#'  @return The integral
+#' @return The integral
+#' @noRd
 compute_integral <- function(log_lik, log_vol) {
   pad_log_lik <- c(-1e300, log_lik)
   d_log_vol <- diff(c(0, log_vol))
@@ -54,7 +79,8 @@ compute_integral <- function(log_lik, log_vol) {
   )
 }
 
-#' From hardhat
+#' Check that the args in 'x' are unique (from hardhat!)
+#' @noRd
 check_unique_names <- function(x, ..., arg = caller_arg(x), call = caller_env()) {
   nms <- names(x)
   if (length(nms) != length(x) || any(is.na(nms) | nms == "")) {
@@ -66,8 +92,6 @@ check_unique_names <- function(x, ..., arg = caller_arg(x), call = caller_env())
   !anyDuplicated(nms)
   return(invisible(NULL))
 }
-
-
 
 
 

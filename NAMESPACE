@@ -2,6 +2,7 @@
 
 S3method(nested_sampling,"function")
 S3method(nested_sampling,control)
+S3method(print,ernest_run)
 S3method(propose_live,ernest_sampler)
 S3method(propose_uniform,ernest_sampler)
 S3method(refresh_sampler,ernest_sampler)

@@ -1,92 +1,73 @@
 #' Specify a prior transformation for nested sampling
 #'
-#' @param x Either a distribution3 distribution, a function, or a prior_transform object.
-#' @param names A vector of character strings, naming each transformed variable.
-#' @param lb,ub If 'x' is a function, the lower and upper bound for the
-#' transformed variable, respectively.
-#' @param ... If 'x' is a prior transform object, additional prior_transform
-#' objects to combine together. Else, these dots should be empty.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Named probability distributions
+#' describing the marginal priors for each parameter.
+#' @param fn A function that takes a vector of parameters in the unit hypercube and
+#' returns a vector of parameters in the prior space.
+#' @param num_dim The number of dimensions of the prior space.
+#' @param .names A character vector of parameter names. Must be provided if
+#' `x` is a function
 #'
-#' @returns A prior_transform object.
+#' @return A `prior_transform` object.
+#'
 #' @export
-set_prior_transform <- function(x, ...) {
-  UseMethod("set_prior_transform")
+prior_transform <- function(x,...) {
+  UseMethod("prior_transform")
 }
 
-#' @rdname set_prior_transform
+#' @rdname prior_transform
 #' @export
-set_prior_transform.distribution <- function(x, names, ...) {
-  fn <- \(p) stats::quantile(x, probs = p)
-  sup <- unname(distributions3::support(x))
-  obj <- new_prior_transform(
-    fn = fn,
-    dim = length(names),
-    names = names,
-    description = rep(as.character(x), length(names)),
-    lb = rep(sup[1], length(names)),
-    ub = rep(sup[2], length(names))
-  )
-  validate_prior_transform(obj)
-}
-
-#' @rdname set_prior_transform
-#' @export
-set_prior_transform.function <- function(x, names, lb = -Inf, ub = Inf, ...) {
-  obj <- new_prior_transform(
-    fn = x,
-    dim = length(names),
-    names = names,
-    description = rep("user function", length(names)),
-    lb = lb,
-    ub = ub
-  )
-  validate_prior_transform(obj)
-}
-
-#' @rdname set_prior_transform
-#' @export
-set_prior_transform.prior_transform <- function(...) {
-  priors <- list2(...)
-  # Check that every object in priors inherits "prior_transform"
-  if (any(map_lgl(priors, \(x) !inherits(x, "prior_transform")))) {
-    stop("All arguments must be prior_transform objects.")
+prior_transform.distribution <- function(..., .names = NULL) {
+  dots <- rlang::list2(...)
+  dists <- list_c(dots)
+  fn <- function(parameters) {
+    map2_dbl(parameters, dots, \(param, dist) stats::quantile(dist, param))
   }
-  dim <- list_c(map_int(priors, \(x) x$dim))
-  fn <- seq_func(map(priors, \(x) x$fn), dim)
-  obj <- new_prior_transform(
+  names <- if (is.null(.names)) {
+    names2(dots)
+  } else {
+    .names
+  }
+  new_prior_transform(
     fn = fn,
-    dim = dim,
-    names = unlist(map(priors, \(x) x$name)),
-    description = unlist(map(priors, \(x) x$description)),
-    lb = unlist(map(priors, \(x) x$lb)),
-    ub = unlist(map(priors, \(x) x$ub))
+    dim = length(dots),
+    names = names2(dots),
+    distribution = unname(dists),
+    lb = stats::quantile(dists, 0),
+    ub = stats::quantile(dists, 1)
   )
-  validate_prior_transform(obj)
 }
 
-#' @rdname set_prior_transform
+#' @rdname prior_transform
 #' @export
-set_prior_transform.list <- function(x) {
-  set_prior_transform.prior_transform(!!!x)
+prior_transform.function <- function(fn, num_dim, .names, ...) {
+  new_prior_transform(
+    fn = fn,
+    dim = num_dim,
+    names = .names,
+    lb = rep(NA, num_dim),
+    ub = rep(NA, num_dim)
+  )
 }
 
 #' Constructor
 new_prior_transform <- function(fn = NULL, dim = NULL,
-                                names = NULL, description = NULL,
+                                names = NULL,
+                                distribution = NULL,
                                 lb = NULL, ub = NULL) {
+  if (length(names) != dim) {
+    cli::cli_abort("Length of names must match the number of dimensions")
+  }
+  names <- make.names(names, unique = TRUE)
   structure(
     list(
       "fn" = fn,
       "dim" = dim,
       "names" = names,
-      "description" = description,
+      "distributions" = distribution,
       "lb" = lb,
       "ub" = ub
     ),
     class = "prior_transform"
   )
-}
-
-validate_prior_transform <- function(obj) {
-  obj
 }

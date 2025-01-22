@@ -13,9 +13,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
     cli,
-    distributions3,
+    distributional,
     glue,
     lifecycle,
+    posterior,
     prettyunits,
     purrr,
     rlang (>= 1.1.0),

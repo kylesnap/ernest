@@ -12,10 +12,11 @@ test_that("unit_cube creates a valid unit_cube object", {
 test_that("unit_cube can be updated", {
   sampler <- unit_cube()
   log_lik <- function(x) sum(dnorm(x, log = TRUE))
-  prior <- set_prior_transform(list(
-    set_prior_transform(\(u) qnorm(u), "V1"),
-    set_prior_transform(\(u) qnorm(u), "V2")
-  ))
+  prior <- prior_transform(
+    \(u) qnorm(u),
+    2,
+    c("V1", "V2")
+  )
 
   updated_sampler <- update_sampler(
     sampler,
@@ -31,5 +32,3 @@ test_that("unit_cube can be updated", {
   expect_equal(updated_sampler$name, "Unit Cube Sampler")
   expect_equal(updated_sampler$description, "Uses the unit hypercube to bound the set of live points.")
 })
-
-

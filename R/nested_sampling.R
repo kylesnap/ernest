@@ -18,12 +18,14 @@ nested_sampling <- function(x, ...) {
 #' @export
 nested_sampling.function <- function(x, prior_transform, sampler = unit_cube(),
                                      control = list(),...) {
-  prior_transform <- set_prior_transform(prior_transform)
+  if (!inherits(prior_transform, "prior_transform")) {
+    cli::cli_abort("`prior_transform` must be a `prior_transform` object.")
+  }
   sampler <- update_sampler(
     sampler,
     log_lik = x,
     prior_transform = prior_transform,
-    num_dim = sum(prior_transform$dim)
+    num_dim = prior_transform$dim
   )
   control <- do.call(nested_sampling.control, control)
   result <- nested_sampling_impl(sampler, control)

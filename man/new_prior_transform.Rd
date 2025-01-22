@@ -8,7 +8,7 @@ new_prior_transform(
   fn = NULL,
   dim = NULL,
   names = NULL,
-  description = NULL,
+  distribution = NULL,
   lb = NULL,
   ub = NULL
 )

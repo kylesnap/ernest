@@ -1,7 +1,11 @@
 test_that("new_sampler creates a valid sampler object", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
   num_dim <- 2
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   name <- "Test Sampler"
   description <- "A test sampler"
 
@@ -25,8 +29,12 @@ test_that("new_sampler checks input types", {
 
 test_that("refresh_sampler refreshes the sampler", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
   num_dim <- 2
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   name <- "Test Sampler"
   description <- "A test sampler"
 
@@ -38,7 +46,11 @@ test_that("refresh_sampler refreshes the sampler", {
 
 test_that("update_sampler updates existing elements", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   num_dim <- 2
   name <- "Test Sampler"
   description <- "A test sampler"
@@ -55,7 +67,11 @@ test_that("update_sampler updates existing elements", {
 
 test_that("update_sampler checks for existing elements", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   num_dim <- 2
   name <- "Test Sampler"
   description <- "A test sampler"
@@ -67,7 +83,11 @@ test_that("update_sampler checks for existing elements", {
 
 test_that("propose_uniform proposes a valid new particle", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   sampler <- new_sampler(log_lik, prior_transform, num_dim = 2, name = "Test Sampler", description = "Test Description")
 
   particle <- propose_uniform(sampler, min_lik = -1)
@@ -81,7 +101,11 @@ test_that("propose_uniform proposes a valid new particle", {
 
 test_that("propose_live defaults to propose_uniform for base class", {
   log_lik <- function(params) sum(params)
-  prior_transform <- set_prior_transform(\(x) x, names = c("test 1", "test 2"))
+  prior_transform <- prior_transform(
+    \(x) x,
+    2,
+    .names = c("test 1", "test 2")
+  )
   sampler <- new_sampler(log_lik, prior_transform, num_dim = 2, name = "Test Sampler", description = "Test Description")
 
   original <- list(unit = c(0.5, 0.5), parameter = c(0.5, 0.5), log_lik = 0, num_calls = 1)

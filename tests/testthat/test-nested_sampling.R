@@ -22,6 +22,6 @@ test_that("Basic Test Log Likelihood", {
     names = c("X", "Y")
   )
 
-  nested_sampling(loglike, prior_transform, control = list(num_points = 100, max_iter = 100)) |>
-    print()
+  result <- nested_sampling(loglike, prior_transform, control = list(num_points = 100, max_iter = 100))
+  print(sample_run(result))
 })

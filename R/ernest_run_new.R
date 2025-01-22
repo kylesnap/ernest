@@ -2,50 +2,47 @@
 #'
 #' @return A validated ernest_run object
 new_ernest_run <- function(sampler, control, result) {
-  num_points <- control$num_points
-  log_vols <- log(1. - 1:num_points / (num_points + 1.)) + result$log_vol
-
-  ord_lik <- order(result$live_lik)
-  sort_lik <- sort(result$live_lik)
-  ord_points <- result$live_point[ord_lik, ]
-  max_lik <- max(result$live_lik)
-
-  num_iter <- result$num_iter
-  for (i in 1:num_points) {
-    cur_lik <- sort_lik[i]
-    log_wt <- log_vols[i] + cur_lik
-
-    result$saved_point[[i + num_iter]] <- ord_points[i, ]
-    result$saved_wt[[i + num_iter]] <- log_wt
-    result$saved_vol[[i + num_iter]] <- log_vols[i]
-    result$saved_lik[[i + num_iter]] <- cur_lik
-  }
-
-  log_lik <- list_c(result$saved_lik)
-  log_vol <- list_c(result$saved_vol)
-
-  integration <- compute_integral(log_lik, log_vol)
-  sample <- do.call(rbind, result$saved_point)
-  colnames(sample) <- sampler$prior_transform$names
-  sample <- tibble::tibble(
-    tibble::as_tibble(sample),
-    log_lik,
-    log_vol,
-    "weights" = exp(integration$log_wt - max(integration$log_z))
-  )
+  sample <- add_live_points(result, sampler$prior_transform$names)
+  integration <- compute_integral(sample$log_lik, sample$log_vol)
+  sample$weight <- exp(integration$log_wt - tail(integration$log_z, 1))
   progress <- tibble::tibble(
-    "num_calls" = list_c(result$saved_calls)
+    "num_calls" = list_c(result$saved_calls),
+    ".id" = list_c(result$saved_worst),
+    "parent_id" = list_c(result$saved_copy),
+    "bound_iter" = list_c(result$saved_bound)
   )
-
   structure(
     list(
       "sampler" = sampler,
       "sample" = sample,
       "integration" = integration,
       "progress" = progress,
-      "time" = result$time
+      "time" = result$time,
+      "control" = control
     ),
     class = "ernest_run"
+  )
+}
+
+add_live_points <- function(result, names) {
+  n <- nrow(result$live_point)
+
+  live_log_vols <- log(1 - seq_len(n) / (n + 1)) + result$log_vol
+  log_vol <- c(list_c(result$saved_vol), live_log_vols)
+
+  log_lik <- c(list_c(result$saved_lik), sort(result$live_lik))
+  ids <- c(list_c(result$saved_worst), seq_len(n)[order(result$live_lik)])
+
+  points <- rbind(
+    do.call(rbind, result$saved_point),
+    result$live_point[order(result$live_lik), ]
+  )
+  colnames(points) <- names
+  tibble::tibble(
+    ".id" = ids,
+    tibble::as_tibble(points),
+    log_lik,
+    log_vol
   )
 }
 

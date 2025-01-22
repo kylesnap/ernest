@@ -20,6 +20,7 @@ nested_sampling_impl <- function(sampler, control) {
   )
   live_point <- matrix(nrow = control$num_points, ncol = sampler$num_dim)
   live_lik <- rep(NA, control$num_points)
+  live_copy <- rep(0, control$num_points)
   num_call <- 0L
 
   for (i in 1:control$num_points) {
@@ -32,10 +33,14 @@ nested_sampling_impl <- function(sampler, control) {
   saved_vol <- list()
   saved_lik <- list()
   saved_call <- list()
+  saved_worst <- list()
+  saved_copy <- list()
+  saved_bound <- list()
 
   num_iter <- 1L
-  since_update <- -num_call
-  unif_proposal <- FALSE
+  num_update <- 0L
+  since_update <- 0L
+  unif_proposal <- TRUE
   t0 <- Sys.time()
   for (num_iter in 1L:control$max_iter) {
     worst <- which.min(live_lik)
@@ -53,15 +58,18 @@ nested_sampling_impl <- function(sampler, control) {
     saved_vol[[num_iter]] <- log_vol
     saved_lik[[num_iter]] <- worst_lik
     saved_call[[num_iter]] <- num_call
+    saved_worst[[num_iter]] <- worst
+    saved_copy[[num_iter]] <- live_copy[worst]
+    saved_bound[[num_iter]] <- num_update
 
-    if (since_update >= control$update_interval || unif_proposal) {
+    if (since_update >= control$update_interval) {
       sampler <- update_bounds(sampler, live_point)
+      num_update <- num_update + 1L
       since_update <- 1L
     }
 
-    # NOTE: This will break if num_points is equal to one...
     copy <- sample.int(control$num_points, size = 1)
-    while (copy == worst) {
+    while (copy == worst && control$num_points != 1) {
       copy <- sample.int(control$num_points, size = 1)
     }
 
@@ -74,17 +82,17 @@ nested_sampling_impl <- function(sampler, control) {
     live_u[worst, ] <- new$unit
     live_point[worst, ] <- new$parameter
     live_lik[worst] <- new$log_lik
-    log_vol <- log_vol - d_log_vol
+    num_call <- num_call + new$num_call
+    live_copy[worst] <- copy
 
+    log_vol <- log_vol - d_log_vol
     log_z_remain <- max(live_lik) - (num_iter - 1L) / control$num_points
     if (log_add_exp(log_z, log_z_remain) - log_z < control$dlogz) {
       break
     }
 
-    num_call <- num_call + new$num_call
-    since_update <- since_update + num_call
-    if (!unif_proposal && since_update > 0) {
-      unif_proposal <- TRUE
+    if (num_call >= control$first_update) {
+      unif_proposal <- FALSE
     }
     if (num_call > control$max_call) {
       break
@@ -100,6 +108,9 @@ nested_sampling_impl <- function(sampler, control) {
     "saved_vol" = saved_vol,
     "saved_lik" = saved_lik,
     "saved_calls" = saved_call,
+    "saved_worst" = saved_worst,
+    "saved_copy" = saved_copy,
+    "saved_bound" = saved_bound,
     "log_z" = log_z,
     "log_vol" = log_vol,
     "num_iter" = num_iter,

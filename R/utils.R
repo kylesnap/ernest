@@ -1,25 +1,21 @@
-#' Print a summary of the results
+#' Return the importance-weighed posterior sample from a nested sampling run
 #'
-#' @param run An `ernest` run
-#' @param digits The number of digits to output
+#' @param run An `ernest_run` object
+#' @param size The number of rows to returns, defaults to the full sample
+#' @param ... Not yet
 #'
-#' @returns The run object, invisibly.
+#' @return A tibble with the importance-weighed posterior sample
 #' @export
-print.ernest_run <- function(run, digits = max(3, getOption("digits") - 3)) {
-  cli::cli_h3("Nested Sampling Run with `ernest`")
-  num_points <- run$control$num_points
-  num_iter <- nrow(run$progress)
-  num_calls <- tail(run$progress$num_calls, 1)
-  log_z <- tail(run$integration$log_z, 1)
-  log_z_var <- tail(run$integration$log_z_var, 1)
-  cli::cli_dl(c(
-    "Live Points" = "{prettyunits::pretty_num(num_points)}",
-    "Iterations" = "{prettyunits::pretty_num(num_iter)}",
-    "Calls" = "{prettyunits::pretty_num(num_calls)}",
-    "Efficiency" = "{prettyunits::pretty_round(num_iter/num_calls * 100, digits = digits)}%",
-    "Log. Evidence" = "{prettyunits::pretty_signif(log_z, digits = digits)} \U00B1
-    {prettyunits::pretty_signif(log_z_var, digits = digits)}"
-  ))
+sample_run <- function(run, size = nobs(run)) {
+  cum_sum <- cumsum(run$sample$weight)
+  if (abs(tail(cum_sum, 1) - 1.0) > 0.001) {
+    cli::cli_warn("Weights do not sum to 1 and have been renormalized.")
+  }
+  cum_sum <- cum_sum / tail(cum_sum, 1)
+
+  # Make N subdivisions and choose positions with a consistent random offset.
+  indices <- sample.int(nobs(run), size = size, replace = TRUE, prob = cum_sum)
+  run$sample[indices, !names(run$sample) %in% c(".id", "log_lik", "log_vol", "weight")]
 }
 
 #' Create a sequence of functions

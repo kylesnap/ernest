@@ -4,7 +4,8 @@
 new_ernest_run <- function(sampler, control, result) {
   sample <- add_live_points(result, sampler$prior_transform$names)
   integration <- compute_integral(sample$log_lik, sample$log_vol)
-  sample$weight <- exp(integration$log_wt - tail(integration$log_z, 1))
+  samples <- sample$sample
+  samples$.log_weight <- integration$log_weight - tail(integration$log_z, 1)
   progress <- tibble::tibble(
     "num_calls" = list_c(result$saved_calls),
     ".id" = list_c(result$saved_worst),
@@ -14,7 +15,7 @@ new_ernest_run <- function(sampler, control, result) {
   structure(
     list(
       "sampler" = sampler,
-      "sample" = sample,
+      "samples" = samples,
       "integration" = integration,
       "progress" = progress,
       "time" = result$time,
@@ -38,11 +39,13 @@ add_live_points <- function(result, names) {
     result$live_point[order(result$live_lik), ]
   )
   colnames(points) <- names
-  tibble::tibble(
-    ".id" = ids,
-    tibble::as_tibble(points),
-    log_lik,
-    log_vol
+  list(
+    "sample" = tibble::tibble(
+      ".ids" = ids,
+      tibble::as_tibble(points)
+    ),
+    "log_lik" = log_lik,
+    "log_vol" = log_vol
   )
 }
 

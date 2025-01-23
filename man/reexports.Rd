@@ -3,7 +3,8 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
-\alias{as_draws}
+\alias{as_draws_matrix}
+\alias{as_draws_rvars}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -11,6 +12,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{posterior}{\code{\link[posterior:draws]{as_draws}}}
+  \item{posterior}{\code{\link[posterior:draws_matrix]{as_draws_matrix}}, \code{\link[posterior:draws_rvars]{as_draws_rvars}}}
 }}
 

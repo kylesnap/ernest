@@ -7,26 +7,18 @@
 \usage{
 nested_sampling(x, ...)
 
-\method{nested_sampling}{`function`}(
-  x,
-  prior_transform,
-  sampler = unit_cube(),
-  control = list(),
-  ...
-)
+\method{nested_sampling}{`function`}(x, prior_transform, sampler = unit_cube(), ...)
 }
 \arguments{
 \item{x}{A function returning the log likelihood of a model given some parameters.}
 
-\item{...}{Extra parameters that are passed to the log likelihood function.}
+\item{...}{A list of control parameters for the nested sampling algorithm,
+whose defaults are specified in \code{nested_sampling.control()}.}
 
 \item{prior_transform}{The prior distribution for the parameters, provided as
 a list of \code{prior_transform} objects.}
 
 \item{sampler}{The likelihood-restricted prior sampler to use.}
-
-\item{control}{A list of control parameters for the nested sampling algorithm,
-whose defaults are specified in \code{nested_sampling.control()}.}
 }
 \value{
 Lots of stuff about the run.

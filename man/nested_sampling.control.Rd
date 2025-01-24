@@ -11,7 +11,8 @@
   max_iter = NA,
   max_call = NA,
   dlogz = 0.5,
-  verbose = TRUE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{

@@ -4,9 +4,8 @@
 #' @param prior_transform The prior distribution for the parameters, provided as
 #' a list of `prior_transform` objects.
 #' @param sampler The likelihood-restricted prior sampler to use.
-#' @param control A list of control parameters for the nested sampling algorithm,
+#' @param ... A list of control parameters for the nested sampling algorithm,
 #' whose defaults are specified in `nested_sampling.control()`.
-#' @param ... Extra parameters that are passed to the log likelihood function.
 #'
 #' @returns Lots of stuff about the run.
 #' @export
@@ -16,8 +15,7 @@ nested_sampling <- function(x, ...) {
 
 #' @rdname nested_sampling
 #' @export
-nested_sampling.function <- function(x, prior_transform, sampler = unit_cube(),
-                                     control = list(),...) {
+nested_sampling.function <- function(x, prior_transform, sampler = unit_cube(),...) {
   if (!inherits(prior_transform, "prior_transform")) {
     cli::cli_abort("`prior_transform` must be a `prior_transform` object.")
   }
@@ -27,7 +25,8 @@ nested_sampling.function <- function(x, prior_transform, sampler = unit_cube(),
     prior_transform = prior_transform,
     num_dim = prior_transform$dim
   )
-  control <- do.call(nested_sampling.control, control)
+  args <- rlang::list2(...)
+  control <- do.call(nested_sampling.control, args)
   result <- nested_sampling_impl(sampler, control)
   new_ernest_run(sampler, control, result)
 }
@@ -47,7 +46,7 @@ nested_sampling.function <- function(x, prior_transform, sampler = unit_cube(),
 #' @param max_call Maximum number of likelihood evaluations. If left `NA`, the
 #' loop will run until another stopping criteria is met.
 #' @param dlogz Nested sampling will run until the remaining prior volume to
-#' the total evidence falls below this threshold. If set to `0`, the
+#' the total evidence falls below this threshold. If set to `NA`, the
 #' loop will run until another stopping criteria is met.
 #' @param verbose Whether to print progress updates to the terminal.
 #' @param ... Extra parameters.
@@ -60,7 +59,8 @@ nested_sampling.control <- function(num_points = 500,
                                     max_iter = NA,
                                     max_call = NA,
                                     dlogz = 0.5,
-                                    verbose = TRUE) {
+                                    verbose = FALSE,
+                                    ...) {
   check_number_whole(num_points, min = 1)
   first_update <- if (is.integer(first_update)) {
     first_update

@@ -42,12 +42,23 @@ nested_sampling_impl <- function(sampler, control) {
   since_update <- 0L
   unif_proposal <- TRUE
   t0 <- Sys.time()
+
+  if (control$verbose) cli::cli_progress_bar(
+    "Nested Sampling",
+    type = "custom",
+    format = "{cli::pb_spin} Performing Nested Sampling | Iter: {cli::pb_current} | Calls: {num_call} | Remaining ln(z) {prettyunits::pretty_signif(log_z_remain, 3)} [{cli::pb_elapsed}]",
+    total = control$max_iter,
+    clear = FALSE
+  )
   for (num_iter in 1L:control$max_iter) {
+    if (control$verbose) cli::cli_progress_update()
     log_z_remain <- max(live_lik) - (num_iter - 1L) / control$num_points
     if (log_add_exp(log_z, log_z_remain) - log_z < control$dlogz) {
+      if (control$verbose) cli::cli_progress_done()
       break
     }
     if (num_call > control$max_call) {
+      if (control$verbose) cli::cli_progress_done()
       break
     }
     if (num_call >= control$first_update) {
@@ -98,6 +109,7 @@ nested_sampling_impl <- function(sampler, control) {
     saved_bound[[num_iter]] <- num_update
     log_vol <- log_vol - d_log_vol
   }
+  cli::cli_progress_done()
   t1 <- Sys.time()
 
   list(
@@ -115,6 +127,28 @@ nested_sampling_impl <- function(sampler, control) {
     "log_vol" = log_vol,
     "num_iter" = num_iter,
     "time_elapsed" = difftime(t1, t0, units = "secs")
+  )
+}
+
+make_cli_str <- function(max_iter, max_calls, dlogz) {
+  iter_str <- if (max_iter == .Machine$integer.max) {
+    "Iter: {cli::pb_current}"
+  } else {
+    "Iter: {cli::pb_current}"
+  }
+  dlogz_str <- if (dlogz == 0) {
+    "Remaining ln(z) {prettyunits::pretty_signif(log_z_remain, 3)}"
+  } else {
+    paste0(
+      "Remaining ln(z) {prettyunits::pretty_signif(log_z_remain, 3)} > ",
+      prettyunits::pretty_signif(dlogz, 3)
+    )
+  }
+  paste(
+    "{cli::pb_spin} Performing Nested Sampling",
+    iter_str,
+    dlogz_str,
+    sep = " | "
   )
 }
 

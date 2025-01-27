@@ -16,10 +16,10 @@ compute_integral <- function(log_lik, log_vol) {
   log_wt <- map2_dbl(
     tail(pad_log_lik, -1),
     head(pad_log_lik, -1),
-    \(x, y) log_add_exp(x, y)
+    \(x, y) logaddexp(x, y)
   ) + log_d_vol2
 
-  log_z <- accumulate(log_wt, \(x, y) log_add_exp(x, y))
+  log_z <- accumulate(log_wt, \(x, y) logaddexp(x, y))
   log_z_max <- tail(log_z, 1)
 
   h_part1 <- cumsum(

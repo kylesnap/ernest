@@ -11,7 +11,7 @@
 #' @return A `prior_transform` object.
 #'
 #' @export
-prior_transform <- function(x,...) {
+prior_transform <- function(...) {
   UseMethod("prior_transform")
 }
 
@@ -20,9 +20,13 @@ prior_transform <- function(x,...) {
 prior_transform.distribution <- function(..., .names = NULL) {
   dots <- rlang::list2(...)
   dists <- list_c(dots)
-  fn <- function(parameters) {
-    map2_dbl(parameters, dots, \(param, dist) stats::quantile(dist, param))
-  }
+  fn <- new_function(
+    rlang::exprs(p = ),
+    rlang::expr({
+      lst <- stats::quantile(dists, p)
+      vapply(seq_along(p), function(i) lst[[i]][i], FUN.VALUE = double(1))
+    })
+  )
   names <- if (is.null(.names)) {
     names2(dots)
   } else {

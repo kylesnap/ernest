@@ -5,18 +5,17 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
-// code.cpp
-void fun();
-extern "C" SEXP _ernest_fun() {
+// utils.cpp
+double logaddexp(double x, double y);
+extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
   BEGIN_CPP11
-    fun();
-    return R_NilValue;
+    return cpp11::as_sexp(logaddexp(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y)));
   END_CPP11
 }
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_fun", (DL_FUNC) &_ernest_fun, 0},
+    {"_ernest_logaddexp", (DL_FUNC) &_ernest_logaddexp, 2},
     {NULL, NULL, 0}
 };
 }

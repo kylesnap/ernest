@@ -130,7 +130,7 @@ propose_uniform <- function(sampler, min_lik) {
 #' @noRd
 #' @export
 propose_uniform.ernest_sampler <- function(sampler, min_lik) {
-  for (i in 1:1e7L) {
+  for (i in seq_len(1e6L)) {
     unit <- runif(sampler$num_dim)
     parameter <- sampler$prior_transform$fn(unit)
     log_lik <- sampler$log_lik(parameter)
@@ -143,8 +143,7 @@ propose_uniform.ernest_sampler <- function(sampler, min_lik) {
       ))
     }
   }
-  cli::cli_warn("Could not propose a new particle after 1e7 tries.")
-  NULL
+  cli::cli_abort("Could not find a valid point after 1 million tries.")
 }
 
 #' Propose a point by sampling from the bounded prior distribution.

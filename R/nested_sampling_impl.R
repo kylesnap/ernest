@@ -86,7 +86,7 @@ nested_sampling_loop <- function(env, sampler, control) {
     log_vol <- log_vol - d_log_vol
 
     # Update the sampler
-    if (!unif_proposal && num_call > control$first_update) {
+    if (unif_proposal && num_call > control$first_update) {
       unif_proposal <- FALSE
       since_update <- 0L
     }
@@ -101,6 +101,7 @@ nested_sampling_loop <- function(env, sampler, control) {
     while (copy == worst && control$num_points != 1) {
       copy <- sample.int(control$num_points, size = 1)
     }
+
     new <- if (unif_proposal) {
       propose_uniform(sampler, env$live_lik[worst])
     } else {

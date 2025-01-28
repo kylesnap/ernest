@@ -8,11 +8,19 @@
 }
 \arguments{
 \item{x}{The earnest run object}
+
+\item{resample_draws}{Whether to run \code{posterior::resample_draws} on the
+draws object, producing a sample from a resampled posterior.}
+
+\item{...}{Additional arguments to pass to \code{posterior::resample_draws}}
 }
 \value{
-A \code{posterior::draws_matrix} object, which has classes
-\code{posterior::draws} and \code{matrix}
+An object of class \code{"draws_matrix"}.
 }
 \description{
 Transform to draws objects
+}
+\details{
+When \code{resample_draws} is false, the draws object will be bound to
+the log importance weights from the nested sampling run.
 }

@@ -5,9 +5,9 @@
 \alias{print.summary.ernest_run}
 \title{Summarising Nested Sampling Runs}
 \usage{
-\method{summary}{ernest_run}(object, exponentiate = TRUE, normalise = FALSE)
+\method{summary}{ernest_run}(object, exponentiate = TRUE, normalise = FALSE, ...)
 
-\method{print}{summary.ernest_run}(x, digits = max(3, getOption("digits") - 3))
+\method{print}{summary.ernest_run}(x, digits = max(3, getOption("digits") - 3), ...)
 }
 \arguments{
 \item{object}{An object of class \code{ernest_run}}
@@ -15,6 +15,12 @@
 \item{exponentiate}{Whether or not to exponentiate the fdsafnaslk}
 
 \item{normalise}{Whether or not to normalise the likelihood values}
+
+\item{...}{Ignored.}
+
+\item{x}{A \code{summary.ernest_run} object}
+
+\item{digits}{The number of digits to output}
 }
 \value{
 A list with the following components

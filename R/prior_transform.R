@@ -20,13 +20,7 @@ prior_transform <- function(...) {
 prior_transform.distribution <- function(..., .names = NULL) {
   dots <- rlang::list2(...)
   dists <- list_c(dots)
-  fn <- new_function(
-    rlang::exprs(p = ),
-    rlang::expr({
-      lst <- stats::quantile(dists, p)
-      vapply(seq_along(p), function(i) lst[[i]][i], FUN.VALUE = double(1))
-    })
-  )
+  fn <- get_quantile_exprs(dists)
   names <- if (is.null(.names)) {
     names2(dots)
   } else {
@@ -55,6 +49,7 @@ prior_transform.function <- function(fn, num_dim, .names, ...) {
 }
 
 #' Constructor
+#' @noRd
 new_prior_transform <- function(fn = NULL, dim = NULL,
                                 names = NULL,
                                 distribution = NULL,

@@ -131,7 +131,7 @@ propose_uniform <- function(sampler, min_lik) {
 #' @export
 propose_uniform.ernest_sampler <- function(sampler, min_lik) {
   for (i in seq_len(1e6L)) {
-    unit <- runif(sampler$num_dim)
+    unit <- stats::runif(sampler$num_dim)
     parameter <- sampler$prior_transform$fn(unit)
     log_lik <- sampler$log_lik(parameter)
     if (log_lik > min_lik) {
@@ -156,7 +156,6 @@ propose_uniform.ernest_sampler <- function(sampler, min_lik) {
 #' "log_lik", and "num_calls". Returns NULL if the log-likelihood cannot be
 #' overcome after a million tries.
 #'
-#' @noRd
 #' @export
 propose_live <- function(sampler, original, min_lik) {
   UseMethod("propose_live")

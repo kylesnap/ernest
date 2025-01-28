@@ -17,8 +17,10 @@ test_that("2D Gaussian Likelihood", {
       "X" = distributional::dist_uniform(-10, 10),
       "Y" = distributional::dist_uniform(-10, 10)
     ),
-    max_iter = 100,
+    max_iter = 1000,
     verbose = TRUE
   )
-  result
+  result |> print()
+  tail(result$progress) |> print()
+  result |> summary() |> print()
 })

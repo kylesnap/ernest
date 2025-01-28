@@ -4,6 +4,9 @@
 #' @param log_vol Vector of log volumes
 #'
 #' @return The integral
+#'
+#' @importFrom utils head
+#' @importFrom utils tail
 #' @noRd
 compute_integral <- function(log_lik, log_vol) {
   pad_log_lik <- c(-1e300, log_lik)
@@ -56,4 +59,50 @@ check_unique_names <- function(x, ..., arg = caller_arg(x), call = caller_env())
   }
   !anyDuplicated(nms)
   return(invisible(NULL))
+}
+
+# This function takes in a vector of distributions, and returns a vector of expressions.
+# These expression are EITHER a base-R expression to calculate each distribution's IPT, or
+# returns an expression for calculating an arbitrary quantile.
+get_quantile_exprs <- function(v_dist) {
+  v_dist <- unname(vctrs::vec_data(v_dist))
+  p <- sym("p")
+  v_expr <- imap(v_dist, function(x, i) {
+    switch(
+      class(x)[1],
+      "dist_beta" = expr(stats::qbeta(p[!!i], !!x[["shape1"]], !!x[["shape2"]])),
+      "dist_binomial" = expr(stats::qbinom(p[!!i], !!x[["n"]], !!x[["p"]])),
+      "dist_cauchy" = expr(stats::qcauchy(p[!!i], !!x[["location"]], !!x[["scale"]])),
+      "dist_chisq" = expr(stats::qchisq(p[!!i], !!x[["df"]], !!x[["ncp"]])),
+      "dist_exponential" = expr(stats::qexp(p[!!i], !!x[["rate"]])),
+      "dist_f" = if(is.null(x[["ncp"]])) {
+        expr(stats::qf(p[!!i], !!x[["df1"]], !!x[["df2"]]))
+      } else {
+        expr(stats::qf(p[!!i], !!x[["df1"]], !!x[["df2"]], !!x[["ncp"]]))
+      },
+      "dist_gamma" = expr(stats::qgamma(p[!!i], !!x[["shape"]], !!x[["rate"]])),
+      "dist_geometric" = expr(stats::qgeom(p[!!i], !!x[["p"]])),
+      "dist_hypergeometric" = expr(stats::qhyper(p[!!i], !!x[["m"]], !!x[["n"]], !!x[["k"]])),
+      "dist_logistic" = expr(stats::dlogis(p[!!i], !!x[["l"]], !!x[["s"]])),
+      "dist_lognormal" = expr(stats::dlnorm(p[!!i], !!x[["mu"]], !!x[["sigma"]])),
+      "dist_negbin" = expr(stats::qnbinom(p[!!i], !!x[["n"]], !!x[["p"]])),
+      "dist_normal" = expr(stats::dnorm(p[!!i], !!x[["mu"]], !!x[["sigma"]])),
+      "dist_poisson" = expr(stats::qpois(p[!!i], !!x[["l"]])),
+      "dist_student_t" = {
+        if (is.null(x[["ncp"]])) {
+          expr(stats::qt(p[!!i], !!x[["df"]]) * !!x[["sigma"]] + !!x[["mu"]])
+        } else {
+          expr(stats::qt(p[!!i], !!x[["df"]], !!x[["ncp"]]) * !!x[["sigma"]] + !!x[["mu"]])
+        }
+      },
+      "dist_uniform" = expr(stats::qunif(p[!!i], !!x[["l"]], !!x[["u"]])),
+      "dist_weibull" = expr(stats::qweibull(p[!!i], !!x[["shape"]], !!x[["scale"]])),
+      expr(stats::quantile(!!x, p[!!i]))
+    )
+  })
+  fn_body <- expr(c(!!!v_expr))
+  new_function(
+    exprs(p = ),
+    fn_body
+  )
 }

@@ -3,10 +3,14 @@
 #' @param object An object of class `ernest_run`
 #' @param exponentiate Whether or not to exponentiate the fdsafnaslk
 #' @param normalise Whether or not to normalise the likelihood values
+#' @param ... Ignored.
+#' @param x A `summary.ernest_run` object
+#' @param digits The number of digits to output
 #'
 #' @returns A list with the following components
+#' @importFrom utils tail
 #' @export
-summary.ernest_run <- function(object, exponentiate = TRUE, normalise = FALSE) {
+summary.ernest_run <- function(object, exponentiate = TRUE, normalise = FALSE, ...) {
   run <- summarise_run_metrics(object, exponentiate, normalise)
   overalls <- if (exponentiate) {
     list(
@@ -38,7 +42,7 @@ summary.ernest_run <- function(object, exponentiate = TRUE, normalise = FALSE) {
 
 #' @rdname summary.ernest_run
 #' @export
-print.summary.ernest_run <- function(x, digits = max(3, getOption("digits") - 3)) {
+print.summary.ernest_run <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   fmt <- \(x) prettyunits::pretty_signif(x, digits = digits)
   cli::cli_h2("Nested Sampling Run Performed by Ernest")
 

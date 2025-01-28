@@ -6,7 +6,7 @@
 \alias{prior_transform.function}
 \title{Specify a prior transformation for nested sampling}
 \usage{
-prior_transform(x, ...)
+prior_transform(...)
 
 \method{prior_transform}{distribution}(..., .names = NULL)
 

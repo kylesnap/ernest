@@ -1,11 +1,10 @@
 #' Construct a ernest run object
-#'
-#' @return A validated ernest_run object
+#' @noRd
 new_ernest_run <- function(sampler, control, result) {
   sample <- add_live_points(result, sampler$prior_transform$names)
   integration <- compute_integral(sample$log_lik, sample$log_vol)
   samples <- sample$sample
-  samples$.log_weight <- integration$log_weight - tail(integration$log_z, 1)
+  samples$.log_weight <- integration$log_weight - utils::tail(integration$log_z, 1)
   progress <- tibble::tibble(
     "num_calls" = list_c(result$saved_calls),
     ".id" = list_c(result$saved_worst),
@@ -47,5 +46,31 @@ add_live_points <- function(result, names) {
     "log_lik" = log_lik,
     "log_vol" = log_vol
   )
+}
+
+#' Print a summary of the results
+#'
+#' @param x An `ernest` run
+#' @param digits The number of digits to output
+#' @param ... Ignored
+#'
+#' @returns The run object, invisibly.
+#' @importFrom utils tail
+#' @export
+print.ernest_run <- function(x, digits = max(3, getOption("digits") - 3), ...) {
+  cli::cli_h3("Nested Sampling Run with `ernest`")
+  num_points <- x$control$num_points
+  num_iter <- nrow(x$progress)
+  num_calls <- tail(x$progress$num_calls, 1)
+  log_z <- tail(x$integration$log_z, 1)
+  log_z_var <- tail(x$integration$log_z_var, 1)
+  cli::cli_dl(c(
+    "Live Points" = "{prettyunits::pretty_num(num_points)}",
+    "Iterations" = "{prettyunits::pretty_num(num_iter)}",
+    "Calls" = "{prettyunits::pretty_num(num_calls)}",
+    "Efficiency" = "{prettyunits::pretty_round(num_iter/num_calls * 100, digits = digits)}%",
+    "Log. Evidence" = "{prettyunits::pretty_signif(log_z, digits = digits)} \U00B1
+    {prettyunits::pretty_signif(log_z_var, digits = digits)}"
+  ))
 }
 

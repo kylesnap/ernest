@@ -4,7 +4,7 @@
 nested_sampling_impl <- function(sampler, control) {
   run_env <- new_environment(list(
     "live_u" = matrix(
-      runif(sampler$num_dim * control$num_points),
+      stats::runif(sampler$num_dim * control$num_points),
       nrow = control$num_points,
       ncol = sampler$num_dim
     ),

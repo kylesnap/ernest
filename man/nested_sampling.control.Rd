@@ -34,7 +34,7 @@ If left \code{NA}, the loop will run until another stopping criteria is met.}
 loop will run until another stopping criteria is met.}
 
 \item{dlogz}{Nested sampling will run until the remaining prior volume to
-the total evidence falls below this threshold. If set to \code{0}, the
+the total evidence falls below this threshold. If set to \code{NA}, the
 loop will run until another stopping criteria is met.}
 
 \item{verbose}{Whether to print progress updates to the terminal.}

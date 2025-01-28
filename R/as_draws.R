@@ -7,9 +7,14 @@ posterior::as_draws_rvars
 #' Transform to draws objects
 #'
 #' @param x The earnest run object
+#' @param resample_draws Whether to run `posterior::resample_draws` on the
+#' draws object, producing a sample from a resampled posterior.
+#' @param ... Additional arguments to pass to `posterior::resample_draws`
 #'
-#' @returns A `posterior::draws_matrix` object, which has classes
-#' `posterior::draws` and `matrix`
+#' @details When `resample_draws` is false, the draws object will be bound to
+#' the log importance weights from the nested sampling run.
+#'
+#' @returns An object of class `"draws_matrix"`.
 #'
 #' @export
 as_draws_matrix.ernest_run <- function(x, resample_draws = TRUE, ...) {
@@ -23,9 +28,14 @@ as_draws_matrix.ernest_run <- function(x, resample_draws = TRUE, ...) {
 #' Transform to draws objects
 #'
 #' @param x The earnest run object
+#' @param resample_draws Whether to run `posterior::resample_draws` on the
+#' draws object, producing a sample from a resampled posterior.
+#' @param ... Additional arguments to pass to `posterior::resample_draws`
 #'
-#' @returns A `posterior::draws_matrix` object, which has classes
-#' `posterior::draws` and `matrix`
+#' @details When `resample_draws` is false, the draws object will be bound to
+#' the log importance weights from the nested sampling run.
+#'
+#' @returns An object of class `"draws_matrix"`.
 #'
 #' @export
 as_draws_rvars.ernest_run <- function(x, resample_draws = TRUE, ...) {

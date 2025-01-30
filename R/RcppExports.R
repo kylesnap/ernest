@@ -5,8 +5,8 @@ propose_uniform_ <- function(log_lik, prior_transform, num_dim, min_lik, max_att
     .Call(`_ernest_propose_uniform_`, log_lik, prior_transform, num_dim, min_lik, max_attempts)
 }
 
-propose_uniform_cpp <- function(log_lik, prior_transform, num_dim, min_lik, max_attempts) {
-    .Call(`_ernest_propose_uniform_cpp`, log_lik, prior_transform, num_dim, min_lik, max_attempts)
+propose_rwcube_ <- function(log_lik, prior_transform, start, min_lik, steps, epsilon) {
+    .Call(`_ernest_propose_rwcube_`, log_lik, prior_transform, start, min_lik, steps, epsilon)
 }
 
 logaddexp <- function(x, y) {

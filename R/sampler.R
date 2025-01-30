@@ -31,9 +31,9 @@ new_sampler <- function(log_lik = NULL, prior_transform = NULL, num_dim = 0,
     cli::cli_abort("`prior_transform` must be an object of class 'prior_transform'.")
   }
   check_number_whole(num_dim, min = 0)
+  check_number_whole(max_attempts, min = 1)
   check_string(name)
   check_string(description)
-  check_number_whole(max_attempts, min = 1)
   check_character(subclass)
 
   elems <- list(

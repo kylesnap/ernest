@@ -15,7 +15,7 @@ nested_sampling <- function(...) {
 
 #' @rdname nested_sampling
 #' @export
-nested_sampling.function <- function(fn, prior_transform, sampler = unit_cube(), ...) {
+nested_sampling.function <- function(fn, prior_transform, sampler = rw_cube(), ...) {
   if (!inherits(prior_transform, "prior_transform")) {
     cli::cli_abort("`prior_transform` must be a `prior_transform` object.")
   }

@@ -30,7 +30,7 @@ Rcpp::List propose_uniform_(Rcpp::Function log_lik, Rcpp::Function prior_transfo
     }
     parameter = prior_transform(unit);
     log_lik_value = Rcpp::as<double>(log_lik(parameter));
-    if (log_lik_value > min_lik) {
+    if (log_lik_value >= min_lik) {
       return Rcpp::List::create(
         Rcpp::Named("unit") = unit,
         Rcpp::Named("parameter") = parameter,

@@ -23,4 +23,18 @@ test_that("2D Gaussian Likelihood", {
   result |> print()
   tail(result$progress) |> print()
   result |> summary() |> print()
+
+  result <- nested_sampling(
+    log_lik,
+    prior = prior_transform(
+      "X" = distributional::dist_uniform(-10, 10),
+      "Y" = distributional::dist_uniform(-10, 10)
+    ),
+    sampler = unif_cube(),
+    max_iter = 1000,
+    verbose = TRUE
+  )
+  result |> print()
+  tail(result$progress) |> print()
+  result |> summary() |> print()
 })

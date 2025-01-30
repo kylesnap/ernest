@@ -25,18 +25,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// propose_uniform_cpp
-/**  * Propose a new point uniformly from the unit hypercube and transform it using the prior.  *   * @param log_lik A function that computes the log-likelihood of a given parameter vector.  * @param prior_transform A function that transforms a point from the unit hypercube to the parameter space.  * @param num_dim The number of dimensions of the parameter space.  * @param min_lik The minimum log-likelihood value that is considered acceptable.  * @param max_attempts The maximum number of attempts to find a valid point.  *   * @return A list containing:  *   - "unit": The proposed point in the unit hypercube.  *   - "parameter": The transformed parameter vector.  *   - "log_lik": The log-likelihood value of the proposed parameter vector.  *   - "num_calls": The number of attempts made to find a valid point.  *   * @throws Rcpp::exception if a valid point could not be found after max_attempts tries.  */ Rcpp::List propose_uniform_cpp(Rcpp::Function log_lik, Rcpp::Function prior_transform, int num_dim, double min_lik, int max_attempts);
-RcppExport SEXP _ernest_propose_uniform_cpp(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP num_dimSEXP, SEXP min_likSEXP, SEXP max_attemptsSEXP) {
+// propose_rwcube_
+Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform, Rcpp::NumericVector start, double min_lik, int steps, double epsilon);
+RcppExport SEXP _ernest_propose_rwcube_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP startSEXP, SEXP min_likSEXP, SEXP stepsSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::Function >::type log_lik(log_likSEXP);
     Rcpp::traits::input_parameter< Rcpp::Function >::type prior_transform(prior_transformSEXP);
-    Rcpp::traits::input_parameter< int >::type num_dim(num_dimSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type start(startSEXP);
     Rcpp::traits::input_parameter< double >::type min_lik(min_likSEXP);
-    Rcpp::traits::input_parameter< int >::type max_attempts(max_attemptsSEXP);
-    rcpp_result_gen = Rcpp::wrap(propose_uniform_cpp(log_lik, prior_transform, num_dim, min_lik, max_attempts));
+    Rcpp::traits::input_parameter< int >::type steps(stepsSEXP);
+    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(propose_rwcube_(log_lik, prior_transform, start, min_lik, steps, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -55,7 +56,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_propose_uniform_", (DL_FUNC) &_ernest_propose_uniform_, 5},
-    {"_ernest_propose_uniform_cpp", (DL_FUNC) &_ernest_propose_uniform_cpp, 5},
+    {"_ernest_propose_rwcube_", (DL_FUNC) &_ernest_propose_rwcube_, 6},
     {"_ernest_logaddexp", (DL_FUNC) &_ernest_logaddexp, 2},
     {NULL, NULL, 0}
 };

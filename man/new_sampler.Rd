@@ -9,7 +9,8 @@ new_sampler(
   prior_transform = NULL,
   num_dim = 0,
   name = "Sampler Superclass",
-  description = "Powers LRPS within Ernest",
+  description = "Test Class",
+  max_attempts = 1e+06,
   ...,
   subclass = character()
 )
@@ -26,6 +27,9 @@ values in the unit hypercube values to the original parameter space.}
 \item{name}{A name for the given sampler.}
 
 \item{description}{A short description of the sampler.}
+
+\item{max_attempts}{The maximum number of attempts to find a valid point during
+region-based sampling, including during uniform sampling.}
 
 \item{...}{Name-value pairs for additional elements of samplers that
 subclass this sampler.}

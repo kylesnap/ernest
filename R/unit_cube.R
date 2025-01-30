@@ -11,14 +11,18 @@
 #' @return An object of class `unit_cube`, which inherits from `ernest_sampler`
 #'
 #' @export
-unit_cube <- function() {
-  new_unitcube_sampler()
+unit_cube <- function(max_attempts = 1e6) {
+  if (max_attempts < 1000) {
+    cli::cli_warning("max_attempts is less than 1000. This may result in poor sampling.")
+  }
+  new_unitcube_sampler(max_attempts = max_attempts)
 }
 
 new_unitcube_sampler <- function(log_lik = NULL, prior_transform = NULL,
                                  num_dim = 0,
                                  name = "Unit Cube Sampler",
                                  description = "Uses the unit hypercube to bound the set of live points.",
+                                 max_attempts = 1e6,
                                  ...) {
   obj <- new_sampler(
     log_lik = log_lik,
@@ -38,19 +42,5 @@ refresh_sampler.unit_cube <- function(sampler) {
 
 #' @noRd
 propose_live.unit_cube <- function(sampler, original, min_lik) {
-  num_call <- 0L
-  for (i in 1:1e6) {
-    proposed_unit <- stats::runif(sampler$num_dim)
-    proposed_point <- sampler$prior_transform$fn(proposed_unit)
-    proposed_ll <- sampler$log_lik(proposed_point)
-    if (proposed_ll > min_lik) {
-      return(list(
-        "unit" = proposed_unit,
-        "parameter" = proposed_point,
-        "log_lik" = proposed_ll,
-        "num_call" = num_call
-      ))
-    }
-  }
-  cli::cli_abort("Failed to find a valid point after 1e6 iterations.")
+  propose_uniform(sampler, min_lik)
 }

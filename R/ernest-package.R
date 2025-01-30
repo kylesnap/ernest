@@ -5,6 +5,8 @@
 #' @import rlang
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
+#' @importFrom Rcpp sourceCpp
+#' @importFrom RcppParallel RcppParallelLibs
 #' @importFrom tibble tibble
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end

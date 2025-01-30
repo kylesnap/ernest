@@ -1,7 +1,7 @@
-#include <cpp11.hpp>
-#include <Rmath.h>
+#include <Rcpp.h>
 
-[[cpp11::register]]
+// [[Rcpp::export]]
 double logaddexp(double x, double y) {
-  return logspace_add(x, y);
+  return R::logspace_add(x, y);
 }
+

@@ -4,7 +4,7 @@
 \alias{unit_cube}
 \title{Unit Cube Likelihood-Prior Sampling}
 \usage{
-unit_cube()
+unit_cube(max_attempts = 1e+06)
 }
 \value{
 An object of class \code{unit_cube}, which inherits from \code{ernest_sampler}

@@ -10,6 +10,8 @@
 #' @param num_dim An integer number of dimensions in the parameter space.
 #' @param name A name for the given sampler.
 #' @param description A short description of the sampler.
+#' @param max_attempts The maximum number of attempts to find a valid point during
+#' region-based sampling, including during uniform sampling.
 #' @param ... Name-value pairs for additional elements of samplers that
 #' subclass this sampler.
 #' @param subclass The subclasses of this sampler.
@@ -20,7 +22,8 @@
 #' @export
 new_sampler <- function(log_lik = NULL, prior_transform = NULL, num_dim = 0,
                         name = "Sampler Superclass",
-                        description = "Powers LRPS within Ernest",
+                        description = "Test Class",
+                        max_attempts = 1e6,
                         ...,
                         subclass = character())  {
   check_function(log_lik, allow_null = TRUE)
@@ -30,6 +33,7 @@ new_sampler <- function(log_lik = NULL, prior_transform = NULL, num_dim = 0,
   check_number_whole(num_dim, min = 0)
   check_string(name)
   check_string(description)
+  check_number_whole(max_attempts, min = 1)
   check_character(subclass)
 
   elems <- list(
@@ -37,7 +41,8 @@ new_sampler <- function(log_lik = NULL, prior_transform = NULL, num_dim = 0,
     prior_transform = prior_transform,
     num_dim = num_dim,
     name = name,
-    description = description
+    description = description,
+    max_attempts = max_attempts
   )
 
   elems <- if (!rlang::is_empty(list2(...))) {
@@ -130,20 +135,10 @@ propose_uniform <- function(sampler, min_lik) {
 #' @noRd
 #' @export
 propose_uniform.ernest_sampler <- function(sampler, min_lik) {
-  for (i in seq_len(1e6L)) {
-    unit <- stats::runif(sampler$num_dim)
-    parameter <- sampler$prior_transform$fn(unit)
-    log_lik <- sampler$log_lik(parameter)
-    if (log_lik > min_lik) {
-      return(list(
-        unit = unit,
-        parameter = parameter,
-        log_lik = log_lik,
-        num_calls = i
-      ))
-    }
-  }
-  cli::cli_abort("Could not find a valid point after 1 million tries.")
+  propose_uniform_(
+    sampler$log_lik, sampler$prior_transform$fn, sampler$num_dim,
+    min_lik, sampler$max_attempts
+  )
 }
 
 #' Propose a point by sampling from the bounded prior distribution.

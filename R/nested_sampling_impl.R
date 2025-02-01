@@ -109,14 +109,13 @@ nested_sampling_loop <- function(env, sampler, control) {
     }
 
     # Update the integral
-
     # numerically stable log([exp(logvol + dlv) - exp(logvol)]/2)
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
     log_wt <- logaddexp(new_worst_lik, worst_lik) + log_d_vol
     log_z <- logaddexp(log_z, log_wt)
     worst_lik <- new_worst_lik
 
-    # Copy over bad object
+    # Copy new over bad object
     env$live_u[worst, ] <- new$unit
     env$live_point[worst, ] <- new$parameter
     env$live_lik[worst] <- new$log_lik

@@ -1,10 +1,22 @@
 #' Construct a ernest run object
 #' @noRd
 new_ernest_run <- function(sampler, control, result) {
-  sample <- add_live_points(result, sampler$prior_transform$names)
-  integration <- compute_integral(sample$log_lik, sample$log_vol)
-  samples <- sample$sample
-  samples$.log_weight <- integration$log_weight - utils::tail(integration$log_z, 1)
+  live_indx <- order(result$live_lik)
+  log_liks <- c(list_c(result$saved_lik), result$live_lik[live_indx])
+  live_vols <- log1p((-1 - control$num_points)^(-1) * seq_len(control$num_points)) + result$log_vol
+  log_vols <- c(list_c(result$saved_vol), live_vols)
+
+  integration <- compute_integral(log_liks, log_vols)
+  points <- rbind(
+    do.call(rbind, result$saved_point),
+    result$live_point[order(result$live_lik), ]
+  )
+  colnames(points) <- sampler$prior_transform$names
+  samples <- tibble::tibble(
+    ".ids" = c(list_c(result$saved_worst), live_indx),
+    tibble::as_tibble(points),
+    ".log_weight" = integration$log_weight - tail(integration$log_z, 1)
+  )
   progress <- tibble::tibble(
     "num_calls" = list_c(result$saved_calls),
     ".id" = list_c(result$saved_worst),
@@ -21,30 +33,6 @@ new_ernest_run <- function(sampler, control, result) {
       "control" = control
     ),
     class = "ernest_run"
-  )
-}
-
-add_live_points <- function(result, names) {
-  n <- nrow(result$live_point)
-
-  live_log_vols <- log(1 - seq_len(n) / (n + 1)) + result$log_vol
-  log_vol <- c(list_c(result$saved_vol), live_log_vols)
-
-  log_lik <- c(list_c(result$saved_lik), sort(result$live_lik))
-  ids <- c(list_c(result$saved_worst), seq_len(n)[order(result$live_lik)])
-
-  points <- rbind(
-    do.call(rbind, result$saved_point),
-    result$live_point[order(result$live_lik), ]
-  )
-  colnames(points) <- names
-  list(
-    "sample" = tibble::tibble(
-      ".ids" = ids,
-      tibble::as_tibble(points)
-    ),
-    "log_lik" = log_lik,
-    "log_vol" = log_vol
   )
 }
 

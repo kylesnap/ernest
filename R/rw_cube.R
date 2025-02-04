@@ -42,11 +42,13 @@ new_rwcube_sampler <- function(log_lik = NULL, prior_transform = NULL,
   obj
 }
 
+#' @export
 #' @noRd
 refresh_sampler.rw_cube <- function(sampler) {
   do.call(new_rwcube_sampler, as.list(sampler))
 }
 
+#' @export
 #' @noRd
 propose_live.rw_cube <- function(sampler, original, min_lik) {
   propose_rwcube_(

@@ -16,25 +16,31 @@
 Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform,
                             Rcpp::NumericVector start, double min_lik,
                             int steps, double epsilon) {
-  Rcpp::NumericVector cur_unit(start), proposed_unit(start.length());
-  Rcpp::NumericVector cur_param(prior_transform(cur_unit)), proposed_param(start.length());
-  double cur_log_lik = Rcpp::as<double>(log_lik(cur_param));
+  // Init. the returned list objects with defaults set with the seed
+  Rcpp::NumericVector cur_unit = Rcpp::clone(start);
+  Rcpp::NumericVector cur_parameter = prior_transform(cur_unit);
+  double cur_log_lik = Rcpp::as<double>(log_lik(cur_parameter));
+  double orig_log_lik = cur_log_lik;
+
+  // Init. empty proposal objects
+  Rcpp::NumericVector nxt_unit(start.length());
+  Rcpp::NumericVector nxt_parameter(start.length());
+
   int accept = 0;
   int reject = 0;
-
   for (int stp = 0; stp < steps; ++stp) {
-    auto cur_iter = cur_unit.begin();
-    for (auto &el : proposed_unit) {
-      el = (*cur_iter) + epsilon * R::runif(-1, 1);
+    // Nxt Unit = Cur Unit + Epsilon * Runif(-1, 1)
+    nxt_unit = Rcpp::clone(cur_unit);
+    for (auto &el : nxt_unit) {
+      el += epsilon * R::runif(-1, 1);
       el = (el < 0.0) ? 0.0 : (el > 1.0) ? 1.0 : el;
-      ++cur_iter;
     }
-    proposed_param = prior_transform(proposed_unit);
-    double new_logl = Rcpp::as<double>(log_lik(proposed_param));
-    if (new_logl >= min_lik) {
-      cur_unit = proposed_unit;
-      cur_param = proposed_param;
-      cur_log_lik = new_logl;
+    nxt_parameter = prior_transform(nxt_unit);
+    double nxt_log_lik = Rcpp::as<double>(log_lik(nxt_parameter));
+    if (nxt_log_lik >= min_lik) {
+      cur_unit = std::move(nxt_unit);
+      cur_parameter = std::move(nxt_parameter);
+      cur_log_lik = nxt_log_lik;
       ++accept;
     } else {
       ++reject;
@@ -45,7 +51,7 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
 
   return Rcpp::List::create(
     Rcpp::Named("unit") = cur_unit,
-    Rcpp::Named("parameter") = cur_param,
+    Rcpp::Named("parameter") = cur_parameter,
     Rcpp::Named("log_lik") = cur_log_lik,
     Rcpp::Named("num_calls") = steps
   );

@@ -29,7 +29,6 @@ test_that("Random seeding works for propose_live()", {
     prior_transform = flat$prior_transform,
     num_dim = flat$prior_transform$dim
   )
-
   seed_values <- matrix(runif(1000 * 2), nrow = 1000, ncol = 2)
 
   mat_a <- matrix(nrow = 1000, ncol = 2)

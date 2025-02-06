@@ -1,6 +1,6 @@
 #' Perform Nested Sampling
 #'
-#' @param fn A function returning the log likelihood of a model given some parameters.
+#' @param x A function returning the log likelihood of a model given some parameters.
 #' @param prior_transform The prior distribution for the parameters, provided as
 #' a list of `prior_transform` objects.
 #' @param sampler The likelihood-restricted prior sampler to use.
@@ -9,19 +9,19 @@
 #'
 #' @returns Lots of stuff about the run.
 #' @export
-nested_sampling <- function(...) {
+nested_sampling <- function(x, ...) {
   UseMethod("nested_sampling")
 }
 
 #' @rdname nested_sampling
 #' @export
-nested_sampling.function <- function(fn, prior_transform, sampler = rw_cube(), ...) {
+nested_sampling.function <- function(x, prior_transform, sampler = rw_cube(), ...) {
   if (!inherits(prior_transform, "prior_transform")) {
     cli::cli_abort("`prior_transform` must be a `prior_transform` object.")
   }
   sampler <- update_sampler(
     sampler,
-    log_lik = fn,
+    log_lik = x,
     prior_transform = prior_transform,
     num_dim = prior_transform$dim
   )

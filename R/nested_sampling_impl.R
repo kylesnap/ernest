@@ -10,15 +10,15 @@ nested_sampling_impl <- function(sampler, control) {
     ),
     "live_point" = matrix(nrow = control$num_points, ncol = sampler$num_dim),
     "live_lik" = rep(NA, control$num_points),
-    "live_copy" = rep(0, control$num_points),
+
     "saved_point" = list(),
-    "saved_wt" = list(),
     "saved_vol" = list(),
     "saved_lik" = list(),
+    "saved_index" = list(),
     "saved_calls" = list(),
-    "saved_worst" = list(),
-    "saved_copy" = list(),
-    "saved_bound" = list()
+    "saved_accept" = list(),
+    "saved_parent" = list(),
+    "saved_sampler" = list()
   ))
 
   for (i in 1:control$num_points) {
@@ -32,13 +32,14 @@ nested_sampling_impl <- function(sampler, control) {
 
   results <- rlang::env_get_list(
     run_env,
-    c("live_point", "live_lik", "saved_point", "saved_wt", "saved_vol",
-    "saved_lik", "saved_calls", "saved_worst", "saved_copy", "saved_bound")
+    c("live_point", "live_lik", "saved_point", "saved_vol",
+      "saved_lik", "saved_index", "saved_calls", "saved_accept",
+      "saved_parent", "saved_sampler")
   )
   c(results, list(
     "log_z" = output$log_z,
     "log_vol" = output$log_vol,
-    "num_iter" = output$num_iter,
+    "iter" = output$iter,
     "time_elapsed" = difftime(t1, t0, units = "secs")
   ))
 }
@@ -51,25 +52,26 @@ nested_sampling_loop <- function(env, sampler, control) {
   d_log_z <- 1.e300
   worst_lik <- -1.e300
 
-  num_iter <- 0L
-  num_call <- 0L
-  num_update <- 0L
+  iter <- 0L
+  calls <- 0L
+  sampler_iter <- 0L
+
   since_update <- 0L
   unif_proposal <- if (control$first_update == 0) FALSE else TRUE
 
   if (control$verbose) cli::cli_progress_bar(
     "Nested Sampling",
     type = "custom",
-    format = "{cli::pb_spin} Performing Nested Sampling | Iter: {cli::pb_current} | Calls: {num_call} | Remaining ln(z) {prettyunits::pretty_signif(d_log_z, 3)} [{cli::pb_elapsed}]",
-    format_done = "{cli::symbol$tick} Nested Sampling Complete | Iter: {num_iter} | Calls: {num_call} | ln(z) = {log_z}",
-    format_failed = "{cli::symbol$cross} Nested Sampling Failed | Iter: {num_iter} | Calls: {num_call}",
+    format = "{cli::pb_spin} Performing Nested Sampling | Iter: {cli::pb_current} | Calls: {calls} | Remaining ln(z) {prettyunits::pretty_signif(d_log_z, 3)} [{cli::pb_elapsed}]",
+    format_done = "{cli::symbol$tick} Nested Sampling Complete | Iter: {iter} | Calls: {calls} | ln(z) = {log_z}",
+    format_failed = "{cli::symbol$cross} Nested Sampling Failed | Iter: {iter} | Calls: {calls}",
     total = control$max_iter
   )
 
-  for (num_iter in 1L:control$max_iter) {
+  for (iter in 1L:control$max_iter) {
     # Check stopping conditions
     d_log_z <- logaddexp(0, max(env$live_lik) + log_vol - log_z)
-    if (num_call > control$max_call) {
+    if (calls > control$max_call) {
       if (control$verbose) cli::cli_progress_done()
       break
     }
@@ -87,14 +89,16 @@ nested_sampling_loop <- function(env, sampler, control) {
     log_vol <- log_vol - d_log_vol
 
     # Update the sampler
-    if (unif_proposal && num_call > control$first_update) {
+    if (unif_proposal && calls > control$first_update) {
       unif_proposal <- FALSE
+      sampler_iter <- 1L
       since_update <- 0L
     }
-    if (since_update == 0 || since_update >= control$update_interval) {
-      sampler <- update_bounds(sampler, env$live_lik)
-      num_update <- num_update + 1L
-      since_update <- 0L
+    if (!inherits_any(sampler, c("unif_cube", "rw_cube")) &&
+        (since_update == 0 || since_update >= control$update_interval)) {
+        sampler <- update_bounds(sampler, env$live_lik)
+        since_update <- 0L
+        num_update <- sampler_iter + 1L
     }
 
     # Get a new particle
@@ -108,7 +112,7 @@ nested_sampling_loop <- function(env, sampler, control) {
     } else {
       propose_live(sampler, env$live_u[copy, ], new_worst_lik)
     }
-    num_call <- num_call + new$num_call
+    calls <- calls + new$num_calls
 
     # Update the integral
     # Numerically stable log([exp(logvol + dlv) - exp(logvol)]/2)
@@ -117,14 +121,14 @@ nested_sampling_loop <- function(env, sampler, control) {
     log_z <- logaddexp(log_z, log_wt)
     worst_lik <- new_worst_lik
 
-    env$saved_point[[num_iter]] <- env$live_point[worst, ]
-    env$saved_wt[[num_iter]] <- log_wt
-    env$saved_vol[[num_iter]] <- log_vol
-    env$saved_lik[[num_iter]] <- worst_lik
-    env$saved_calls[[num_iter]] <- num_call
-    env$saved_worst[[num_iter]] <- worst
-    env$saved_copy[[num_iter]] <- copy
-    env$saved_bound[[num_iter]] <- num_update
+    env$saved_point[[iter]] <- env$live_point[worst, ]
+    env$saved_vol[[iter]] <- log_vol
+    env$saved_lik[[iter]] <- worst_lik
+    env$saved_index[[iter]] <- worst
+    env$saved_calls[[iter]] <- new$num_calls
+    env$saved_accept[[iter]] <- new$accept
+    env$saved_parent[[iter]] <- copy
+    env$saved_sampler[[iter]] <- sampler_iter
 
     # Copy new over bad object
     env$live_u[worst, ] <- new$unit
@@ -137,6 +141,6 @@ nested_sampling_loop <- function(env, sampler, control) {
     "sampler" = sampler,
     "log_z" = log_z,
     "log_vol" = log_vol,
-    "num_iter" = num_iter
+    "iter" = iter
   )
 }

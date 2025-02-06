@@ -20,22 +20,31 @@ new_ernest_run <- function(sampler, control, result) {
   }
   colnames(points) <- sampler$prior_transform$names
   samples <- tibble::tibble(
-    ".ids" = c(list_c(result$saved_worst), live_indx),
+    ".id" = c(list_c(result$saved_index), live_indx),
     tibble::as_tibble(points),
     ".log_weight" = integration$log_weight - tail(integration$log_z, 1)
   )
+
+  iter <- c(1L:length(result$saved_index), rep(length(result$saved_index), control$num_points))
   progress <- tibble::tibble(
-    "num_calls" = list_c(result$saved_calls),
-    ".id" = list_c(result$saved_worst),
-    "parent_id" = list_c(result$saved_copy),
-    "bound_iter" = list_c(result$saved_bound)
+    "iter" = as.integer(iter),
+    "worst_id" = c(list_c(result$saved_index), live_indx),
+    "calls" = c(list_c(result$saved_calls), rep(0L, control$num_points)),
+    "num_live" = c(
+      rep(as.integer(control$num_points), length(result$saved_index)),
+      control$num_points:1L
+    ),
+    "accept" = c(list_c(result$saved_calls), rep(0L, control$num_points)),
+    "replacement_id" = c(list_c(result$saved_parent), rep(0L, control$num_points)),
+    "sampler_iter" = c(list_c(result$saved_sampler), rep(0L, control$num_points))
   )
+
   structure(
     list(
-      "sampler" = sampler,
       "samples" = samples,
       "integration" = integration,
       "progress" = progress,
+      "ernest_sampler" = sampler,
       "time" = result$time,
       "control" = control
     ),
@@ -55,17 +64,20 @@ new_ernest_run <- function(sampler, control, result) {
 print.ernest_run <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   cli::cli_h3("Nested Sampling Run with `ernest`")
   num_points <- x$control$num_points
-  num_iter <- nrow(x$progress)
-  num_calls <- tail(x$progress$num_calls, 1)
+  num_iter <- tail(x$progress$iter, 1)
+  num_calls <- sum(x$progress$calls)
+  if (is_empty(x$integration$log_z)) {
+    cli::cli_warning("No evidence has been computed.")
+    return(invisible(x))
+  }
   log_z <- tail(x$integration$log_z, 1)
-  log_z_se <- sqrt(tail(x$integration$log_z_var, 1))
+  log_z_err <- sqrt(tail(x$integration$log_z_var, 1))
   cli::cli_dl(c(
     "Live Points" = "{prettyunits::pretty_num(num_points)}",
     "Iterations" = "{prettyunits::pretty_num(num_iter)}",
     "Calls" = "{prettyunits::pretty_num(num_calls)}",
-    "Efficiency" = "{prettyunits::pretty_round(num_iter/num_calls * 100, digits = digits)}%",
     "Log. Evidence" = "{prettyunits::pretty_signif(log_z, digits = digits)} \U00B1
-    {prettyunits::pretty_signif(log_z_se, digits = digits)}"
+    {prettyunits::pretty_signif(log_z_err, digits = digits)}"
   ))
 }
 

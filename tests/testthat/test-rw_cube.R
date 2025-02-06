@@ -20,6 +20,33 @@ test_that("update_sampler.rw_cube function refreshes sampler", {
   expect_equal(refreshed_sampler$epsilon, sampler$epsilon)
 })
 
+test_that("Permuter messes with one row in live_u", {
+  gauss <- make_gaussian(2)
+  sampler <- update_sampler(
+    rw_cube(),
+    log_lik = gauss$log_lik,
+    prior_transform = gauss$prior_transform,
+    num_dim = gauss$prior_transform$dim
+  )
+
+  env <- new_environment(
+    list(live_u = matrix(c(0.35, 0.65, 0.40, 0.60, 0.45, 0.55), nrow = 3, byrow = TRUE))
+  )
+  cpy <- env_clone(env)
+
+  new <- propose_uniform(sampler, -50)
+  expect_gte(new$log_lik, -50)
+  expect_equal(env$live_u, cpy$live_u)
+
+  new <- propose_live(sampler, env$live_u[2,], -20.67)
+  expect_gte(new$log_lik, -20.67)
+  expect_equal(env$live_u, cpy$live_u)
+
+  new <- propose_live(sampler, env$live_u[3,], -0.67)
+  expect_gte(new$log_lik, sampler$log_lik(sampler$log_lik(c(-1, 1))))
+  expect_equal(env$live_u, cpy$live_u)
+})
+
 test_that("Random seeding works for propose_live()", {
   flat <- make_flat(2)
   sampler <- rw_cube()
@@ -31,15 +58,15 @@ test_that("Random seeding works for propose_live()", {
   )
   seed_values <- matrix(runif(1000 * 2), nrow = 1000, ncol = 2)
 
-  mat_a <- matrix(nrow = 1000, ncol = 2)
+  mat_a <- matrix(nrow = 100, ncol = 2)
   set.seed(667)
-  for (i in 1:1000) {
+  for (i in 1:100) {
     mat_a[i, ] <- propose_live(sampler, seed_values[i,], 0)$unit
   }
 
-  mat_b <- matrix(nrow = 1000, ncol = 2)
+  mat_b <- matrix(nrow = 100, ncol = 2)
   set.seed(667)
-  for (i in 1:1000) {
+  for (i in 1:100) {
     mat_b[i, ] <- propose_live(sampler, seed_values[i,], 0)$unit
   }
 

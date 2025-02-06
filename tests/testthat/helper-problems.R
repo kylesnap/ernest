@@ -16,7 +16,8 @@ make_gaussian <- function(num_dim, corr = 0.95) {
   logz_truth <- num_dim * -log(2 * 10)
 
   list(
-    log_lik = function(x) -0.5 * ((x - mean) %*% precision %*% (x - mean)) + log_norm,
+    log_lik = function(x) -0.5 *
+      as.double((x - mean) %*% precision %*% (x - mean)) + log_norm,
     prior_transform = prior_transform(
       \(x) qunif(x, -10, 10),
       num_dim,

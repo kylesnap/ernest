@@ -9,6 +9,32 @@
 #' @importFrom utils tail
 #' @noRd
 compute_integral <- function(log_lik, log_vol) {
+  if (length(log_lik) != length(log_vol)) {
+    cli::cli_abort("Fatal error: log_lik and log_vol must have the same length.")
+  }
+  return_partial <- if (is.unsorted(log_lik)) {
+    cli::cli_warn("`log_lik` should be a vector of log-likelihoods in descending order. `ernest` will not return the final evidence integral estimation.")
+    TRUE
+  } else if (is.unsorted(rev(log_vol), strictly = TRUE)) {
+    cli::cli_warn("`log_vol` should be a vector of log-volumes in ascending order. `ernest` will not return the final evidence integral estimation.")
+    TRUE
+  } else {
+    FALSE
+  }
+
+  if (return_partial) {
+    return(
+      tibble::tibble(
+        "log_lik" = log_lik,
+        "log_vol" = log_vol,
+        "log_weight" = NA,
+        "log_z" = NA,
+        "log_z_var" = NA,
+        "information" = NA
+      )
+    )
+  }
+
   pad_log_lik <- c(-1e300, log_lik)
   d_log_vol <- diff(c(0, log_vol))
   log_d_vol <- log_vol - d_log_vol + log(-expm1(d_log_vol))

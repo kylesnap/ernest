@@ -61,8 +61,9 @@ nested_sampling_loop <- function(env, sampler, control) {
     "Nested Sampling",
     type = "custom",
     format = "{cli::pb_spin} Performing Nested Sampling | Iter: {cli::pb_current} | Calls: {num_call} | Remaining ln(z) {prettyunits::pretty_signif(d_log_z, 3)} [{cli::pb_elapsed}]",
-    total = control$max_iter,
-    clear = FALSE
+    format_done = "{cli::symbol$tick} Nested Sampling Complete | Iter: {num_iter} | Calls: {num_call} | ln(z) = {log_z}",
+    format_failed = "{cli::symbol$cross} Nested Sampling Failed | Iter: {num_iter} | Calls: {num_call}",
+    total = control$max_iter
   )
 
   for (num_iter in 1L:control$max_iter) {
@@ -107,20 +108,14 @@ nested_sampling_loop <- function(env, sampler, control) {
     } else {
       propose_live(sampler, env$live_u[copy, ], new_worst_lik)
     }
+    num_call <- num_call + new$num_call
 
     # Update the integral
-    # numerically stable log([exp(logvol + dlv) - exp(logvol)]/2)
+    # Numerically stable log([exp(logvol + dlv) - exp(logvol)]/2)
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
     log_wt <- logaddexp(new_worst_lik, worst_lik) + log_d_vol
     log_z <- logaddexp(log_z, log_wt)
     worst_lik <- new_worst_lik
-
-    # Copy new over bad object
-    env$live_u[worst, ] <- new$unit
-    env$live_point[worst, ] <- new$parameter
-    env$live_lik[worst] <- new$log_lik
-    env$live_copy[worst] <- copy
-    num_call <- num_call + new$num_call
 
     env$saved_point[[num_iter]] <- env$live_point[worst, ]
     env$saved_wt[[num_iter]] <- log_wt
@@ -128,9 +123,16 @@ nested_sampling_loop <- function(env, sampler, control) {
     env$saved_lik[[num_iter]] <- worst_lik
     env$saved_calls[[num_iter]] <- num_call
     env$saved_worst[[num_iter]] <- worst
-    env$saved_copy[[num_iter]] <- env$live_copy[worst]
+    env$saved_copy[[num_iter]] <- copy
     env$saved_bound[[num_iter]] <- num_update
+
+    # Copy new over bad object
+    env$live_u[worst, ] <- new$unit
+    env$live_point[worst, ] <- new$parameter
+    env$live_lik[worst] <- new$log_lik
+    env$live_copy[worst] <- copy
   }
+
   list(
     "sampler" = sampler,
     "log_z" = log_z,

@@ -26,18 +26,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // propose_rwcube_
-Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform, Rcpp::NumericVector start, double min_lik, int steps, double epsilon);
-RcppExport SEXP _ernest_propose_rwcube_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP startSEXP, SEXP min_likSEXP, SEXP stepsSEXP, SEXP epsilonSEXP) {
+Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform, Rcpp::NumericVector original, double min_lik, int max_steps, double epsilon);
+RcppExport SEXP _ernest_propose_rwcube_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP originalSEXP, SEXP min_likSEXP, SEXP max_stepsSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::Function >::type log_lik(log_likSEXP);
     Rcpp::traits::input_parameter< Rcpp::Function >::type prior_transform(prior_transformSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type start(startSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type original(originalSEXP);
     Rcpp::traits::input_parameter< double >::type min_lik(min_likSEXP);
-    Rcpp::traits::input_parameter< int >::type steps(stepsSEXP);
+    Rcpp::traits::input_parameter< int >::type max_steps(max_stepsSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(propose_rwcube_(log_lik, prior_transform, start, min_lik, steps, epsilon));
+    rcpp_result_gen = Rcpp::wrap(propose_rwcube_(log_lik, prior_transform, original, min_lik, max_steps, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }

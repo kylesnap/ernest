@@ -47,5 +47,14 @@ refresh_sampler.unif_cube <- function(sampler) {
 
 #' @noRd
 propose_live.unif_cube <- function(sampler, original, min_lik) {
-  propose_uniform(sampler, min_lik)
+  res <- propose_uniform(sampler, min_lik)
+  if (is_empty(res)) {
+    res <- list(
+      "unit" = original,
+      "parameter" = sampler$prior_transform$fn(original),
+      "num_call" = sampler$max_attempts
+    )
+    res$log_lik <- sampler$log_lik(res$parameter)
+  }
+  return(res)
 }

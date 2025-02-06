@@ -51,8 +51,9 @@ refresh_sampler.rw_cube <- function(sampler) {
 #' @export
 #' @noRd
 propose_live.rw_cube <- function(sampler, original, min_lik) {
-  propose_rwcube_(
+  res <- propose_rwcube_(
     sampler$log_lik, sampler$prior_transform$fn, original,
     min_lik, sampler$steps, sampler$epsilon
   )
+  res
 }

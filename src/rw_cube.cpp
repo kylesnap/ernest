@@ -1,5 +1,7 @@
 #include <Rcpp.h>
 
+#include "utils.hpp"
+
 /**
  * Propose new parameters using a random walk within a unit cube.
  *
@@ -14,45 +16,41 @@
  */
 // [[Rcpp::export]]
 Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform,
-                            Rcpp::NumericVector start, double min_lik,
-                            int steps, double epsilon) {
-  // Init. the returned list objects with defaults set with the seed
-  Rcpp::NumericVector cur_unit = Rcpp::clone(start);
-  Rcpp::NumericVector cur_parameter = prior_transform(cur_unit);
-  double cur_log_lik = Rcpp::as<double>(log_lik(cur_parameter));
-  double orig_log_lik = cur_log_lik;
-
-  // Init. empty proposal objects
-  Rcpp::NumericVector nxt_unit(start.length());
-  Rcpp::NumericVector nxt_parameter(start.length());
+                            Rcpp::NumericVector original, double min_lik,
+                            int max_steps, double epsilon) {
+  Rcpp::NumericVector cur_unit = Rcpp::clone(original);
+  Rcpp::NumericVector cur_param = prior_transform(cur_unit);
+  Rcpp::NumericVector new_unit(original.size());
+  Rcpp::NumericVector new_param(original.size());
+  double cur_loglik = Rcpp::as<double>(log_lik(cur_param));
 
   int accept = 0;
   int reject = 0;
-  for (int stp = 0; stp < steps; ++stp) {
-    // Nxt Unit = Cur Unit + Epsilon * Runif(-1, 1)
-    nxt_unit = Rcpp::clone(cur_unit);
-    for (auto &el : nxt_unit) {
-      el += epsilon * R::runif(-1, 1);
-      el = (el < 0.0) ? 0.0 : (el > 1.0) ? 1.0 : el;
-    }
-    nxt_parameter = prior_transform(nxt_unit);
-    double nxt_log_lik = Rcpp::as<double>(log_lik(nxt_parameter));
-    if (nxt_log_lik >= min_lik) {
-      cur_unit = std::move(nxt_unit);
-      cur_parameter = std::move(nxt_parameter);
-      cur_log_lik = nxt_log_lik;
-      ++accept;
+
+  for (int step = 0; step < max_steps; ++step) {
+    Ernest::offset_sphere(new_unit, cur_unit, epsilon);
+    new_param = prior_transform(new_unit);
+    double new_loglik = Rcpp::as<double>(log_lik(new_param));
+    if (new_loglik >= min_lik) {
+      cur_unit = Rcpp::clone(new_unit);
+      cur_param = new_param;
+      cur_loglik = new_loglik;
+      accept += 1;
     } else {
-      ++reject;
+      reject += 1;
     }
-    epsilon = accept > reject ? epsilon * exp(1.0 / accept) :
-      accept < reject ? epsilon / exp(1.0 / reject) : epsilon;
+    if (accept > reject) {
+      epsilon *= std::exp(1.0 / accept);
+    } else if (accept < reject) {
+      epsilon /= std::exp(1.0 / reject);
+    }
   }
 
   return Rcpp::List::create(
     Rcpp::Named("unit") = cur_unit,
-    Rcpp::Named("parameter") = cur_parameter,
-    Rcpp::Named("log_lik") = cur_log_lik,
-    Rcpp::Named("num_calls") = steps
+    Rcpp::Named("parameter") = cur_param,
+    Rcpp::Named("log_lik") = cur_loglik,
+    Rcpp::Named("num_calls") = max_steps,
+    Rcpp::Named("accept") = accept
   );
 }

@@ -7,10 +7,17 @@ new_ernest_run <- function(sampler, control, result) {
   log_vols <- c(list_c(result$saved_vol), live_vols)
 
   integration <- compute_integral(log_liks, log_vols)
-  points <- rbind(
-    do.call(rbind, result$saved_point),
-    result$live_point[order(result$live_lik), ]
-  )
+  points <- if (sampler$num_dim == 1L) {
+    tibble::as_tibble_col(
+      c(list_c(result$saved_point), result$live_point[order(result$live_lik), ]),
+      column_name = sampler$prior_transform$names
+    )
+  } else {
+    rbind(
+      do.call(rbind, result$saved_point),
+      result$live_point[order(result$live_lik), ]
+    )
+  }
   colnames(points) <- sampler$prior_transform$names
   samples <- tibble::tibble(
     ".ids" = c(list_c(result$saved_worst), live_indx),
@@ -51,14 +58,14 @@ print.ernest_run <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   num_iter <- nrow(x$progress)
   num_calls <- tail(x$progress$num_calls, 1)
   log_z <- tail(x$integration$log_z, 1)
-  log_z_var <- tail(x$integration$log_z_var, 1)
+  log_z_se <- sqrt(tail(x$integration$log_z_var, 1))
   cli::cli_dl(c(
     "Live Points" = "{prettyunits::pretty_num(num_points)}",
     "Iterations" = "{prettyunits::pretty_num(num_iter)}",
     "Calls" = "{prettyunits::pretty_num(num_calls)}",
     "Efficiency" = "{prettyunits::pretty_round(num_iter/num_calls * 100, digits = digits)}%",
     "Log. Evidence" = "{prettyunits::pretty_signif(log_z, digits = digits)} \U00B1
-    {prettyunits::pretty_signif(log_z_var, digits = digits)}"
+    {prettyunits::pretty_signif(log_z_se, digits = digits)}"
   ))
 }
 

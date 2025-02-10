@@ -7,17 +7,11 @@ new_ernest_run <- function(sampler, control, result) {
   log_vols <- c(list_c(result$saved_vol), live_vols)
 
   integration <- compute_integral(log_liks, log_vols)
-  points <- if (sampler$num_dim == 1L) {
-    tibble::as_tibble_col(
-      c(list_c(result$saved_point), result$live_point[order(result$live_lik), ]),
-      column_name = sampler$prior_transform$names
-    )
-  } else {
-    rbind(
-      do.call(rbind, result$saved_point),
-      result$live_point[order(result$live_lik), ]
-    )
-  }
+  points <- list_to_matrix(
+    result$saved_point,
+    result$live_point[order(result$live_lik), ],
+    sampler$num_dim
+  )
   colnames(points) <- sampler$prior_transform$names
   samples <- tibble::tibble(
     ".id" = c(list_c(result$saved_index), live_indx),
@@ -38,6 +32,14 @@ new_ernest_run <- function(sampler, control, result) {
     "replacement_id" = c(list_c(result$saved_parent), rep(0L, control$num_points)),
     "sampler_iter" = c(list_c(result$saved_sampler), rep(0L, control$num_points))
   )
+  cands <- do.call(rbind, result$saved_cand)
+  colnames(cands) <- paste0("cand_", sampler$prior_transform$names)
+  new_points <- do.call(rbind, result$saved_new)
+  colnames(new_points) <- paste0("new_", sampler$prior_transform$names)
+  evolutions <- tibble::tibble(
+    tibble::as_tibble(cands),
+    tibble::as_tibble(new_points)
+  )
 
   structure(
     list(
@@ -46,6 +48,7 @@ new_ernest_run <- function(sampler, control, result) {
       "progress" = progress,
       "ernest_sampler" = sampler,
       "time" = result$time,
+      "evolutions" = evolutions,
       "control" = control
     ),
     class = "ernest_run"
@@ -81,3 +84,17 @@ print.ernest_run <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   ))
 }
 
+# Merge a list and a matrix into a single matrix
+list_to_matrix <- function(lst_a, mat_b, inner_dim) {
+  if (inner_dim == 1) {
+    tibble::as_tibble_col(
+      c(list_c(lst_a), mat_b),
+      column_name = "X"
+    )
+  } else {
+    rbind(
+      do.call(rbind, lst_a),
+      mat_b
+    )
+  }
+}

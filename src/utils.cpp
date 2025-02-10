@@ -30,13 +30,7 @@ Rcpp::NumericVector Ernest::runif_sphere(int n) {
 
 // PURPOSE: Offset point `vec` by a point randomly selected from the unit sphere
 // IN: &vec, the vector to offset, &epsilon, the shift length
-void Ernest::offset_sphere(Rcpp::NumericVector dest, Rcpp::NumericVector src, double epsilon) {
+bool Ernest::offset_sphere(Rcpp::NumericVector dest, Rcpp::NumericVector src, const double epsilon) {
   dest = src + epsilon * runif_sphere(src.size());
-  for (auto &d : dest) {
-    if (std::abs(std::fmod(d, 2)) < 1) {
-      d = std::abs(std::fmod(d, 1));
-    } else {
-      d = 1 - std::abs(std::fmod(d, 1));
-    }
-  }
+  return is_true(any(dest < 0)) || is_true(any(dest > 1));
 }

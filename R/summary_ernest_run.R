@@ -15,7 +15,6 @@ summary.ernest_run <- function(object, exponentiate = TRUE, normalise = FALSE, .
   overalls <- if (exponentiate) {
     list(
       "evidence" = tail(run$evidence, 1),
-      "evidence_err" = sqrt(tail(run$evidence.var, 1))
     )
   } else {
     list(
@@ -53,7 +52,7 @@ print.summary.ernest_run <- function(x, digits = max(3, getOption("digits") - 3)
   cli::cli_h3("Integration Results:")
   cli::cli_dl()
   if (x$exponentiated) {
-    cli::cli_li(c(Evidence = "{fmt(x$evidence_)} \U00B1 {fmt(x$evidence_err)}"))
+    cli::cli_li(c(Evidence = "{fmt(x$evidence_)}"))
   } else {
     cli::cli_li(c("Log Evidence" = "{fmt(x$log_z)} \U00B1 {fmt(x$log_z_err)}"))
   }

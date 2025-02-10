@@ -26,9 +26,21 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
 
   int accept = 0;
   int reject = 0;
-
-  for (int step = 0; step < max_steps; ++step) {
-    Ernest::offset_sphere(new_unit, cur_unit, epsilon);
+  int step = 0;
+  while (step < max_steps || accept < 1) {
+    // Update the step size
+    if (accept > reject) {
+      epsilon *= std::exp(1.0 / accept);
+    } else if (accept < reject) {
+      epsilon /= std::exp(1.0 / reject);
+    }
+    // Add offset point to current unit
+    bool fail = Ernest::offset_sphere(new_unit, cur_unit, epsilon);
+    if (fail) {
+      reject++;
+      step++;
+      continue;
+    }
     new_param = prior_transform(new_unit);
     double new_loglik = Rcpp::as<double>(log_lik(new_param));
     if (new_loglik >= min_lik) {
@@ -39,18 +51,13 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
     } else {
       reject += 1;
     }
-    if (accept > reject) {
-      epsilon *= std::exp(1.0 / accept);
-    } else if (accept < reject) {
-      epsilon /= std::exp(1.0 / reject);
-    }
+    step++;
   }
 
   return Rcpp::List::create(
     Rcpp::Named("unit") = cur_unit,
     Rcpp::Named("parameter") = cur_param,
     Rcpp::Named("log_lik") = cur_loglik,
-    Rcpp::Named("num_calls") = max_steps,
-    Rcpp::Named("accept") = accept
+    Rcpp::Named("num_calls") = step
   );
 }

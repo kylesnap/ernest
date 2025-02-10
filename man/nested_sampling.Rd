@@ -5,15 +5,15 @@
 \alias{nested_sampling.function}
 \title{Perform Nested Sampling}
 \usage{
-nested_sampling(...)
+nested_sampling(x, ...)
 
-\method{nested_sampling}{`function`}(fn, prior_transform, sampler = unit_cube(), ...)
+\method{nested_sampling}{`function`}(x, prior_transform, sampler = rw_cube(), ...)
 }
 \arguments{
+\item{x}{A function returning the log likelihood of a model given some parameters.}
+
 \item{...}{A list of control parameters for the nested sampling algorithm,
 whose defaults are specified in \code{nested_sampling.control()}.}
-
-\item{fn}{A function returning the log likelihood of a model given some parameters.}
 
 \item{prior_transform}{The prior distribution for the parameters, provided as
 a list of \code{prior_transform} objects.}

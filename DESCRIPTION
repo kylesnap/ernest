@@ -17,15 +17,27 @@ Imports:
     lifecycle,
     posterior,
     prettyunits,
+    R6,
     Rcpp,
-    RcppParallel,
     rlang (>= 1.1.0),
+    S7,
     tibble,
     vctrs
 Suggests: 
     testthat (>= 3.0.0),
-    distributional
 Config/testthat/edition: 3
 LinkingTo:
-    Rcpp,
-    RcppParallel
+    Rcpp
+Collate: 
+    'ernest-package.R'
+    'ernest_run-new.R'
+    'import-standalone-obj-type.R'
+    'import-standalone-purrr.R'
+    'import-standalone-types-check.R'
+    'nested_sampling.R'
+    'nested_sampling_impl.R'
+    'sampler.R'
+    'random_walk_cube-class.R'
+    'summary_ernest_run.R'
+    'uniform_cube-class.R'
+    'utils.R'

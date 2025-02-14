@@ -2,7 +2,7 @@
 make_flat <- function(num_dim) {
   list(
     log_lik = function(x) 0,
-    prior_transform = prior_transform(\(x) x, num_dim, LETTERS[1:num_dim])
+    prior_transform = \(x) x
   )
 }
 
@@ -18,11 +18,7 @@ make_gaussian <- function(num_dim, corr = 0.95) {
   list(
     log_lik = function(x) -0.5 *
       as.double((x - mean) %*% precision %*% (x - mean)) + log_norm,
-    prior_transform = prior_transform(
-      \(x) qunif(x, -10, 10),
-      num_dim,
-      LETTERS[1:num_dim]
-    ),
+    prior_transform = \(x) qunif(x, -10, 10),
     logz_truth = logz_truth
   )
 }

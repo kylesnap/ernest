@@ -20,28 +20,32 @@
 RandomWalkCube <- S7::new_class(
   "RandomWalkCube",
   properties = list(
-    steps = S7::new_property(
-      S7::class_integer,
-      default = 20L
-    ),
+    steps = prop_natural(include_zero = FALSE, default = 20L),
     epsilon = S7::new_property(
       S7::class_numeric,
       default = 0.1
     )
   ),
-  parent = Sampler,
-  validator = function(self) {
-    if (self@steps < 1L) {
-      return("@steps should be an integer greater or equal to one.⁠")
-    }
-    if (self@maxtry <= 0) {
-      return("@epsilon should be a number greater than zero.⁠")
-    }
-  }
+  parent = ErnestLRPS
 )
 
-S7::method(propose_live, RandomWalkCube) <- function(x, start, min_lik) {
+#' @name format
+#' @export
+S7::method(format, RandomWalkCube) <-
+  function(x, digits = max(3L, getOption("digits") - 3L), ...) {
+    cli::cli_format_method({
+      cli::cli_dl(c(
+        "Sampler" = "Random Walk in the Unit Hypercube",
+        sampler_info,
+        "Steps" = x@steps,
+        "Epsilon" = x@epsilon
+      ))
+    })
+  }
+
+S7::method(propose_live, RandomWalkCube) <- function(x, copy) {
   propose_rwcube_(
-    x@log_lik, x@prior_transform, start, min_lik, x@steps, x@epsilon
+    x@log_lik, x@prior_transform, x@wrk$live_units[copy, ],
+    x@wrk$worst_lik, x@steps, x@epsilon
   )
 }

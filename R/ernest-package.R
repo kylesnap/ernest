@@ -3,6 +3,7 @@
 
 ## usethis namespace: start
 #' @import rlang
+#' @importFrom generics generate
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
 #' @importFrom Rcpp sourceCpp

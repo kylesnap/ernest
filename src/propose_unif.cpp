@@ -7,16 +7,16 @@
  * @param prior_transform A function that transforms a point from the unit hypercube to the parameter space.
  * @param num_dim The number of dimensions of the parameter space.
  * @param min_lik The minimum log-likelihood value that is considered acceptable.
- * @param max_attempts The maximum number of attempts to find a valid point.
+ * @param maxtry The maximum number of attempts to find a valid point.
  */
 // [[Rcpp::export]]
 Rcpp::List propose_uniform_(Rcpp::Function log_lik, Rcpp::Function prior_transform,
-                            int num_dim, double min_lik, int max_attempts) {
+                            int num_dim, double min_lik, int maxtry) {
   Rcpp::NumericVector unit(num_dim);
   Rcpp::NumericVector parameter(num_dim);
   double log_lik_value;
 
-  for (int i = 0; i < max_attempts; ++i) {
+  for (int i = 0; i < maxtry; ++i) {
     Ernest::runif_cube(unit);
     parameter = prior_transform(unit);
     log_lik_value = Rcpp::as<double>(log_lik(parameter));

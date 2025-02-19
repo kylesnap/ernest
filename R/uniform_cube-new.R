@@ -13,5 +13,14 @@
 #' @export
 UniformCube <- S7::new_class(
   "UniformCube",
-  parent = Sampler
+  parent = ErnestLRPS
 )
+
+#' @name format
+#' @export
+S7::method(format, UniformCube) <-
+  function(x, digits = max(3L, getOption("digits") - 3L), ...) {
+    cli::cli_format_method({
+      cli::cli_dl(c("Method" = "Uniform Hypercube", sampler_info))
+    })
+  }

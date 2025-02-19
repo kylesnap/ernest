@@ -13,31 +13,36 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
     cli,
+    generics,
     glue,
     lifecycle,
     posterior,
     prettyunits,
-    R6,
     Rcpp,
     rlang (>= 1.1.0),
     S7,
     tibble,
     vctrs
 Suggests: 
-    testthat (>= 3.0.0),
+    mvtnorm,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 LinkingTo:
     Rcpp
 Collate: 
-    'ernest-package.R'
+    'RcppExports.R'
+    'utils.R'
+    'ernest_lrps-new.R'
     'ernest_run-new.R'
+    'as_draws.R'
+    'compile.R'
+    'ernest-package.R'
+    'ernest_helper_classes.R'
+    'format-print.R'
+    'generate.R'
     'import-standalone-obj-type.R'
     'import-standalone-purrr.R'
     'import-standalone-types-check.R'
     'nested_sampling.R'
-    'nested_sampling_impl.R'
-    'sampler.R'
-    'random_walk_cube-class.R'
-    'summary_ernest_run.R'
-    'uniform_cube-class.R'
-    'utils.R'
+    'random_walk_cube-new.R'
+    'uniform_cube-new.R'

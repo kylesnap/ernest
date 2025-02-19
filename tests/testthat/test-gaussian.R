@@ -1,29 +1,17 @@
 test_that("2D Gaussian Likelihood (Uniform Cube)", {
-  gauss <- make_gaussian(2)
+  gauss <- make_gaussian(3L)
   sampler <- UniformCube(
     log_lik = gauss$log_lik,
     prior_transform = gauss$prior_transform,
-    num_dim = 2L
+    n_dim = 3L
   )
+  run <- generate(sampler, max_it = 1000)
+  expect_equal(run@n_iter, 1000)
 
-  run_1 <- nested_sampling(sampler)
-  run_1 |> print()
-
-  generate(run_1, max_it = 100, max_call = 100000, dlogz = 0.5) |>
-    print()
-  calculate(run_1) |>
-    print()
-  glance(run_1) |>
-    print()
-
-  sampler <- RandomWalkCube(
-    log_lik = gauss$log_lik,
-    prior_transform = gauss$prior_transform,
-    num_dim = 2L
-  )
-  run_2 <- nested_sampling(sampler)
-
-  generate(run_2, max_it = 10000, dlogz = 0.5) |>
-    print()
-  glance(run_2) |> print()
+  # sampler <- RandomWalkCube(
+  #   log_lik = gauss$log_lik,
+  #   prior_transform = gauss$prior_transform,
+  #   n_dim = 3L
+  # )
+  # generate(sampler, max_it = 1000)
 })

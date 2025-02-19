@@ -11,8 +11,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // propose_uniform_
-Rcpp::List propose_uniform_(Rcpp::Function log_lik, Rcpp::Function prior_transform, int num_dim, double min_lik, int max_attempts);
-RcppExport SEXP _ernest_propose_uniform_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP num_dimSEXP, SEXP min_likSEXP, SEXP max_attemptsSEXP) {
+Rcpp::List propose_uniform_(Rcpp::Function log_lik, Rcpp::Function prior_transform, int num_dim, double min_lik, int maxtry);
+RcppExport SEXP _ernest_propose_uniform_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP num_dimSEXP, SEXP min_likSEXP, SEXP maxtrySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,8 +20,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Function >::type prior_transform(prior_transformSEXP);
     Rcpp::traits::input_parameter< int >::type num_dim(num_dimSEXP);
     Rcpp::traits::input_parameter< double >::type min_lik(min_likSEXP);
-    Rcpp::traits::input_parameter< int >::type max_attempts(max_attemptsSEXP);
-    rcpp_result_gen = Rcpp::wrap(propose_uniform_(log_lik, prior_transform, num_dim, min_lik, max_attempts));
+    Rcpp::traits::input_parameter< int >::type maxtry(maxtrySEXP);
+    rcpp_result_gen = Rcpp::wrap(propose_uniform_(log_lik, prior_transform, num_dim, min_lik, maxtry));
     return rcpp_result_gen;
 END_RCPP
 }

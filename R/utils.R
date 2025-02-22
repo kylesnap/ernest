@@ -1,3 +1,6 @@
+#' @import S7
+NULL
+
 # Properties for S7 ----
 
 #' Natural numbers that either include or do not include zero
@@ -5,9 +8,15 @@ prop_natural <- function(include_zero = FALSE, default = integer(0)) {
   S7::new_property(
     S7::class_integer,
     validator = function(value) {
-      if (length(value) == 0L) return(NULL)
-      if (length(value) != 1L) return("must be length 0 or 1")
-      if (value < (if (include_zero) 0L else 1L)) return("must be positive")
+      if (length(value) == 0L) {
+        return(NULL)
+      }
+      if (length(value) != 1L) {
+        return("must be length 0 or 1")
+      }
+      if (value < (if (include_zero) 0L else 1L)) {
+        return("must be positive")
+      }
       NULL
     },
     default = default

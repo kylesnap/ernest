@@ -1,6 +1,3 @@
-#' @importFrom posterior as_draws
-#' @export
-posterior::as_draws
 
 #' Transform to draws objects.
 #'
@@ -14,42 +11,39 @@ posterior::as_draws
 #' expressed in the unit hypercube, which was originally used for sampling.
 #' @param ... Passed to `posterior::resample_draws` if `reweight` is true.
 #'
-#' @include ernest_run-new.R
+NULL
+
+#' @rdname tidy
 #' @export
-S7::method(as_draws, ErnestRun) <-
+S7::method(as_draws, ErnestLRPS) <-
   function(x, resample = FALSE, add_live = TRUE, unit_scale = FALSE, ...) {
+  points <- x@wrk$get_dead(unit_scale)
 
-    points <- if (unit_scale) {
-      x@dead_points$units
+  if (add_live) {
+    live_points <- if (unit_scale) {
+      x@wrk$live_units
     } else {
-      x@dead_points$points
+      x@wrk$live_points
     }
-
-    if (add_live) {
-      lik_ord <- order(x@sampler@wrk$live_lik)
-      live_points <- if (unit_scale) {
-        x@sampler@wrk$live_units
-      } else {
-        x@sampler@wrk$live_points
-      }
-      points <- rbind(points, live_points[lik_ord,])
-    }
-
-    log_weight <- if (add_live) {
-      vctrs::field(x@integral, "log_weight")
-    } else {
-      vctrs::field(x@integral, "log_weight")[1:x@n_iter]
-    }
-    log_weight <- log_weight - sum(log_weight)
-
-    draws <- posterior::weight_draws(
-      posterior::as_draws_matrix(points),
-      log_weight
-    )
-
-    if (resample) {
-      posterior::resample_draws(draws, ...)
-    } else {
-      draws
-    }
+    lik_ord <- order(x@wrk$live_lik)
+    points <- rbind(points, live_points[lik_ord, ])
   }
+
+  log_weight <- if (add_live) {
+    tidy(x, exponentiate = FALSE)$log_weight
+  } else {
+    tidy(x, exponentiate = FALSE)$log_weight[1:x@n_iter]
+  }
+
+  draws <- posterior::weight_draws(
+    posterior::as_draws_matrix(points),
+    log_weight,
+    log = TRUE
+  )
+
+  if (resample) {
+    posterior::resample_draws(draws, ...)
+  } else {
+    draws
+  }
+}

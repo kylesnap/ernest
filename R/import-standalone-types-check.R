@@ -472,7 +472,6 @@ check_character <- function(x,
                             allow_null = FALSE,
                             arg = caller_arg(x),
                             call = caller_env()) {
-
   if (!missing(x)) {
     if (is_character(x)) {
       if (!allow_na && any(is.na(x))) {

@@ -6,7 +6,7 @@ test_that("UniformCube function returns correct object", {
     n_dim = 3L
   )
   expect_true(inherits(sampler, UniformCube))
-  expect_true(inherits(sampler, ErnestLRPS))
+  expect_true(inherits(sampler, ErnestSampler))
 })
 
 test_that("Errors can be thrown", {

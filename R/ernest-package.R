@@ -1,3 +1,15 @@
+#' @importFrom generics generate
+#' @export
+generics::generate
+
+#' @importFrom generics compile
+#' @export
+generics::compile
+
+#' @importFrom generics calculate
+#' @export
+generics::calculate
+
 #' @keywords internal
 "_PACKAGE"
 
@@ -6,13 +18,15 @@
 #' @importFrom generics generate
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
+#' @importFrom posterior as_draws
 #' @importFrom Rcpp sourceCpp
-#' @importFrom RcppParallel RcppParallelLibs
 #' @importFrom rlang %@%
 #' @importFrom rlang %@%<-
 #' @importFrom rlang %|%
 #' @importFrom rlang %||%
 #' @importFrom tibble tibble
+#' @importFrom utils head
+#' @importFrom utils tail
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL

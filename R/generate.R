@@ -1,21 +1,18 @@
-#' Generate nested samples from an `ErnestLRPS` object.
+#' Generate nested samples from an `ErnestSampler` object.
 #'
-#' @param x An `ErnestLRPS` object.
-#' @param maxit The maximum number of iterations needed to run the sampler. Must
+#' @param x An `ErnestSampler` object.
+#' @param max_it The maximum number of iterations needed to run the sampler. Must
 #' be a number larger than zero.
-#' @param maxcall Maximum number of calls to the likelihood function. Must
+#' @param max_call Maximum number of calls to the likelihood function. Must
 #' be a number larger than zero.
 #' @param dlogz The threshold for the remaining prior volume to the total
 #' evidence. Must represent a number larger or equal to zero.
+#' @param ... Ignored.
 #'
-#' @return An `ErnestRun` object containing the results of the nested
-#' sampling run.
-NULL
-
+#' @return An `ErnestSampler` object containing the results of the nested
 #' @rdname generate
-#' @export
-S7::method(generate, ErnestLRPS) <-
-  function(x, max_it = Inf, max_call = Inf, dlogz = 0.05) {
+generate.ErnestSampler <-
+  function(x, max_it = Inf, max_call = Inf, dlogz = 0.05, ...) {
   # Initialize the run
   if (max_it == Inf) {
     max_it <- .Machine$integer.max
@@ -32,5 +29,9 @@ S7::method(generate, ErnestLRPS) <-
 
   time1 <- Sys.time()
   nested_sampling_impl(x, max_it, max_call, dlogz)
-  #sampler@wrk$time <- as.difftime(Sys.time() - time1, units = "secs")
 }
+
+#' S7 dispatch method
+#' @noRd
+generate_ernest <- new_external_generic("generics", "generate", "x")
+method(generate_ernest, ErnestSampler) <- generate.ErnestSampler

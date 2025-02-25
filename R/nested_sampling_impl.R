@@ -1,6 +1,6 @@
 #' The nested sampling loop.
 #'
-#' @param sampler An `ErnestLRPS` object.
+#' @param sampler An `ErnestSampler` object.
 #' @param max_it The maximum number of iterations needed to run the sampler.
 #' @param max_call Maximum number of calls to the likelihood function.
 #' @param dlogz The threshold for the remaining prior volume to the total.

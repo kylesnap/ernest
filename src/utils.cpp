@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "utils.h"
 
 // [[Rcpp::export]]
 double logaddexp(double x, double y) {

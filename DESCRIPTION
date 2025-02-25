@@ -16,14 +16,13 @@ Imports:
     generics,
     glue,
     lifecycle,
-    posterior,
-    prettyunits,
-    R6,
     Rcpp,
     rlang (>= 1.1.0),
     S7,
     tibble,
-    vctrs
+    posterior,
+    vctrs,
+    utils
 Suggests: 
     mvtnorm,
     testthat (>= 3.0.0)
@@ -32,11 +31,11 @@ LinkingTo:
     Rcpp
 Collate: 
     'utils.R'
-    'ErnestLRPS_class.R'
-    'ErnestRun_class.R'
+    'ErnestSampler.R'
     'ErnestWorkspace_class.R'
     'RcppExports.R'
     'as_draws.R'
+    'calculate.R'
     'compile.R'
     'ernest-package.R'
     'generate.R'
@@ -46,5 +45,4 @@ Collate:
     'nested_sampling_impl.R'
     'propose.R'
     'reexports.R'
-    'tidy.R'
     'update_sampler.R'

@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "utils.h"
 
 /**
  * Propose a new point uniformly from the unit hypercube and transform it using the prior.

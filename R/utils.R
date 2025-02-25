@@ -4,6 +4,7 @@ NULL
 # Properties for S7 ----
 
 #' Natural numbers that either include or do not include zero
+#' @noRd
 prop_natural <- function(include_zero = FALSE, default = integer(0)) {
   S7::new_property(
     S7::class_integer,

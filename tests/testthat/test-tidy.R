@@ -12,8 +12,8 @@ test_that("Tidy output", {
   )
 
   expect_equal(
-    nrow(tidy(run)),
-    nrow(tidy(run, exponentiate = FALSE))
+    nrow(calculate(run)),
+    nrow(calculate(run, exponentiate = FALSE))
   )
 
 })

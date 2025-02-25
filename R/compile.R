@@ -1,21 +1,25 @@
-#' Configure an ErnestLRPS or ErnestRun object
+#' Configure an ErnestSampler object
 #'
 #' Ernest conducts nested sampling in an enviroment bound to the nested sampler.
 #' This function configures this environment so that it contains the necessary
 #' variables.
 #'
-#' @param x An ErnestLRPS or ErnestRun object.
-#' @param overwrite If `x` is an ErnestRun object, whether the existing list
-#' of `dead` points be preserved or erased.
+#' @param object An ErnestSampler or ErnestSampler object.
 #' @param ... Ignored.
 #'
-#' @return A new ErnestLRPS, with its `@wrk` property bound to a child enviroment
-#' of `rlang::empty_env()`, containing the following.
-NULL
-
+#' @return `object`, now attached to an `ErnestWorkspace`
 #' @rdname compile
-#' @export
-method(compile, ErnestLRPS) <- function(x, ...) {
-  x@wrk <- ErnestWorkspace$new(x@log_lik, x@prior_transform, x@n_dim, x@n_points)
-  x
+compile.ErnestSampler <- function(object, ...) {
+  object@wrk <- ErnestWorkspace$new(
+    object@log_lik,
+    object@prior_transform,
+    object@n_dim,
+    object@n_points
+  )
+  object
 }
+
+#' S7 dispatch method
+#' @noRd
+compile_ernest <- new_external_generic("generics", "compile", "object")
+method(compile_ernest, ErnestSampler) <- compile.ErnestSampler

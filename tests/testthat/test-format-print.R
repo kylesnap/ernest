@@ -7,10 +7,12 @@ test_that("Ernest Sampler Formating Works", {
   )
   expect_snapshot(sampler)
 
+  set.seed(667)
   run <- generate(
     sampler,
     max_it = 100L
   )
+  expect_snapshot(run)
 
   sampler <- RandomWalkCube(
     log_lik = gauss$log_lik,

@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 
-#include "utils.hpp"
+#include "utils.h"
 
 /**
  * Propose new parameters using a random walk within a unit cube.

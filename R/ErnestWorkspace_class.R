@@ -1,14 +1,12 @@
 #' The Nested Sampling Workspace
 #'
+#' @description
 #' Nested sampling is conducted within an environment (implemented as a
-#' stripped-down, `R6` class). This allows for the state of the sampling to be
+#' stripped-down `R6` object). This allows for the state of the sampling to be
 #' continued later. Users aren't expected to access this item directly, rather
 #' they may use the generics provided to interact with the objects in tidy and
 #' readable formats.
 #'
-#' Create an environment with the appropriate structure for nested sampling.
-#'
-#' @noRd
 ErnestWorkspace <- R6::R6Class(
   "ErnestWorkspace",
   portable = FALSE,
@@ -62,16 +60,25 @@ ErnestWorkspace <- R6::R6Class(
       private$.worst_lik <- .dead_lik[[iter]]
 
       # Return an index of a non-worst point for proposal.
-      copy <- sample.int(.n_points, size = 1)
-      while (copy == .worst_idx) {
-        copy <- sample.int(.n_points, size = 1)
+      copy <- sample.int(private$.n_points, size = 1)
+      if (is.null(private$.worst_idx)) {
+        cli::cli_abort(
+          "`pop_point` called before `worst_idx`."
+        )
+      }
+      while (copy == private$.worst_idx) {
+        copy <- sample.int(private$.n_points, size = 1)
       }
       copy
     },
 
     #' @description
     #' Add a new point to the live set, replacing the point existing at
-    #' `worst_idx`.
+    #' index `worst_idx`.
+    #' @param iter The current iteration number.
+    #' @param new The new point to add.
+    #' @param copy The index of the point to copy from the live set.
+    #' @param cur_update The number of updates made to the sampler.
     push_point = function(iter, new, copy, cur_update) {
       # Replace live point at worst with 'new'
       self$live_units[.worst_idx, ] <- new$unit
@@ -109,7 +116,7 @@ ErnestWorkspace <- R6::R6Class(
     .updates = list(),
 
     .log_z = -1.e300,
-    .worst_idx = NA_integer_,
+    .worst_idx = NULL,
     .worst_lik = -1.e300
   ),
   active = list(
@@ -117,7 +124,7 @@ ErnestWorkspace <- R6::R6Class(
     n_iter = function() {
       length(private$.calls)
     },
-    #' @field n_calls The total calls made to the likelihood function,
+    #' @field n_call The total calls made to the likelihood function,
     #' or `0L` if no calls have been made yet.
     n_call = function() {
       sum(list_c(private$.calls))

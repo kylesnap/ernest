@@ -3,18 +3,36 @@
     Code
       sampler
     Output
-      Method: Uniform Hypercube
-      Live Points: 500
-      N. Dimensions: 3
+      
+      -- Nested Sampling Run from ernest ---------------------------------------------
+      No. Live Points: 500
+      No. Dimensions: 3
+      i Sampler has not been run.
+
+---
+
+    Code
+      run
+    Output
+      
+      -- Nested Sampling Run from ernest ---------------------------------------------
+      No. Live Points: 500
+      No. Dimensions: 3
+      
+      -- Results 
+      No. Iterations: 100
+      No. Calls: 104
+      Efficiency: 96.15385%
+      Log. Evidence: -13.24392 ± 2.214156
 
 ---
 
     Code
       sampler
     Output
-      Sampler: Random Walk in the Unit Hypercube
-      Live Points: 500
-      N. Dimensions: 3
-      Steps: 20
-      Epsilon: 0.1
+      
+      -- Nested Sampling Run from ernest ---------------------------------------------
+      No. Live Points: 500
+      No. Dimensions: 3
+      i Sampler has not been run.
 

@@ -23,7 +23,7 @@ expressed in the unit hypercube, which was originally used for sampling.}
 }
 \value{
 A \code{draws_matrix} object, which is a 2D array containing
-\code{x@n_dim} "variables" and \code{x@iter} (plus \code{x@n_point} if \code{include_live} is
+\code{x$n_dim} "variables" and \code{x$iter} (plus \code{x$n_point} if \code{include_live} is
 true) "draws".
 }
 \description{

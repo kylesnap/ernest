@@ -8,18 +8,13 @@
 #' @param ... Ignored.
 #'
 #' @return `object`, now attached to an `ErnestWorkspace`
-#' @rdname compile
+#' @export
 compile.ErnestSampler <- function(object, ...) {
-  object@wrk <- ErnestWorkspace$new(
-    object@log_lik,
-    object@prior_transform,
-    object@n_dim,
-    object@n_points
+  object$wrk <- ErnestWorkspace$new(
+    object$log_lik,
+    object$prior_transform,
+    object$n_dim,
+    object$n_points
   )
   object
 }
-
-#' S7 dispatch method
-#' @noRd
-compile_ernest <- new_external_generic("generics", "compile", "object")
-method(compile_ernest, ErnestSampler) <- compile.ErnestSampler

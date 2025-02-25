@@ -5,8 +5,13 @@
 #' @returns Either an updated `ErnestSampler` object, or NULL if sampler
 #' cannot be updated.
 #' @noRd
-update_sampler <- S7::new_generic("update_sampler", "x")
+#' @export
+update_sampler <- function(x) {
+  UseMethod("update_sampler")
+}
 
-S7::method(update_sampler, ErnestSampler) <- function(x, live) {
+#' @noRd
+#' @export
+update_sampler.ErnestSampler <- function(x) {
   return(NULL)
 }

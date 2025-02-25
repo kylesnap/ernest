@@ -23,15 +23,20 @@
 #' `evidence` will be in log units and labelled appropriately.
 #' The columns `log_vol` and `log_evidence_err` are always returned in the
 #' log scale.
+#'
+#' @export
 calculate.ErnestSampler <- function(x, exponentiate = FALSE,
                                     progress = TRUE, ...) {
-  int_rcrd <- x@wrk$integral_rcrd
+  if (is.null(x$wrk)) {
+    cli::cli_abort("The ErnestSampler object does not have a valid `wrk` field.")
+  }
+  int_rcrd <- x$wrk$integral_rcrd
   integration <- compute_integral(
     vctrs::field(int_rcrd, "log_lik"),
     vctrs::field(int_rcrd, "log_vol")
   )
 
-  expected_len <- x@n_iter + x@n_points
+  expected_len <- x$wrk$n_iter + x$n_points
 
   if (!progress) {
     tibble::tibble_row(
@@ -71,8 +76,3 @@ calculate.ErnestSampler <- function(x, exponentiate = FALSE,
     )
   }
 }
-
-#' S7 dispatch method
-#' @noRd
-calculate_ernest <- new_external_generic("generics", "calculate", "x")
-method(calculate_ernest, ErnestSampler) <- calculate.ErnestSampler

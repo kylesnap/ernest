@@ -1,6 +1,3 @@
-#' @include ErnestSampler.R
-NULL
-
 #' Transform an Ernest Run into a `draws` object
 #'
 #' Transform an `ErnestSampler` object into format supported by the
@@ -18,34 +15,34 @@ NULL
 #' @param ... Passed to `posterior::resample_draws` if `reweight` is true.
 #'
 #' @returns A `draws_matrix` object, which is a 2D array containing
-#' `x@n_dim` "variables" and `x@iter` (plus `x@n_point` if `include_live` is
+#' `x$n_dim` "variables" and `x$iter` (plus `x$n_point` if `include_live` is
 #' true) "draws".
 #'
 #' @seealso [posterior::as_draws_matrix()], [posterior::resample_draws()],
 #' and [posterior::weight_draws()] for more information on the returned object.
 #'
-#' @rdname as_draws
+#' @export
 as_draws.ErnestSampler <- function(x, resample = FALSE, add_live = TRUE,
                                    unit_scale = FALSE, ...) {
-  if (x@n_iter < 1) {
+  if (is.null(x$wrk)) {
     cli::cli_abort("No iterations have been run with this sampler.")
   }
-  points <- x@wrk$get_dead(unit_scale)
+  points <- x$wrk$get_dead(unit_scale)
 
   if (add_live) {
     live_points <- if (unit_scale) {
-      x@wrk$live_units
+      x$wrk$live_units
     } else {
-      x@wrk$live_points
+      x$wrk$live_points
     }
-    lik_ord <- order(x@wrk$live_lik)
+    lik_ord <- order(x$wrk$live_lik)
     points <- rbind(points, live_points[lik_ord, ])
   }
 
   log_weight <- if (add_live) {
     calculate(x, exponentiate = FALSE)$log_weight
   } else {
-    calculate(x, exponentiate = FALSE)$log_weight[1:x@n_iter]
+    calculate(x, exponentiate = FALSE)$log_weight[1:x$wrk$n_iter]
   }
 
   draws <- posterior::weight_draws(
@@ -60,8 +57,3 @@ as_draws.ErnestSampler <- function(x, resample = FALSE, add_live = TRUE,
     draws
   }
 }
-
-#' S7 dispatch method
-#' @noRd
-as_draws_ernest <- new_external_generic("posterior", "as_draws", "x")
-method(as_draws_ernest, ErnestSampler) <- as_draws.ErnestSampler

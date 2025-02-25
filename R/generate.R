@@ -10,7 +10,7 @@
 #' @param ... Ignored.
 #'
 #' @return An `ErnestSampler` object containing the results of the nested
-#' @rdname generate
+#' @export
 generate.ErnestSampler <-
   function(x, max_it = Inf, max_call = Inf, dlogz = 0.05, ...) {
     # Initialize the run
@@ -30,8 +30,3 @@ generate.ErnestSampler <-
     time1 <- Sys.time()
     nested_sampling_impl(x, max_it, max_call, dlogz)
   }
-
-#' S7 dispatch method
-#' @noRd
-generate_ernest <- new_external_generic("generics", "generate", "x")
-method(generate_ernest, ErnestSampler) <- generate.ErnestSampler

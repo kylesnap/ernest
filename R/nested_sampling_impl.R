@@ -9,14 +9,14 @@
 #'
 #' @noRd
 nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
-  wrk <- sampler@wrk
+  wrk <- sampler$wrk
   iter <- wrk$n_iter
   calls <- wrk$n_call
   log_vol <- wrk$log_vol
   log_z <- wrk$log_z
   cur_update <- wrk$last_update
   n_since_update <- 0L
-  d_log_vol <- log((sampler@n_points + 1) / sampler@n_points)
+  d_log_vol <- log((sampler$n_points + 1) / sampler$n_points)
 
   for (iter in c(1:max_it)) {
     if (calls > max_call) {
@@ -45,12 +45,12 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
     copy <- wrk$pop_point(iter, log_z, log_vol)
 
     # Increment the sampler if required
-    if (cur_update == 0L && calls > sampler@first_update) {
+    if (cur_update == 0L && calls > sampler$first_update) {
       cur_update <- 1L
       n_since_update <- 0L
       sampler <- update_sampler(sampler) %||% sampler
     }
-    if (n_since_update > sampler@between_update) {
+    if (n_since_update > sampler$between_update) {
       cur_update <- cur_update + 1L
       n_since_update <- 0L
       sampler <- update_sampler(sampler) %||% sampler

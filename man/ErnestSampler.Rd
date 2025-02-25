@@ -2,45 +2,7 @@
 % Please edit documentation in R/ErnestSampler.R
 \name{ErnestSampler}
 \alias{ErnestSampler}
-\alias{UniformCube}
-\alias{RandomWalkCube}
 \title{A likelihood-restricted prior sampler for nested sampling}
-\usage{
-ErnestSampler(
-  log_lik = function() NULL,
-  prior_transform = function() NULL,
-  n_dim = integer(0),
-  n_points = 500L,
-  first_update = 300L,
-  between_update = 750L,
-  verbose = FALSE,
-  wrk = NULL
-)
-
-UniformCube(
-  log_lik = function() NULL,
-  prior_transform = function() NULL,
-  n_dim = integer(0),
-  n_points = 500L,
-  first_update = 300L,
-  between_update = 750L,
-  verbose = FALSE,
-  wrk = NULL
-)
-
-RandomWalkCube(
-  log_lik = function() NULL,
-  prior_transform = function() NULL,
-  n_dim = integer(0),
-  n_points = 500L,
-  first_update = 300L,
-  between_update = 750L,
-  verbose = FALSE,
-  wrk = NULL,
-  steps = 20L,
-  epsilon = 0.1
-)
-}
 \arguments{
 \item{log_lik}{A function that returns the log-likelihood of a point in the
 parameter space.}
@@ -65,9 +27,8 @@ the value of \code{getOption("verbose")}.}
 \item{wrk}{Either \code{NULL}, or a reference to the environment where the nested
 sampling variables are held.}
 
-\item{steps}{The minimum number of steps to take in the random walk.}
-
-\item{epsilon}{The initial step size of the random walk.}
+\item{...}{Extra variables that belong to some sampling method specified by
+\code{ErnestLRPS}}
 }
 \description{
 Likelihood-restricted prior sampling (or LRPS) aims to generate points within
@@ -76,10 +37,4 @@ LRPS, though two currently exist in ernest: uniform sampling and a random
 walk. In ernest, LRPS objects contain the necessary information to conduct
 sampling, and is assigned to an  R enviroment where the actual nested
 sampling algorithm is conducted.
-}
-\details{
-Users should not need to interface with these classes directly, and they are
-not exported from ernest. Developers looking to extend ernest can build
-samplers that conform to the template set by ErnestSampler, and set the appropriate
-methods for the \code{propose_live} and \code{update_sampler} generics.
 }

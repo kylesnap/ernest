@@ -1,6 +1,3 @@
-#' @include utils.R
-NULL
-
 #' A likelihood-restricted prior sampler for nested sampling
 #'
 #' Likelihood-restricted prior sampling (or LRPS) aims to generate points within
@@ -9,11 +6,6 @@ NULL
 #' walk. In ernest, LRPS objects contain the necessary information to conduct
 #' sampling, and is assigned to an  R enviroment where the actual nested
 #' sampling algorithm is conducted.
-#'
-#' Users should not need to interface with these classes directly, and they are
-#' not exported from ernest. Developers looking to extend ernest can build
-#' samplers that conform to the template set by ErnestSampler, and set the appropriate
-#' methods for the `propose_live` and `update_sampler` generics.
 #'
 #' @param log_lik A function that returns the log-likelihood of a point in the
 #' parameter space.
@@ -30,52 +22,64 @@ NULL
 #' the value of `getOption("verbose")`.
 #' @param wrk Either `NULL`, or a reference to the environment where the nested
 #' sampling variables are held.
-ErnestSampler <- new_class(
-  "ErnestSampler",
-  properties = list(
-    log_lik = S7::class_function,
-    prior_transform = class_function,
-    n_dim = prop_natural(),
-    n_points = prop_natural(default = 500L),
-    first_update = prop_natural(include_zero = TRUE, default = 300L),
-    between_update = prop_natural(include_zero = TRUE, default = 750L),
-    n_iter = new_property(
-      getter = function(self) {
-        if (!is.null(self@wrk)) {
-          self@wrk$n_iter
-        } else {
-          0L
-        }
-      }
-    ),
-    n_call = new_property(
-      getter = function(self) {
-        if (!is.null(self@wrk)) {
-          self@wrk$n_call
-        } else {
-          0L
-        }
-      }
-    ),
-    verbose = new_property(
-      class_logical,
-      default = getOption("verbose")
-    ),
-    wrk = NULL | class_environment
-  ),
-  abstract = TRUE
-)
+#' @param ... Extra variables that belong to some sampling method specified by
+#' `ErnestLRPS`
+#'
+#' @name ErnestSampler
+NULL
 
-#' Format method for ErnestSampler
+#' Construct an ernest sampler
+new_ernest_sampler <- function(log_lik, prior_transform, n_dim, n_points,
+                               first_update, between_update,
+                               verbose, wrk = NULL, ..., class = character()) {
+  elems <- list(
+    log_lik = log_lik,
+    prior_transform = prior_transform,
+    n_dim = n_dim,
+    n_points = n_points,
+    first_update = first_update,
+    between_update = between_update,
+    verbose = verbose,
+    wrk = wrk
+  )
+
+  extra_elems <- list2(...)
+
+  x <- structure(
+    c(elems, extra_elems),
+    class = c(class, "ErnestSampler")
+  )
+  validate_ernest_sampler(x)
+  x
+}
+
+#' Validate an Ernest Sampler Object
+#' @param x An object to validate.
+#'
+#' @returns x, invisibly.
+validate_ernest_sampler <- function(x) {
+  check_function(x$log_lik)
+  check_function(x$prior_transform)
+  check_number_whole(x$n_dim, min = 1, allow_infinite = FALSE)
+  check_number_whole(x$n_points, min = 1, allow_infinite = FALSE)
+  check_number_whole(x$first_update, min = 0, allow_infinite = FALSE)
+  check_number_whole(x$between_update, min = 0, allow_infinite = FALSE)
+  check_logical(x$verbose)
+  check_environment(x$wrk, allow_null = TRUE)
+  invisible(x)
+}
+
+#' Format method
 #' @noRd
-method(format, ErnestSampler) <- function(x, digits = getOption("digits"), ...) {
+#' @export
+format.ErnestSampler <- function(x, digits = getOption("digits"), ...) {
   cli::cli_format_method({
     cli::cli_h1("Nested Sampling Run from {.pkg ernest}")
     cli::cli_dl(c(
-      "No. Live Points" = "{x@n_points}",
-      "No. Dimensions" = "{x@n_dim}"
+      "No. Live Points" = "{x$n_points}",
+      "No. Dimensions" = "{x$n_dim}"
     ))
-    if (!is.null(x@wrk)) {
+    if (!is.null(x$wrk)) {
       cli::cli_h3("Results")
       res <- calculate(x, progress = FALSE)
       log_evid <- prettyunits::pretty_signif(
@@ -87,12 +91,12 @@ method(format, ErnestSampler) <- function(x, digits = getOption("digits"), ...) 
         digits = digits
       )
       eff <- prettyunits::pretty_signif(
-        100 * (x@n_iter / x@n_call),
+        100 * (x$wrk$n_iter / x$wrk$n_call),
         digits = digits
       )
       cli::cli_dl(c(
-        "No. Iterations" = "{x@n_iter}",
-        "No. Calls" = "{x@n_call}",
+        "No. Iterations" = "{x$wrk$n_iter}",
+        "No. Calls" = "{x$wrk$n_call}",
         "Efficiency" = "{eff}%",
         "Log. Evidence" = "{log_evid} \u00B1 {log_evid_err}"
       ))
@@ -104,30 +108,53 @@ method(format, ErnestSampler) <- function(x, digits = getOption("digits"), ...) 
 
 #' Print Method for ErnestSampler
 #' @noRd
-method(print, ErnestSampler) <- function(x, digits = getOption("digits"), ...) {
+#' @export
+print.ErnestSampler <- function(x, digits = getOption("digits"), ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
 }
 
-#' Uniform Sampling in Unit Cube
+#' Uniform Sampling in Unit Cube Subclass
 #' @rdname ErnestSampler
-UniformCube <- S7::new_class(
-  "UniformCube",
-  parent = ErnestSampler
-)
+#' @noRd
+new_uniform_cube <- function(log_lik, prior_transform, n_dim, n_points,
+                             first_update, between_update,
+                             verbose, wrk = NULL) {
+   new_ernest_sampler(
+      log_lik = log_lik,
+      prior_transform = prior_transform,
+      n_dim = n_dim,
+      n_points = n_points,
+      first_update = first_update,
+      between_update = between_update,
+      verbose = verbose,
+      wrk = wrk,
+      class = "UniformCube"
+   )
+}
 
 #' Random Walk within the Unit Cube
 #' @rdname ErnestSampler
 #' @param steps The minimum number of steps to take in the random walk.
 #' @param epsilon The initial step size of the random walk.
-RandomWalkCube <- S7::new_class(
-  "RandomWalkCube",
-  properties = list(
-    steps = prop_natural(include_zero = FALSE, default = 20L),
-    epsilon = S7::new_property(
-      S7::class_numeric,
-      default = 0.1
-    )
-  ),
-  parent = ErnestSampler
-)
+#' @noRd
+new_rwmh_cube <- function(log_lik, prior_transform, n_dim, n_points,
+                           first_update, between_update,
+                           verbose, steps, epsilon, wrk = NULL) {
+  x <- new_ernest_sampler(
+    log_lik = log_lik,
+    prior_transform = prior_transform,
+    n_dim = n_dim,
+    n_points = n_points,
+    first_update = first_update,
+    between_update = between_update,
+    verbose = verbose,
+    wrk = wrk,
+    steps = steps,
+    epsilon = epsilon,
+    class = "RandomWalkCube"
+  )
+  check_number_decimal(x$epsilon, min = 0, allow_infinite = FALSE)
+  check_number_whole(x$steps, min = 1, allow_infinite = FALSE)
+  x
+}

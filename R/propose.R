@@ -11,12 +11,17 @@
 #' @return A list representing a particle, with components "unit",
 #' "parameters", "log_lik", and "num_calls".
 #' @noRd
-propose_uniform <- new_generic("propose_uniform", "x")
+propose_uniform <- function(x) {
+  UseMethod("propose_uniform")
+}
 
-method(propose_uniform, ErnestSampler) <- function(x) {
+#' Method for Ernest Sampler
+#' @noRd
+#' @export
+propose_uniform.ErnestSampler <- function(x) {
   propose_uniform_(
-    x@log_lik, x@prior_transform, x@n_dim, x@wrk$worst_lik,
-    getOption("max_loop", default = 1e6)
+    x$log_lik, x$prior_transform, x$n_dim, x$wrk$worst_lik,
+    getOption("ernest.max_loop", default = 1e6)
   )
 }
 
@@ -28,22 +33,25 @@ method(propose_uniform, ErnestSampler) <- function(x) {
 #' @return A list representing a particle, with components "unit",
 #' "parameters", "log_lik", and "num_calls"
 #' @noRd
-propose_live <- S7::new_generic(
-  "propose_live",
-  "x",
-  function(x, copy) {
-    S7::S7_dispatch()
-  }
-)
+#' @export
+propose_live <- function(x, copy) {
+  UseMethod("propose_live")
+}
 
-method(propose_live, ErnestSampler) <- function(x, copy) {
+#' Method for Ernest Sampler
+#' @noRd
+#' @export
+propose_live.ErnestSampler <- function(x, copy) {
   propose_uniform_(
-    x@log_lik, x@prior_transform, x@n_dim, x@wrk$worst_lik,
-    getOption("max_loop", default = 1e6)
+    x$log_lik, x$prior_transform, x$n_dim, x$wrk$worst_lik,
+    getOption("ernest.max_loop", default = 1e6)
   )
 }
 
-method(propose_live, RandomWalkCube) <- function(x, copy) {
+#' Method for Random Cube
+#' @noRd
+#' @export
+propose_live.RandomWalkCube <- function(x, copy) {
   propose_rwcube_(
     x@log_lik, x@prior_transform, x@wrk$live_units[copy, ],
     x@wrk$worst_lik, x@steps, x@epsilon

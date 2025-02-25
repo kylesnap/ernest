@@ -110,11 +110,9 @@ ErnestWorkspace <- R6::R6Class(
     .dead_lik = list(),
     .dead_vol = list(),
     .dead_idx = list(),
-
     .calls = list(),
     .parent = list(),
     .updates = list(),
-
     .log_z = -1.e300,
     .worst_idx = NULL,
     .worst_lik = -1.e300

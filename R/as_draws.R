@@ -26,7 +26,7 @@ NULL
 #'
 #' @rdname as_draws
 as_draws.ErnestSampler <- function(x, resample = FALSE, add_live = TRUE,
-                                unit_scale = FALSE, ...) {
+                                   unit_scale = FALSE, ...) {
   if (x@n_iter < 1) {
     cli::cli_abort("No iterations have been run with this sampler.")
   }

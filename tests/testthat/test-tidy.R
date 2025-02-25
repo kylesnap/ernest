@@ -15,5 +15,4 @@ test_that("Tidy output", {
     nrow(calculate(run)),
     nrow(calculate(run, exponentiate = FALSE))
   )
-
 })

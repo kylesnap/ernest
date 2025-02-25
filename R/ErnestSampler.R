@@ -68,7 +68,6 @@ ErnestSampler <- new_class(
 
 #' Format method for ErnestSampler
 #' @noRd
-format.ErnestSampler <- new_external_generic("base", "format", "x")
 method(format, ErnestSampler) <- function(x, digits = getOption("digits"), ...) {
   cli::cli_format_method({
     cli::cli_h1("Nested Sampling Run from {.pkg ernest}")

@@ -24,7 +24,7 @@
 #' The columns `log_vol` and `log_evidence_err` are always returned in the
 #' log scale.
 calculate.ErnestSampler <- function(x, exponentiate = FALSE,
-                                 progress = TRUE, ...) {
+                                    progress = TRUE, ...) {
   int_rcrd <- x@wrk$integral_rcrd
   integration <- compute_integral(
     vctrs::field(int_rcrd, "log_lik"),
@@ -49,9 +49,7 @@ calculate.ErnestSampler <- function(x, exponentiate = FALSE,
       },
       "log_evidence_err" = sqrt(integration$log_z_var[expected_len])
     )
-  }
-
-  else {
+  } else {
     tibble::tibble(
       "log_vol" = integration$log_vol,
       if (exponentiate) {

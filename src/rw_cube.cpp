@@ -9,15 +9,16 @@
  * @param prior_transform A function that transforms unit cube values to parameter values.
  * @param start A numeric vector representing the starting point in the unit cube.
  * @param min_lik The minimum log-likelihood threshold for accepting a proposal.
- * @param steps The number of steps to perform in the random walk.
+ * @param max_try The maximum number of proposals to try before giving up.
+ * @param min_steps The number of steps to perform in the random walk.
  * @param epsilon The step size for the random walk.
  * @return A list containing the final unit cube values, the corresponding parameters,
  *         the log-likelihood of the final parameters, and the number of steps performed.
  */
 // [[Rcpp::export]]
 Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform,
-                            Rcpp::NumericVector original, double min_lik,
-                            int max_steps, double epsilon) {
+                           Rcpp::NumericVector original, double min_lik,
+                           int max_try, int min_steps, double epsilon) {
   Rcpp::NumericVector cur_unit = Rcpp::clone(original);
   Rcpp::NumericVector cur_param = prior_transform(cur_unit);
   Rcpp::NumericVector new_unit(original.size());
@@ -27,7 +28,7 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
   int accept = 0;
   int reject = 0;
   int step = 0;
-  while (step < max_steps || accept < 1) {
+  while (step < min_steps || (accept < 1 && step < max_try)) {
     // Update the step size
     if (accept > reject) {
       epsilon *= std::exp(1.0 / accept);
@@ -52,6 +53,10 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
       reject += 1;
     }
     step++;
+  }
+
+  if (step >= max_try) {
+    Rcpp::stop("Maximum number of steps reached.");
   }
 
   return Rcpp::List::create(

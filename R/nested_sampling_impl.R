@@ -17,19 +17,27 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
   cur_update <- wrk$last_update
   n_since_update <- 0L
   d_log_vol <- log((sampler$n_points + 1) / sampler$n_points)
+  d_log_z <- logaddexp(0, max(wrk$live_lik) + log_vol - log_z)
 
-  for (iter in c(1:max_it)) {
+  if (sampler$verbose) {
+    cli::cli_progress_bar(
+      type = "custom",
+      format = "Nested Sampling: {iter} Iter., {calls} Lik. Calls, Remaining Evidence {d_log_z} > {dlogz}"
+    )
+  }
+  for (iter in seq2(1, max_it)) {
     if (calls > max_call) {
       status <- "MAX_CALL"
-      # if (env$verbose) cli::cli_progress_done()
+      if (sampler$verbose) cli::cli_progress_done()
       break
     }
     d_log_z <- logaddexp(0, max(wrk$live_lik) + log_vol - log_z)
     if (d_log_z < dlogz) {
       status <- "MIN_EVID"
-      # if (env$verbose) cli::cli_progress_done()
+      if (sampler$verbose) cli::cli_progress_done()
       break
     }
+    if (sampler$verbose) cli::cli_progress_update()
 
     # Get the worst point and constrict the prior volume
     worst_idx <- wrk$worst_idx
@@ -66,5 +74,6 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
     # Save the new point over the dead point, and increment the calls counter
     calls <- calls + wrk$push_point(iter, new, copy, cur_update)
   }
+  if (sampler$verbose) cli::cli_progress_done()
   sampler
 }

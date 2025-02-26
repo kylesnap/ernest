@@ -21,7 +21,7 @@
 #' @seealso [posterior::as_draws_matrix()], [posterior::resample_draws()],
 #' and [posterior::weight_draws()] for more information on the returned object.
 #'
-#' @export
+#' @exportS3Method posterior::as_draws
 as_draws.ErnestSampler <- function(x, resample = FALSE, add_live = TRUE,
                                    unit_scale = FALSE, ...) {
   if (is.null(x$wrk)) {

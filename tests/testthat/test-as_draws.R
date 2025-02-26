@@ -12,7 +12,7 @@ test_that("Ernest Sampler Formating Works", {
   )
 
   expect_error(
-    as_draws(sampler),
+    posterior::as_draws(sampler),
     "No iterations have been run with this sampler."
   )
 
@@ -22,7 +22,7 @@ test_that("Ernest Sampler Formating Works", {
     max_it = 100L
   )
 
-  expect_snapshot(as_draws(run))
+  expect_snapshot(posterior::as_draws(run))
 
   expect_equal(posterior::niterations(posterior::as_draws(run)), 600)
   expect_equal(posterior::niterations(posterior::as_draws(run, resample = FALSE)), 600)

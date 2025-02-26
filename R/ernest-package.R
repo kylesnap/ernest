@@ -18,7 +18,6 @@ generics::calculate
 #' @importFrom generics generate
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
-#' @importFrom posterior as_draws
 #' @importFrom Rcpp sourceCpp
 #' @importFrom rlang %@%
 #' @importFrom rlang %@%<-
@@ -30,7 +29,3 @@ generics::calculate
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL
-
-.onLoad <- function(...) {
-  S7::methods_register()
-}

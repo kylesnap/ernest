@@ -7,7 +7,8 @@
 #' they may use the generics provided to interact with the objects in tidy and
 #' readable formats.
 #'
-ErnestWorkspace <- R6::R6Class(
+#' @importFrom R6 R6Class
+ErnestWorkspace <- R6Class(
   "ErnestWorkspace",
   portable = FALSE,
   class = FALSE,

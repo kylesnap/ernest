@@ -1,7 +1,7 @@
 # Ernest Sampler Formating Works
 
     Code
-      as_draws(run)
+      posterior::as_draws(run)
     Output
       # A draws_matrix: 600 iterations, 1 chains, and 3 variables
           variable

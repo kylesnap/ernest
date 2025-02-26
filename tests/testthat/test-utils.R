@@ -1,3 +1,15 @@
+test_that("validate_integer_parameter works correctly", {
+  expect_equal(validate_integer_parameter(5L, 10), 5L)
+  expect_equal(validate_integer_parameter(5.5, 10), 55L)
+
+  expect_equal(validate_integer_parameter(0.5, 10), 5L)
+  expect_error(validate_integer_parameter("a", 10), "must be a number")
+  expect_error(
+    validate_integer_parameter(5.5, 10, min = 60),
+    "larger than or equal to 60"
+  )
+})
+
 test_that("Errors and warnings are thrown for compute_integral", {
   log_lik <- c(1, 2, 3)
   log_vol <- c(-0.5, -0.75)

@@ -17,3 +17,5 @@ make_gaussian <- function(num_dim, corr = 0.95) {
     prior_transform = \(x) qunif(x, -10, 10)
   )
 }
+
+gaussian_2 <- make_gaussian(2)

@@ -33,7 +33,6 @@ propose_uniform.ErnestSampler <- function(x) {
 #' @return A list representing a particle, with components "unit",
 #' "parameters", "log_lik", and "num_calls"
 #' @noRd
-#' @export
 propose_live <- function(x, copy) {
   UseMethod("propose_live")
 }

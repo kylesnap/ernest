@@ -5,7 +5,6 @@
 #' @returns Either an updated `ErnestSampler` object, or NULL if sampler
 #' cannot be updated.
 #' @noRd
-#' @export
 update_sampler <- function(x) {
   UseMethod("update_sampler")
 }

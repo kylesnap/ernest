@@ -13,15 +13,16 @@ Imports:
     generics,
     glue,
     lifecycle,
-    posterior,
+    prettyunits,
+    R6,
     Rcpp,
     rlang (>= 1.1.0),
-    S7,
     tibble,
     utils,
     vctrs
 Suggests: 
     mvtnorm,
+    posterior,
     testthat (>= 3.0.0)
 LinkingTo:
     Rcpp
@@ -29,22 +30,3 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Collate: 
-    'utils.R'
-    'ErnestSampler.R'
-    'ErnestWorkspace_class.R'
-    'RcppExports.R'
-    'as_draws.R'
-    'calculate.R'
-    'compile.R'
-    'ernest-package.R'
-    'generate.R'
-    'import-standalone-obj-type.R'
-    'import-standalone-purrr.R'
-    'import-standalone-types-check.R'
-    'lrps.R'
-    'nested_sampling.R'
-    'nested_sampling_impl.R'
-    'propose.R'
-    'reexports.R'
-    'update_sampler.R'

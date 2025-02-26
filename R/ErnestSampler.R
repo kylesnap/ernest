@@ -29,6 +29,7 @@
 NULL
 
 #' Construct an ernest sampler
+#' @noRd
 new_ernest_sampler <- function(log_lik, prior_transform, n_dim, n_points,
                                first_update, between_update,
                                verbose, wrk = NULL, ..., class = character()) {

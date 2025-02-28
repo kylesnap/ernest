@@ -21,6 +21,8 @@ readable formats.
 \item{\code{live_points}}{A matrix of live points, stored in the orig. param space}
 
 \item{\code{live_lik}}{A vector of log-likelihoods for the live points}
+
+\item{\code{args}}{A list of parameters for a given sampler}
 }
 \if{html}{\out{</div>}}
 }
@@ -45,6 +47,8 @@ to the dead set, or -1.e300 if no points have been killed yet.}
 
 \item{\code{last_update}}{The number of times the sampler has been updated, or
 \code{0L} if no updates have been made yet.}
+
+\item{\code{scale}}{Returns the current scale of the nested sampler.}
 
 \item{\code{integral_rcrd}}{Returns the log_vol and log_lik vectors as a \code{vctrs::rcrd}
 object.}

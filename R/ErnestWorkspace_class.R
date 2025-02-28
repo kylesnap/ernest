@@ -21,6 +21,9 @@ ErnestWorkspace <- R6Class(
     #' @field live_lik A vector of log-likelihoods for the live points
     live_lik = NULL,
 
+    #' @field args A list of parameters for a given sampler
+    args = c(),
+
     #' @description
     #' Initialize the workspace with the live points and their log-likelihoods.
     #' @param log_lik The log-likelihood function.
@@ -164,6 +167,15 @@ ErnestWorkspace <- R6Class(
         0L
       } else {
         tail(private$.updates, 1L)
+      }
+    },
+
+    #' @field scale Returns the current scale of the nested sampler.
+    scale = function() {
+      if (is_null(private$.scale)) {
+        1.0
+      } else {
+        tail(private$.scale, 1L)
       }
     },
 

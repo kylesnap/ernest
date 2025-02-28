@@ -27,6 +27,7 @@ test_that("Ernest Sampler Formating Works", {
     between_update = 1000L,
     steps = 20L,
     epsilon = 0.1,
+    p_acc = 0.5,
     verbose = FALSE
   )
   expect_snapshot(sampler)

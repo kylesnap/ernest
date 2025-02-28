@@ -51,7 +51,7 @@ propose_live.ErnestSampler <- function(x, copy) {
 #' @noRd
 #' @export
 propose_live.RandomWalkCube <- function(x, copy) {
-  call <- list(
+  new <- propose_rwcube_(
     log_lik = x$log_lik,
     prior_transform = x$prior_transform,
     original = x$wrk$live_units[copy, ],
@@ -60,13 +60,7 @@ propose_live.RandomWalkCube <- function(x, copy) {
     min_steps = x$steps,
     epsilon = x$epsilon
   )
-  propose_rwcube_(
-    log_lik = x$log_lik,
-    prior_transform = x$prior_transform,
-    original = x$wrk$live_units[copy, ],
-    min_lik = x$wrk$worst_lik,
-    max_try = getOption("ernest.max_loop", default = 1e6),
-    min_steps = x$steps,
-    epsilon = x$epsilon
-  )
+  x$wrk$args["n_call"] <- x$wrk$args["n_call"] + new$num_calls
+  x$wrk$args["n_acc"] <- x$wrk$args["n_acc"] + new$n_acc
+  new
 }

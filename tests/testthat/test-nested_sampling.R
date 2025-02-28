@@ -30,7 +30,8 @@ test_that("nested_sampling function works correctly", {
       verbose = FALSE,
       wrk = NULL,
       steps = 20,
-      epsilon = 0.1
+      epsilon = 1.0,
+      p_acc = 0.5
     )
   )
 })
@@ -73,7 +74,8 @@ test_that("Default parameters behave as expected", {
       verbose = getOption("verbose"),
       wrk = NULL,
       steps = 20,
-      epsilon = 0.1
+      epsilon = 1.0,
+      p_acc = 0.5
     )
   )
 })

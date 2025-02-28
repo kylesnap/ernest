@@ -20,7 +20,7 @@ test_that("rwmh_cube creates correct structure", {
 
   expect_error(
     rwmh_cube(steps = 0),
-    "larger than or equal to 1"
+    "larger than or equal to 2"
   )
   expect_error(
     rwmh_cube(epsilon = 0),
@@ -37,8 +37,9 @@ test_that("default values carry through", {
     max_loop = NULL
   ))
   expect_mapequal(rwmh_cube(), list(
-    epsilon = 0.1,
+    epsilon = 1.0,
     steps = 20,
+    p_acc = 0.5,
     max_loop = NULL
   ))
 })

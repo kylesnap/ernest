@@ -11,9 +11,6 @@ validate_integer_parameter <- function(x, multiplicand, min = NULL) {
   as.integer(x)
 }
 
-#' Short lil line helping to print info about the samplers
-sampler_info <- c("Live Points" = "{x@n_points}", "N. Dimensions" = "{x@n_dim}")
-
 #' Compute the nested sampling integral
 #'
 #' @param log_lik A vector of log-likelihoods in descending order.

@@ -24,8 +24,8 @@ void Ernest::runif_cube(Rcpp::NumericVector &vec) {
 Rcpp::NumericVector Ernest::runif_sphere(int n) {
   Rcpp::NumericVector vec = Rcpp::rnorm(n, 0, 1);
   double norm = sqrt(Rcpp::sum(Rcpp::pow(vec, 2)));
-  double u = pow(R::runif(0, 1), -1);
-  return u * (vec / norm);
+  double u = pow(R::runif(0, 1), 1.0 / n) / norm;
+  return vec * (u / norm);
 }
 
 // PURPOSE: Offset point `vec` by a point randomly selected from the unit sphere

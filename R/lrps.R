@@ -48,20 +48,23 @@ unif_cube <- function(max_loop = NULL) {
 #' taking random steps within the unit hypercube. The step size is evolve over
 #' a walk to target an acceptance rate of `0.5`.
 #'
-#' @param epsilon step-size hyperparameter, defaults to `0.1`.
-#' @param steps minimum number of steps to take, defaults to `20`.
+#' @param epsilon Step-size parameter, adjusted over the course of a run.
+#' @param steps Number of steps to take when generating a proposal point.
+#' @param p_acc The targeted acceptance ratio.
 #'
 #' @export
-rwmh_cube <- function(epsilon = 0.1, steps = 20L, max_loop = NULL) {
+rwmh_cube <- function(steps = 20L, epsilon = 1, p_acc = 0.5, max_loop = NULL) {
+  check_number_whole(steps, min = 2, allow_infinite = FALSE)
+  check_number_decimal(p_acc, min = 0, max = 1, allow_infinite = FALSE)
+  check_number_decimal(epsilon, min = 0, allow_infinite = FALSE)
   if (epsilon <= 0) {
-    cli::cli_abort("`epsilon` must be a number larger than 0, not {epsilon}")
+    cli::cli_abort("`epsilon` must be a number larger than 0, not {epsilon}.")
   }
-  check_number_decimal(epsilon, allow_infinite = FALSE)
-  check_number_whole(steps, min = 1, allow_infinite = FALSE)
   structure(
     list(
       epsilon = epsilon,
       steps = as.integer(steps),
+      p_acc = p_acc,
       max_loop = max_loop
     ),
     class = c("rwmh_cube", "ernest_lrps")
@@ -116,6 +119,7 @@ build_sampler.rwmh_cube <- function(sampler, log_lik, prior_transform,
     verbose = verbose,
     steps = sampler$steps,
     epsilon = sampler$epsilon,
+    p_acc = sampler$p_acc,
     wrk = NULL
   )
 }

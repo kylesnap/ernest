@@ -7,12 +7,15 @@ make_gaussian <- function(num_dim, corr = 0.95) {
   list(
     log_lik = rlang::new_function(
       rlang::exprs(x = ),
-      rlang::expr(mvtnorm::dmvnorm(
-        x,
-        mean = !!mean,
-        sigma = !!sigma,
-        log = TRUE
-      ))
+      rlang::expr({
+        dim(x) <- c(1, !!num_dim)
+        mvtnorm::dmvnorm(
+          x,
+          mean = !!mean,
+          sigma = !!sigma,
+          log = TRUE
+        )
+      }),
     ),
     prior_transform = \(x) qunif(x, -10, 10)
   )

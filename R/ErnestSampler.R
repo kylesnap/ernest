@@ -140,9 +140,13 @@ new_uniform_cube <- function(log_lik, prior_transform, n_dim, n_points,
 #' @param epsilon The initial step size of the random walk.
 #' @noRd
 new_rwmh_cube <- function(log_lik, prior_transform, n_dim, n_points,
-                           first_update, between_update,
-                           verbose, steps, epsilon, wrk = NULL) {
-  x <- new_ernest_sampler(
+                          first_update, between_update,
+                          verbose, steps, p_acc, epsilon,
+                          wrk = NULL) {
+  check_number_whole(steps, min = 2, allow_infinite = FALSE)
+  check_number_decimal(p_acc, min = 0, max = 1, allow_infinite = FALSE)
+  check_number_decimal(epsilon, min = 0, allow_infinite = FALSE)
+  new_ernest_sampler(
     log_lik = log_lik,
     prior_transform = prior_transform,
     n_dim = n_dim,
@@ -153,9 +157,7 @@ new_rwmh_cube <- function(log_lik, prior_transform, n_dim, n_points,
     wrk = wrk,
     steps = steps,
     epsilon = epsilon,
+    p_acc = p_acc,
     class = "RandomWalkCube"
   )
-  check_number_decimal(x$epsilon, min = 0, allow_infinite = FALSE)
-  check_number_whole(x$steps, min = 1, allow_infinite = FALSE)
-  x
 }

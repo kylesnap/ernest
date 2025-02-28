@@ -7,6 +7,7 @@
 #'
 #' @returns The sampler, which may have been updated.
 #'
+#' @importFrom prettyunits pretty_signif
 #' @noRd
 nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
   wrk <- sampler$wrk
@@ -22,7 +23,7 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
   if (sampler$verbose) {
     cli::cli_progress_bar(
       type = "custom",
-      format = "Nested Sampling: {iter} Iter., {calls} Lik. Calls, Remaining Evidence {d_log_z} > {dlogz}"
+      format = "{cli::pb_spin} Sampling | Iter.: {iter} | Calls: {calls} | ln(z): {pretty_signif(log_z)} (Remaining: {pretty_signif(d_log_z)})"
     )
   }
   for (iter in seq2(1, max_it)) {
@@ -72,7 +73,9 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
     }
 
     # Save the new point over the dead point, and increment the calls counter
-    calls <- calls + wrk$push_point(iter, new, copy, cur_update)
+    cur_calls <- wrk$push_point(iter, new, copy, cur_update)
+    n_since_update <- n_since_update + cur_calls
+    calls <- calls + cur_calls
   }
   if (sampler$verbose) cli::cli_progress_done()
   sampler

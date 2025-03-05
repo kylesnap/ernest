@@ -52,6 +52,8 @@ to the dead set, or -1.e300 if no points have been killed yet.}
 
 \item{\code{integral_rcrd}}{Returns the log_vol and log_lik vectors as a \code{vctrs::rcrd}
 object.}
+
+\item{\code{n_points}}{The number of live points in the workspace.}
 }
 \if{html}{\out{</div>}}
 }
@@ -62,6 +64,7 @@ object.}
 \item \href{#method-ErnestWorkspace-pop_point}{\code{ErnestWorkspace$pop_point()}}
 \item \href{#method-ErnestWorkspace-push_point}{\code{ErnestWorkspace$push_point()}}
 \item \href{#method-ErnestWorkspace-get_dead}{\code{ErnestWorkspace$get_dead()}}
+\item \href{#method-ErnestWorkspace-clone}{\code{ErnestWorkspace$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -145,6 +148,23 @@ Get the dead points returned as a matrix
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{unit_scale}}{Whether to return the points in the unit hypercube.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ErnestWorkspace-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-ErnestWorkspace-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ErnestWorkspace$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
 }
 \if{html}{\out{</div>}}
 }

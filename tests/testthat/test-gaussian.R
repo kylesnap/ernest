@@ -8,10 +8,13 @@ test_that("Gaussian case works as expected", {
     sampler = rwmh_cube()
   )
 
-  run <- generate(sampler, dlogz = 0.05)
-  expected_logz <- 2 * -log(2 * 10)
-  integral <- calculate(run, progress = FALSE)
+  run <- generate(sampler, max_it = 1000)
+  expect_equal(run$wrk$n_iter, 1000)
 
+  run2 <- generate(run, dlogz = 0.05)
+  integral <- calculate(run2, progress = FALSE)
+
+  expected_logz <- 2 * -log(2 * 10)
   expect_equal(expected_logz, integral$log_evidence, tolerance = integral$log_evidence_err)
 
   samples <- posterior::as_draws(run, resample = TRUE)

@@ -4,7 +4,7 @@
 \alias{generate.ErnestSampler}
 \title{Generate nested samples from an \code{ErnestSampler} object.}
 \usage{
-\method{generate}{ErnestSampler}(x, max_it = Inf, max_call = Inf, dlogz = 0.05, ...)
+\method{generate}{ErnestSampler}(x, max_it = Inf, max_call = Inf, dlogz = 0.05, refresh = FALSE, ...)
 }
 \arguments{
 \item{x}{An \code{ErnestSampler} object.}
@@ -17,6 +17,10 @@ be a number larger than zero.}
 
 \item{dlogz}{The threshold for the remaining prior volume to the total
 evidence. Must represent a number larger or equal to zero.}
+
+\item{refresh}{If \code{TRUE}, and if \code{object} already contains nested sampling
+results, then the workspace attached to \code{wrk} will be overwritten. Else, the
+run will be continued from the most recent iteration provided by ernest.}
 
 \item{...}{Ignored.}
 }

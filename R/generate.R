@@ -7,12 +7,15 @@
 #' be a number larger than zero.
 #' @param dlogz The threshold for the remaining prior volume to the total
 #' evidence. Must represent a number larger or equal to zero.
+#' @param refresh If `TRUE`, and if `object` already contains nested sampling
+#' results, then the workspace attached to `wrk` will be overwritten. Else, the
+#' run will be continued from the most recent iteration provided by ernest.
 #' @param ... Ignored.
 #'
 #' @return An `ErnestSampler` object containing the results of the nested
 #' @export
 generate.ErnestSampler <-
-  function(x, max_it = Inf, max_call = Inf, dlogz = 0.05, ...) {
+  function(x, max_it = Inf, max_call = Inf, dlogz = 0.05, refresh = FALSE,...) {
     # Initialize the run
     if (max_it == Inf) {
       max_it <- .Machine$integer.max
@@ -24,8 +27,8 @@ generate.ErnestSampler <-
     check_number_whole(max_call, min = 1, allow_infinite = FALSE)
     check_number_decimal(dlogz, min = 0, allow_infinite = FALSE)
 
-    # --- Cleanup activities here --- #
-    x <- compile(x)
+    # Ensure the environment is properly built
+    x <- compile(x, refresh = FALSE)
 
     time1 <- Sys.time()
     nested_sampling_impl(x, max_it, max_call, dlogz)

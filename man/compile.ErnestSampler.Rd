@@ -4,18 +4,27 @@
 \alias{compile.ErnestSampler}
 \title{Configure an ErnestSampler object}
 \usage{
-\method{compile}{ErnestSampler}(object, ...)
+\method{compile}{ErnestSampler}(object, refresh = FALSE, ...)
 }
 \arguments{
 \item{object}{An ErnestSampler or ErnestSampler object.}
 
+\item{refresh}{If \code{TRUE}, and if \code{object} already contains an ErnestWorkspace,
+then the workspace attached to \code{wrk} will be overwritten. If \code{FALSE}, then
+the workspace will be cloned and bound to compile's output.}
+
 \item{...}{Ignored.}
 }
 \value{
-\code{object}, now attached to an \code{ErnestWorkspace}
+A copy of \code{object}, with an \code{ErnestWorkspace} bound to the \code{wrk}
+field.
 }
 \description{
 Ernest conducts nested sampling in an enviroment bound to the nested sampler.
 This function configures this environment so that it contains the necessary
 variables.
+}
+\details{
+When \code{\link[=generate]{generate()}} has been called on the \code{ErnestSampler} object before, it
+will c
 }

@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <algorithm> // for std::min
 
 #include "utils.h"
 
@@ -21,43 +22,32 @@ Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transfor
                            int max_try, int min_steps, double epsilon) {
   Rcpp::NumericVector cur_unit = Rcpp::clone(original);
   Rcpp::NumericVector cur_param = prior_transform(cur_unit);
-  Rcpp::NumericVector new_unit(original.size());
-  Rcpp::NumericVector new_param(original.size());
   double cur_loglik = Rcpp::as<double>(log_lik(cur_param));
 
   int accept = 0;
   int reject = 0;
   int step = 0;
-  while (step < min_steps) { // } || (accept < 1 && step < max_try)) {
-    // // Update the step size
-    // if (accept > reject) {
-    //   epsilon *= std::exp(1.0 / accept);
-    // } else if (accept < reject) {
-    //   epsilon /= std::exp(1.0 / reject);
-    // }
-    // Add offset point to current unit
+
+  while (step < min_steps) {
+    Rcpp::NumericVector new_unit = Rcpp::clone(cur_unit);
     bool fail = Ernest::offset_sphere(new_unit, cur_unit, epsilon);
     if (fail) {
       reject++;
       step++;
       continue;
     }
-    new_param = prior_transform(new_unit);
+    Rcpp::NumericVector new_param = prior_transform(new_unit);
     double new_loglik = Rcpp::as<double>(log_lik(new_param));
     if (new_loglik >= min_lik) {
-      cur_unit = Rcpp::clone(new_unit);
-      cur_param = new_param;
+      cur_unit = std::move(new_unit);
+      cur_param = std::move(new_param);
       cur_loglik = new_loglik;
-      accept += 1;
+      accept++;
     } else {
-      reject += 1;
+      reject++;
     }
     step++;
   }
-//
-//   if (step >= max_try) {
-//     Rcpp::stop("Maximum number of steps reached.");
-//   }
 
   return Rcpp::List::create(
     Rcpp::Named("unit") = cur_unit,

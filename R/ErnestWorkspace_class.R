@@ -6,13 +6,12 @@
 #' continued later. Users aren't expected to access this item directly, rather
 #' they may use the generics provided to interact with the objects in tidy and
 #' readable formats.
-#'
 #' @importFrom R6 R6Class
-ErnestWorkspace <- R6Class(
+ErnestWorkspace <- R6::R6Class(
   "ErnestWorkspace",
   portable = FALSE,
   class = FALSE,
-  cloneable = FALSE,
+  cloneable = TRUE,
   public = list(
     #' @field live_units A matrix of live points, stored in the unit hypercube
     live_units = NULL,
@@ -40,8 +39,8 @@ ErnestWorkspace <- R6Class(
       self$live_points <- matrix(nrow = n_points, ncol = n_dim)
       self$live_lik <- numeric(n_points)
       for (i in 1:n_points) {
-        self$live_points[i, ] <- prior_transform(live_units[i, ])
-        self$live_lik[i] <- log_lik(live_points[i, ])
+        self$live_points[i, ] <- prior_transform(self$live_units[i, ])
+        self$live_lik[i] <- log_lik(self$live_points[i, ])
       }
       private$.n_points <- n_points
     },
@@ -138,7 +137,7 @@ ErnestWorkspace <- R6Class(
       if (is_empty(private$.dead_vol)) {
         0.0
       } else {
-        tail(private$.dead_vol, 1L)
+        unlist(tail(private$.dead_vol, 1L))
       }
     },
 
@@ -166,7 +165,7 @@ ErnestWorkspace <- R6Class(
       if (is_empty(private$.updates)) {
         0L
       } else {
-        tail(private$.updates, 1L)
+        unlist(tail(private$.updates, 1L))
       }
     },
 
@@ -175,7 +174,7 @@ ErnestWorkspace <- R6Class(
       if (is_null(private$.scale)) {
         1.0
       } else {
-        tail(private$.scale, 1L)
+        unlist(tail(private$.scale, 1L))
       }
     },
 
@@ -196,6 +195,11 @@ ErnestWorkspace <- R6Class(
           "log_lik" = vctrs::vec_c(dead_lik, sort(self$live_lik))
         )
       )
+    },
+
+    #' @field n_points The number of live points in the workspace.
+    n_points = function() {
+      private$.n_points
     }
   )
 )

@@ -18,6 +18,7 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
   cur_update <- wrk$last_update
   n_since_update <- 0L
   d_log_vol <- log((sampler$n_points + 1) / sampler$n_points)
+  print(log_vol)
   d_log_z <- logaddexp(0, max(wrk$live_lik) + log_vol - log_z)
 
   if (sampler$verbose) {

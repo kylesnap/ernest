@@ -50,10 +50,10 @@ to the dead set, or -1.e300 if no points have been killed yet.}
 
 \item{\code{scale}}{Returns the current scale of the nested sampler.}
 
-\item{\code{integral_rcrd}}{Returns the log_vol and log_lik vectors as a \code{vctrs::rcrd}
-object.}
-
 \item{\code{n_points}}{The number of live points in the workspace.}
+
+\item{\code{integral_rcrd}}{The log-evidence integration results, stored in an
+S3 vctrs::rcrd object.}
 }
 \if{html}{\out{</div>}}
 }

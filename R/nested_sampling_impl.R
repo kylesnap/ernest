@@ -18,7 +18,6 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
   cur_update <- wrk$last_update
   n_since_update <- 0L
   d_log_vol <- log((sampler$n_points + 1) / sampler$n_points)
-  print(log_vol)
   d_log_z <- logaddexp(0, max(wrk$live_lik) + log_vol - log_z)
 
   if (sampler$verbose) {
@@ -27,7 +26,7 @@ nested_sampling_impl <- function(sampler, max_it, max_call, dlogz) {
       format = "{cli::pb_spin} Sampling | Iter.: {iter} | Calls: {calls} | ln(z): {pretty_signif(log_z)} (Remaining: {pretty_signif(d_log_z)})"
     )
   }
-  for (iter in seq2(1, max_it)) {
+  for (iter in seq2(iter + 1, max_it)) {
     if (calls > max_call) {
       status <- "MAX_CALL"
       if (sampler$verbose) cli::cli_progress_done()

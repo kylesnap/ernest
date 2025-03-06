@@ -15,8 +15,5 @@ test_that("Tidy output", {
     max_it = 100L
   )
 
-  expect_equal(
-    nrow(calculate(run)),
-    nrow(calculate(run, exponentiate = FALSE))
-  )
+  expect_equal(nrow(calculate(run)), 600L)
 })

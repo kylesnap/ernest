@@ -178,28 +178,41 @@ ErnestWorkspace <- R6::R6Class(
       }
     },
 
-    #' @field integral_rcrd Returns the log_vol and log_lik vectors as a `vctrs::rcrd`
-    #' object.
+    #' @field n_points The number of live points in the workspace.
+    n_points = function() {
+      private$.n_points
+    },
+
+    #' @field integral_rcrd The log-evidence integration results, stored in an
+    #' S3 vctrs::rcrd object.
     integral_rcrd = function() {
+      if (self$n_iter == 0) {
+        cli::cli_warn("No iterations have been completed with this `ErnestSampler`")
+        return(NULL)
+      }
+      c_log_lik <- c(
+        list_c(private$.dead_lik),
+        self$live_lik
+      )
+      c_log_vol <- c(
+        list_c(private$.dead_vol),
+        log1p(
+          (-1 - private$.n_points)^(-1) * seq_len(private$.n_points)
+        ) + log_vol
+      )
+
       dead_lik <- list_c(private$.dead_lik)
       dead_vol <- list_c(private$.dead_vol)
       last_vol <- tail(dead_vol, 1)
-
       live_vol <- log1p(
         (-1 - private$.n_points)^(-1) * seq_len(private$.n_points)
       ) + last_vol
 
-      vctrs::new_rcrd(
-        list(
-          "log_vol" = vctrs::vec_c(dead_vol, live_vol),
-          "log_lik" = vctrs::vec_c(dead_lik, sort(self$live_lik))
-        )
+      compute_integral(
+        log_lik = c(dead_lik, sort(self$live_lik)),
+        log_vol = c(dead_vol, live_vol),
+        n_iter = self$n_iter
       )
-    },
-
-    #' @field n_points The number of live points in the workspace.
-    n_points = function() {
-      private$.n_points
     }
   )
 )

@@ -4,17 +4,10 @@
 \alias{calculate.ErnestSampler}
 \title{Calculate statistics from an \code{ErnestSampler} object.}
 \usage{
-\method{calculate}{ErnestSampler}(x, exponentiate = FALSE, progress = TRUE, ...)
+\method{calculate}{ErnestSampler}(x, ...)
 }
 \arguments{
 \item{x}{An \code{ErnestSampler} object.}
-
-\item{exponentiate}{Whether to report likelihoods and evidence estimates
-in exponentiated units.}
-
-\item{progress}{Whether to return a tibble describing
-each update to the evidence integral estimate at each iteration (\code{TRUE},
-the default), or to return a one-row \code{tibble} with the final estimates.}
 
 \item{...}{Ignored.}
 }

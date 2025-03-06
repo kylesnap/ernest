@@ -14,6 +14,7 @@ Imports:
     glue,
     lifecycle,
     prettyunits,
+    posterior,
     R6,
     Rcpp,
     rlang (>= 1.1.0),
@@ -21,8 +22,10 @@ Imports:
     utils,
     vctrs
 Suggests: 
+    ggplot2,
+    knitr,
     mvtnorm,
-    posterior,
+    rmarkdown,
     testthat (>= 3.0.0)
 LinkingTo:
     Rcpp
@@ -30,3 +33,4 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr

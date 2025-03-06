@@ -6,6 +6,10 @@
 \alias{generate}
 \alias{compile}
 \alias{calculate}
+\alias{glance}
+\alias{as_draws}
+\alias{as_draws_matrix}
+\alias{as_draws_df}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -13,6 +17,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{calculate}}, \code{\link[generics]{compile}}, \code{\link[generics]{generate}}}
+  \item{generics}{\code{\link[generics]{calculate}}, \code{\link[generics]{compile}}, \code{\link[generics]{generate}}, \code{\link[generics]{glance}}}
+
+  \item{posterior}{\code{\link[posterior:draws]{as_draws}}, \code{\link[posterior:draws_df]{as_draws_df}}, \code{\link[posterior:draws_matrix]{as_draws_matrix}}}
 }}
 

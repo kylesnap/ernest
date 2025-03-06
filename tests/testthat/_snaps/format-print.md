@@ -7,6 +7,8 @@
       -- Nested Sampling Run from ernest ---------------------------------------------
       No. Live Points: 500
       No. Dimensions: 3
+      No. Iterations: 0
+      No. Calls: 0
       i Sampler has not been run.
 
 ---
@@ -18,12 +20,10 @@
       -- Nested Sampling Run from ernest ---------------------------------------------
       No. Live Points: 500
       No. Dimensions: 3
-      
-      -- Results 
       No. Iterations: 100
       No. Calls: 104
-      Efficiency: 96.15385%
-      Log. Evidence: -13.24392 ± 2.214156
+      Efficiency: 96.1538462%
+      Log. Evidence: -13.2439186 ± 2.2141559
 
 ---
 
@@ -34,5 +34,7 @@
       -- Nested Sampling Run from ernest ---------------------------------------------
       No. Live Points: 500
       No. Dimensions: 3
+      No. Iterations: 0
+      No. Calls: 0
       i Sampler has not been run.
 

@@ -74,32 +74,22 @@ validate_ernest_sampler <- function(x) {
 #' @noRd
 #' @export
 format.ErnestSampler <- function(x, digits = getOption("digits"), ...) {
+  glanced <- glance(x)
   cli::cli_format_method({
     cli::cli_h1("Nested Sampling Run from {.pkg ernest}")
     cli::cli_dl(c(
-      "No. Live Points" = "{x$n_points}",
-      "No. Dimensions" = "{x$n_dim}"
+      "No. Live Points" = "{.val {glanced$n_points}}",
+      "No. Dimensions" = "{.val {glanced$n_dim}}",
+      "No. Iterations" = "{.val {glanced$n_iter}}",
+      "No. Calls" = "{.val {glanced$n_call}}"
     ))
     if (!is.null(x$wrk)) {
-      cli::cli_h3("Results")
-      res <- calculate(x, progress = FALSE)
-      log_evid <- prettyunits::pretty_signif(
-        res$log_evidence,
-        digits = digits
-      )
-      log_evid_err <- prettyunits::pretty_signif(
-        res$log_evidence_err,
-        digits = digits
-      )
-      eff <- prettyunits::pretty_signif(
-        100 * (x$wrk$n_iter / x$wrk$n_call),
-        digits = digits
-      )
+      eff <- round(100 * glanced$eff, digits = digits)
+      log_z <- round(glanced$log_z, digits = digits)
+      log_z_err <- round(glanced$log_z_err, digits = digits)
       cli::cli_dl(c(
-        "No. Iterations" = "{x$wrk$n_iter}",
-        "No. Calls" = "{x$wrk$n_call}",
-        "Efficiency" = "{eff}%",
-        "Log. Evidence" = "{log_evid} \u00B1 {log_evid_err}"
+        "Efficiency" = "{.val {eff}}%",
+        "Log. Evidence" = "{.val {log_z}} \u00B1 {.val {log_z_err}}"
       ))
     } else {
       cli::cli_alert_info("Sampler has not been run.")

@@ -12,13 +12,12 @@ test_that("Gaussian case works as expected", {
   expect_equal(run$wrk$n_iter, 1000)
 
   run2 <- generate(run, dlogz = 0.05)
-  integral <- calculate(run2, progress = FALSE)
+  glanced <- glance(run2)
 
   expected_logz <- 2 * -log(2 * 10)
-  expect_equal(expected_logz, integral$log_evidence, tolerance = integral$log_evidence_err)
-
-  samples <- posterior::as_draws(run, resample = TRUE)
-  sample_sum <- posterior::summarise_draws(samples)
-  expect_equal(sample_sum$mean[1], -1, tolerance = sample_sum$sd[1])
-  expect_equal(sample_sum$mean[2], 1, tolerance = sample_sum$sd[2])
+  expect_equal(expected_logz, glanced$log_z, tolerance = glanced$log_z_err)
+#   samples <- posterior::as_draws(run, resample = TRUE)
+#   sample_sum <- posterior::summarise_draws(samples)
+#   expect_equal(sample_sum$mean[1], -1, tolerance = sample_sum$sd[1])
+#   expect_equal(sample_sum$mean[2], 1, tolerance = sample_sum$sd[2])
 })

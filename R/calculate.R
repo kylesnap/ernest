@@ -1,11 +1,6 @@
 #' Calculate statistics from an `ErnestSampler` object.
 #'
 #' @param x An `ErnestSampler` object.
-#' @param exponentiate Whether to report likelihoods and evidence estimates
-#' in exponentiated units.
-#' @param progress Whether to return a tibble describing
-#' each update to the evidence integral estimate at each iteration (`TRUE`,
-#' the default), or to return a one-row `tibble` with the final estimates.
 #' @param ... Ignored.
 #'
 #' @returns A tibble with the following columns:
@@ -25,54 +20,43 @@
 #' log scale.
 #'
 #' @export
-calculate.ErnestSampler <- function(x, exponentiate = FALSE,
-                                    progress = TRUE, ...) {
-  if (is.null(x$wrk)) {
-    cli::cli_abort("The ErnestSampler object does not have a valid `wrk` field.")
+calculate.ErnestSampler <- function(x, ...) {
+  check_dots_empty(...)
+  integral <- x$wrk$integral_rcrd
+  if (is.null(integral)) {
+    return(NULL)
   }
-  int_rcrd <- x$wrk$integral_rcrd
-  integration <- compute_integral(
-    vctrs::field(int_rcrd, "log_lik"),
-    vctrs::field(int_rcrd, "log_vol")
-  )
 
-  expected_len <- x$wrk$n_iter + x$n_points
-
-  if (!progress) {
-    tibble::tibble_row(
-      "log_vol" = integration$log_vol[expected_len],
-      if (exponentiate) {
-        tibble::tibble(
-          "lik" = exp(integration$log_lik[expected_len]),
-          "evidence" = exp(integration$log_z[expected_len]),
-        )
-      } else {
-        tibble::tibble(
-          "log_lik" = integration$log_lik[expected_len],
-          "log_evidence" = integration$log_z[expected_len]
-        )
-      },
-      "log_evidence_err" = sqrt(integration$log_z_var[expected_len])
-    )
+  log_z <- if (!attr(integral, "partial")) {
+    vctrs::field(integral, "log_z")
   } else {
-    tibble::tibble(
-      "log_vol" = integration$log_vol,
-      if (exponentiate) {
-        tibble::tibble(
-          "lik" = exp(integration$log_lik),
-          "lik_norm" = exp(integration$log_lik - max(integration$log_lik)),
-          "weight" = exp(integration$log_weight - tail(integration$log_z, 1)),
-          "evidence" = exp(integration$log_z),
-        )
-      } else {
-        tibble::tibble(
-          "log_lik" = integration$log_lik,
-          "log_lik_norm" = integration$log_lik - max(integration$log_lik),
-          "log_weight" = integration$log_weight - tail(integration$log_z, 1),
-          "log_evidence" = integration$log_z,
-        )
-      },
-      "log_evidence_err" = sqrt(integration$log_z_var)
-    )
+    NULL
   }
+  log_lik.norm <- vctrs::field(integral, "log_lik") -
+    max(vctrs::field(integral, "log_lik"))
+  log_weight <- if (!attr(integral, "partial")) {
+    vctrs::field(integral, "log_weight") - tail(log_z, 1)
+  } else {
+    NULL
+  }
+  log_z_err <- if (!attr(integral, "partial")) {
+    sqrt(vctrs::field(integral, "log_z_var"))
+  } else {
+    NULL
+  }
+  h <- if (!attr(integral, "partial")) {
+    vctrs::field(integral, "h")
+  } else {
+    NULL
+  }
+
+  tibble::tibble(
+    "log_lik" = vctrs::field(integral, "log_lik"),
+    "log_lik.norm" = log_lik.norm,
+    "log_vol" = vctrs::field(integral, "log_vol"),
+    "log_weight" = log_weight,
+    "log_z" = log_z,
+    "log_z_err" = log_z_err,
+    "h" = h
+  )
 }

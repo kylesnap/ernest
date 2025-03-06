@@ -15,6 +15,7 @@ validate_integer_parameter <- function(x, multiplicand, min = NULL) {
 #'
 #' @param log_lik A vector of log-likelihoods in descending order.
 #' @param log_vol A vector of log-volumes in ascending order.
+#' @param n_iter The number of iterations used to compute the integral.
 #'
 #' @return A list with the following components:
 #' log_z: Log. evidence
@@ -22,15 +23,24 @@ validate_integer_parameter <- function(x, multiplicand, min = NULL) {
 #' h: Information
 #' dh: Differential information
 #'
-compute_integral <- function(log_lik, log_vol) {
+#' @noRd
+compute_integral <- function(log_lik, log_vol, n_iter) {
   if (length(log_lik) != length(log_vol)) {
     cli::cli_abort("`log_lik` and `log_vol` must have the same length.")
   }
-  if (is.unsorted(log_lik)) {
-    cli::cli_abort("`log_lik` should be a vector in ascending order.")
-  }
-  if (is.unsorted(rev(log_vol), strictly = TRUE)) {
-    cli::cli_abort("`log_vol` should be a vector in strictly ascending order.")
+  partial_msg <- if (is.unsorted(log_lik)) {
+    "`log_lik` should be a vector in ascending order."
+  } else if (is.unsorted(rev(log_vol), strictly = TRUE)) {
+    "`log_vol` should be a vector in strictly ascending order."
+  } else { NULL }
+
+  if (!is.null(partial_msg)) {
+    cli::cli_warn("{partial_msg}\nReturning run information without evidence estimates.")
+    return(vctrs::new_rcrd(
+      list("log_lik" = log_lik, "log_vol" = log_vol),
+      partial = TRUE,
+      n_iter = n_iter
+    ))
   }
 
   pad_log_lik <- c(-1e300, log_lik)
@@ -56,12 +66,16 @@ compute_integral <- function(log_lik, log_vol) {
   dh <- diff(c(0, h))
   log_z_var <- abs(cumsum(dh * d_log_vol))
 
-  list(
-    "log_lik" = log_lik,
-    "log_vol" = log_vol,
-    "log_weight" = log_wt,
-    "log_z" = log_z,
-    "log_z_var" = log_z_var,
-    "h" = h
+  vctrs::new_rcrd(
+    list(
+      "log_lik" = log_lik,
+      "log_vol" = log_vol,
+      "log_weight" = log_wt,
+      "log_z" = log_z,
+      "log_z_var" = log_z_var,
+      "h" = h
+    ),
+    n_iter = n_iter,
+    partial = FALSE
   )
 }

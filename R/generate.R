@@ -28,8 +28,7 @@ generate.ErnestSampler <-
     check_number_decimal(dlogz, min = 0, allow_infinite = FALSE)
 
     # Ensure the environment is properly built
-    x <- compile(x, refresh = FALSE)
+    x <- compile(x, refresh = refresh)
 
-    time1 <- Sys.time()
     nested_sampling_impl(x, max_it, max_call, dlogz)
   }

@@ -124,26 +124,14 @@ integral <- calculate(run2)
 tail(integral)
 ```
 
-The change in the evidence estimate over the course of the run can be visualized by calling `visualize()` or `plot()` on the `ErnestSampler` object. These methods aren't implemented yet, but they look like this:
+The change in the evidence estimate over the course of the run can be visualized by calling `plot()` on the `ErnestSampler` object.
 
-```{r eval = requireNamespace("ggplot2")}
-integral |>
-  ggplot(aes(x = -log_vol, y = exp(log_lik.norm))) +
-  geom_line()
-integral |>
-  ggplot(aes(x = -log_vol, y = exp(log_weight))) +
-  geom_line()
-integral |>
-  ggplot(aes(x = -log_vol, y = exp(log_z))) +
-  geom_line() +
-  geom_ribbon(aes(
-    ymin = exp(log_z - log_z_err), 
-    ymax = exp(log_z + log_z_err), 
-  ), alpha = 0.5)
+```{r}
+plot(run2)
 ```
 We can also produce trace plots of the distributions of the points across the run by calling `visualize(which = "trace")` on the `ErnestSampler` object.
 
-```{r eval = requireNamespace("ggplot2")}
+```{r}
 draws <- posterior::as_draws_df(run2, unit = TRUE)
 
 ggplot(draws, aes(x = `.draw`, y = `...1`, colour = exp(`.log_weight`))) +

@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{An \code{ErnestSampler} object}
 
-\item{...}{Ignored}
+\item{...}{Must be left empty.}
 }
 \value{
 A single-row \code{\link[tibble:tibble]{tibble::tibble()}} summarizing the run.

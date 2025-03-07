@@ -20,13 +20,14 @@ Imports:
     rlang (>= 1.1.0),
     tibble,
     utils,
+    ggplot2,
     vctrs
 Suggests: 
-    ggplot2,
     knitr,
     mvtnorm,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    vdiffr
 LinkingTo:
     Rcpp
 Config/testthat/edition: 3

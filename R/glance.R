@@ -3,10 +3,9 @@
 #' Construct a single row summary of a given ernest run object
 #'
 #' @param x An `ErnestSampler` object
-#' @param ... Ignored
+#' @param ... Must be left empty.
 #'
 #' @returns A single-row [tibble::tibble()] summarizing the run.
-#'
 #' @export
 glance.ErnestSampler <- function(x, ...) {
   check_dots_empty(...)

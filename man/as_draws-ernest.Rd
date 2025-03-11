@@ -2,15 +2,12 @@
 % Please edit documentation in R/posterior.R
 \name{as_draws.ErnestSampler}
 \alias{as_draws.ErnestSampler}
-\alias{as_draws_matrix.ErnestSampler}
-\alias{as_draws_df.ErnestSampler}
+\alias{as_draws_list.ErnestSampler}
 \title{Transform \code{ErnestSampler} to \code{posterior::draws} objects}
 \usage{
 \method{as_draws}{ErnestSampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
 
-\method{as_draws_matrix}{ErnestSampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
-
-\method{as_draws_df}{ErnestSampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
+\method{as_draws_list}{ErnestSampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
 }
 \arguments{
 \item{x}{An \code{ErnestSampler} object, or another \R object for which

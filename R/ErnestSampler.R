@@ -30,12 +30,20 @@ NULL
 
 #' Construct an ernest sampler
 #' @noRd
-new_ernest_sampler <- function(log_lik, prior_transform, n_dim, n_points,
-                               first_update, between_update,
-                               verbose, wrk = NULL, ..., class = character()) {
+new_ernest_sampler <- function(log_lik = NULL,
+                               prior_transform = NULL,
+                               n_dim = NULL,
+                                n_points = NULL,
+                                first_update = NULL,
+                                between_update = NULL,
+                                verbose = NULL,
+                                wrk = NULL,
+                                ...,
+                                class = character()) {
   elems <- list(
     log_lik = log_lik,
     prior_transform = prior_transform,
+    ptype = make_ptype(n_dim),
     n_dim = n_dim,
     n_points = n_points,
     first_update = first_update,
@@ -51,7 +59,6 @@ new_ernest_sampler <- function(log_lik, prior_transform, n_dim, n_points,
     class = c(class, "ErnestSampler")
   )
   validate_ernest_sampler(x)
-  x
 }
 
 #' Validate an Ernest Sampler Object
@@ -61,13 +68,16 @@ new_ernest_sampler <- function(log_lik, prior_transform, n_dim, n_points,
 validate_ernest_sampler <- function(x) {
   check_function(x$log_lik)
   check_function(x$prior_transform)
+  # TODO: Drop the `n_dim` parameter
   check_number_whole(x$n_dim, min = 1, allow_infinite = FALSE)
+  if (ncol(x$ptype) != x$n_dim) stop()
+  # --
   check_number_whole(x$n_points, min = 1, allow_infinite = FALSE)
   check_number_whole(x$first_update, min = 0, allow_infinite = FALSE)
   check_number_whole(x$between_update, min = 0, allow_infinite = FALSE)
   check_logical(x$verbose)
   check_environment(x$wrk, allow_null = TRUE)
-  invisible(x)
+  x
 }
 
 #' Format method

@@ -23,6 +23,10 @@ test_that("nested_sampling function works correctly", {
     list(
       log_lik = gaussian_2$log_lik,
       prior_transform = gaussian_2$prior_transform,
+      ptype = tibble::tibble(
+        "X...1" = double(),
+        "X...2" = double()
+      ),
       n_dim = 2L,
       n_points = 500L,
       first_update = 1000L,
@@ -67,6 +71,10 @@ test_that("Default parameters behave as expected", {
     list(
       log_lik = gaussian_2$log_lik,
       prior_transform = gaussian_2$prior_transform,
+      ptype = tibble::tibble(
+        "X...1" = double(),
+        "X...2" = double()
+      ),
       n_dim = 2L,
       n_points = 500L,
       first_update = 1000L,

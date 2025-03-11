@@ -134,9 +134,9 @@ We can also produce trace plots of the distributions of the points across the ru
 ```{r}
 draws <- posterior::as_draws_df(run2, unit = TRUE)
 
-ggplot(draws, aes(x = `.draw`, y = `...1`, colour = exp(`.log_weight`))) +
+ggplot(draws, aes(x = `.draw`, y = `X...1`, colour = exp(`.log_weight`))) +
   geom_point()
-ggplot(draws, aes(x = `.draw`, y = `...2`, colour = exp(`.log_weight`))) +
+ggplot(draws, aes(x = `.draw`, y = `X...2`, colour = exp(`.log_weight`))) +
   geom_point()
 ```
 

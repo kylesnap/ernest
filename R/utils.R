@@ -1,5 +1,4 @@
 # Helper Functions -----
-
 validate_integer_parameter <- function(x, multiplicand, min = NULL) {
   x <- if (is.integer(x)) {
     x
@@ -9,6 +8,54 @@ validate_integer_parameter <- function(x, multiplicand, min = NULL) {
   }
   check_number_whole(x, min = min, allow_infinite = FALSE)
   as.integer(x)
+}
+
+#' Check ptype dispatches over character vectors, integers, and data.frame
+#'
+#' @noRd
+make_ptype <- function(x, ...) {
+  UseMethod("make_ptype")
+}
+
+#' If x is a character vector, return an empty tibble with colnames set to x
+#' @noRd
+#' @export
+make_ptype.character <- function(x, ...) {
+  x <- vctrs::vec_as_names(x, repair = "universal_quiet")
+  tibble::as_tibble(
+    matrix(numeric(), nrow = 0, ncol = length(x), dimnames = list(NULL, x))
+  )
+}
+
+#' If x is a scalar double, return a x-column tibble with cols index after X
+#' @noRd
+#' @export
+make_ptype.numeric <- function(x, ...) {
+  check_number_whole(x, min = 1, allow_infinite = FALSE)
+  names <- vctrs::vec_as_names(rep("X", x), repair = "universal_quiet")
+  tibble::as_tibble(
+    matrix(numeric(), nrow = 0, ncol = x, dimnames = list(NULL, names))
+  )
+}
+
+#' If x is a data.frame, validate its size (based on a hardhat function)
+#' @noRd
+#' @export
+make_ptype.data.frame <- function(x, ...) {
+  if (tibble::is_tibble(x) && nrow(x) == 0L) {
+    return(x)
+  }
+
+  if (!tibble::is_tibble(x)) {
+    stop_input_type(
+      x = x,
+      what = "a tibble",
+      arg = "ptype"
+    )
+  }
+
+  size <- nrow(x)
+  cli::cli_abort("ptype must be size 0, not size {size}.")
 }
 
 #' Compute the nested sampling integral

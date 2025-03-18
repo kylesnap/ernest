@@ -1,34 +1,31 @@
-test_that("Ernest Sampler Formating Works", {
-  gauss <- make_gaussian(3L)
-  sampler <- new_uniform_cube(
-    log_lik = gauss$log_lik,
-    prior_transform = gauss$prior_transform,
-    n_dim = 3L,
-    n_points = 500L,
-    first_update = 1000L,
-    between_update = 1000L,
+lrps <- new_rwmh_cube(
+  log_lik = gaussian_2$log_lik,
+  prior_transform = gaussian_2$prior_transform,
+  n_dim = 2,
+  update_interval = 200,
+  num_steps = 20,
+  target_acceptance = 0.25,
+  epsilon = 0.1
+)
+
+test_that("Ernest_Lrps Formating Works", {
+  expect_snapshot(lrps)
+})
+
+test_that("Ernest_Sampler Formatting Works", {
+  sampler <- ernest_sampler$new(
+    lrps = lrps,
+    ptype = c("A", "B"),
+    n_points = 100L,
     verbose = FALSE
   )
   expect_snapshot(sampler)
 
   set.seed(667)
+  compile(sampler)
   run <- generate(
     sampler,
-    max_it = 100L
+    max_iterations = 100L
   )
   expect_snapshot(run)
-
-  sampler <- new_rwmh_cube(
-    log_lik = gauss$log_lik,
-    prior_transform = gauss$prior_transform,
-    n_dim = 3L,
-    n_points = 500L,
-    first_update = 1000L,
-    between_update = 1000L,
-    steps = 20L,
-    epsilon = 0.1,
-    p_acc = 0.5,
-    verbose = FALSE
-  )
-  expect_snapshot(sampler)
 })

@@ -1,50 +1,39 @@
 #' Configure an ErnestSampler object
 #'
-#' Ernest conducts nested sampling in an enviroment bound to the nested sampler.
-#' This function configures this environment so that it contains the necessary
-#' variables.
+#' Clean and prepare an `ernest_sampler` so that it can be used to generate nested samples.
 #'
-#' When [generate()] has been called on the `ErnestSampler` object before, it
-#' will c
-#'
-#' @param object An ErnestSampler or ErnestSampler object.
-#' @param refresh If `TRUE`, and if `object` already contains an ErnestWorkspace,
-#' then the workspace attached to `wrk` will be overwritten. If `FALSE`, then
-#' the workspace will be cloned and bound to compile's output.
+#' @param object An `ernest_sampler` object.
+#' @param refresh If `TRUE`, and if `object` already contains a list of live points,
+#' the existing live points will be overwritten.
 #' @param ... Ignored.
 #'
-#' @return A copy of `object`, with an `ErnestWorkspace` bound to the `wrk`
-#' field.
+#' @returns A copy of `object`, invisibly.
 #' @export
-compile.ErnestSampler <- function(object, refresh = FALSE, ...) {
-  if (is_empty(object$wrk)) {
-    object$wrk <- ErnestWorkspace$new(
-      object$log_lik,
-      object$prior_transform,
-      object$n_dim,
-      object$n_points
-    )
-    return(validate_wrk(object))
-  }
+compile.ernest_sampler <- function(object, refresh = FALSE, ...) {
+  object$compile(refresh)
+}
 
-  new <- object
-  new$wrk <- if (refresh) {
-    if (new$verbose) {
-      cli::cli_inform("Run will start from 0 iterations.")
-    }
-    ErnestWorkspace$new(
-      object$log_lik,
-      object$prior_transform,
-      object$n_dim,
-      object$n_points
-    )
-  } else {
-    if (new$verbose) {
-      cli::cli_inform("Run will start from {new$wrk$n_iter} iterations.")
-    }
-    new$wrk$clone(deep = TRUE)
+#' Internal method for compiling the live sample
+#'
+#' @returns NULL if live is not NULL and refresh is FALSE, otherwise a new
+#' live sample (a list with three elements)
+#'
+#' @noRd
+.compile_sampler <- function(live, lrps, n_points, refresh) {
+  if (!is_empty(live) && !refresh) {
+    return(NULL)
   }
-  validate_wrk(new)
+  live <- list(
+    "units" = matrix(NA_real_, nrow = n_points, ncol = lrps$n_dim),
+    "points" = matrix(NA_real_, nrow = n_points, ncol = lrps$n_dim),
+    "log_lik" = rep(NA_real_, n_points)
+  )
+  for (i in seq(1:n_points)) {
+    live$units[i, ] <- stats::runif(lrps$n_dim)
+    live$points[i, ] <- lrps$prior_transform(live$units[i, ])
+    live$log_lik[i] <- lrps$log_lik(live$points[i, ])
+  }
+  live
 }
 
 #' Validate the live points in the workspace to ensure no NA, NaN, or Inf values

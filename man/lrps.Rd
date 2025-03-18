@@ -8,7 +8,7 @@
 \usage{
 unif_cube(max_loop = NULL)
 
-rwmh_cube(steps = 20L, epsilon = 1, p_acc = 0.5, max_loop = NULL)
+rwmh_cube(steps = 25, target_acceptance = 0.5, epsilon = 1)
 }
 \arguments{
 \item{max_loop}{The maximum number of calls to the likelihood function a
@@ -19,9 +19,10 @@ If non-null, this overwrites the \code{ernest.max_loop} global option
 
 \item{steps}{Number of steps to take when generating a proposal point.}
 
-\item{epsilon}{Step-size parameter, adjusted over the course of a run.}
+\item{target_acceptance}{The targeted acceptance ratio from sampling.
+\code{epsilon} will be adjusted throughout the run to target this ratio.}
 
-\item{p_acc}{The targeted acceptance ratio.}
+\item{epsilon}{Step-size parameter, adjusted over the course of a run.}
 }
 \value{
 an \code{ErnestLRPS} object that can be passed to \code{\link[=nested_sampling]{nested_sampling()}}

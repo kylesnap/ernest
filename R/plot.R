@@ -1,58 +1,69 @@
-#' Plot an `ErnestSampler` object
-#'
-#' Use `ggplot` to create a plot of the evidence, importance weights, and normalized
-#' likelihood values over the estimated volumes from a nested sampling run.
-#'
-#' @param object An `ErnestSampler` object.
-#' @param true_log_z The analytic evidence value on a log scale.
-#' @param ... Must be left empty.
+#' Autoplot an `ernest_sampler` object
 #'
 #' @importFrom ggplot2 autoplot ggplot aes geom_line geom_ribbon geom_vline geom_hline
 #' @importFrom ggplot2 facet_grid vars scale_x_continuous scale_y_continuous
 #' @export
 #' @noRd
-autoplot.ErnestSampler <- function(object, true_log_z = NULL, ...) {
+autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NULL, ...) {
   check_dots_empty()
-  calc <- calculate(object)
-  if (is.null(calc)) {
-    cli::cli_abort("No evidence has been calculated for this run.")
+  if (object$n_iterations < 1) {
+    cli::cli_abort("No iterations have been run.")
   }
+  calc <- object$calculate()
+  if (!("log_z" %in% names(calc))) {
+    cli::cli_abort("No evidence has been calculated.")
+  }
+
+  # Variables for plotting
   ll_df <- tibble(
     "log_vol" = calc$log_vol,
-    "val" = exp(calc$log_lik.norm),
+    "val" = calc$log_lik - max(calc$log_lik),
+    "err" = NA,
+    "val.min" = NA,
+    "val.max" = NA,
+    "val.2min" = NA,
+    "val.2max" = NA,
     "panel" = "Likelihood\n(Normalized)"
   )
   lw_df <- tibble(
     "log_vol" = calc$log_vol,
-    "val" = exp(calc$log_weight),
+    "val" = calc$log_weight - max(calc$log_weight),
+    "err" = NA,
+    "val.min" = NA,
+    "val.max" = NA,
+    "val.2min" = NA,
+    "val.2max" = NA,
     "panel" = "Weight\n(Normalized)"
   )
   z_df <- tibble(
     "log_vol" = calc$log_vol,
-    "val" = exp(calc$log_z),
-    "panel" = "Evidence"
-  )
-  z_lim_df <- tibble(
-    "log_vol" = calc$log_vol,
-    "val" = exp(calc$log_z),
-    "val.min" = exp(calc$log_z - calc$log_z_err),
-    "val.max" = exp(calc$log_z + calc$log_z_err),
-    "val.2min" = exp(calc$log_z - 2 * calc$log_z_err),
-    "val.2max" = exp(calc$log_z + 2 * calc$log_z_err),
+    "val" = calc$log_z,
+    "err" = sqrt(calc$log_z_var),
+    "val.min" = exp(.data$val - .data$err),
+    "val.max" = exp(.data$val + .data$err),
+    "val.2min" = exp(.data$val - 2 * .data$err),
+    "val.2max" = exp(.data$val + 2 * .data$err),
     "panel" = "Evidence"
   )
   plot_df <- rbind(ll_df, lw_df, z_df)
-  vol_cutoff <- plot_df$log_vol[object$wrk$n_iter]
+  if (exponentiate) {
+    plot_df$val <- exp(plot_df$val)
+    plot_df$val.min <- exp(plot_df$val.min)
+    plot_df$val.max <- exp(plot_df$val.max)
+    plot_df$val.2min <- exp(plot_df$val.2min)
+    plot_df$val.2max <- exp(plot_df$val.2max)
+  }
+  vol_cutoff <- calc$log_vol[object$n_iterations]
   p <- ggplot(data = plot_df, aes(x = -.data$log_vol, y = .data$val)) +
     facet_grid(rows = vars(.data$panel), scales = "free_y") +
     geom_ribbon(
-      data = z_lim_df,
+      data = z_df,
       aes(ymin = .data$val.min, ymax = .data$val.max),
       fill = "blue",
       alpha = 0.4
     ) +
     geom_ribbon(
-      data = z_lim_df,
+      data = z_df,
       aes(ymin = .data$val.2min, ymax = .data$val.2max),
       fill = "blue",
       alpha = 0.2
@@ -63,7 +74,7 @@ autoplot.ErnestSampler <- function(object, true_log_z = NULL, ...) {
     geom_vline(aes(xintercept = -vol_cutoff), linetype = "dashed")
   if (!is.null(true_log_z)) {
     p <- p + geom_hline(
-      data = z_lim_df,
+      data = z_df,
       aes(xintercept = true_log_z),
       linetype = "dotted"
     )
@@ -71,18 +82,25 @@ autoplot.ErnestSampler <- function(object, true_log_z = NULL, ...) {
   p
 }
 
-#' Plot an `ErnestSampler` object
+#' Plot an `ernest_sampler` object
 #'
 #' Use `ggplot` to create a plot of the evidence, importance weights, and normalized
 #' likelihood values over the estimated volumes from a nested sampling run.
 #'
-#' @param x An `ErnestSampler` object.
-#' @param true_log_z The analytic evidence value on a log scale. Currently does
-#' nothing.
+#' @param x An `ernest_sampler` object.
+#' @param exponentiate Whether to transform log values before plotting.
+#' Note that volume estimates are always plotted in negative log units.
+#' @param true_log_z The analytic evidence value on a log scale.
 #' @param ... Must be left empty.
+#'
+#' @returns A plot of the run's progress, which is made up of three stacked plots:
+#' * Normalized likelihood values over log volumes.
+#' * importance weights over log volumes.
+#' * Model evidence over log volumes, with an error envelope showing the 1 and 2
+#' standard deviations of the estimate.
 #'
 #' @importFrom graphics plot
 #' @export
-plot.ErnestSampler <- function(x, true_log_z = NULL, ...) {
-  print(autoplot(x, true_log_z = true_log_z, ...))
+plot.ernest_sampler <- function(x, exponentiate = TRUE, true_log_z = NULL, ...) {
+  print(autoplot(x, exponentiate = TRUE, true_log_z = true_log_z, ...))
 }

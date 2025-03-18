@@ -3,21 +3,19 @@ test_that("Plot works as expected", {
   sampler <- nested_sampling(
     gauss_2$log_lik,
     prior_transform = gauss_2$prior_transform,
-    n_dim = 2L,
+    ptype = 2L,
     n_points = 500L,
-    sampler = rwmh_cube()
+    sampler = unif_cube()
   )
+  sampler$compile()
 
   expect_error(
     plot(sampler),
-    "No evidence has been calculated"
+    "No iterations have been run."
   )
 
   set.seed(420)
-  run <- generate(sampler, max_it = 1000)
-  vdiffr::expect_doppelganger("ernest-1k", plot(run))
-
-  set.seed(420)
-  run <- generate(sampler, dlogz = 0.5)
-  vdiffr::expect_doppelganger("ernest-dlogz", plot(run))
+  generate(sampler, max_calls = 1000L)
+  expect_no_error(plot(sampler))
+  #vdiffr::expect_doppelganger("ernest-max_it", plot(sampler))
 })

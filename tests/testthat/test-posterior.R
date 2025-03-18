@@ -2,7 +2,7 @@ gauss <- make_gaussian(3L)
 sampler <- nested_sampling(
   gauss$log_lik,
   prior_transform = gauss$prior_transform,
-  n_dim = 3L
+  ptype = 3L
 )
 
 test_that("variable calls work", {
@@ -13,7 +13,7 @@ test_that("variable calls work", {
 
   expect_error(
     variables(sampler) <- c("A", "B"),
-    "`variables` is a different length"
+    "must match the original number of dimensions"
   )
 
   variables(sampler) <- c("X", "Y", "Z")
@@ -40,16 +40,22 @@ test_that("as_draws works", {
   )
 
   set.seed(667)
-  run <- generate(
+  sampler$compile()
+  compile(
     sampler,
-    max_it = 100L
+    max_iterations = 100L
   )
+  generate(sampler, max_iterations = 100L)
 
-  expect_snapshot(posterior::as_draws(run))
+  draws <- as_draws(sampler)
+  expect_equal(posterior::niterations(draws), 600L)
+  expect_equal(posterior::nvariables(draws), 3L)
+  expect_snapshot(draws)
 
-  expect_equal(posterior::niterations(posterior::as_draws(run)), 600)
-  expect_equal(posterior::niterations(posterior::as_draws(run, scale = "unit")), 600)
+  draws_units <- as_draws_matrix(sampler, scale = "unit")
+  expect_true(all(draws_units[,c("X","Y","Z")] >= 0))
+  expect_true(all(draws_units[,c("X","Y","Z")] <= 1))
 
-  expect_equal(posterior::niterations(posterior::as_draws(run, inc_live = FALSE)), 100)
-  expect_equal(posterior::niterations(posterior::as_draws(run, scale = "unit", inc_live = FALSE)), 100)
+  draws_no_live <- as_draws(sampler, inc_live = FALSE)
+  expect_equal(posterior::niterations(draws_no_live), 100L)
 })

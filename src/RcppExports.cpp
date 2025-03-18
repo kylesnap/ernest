@@ -10,35 +10,34 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// propose_uniform_
-Rcpp::List propose_uniform_(Rcpp::Function log_lik, Rcpp::Function prior_transform, int num_dim, double min_lik, int maxtry);
-RcppExport SEXP _ernest_propose_uniform_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP num_dimSEXP, SEXP min_likSEXP, SEXP maxtrySEXP) {
+// lrps_uniform
+Rcpp::List lrps_uniform(Rcpp::Function log_lik_f, Rcpp::Function prior_transform, int num_dim, double criterion, int maxtry);
+RcppExport SEXP _ernest_lrps_uniform(SEXP log_lik_fSEXP, SEXP prior_transformSEXP, SEXP num_dimSEXP, SEXP criterionSEXP, SEXP maxtrySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::Function >::type log_lik(log_likSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Function >::type log_lik_f(log_lik_fSEXP);
     Rcpp::traits::input_parameter< Rcpp::Function >::type prior_transform(prior_transformSEXP);
     Rcpp::traits::input_parameter< int >::type num_dim(num_dimSEXP);
-    Rcpp::traits::input_parameter< double >::type min_lik(min_likSEXP);
+    Rcpp::traits::input_parameter< double >::type criterion(criterionSEXP);
     Rcpp::traits::input_parameter< int >::type maxtry(maxtrySEXP);
-    rcpp_result_gen = Rcpp::wrap(propose_uniform_(log_lik, prior_transform, num_dim, min_lik, maxtry));
+    rcpp_result_gen = Rcpp::wrap(lrps_uniform(log_lik_f, prior_transform, num_dim, criterion, maxtry));
     return rcpp_result_gen;
 END_RCPP
 }
-// propose_rwcube_
-Rcpp::List propose_rwcube_(Rcpp::Function log_lik, Rcpp::Function prior_transform, Rcpp::NumericVector original, double min_lik, int max_try, int min_steps, double epsilon);
-RcppExport SEXP _ernest_propose_rwcube_(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP originalSEXP, SEXP min_likSEXP, SEXP max_trySEXP, SEXP min_stepsSEXP, SEXP epsilonSEXP) {
+// lrps_rwcube
+Rcpp::List lrps_rwcube(Rcpp::Function log_lik, Rcpp::Function prior_transform, Rcpp::NumericVector original, const double criterion, const int steps, const double epsilon);
+RcppExport SEXP _ernest_lrps_rwcube(SEXP log_likSEXP, SEXP prior_transformSEXP, SEXP originalSEXP, SEXP criterionSEXP, SEXP stepsSEXP, SEXP epsilonSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::Function >::type log_lik(log_likSEXP);
     Rcpp::traits::input_parameter< Rcpp::Function >::type prior_transform(prior_transformSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type original(originalSEXP);
-    Rcpp::traits::input_parameter< double >::type min_lik(min_likSEXP);
-    Rcpp::traits::input_parameter< int >::type max_try(max_trySEXP);
-    Rcpp::traits::input_parameter< int >::type min_steps(min_stepsSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    rcpp_result_gen = Rcpp::wrap(propose_rwcube_(log_lik, prior_transform, original, min_lik, max_try, min_steps, epsilon));
+    Rcpp::traits::input_parameter< const double >::type criterion(criterionSEXP);
+    Rcpp::traits::input_parameter< const int >::type steps(stepsSEXP);
+    Rcpp::traits::input_parameter< const double >::type epsilon(epsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(lrps_rwcube(log_lik, prior_transform, original, criterion, steps, epsilon));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -56,8 +55,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_propose_uniform_", (DL_FUNC) &_ernest_propose_uniform_, 5},
-    {"_ernest_propose_rwcube_", (DL_FUNC) &_ernest_propose_rwcube_, 7},
+    {"_ernest_lrps_uniform", (DL_FUNC) &_ernest_lrps_uniform, 5},
+    {"_ernest_lrps_rwcube", (DL_FUNC) &_ernest_lrps_rwcube, 6},
     {"_ernest_logaddexp", (DL_FUNC) &_ernest_logaddexp, 2},
     {NULL, NULL, 0}
 };

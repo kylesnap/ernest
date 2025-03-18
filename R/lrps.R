@@ -33,12 +33,8 @@ NULL
 #' @export
 unif_cube <- function(max_loop = NULL) {
   check_number_whole(max_loop, min = 1, allow_null = TRUE, allow_infinite = FALSE)
-  structure(
-    list(
-      max_loop = max_loop
-    ),
-    class = c("unif_cube", "ernest_lrps")
-  )
+  options("ernest.max_loop" = max_loop)
+  new_uniform_cube()
 }
 
 #' @rdname lrps
@@ -48,78 +44,18 @@ unif_cube <- function(max_loop = NULL) {
 #' taking random steps within the unit hypercube. The step size is evolve over
 #' a walk to target an acceptance rate of `0.5`.
 #'
-#' @param epsilon Step-size parameter, adjusted over the course of a run.
 #' @param steps Number of steps to take when generating a proposal point.
-#' @param p_acc The targeted acceptance ratio.
+#' @param target_acceptance The targeted acceptance ratio from sampling.
+#' `epsilon` will be adjusted throughout the run to target this ratio.
+#' @param epsilon Step-size parameter, adjusted over the course of a run.
 #'
 #' @export
-rwmh_cube <- function(steps = 20L, epsilon = 1, p_acc = 0.5, max_loop = NULL) {
+rwmh_cube <- function(steps = 25, target_acceptance = 0.5, epsilon = 1) {
   check_number_whole(steps, min = 2, allow_infinite = FALSE)
-  check_number_decimal(p_acc, min = 0, max = 1, allow_infinite = FALSE)
+  check_number_decimal(target_acceptance, min = 0, max = 1, allow_infinite = FALSE)
   check_number_decimal(epsilon, min = 0, allow_infinite = FALSE)
   if (epsilon <= 0) {
-    cli::cli_abort("`epsilon` must be a number larger than 0, not {epsilon}.")
+    stop_input_type(epsilon, "a number larger than zero")
   }
-  structure(
-    list(
-      epsilon = epsilon,
-      steps = as.integer(steps),
-      p_acc = p_acc,
-      max_loop = max_loop
-    ),
-    class = c("rwmh_cube", "ernest_lrps")
-  )
-}
-
-#' Build a nested sampler with an `lrps_sampler` object.
-#'
-#' Dispatches over `lrps_sampler` to build an `ErnestSampler` object.
-#'
-#' @inheritParams nested_sampling
-#'
-#' @returns An `ErnestSampler` object.
-#' @keywords internal
-#' @noRd
-build_sampler <- function(sampler, ...) {
-  UseMethod("build_sampler")
-}
-
-#' @rdname build_sampler
-#' @export
-#' @noRd
-build_sampler.unif_cube <- function(sampler, log_lik, prior_transform,
-                                    n_dim, n_points,
-                                    first_update, between_update, verbose,
-                                    ...) {
-  new_uniform_cube(
-    log_lik = log_lik,
-    prior_transform = prior_transform,
-    n_dim = n_dim,
-    n_points = n_points,
-    first_update = first_update,
-    between_update = between_update,
-    verbose = verbose,
-    wrk = NULL
-  )
-}
-
-#' @rdname build_sampler
-#' @export
-#' @noRd
-build_sampler.rwmh_cube <- function(sampler, log_lik, prior_transform,
-                                    n_dim, n_points, first_update,
-                                    between_update, verbose, ...) {
-  new_rwmh_cube(
-    log_lik = log_lik,
-    prior_transform = prior_transform,
-    n_dim = n_dim,
-    n_points = n_points,
-    first_update = first_update,
-    between_update = between_update,
-    verbose = verbose,
-    steps = sampler$steps,
-    epsilon = sampler$epsilon,
-    p_acc = sampler$p_acc,
-    wrk = NULL
-  )
+  new_rwmh_cube(num_steps = steps, target_acceptance = target_acceptance, epsilon = epsilon)
 }

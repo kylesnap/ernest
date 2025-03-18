@@ -14,18 +14,6 @@ generics::calculate
 #' @export
 generics::glance
 
-#' @importFrom posterior as_draws
-#' @export
-posterior::as_draws
-
-#' @importFrom posterior as_draws_matrix
-#' @export
-posterior::as_draws_matrix
-
-#' @importFrom posterior as_draws_df
-#' @export
-posterior::as_draws_df
-
 #' @keywords internal
 "_PACKAGE"
 

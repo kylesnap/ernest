@@ -10,52 +10,21 @@ test_that("validate_integer_parameter works correctly", {
   )
 })
 
-test_that("Errors and warnings are thrown for compute_integral", {
+test_that("Errors are thrown for compute_integral", {
   log_lik <- c(1, 2, 3)
   log_vol <- c(-0.5, -0.75)
   expect_error(
     compute_integral(log_lik, log_vol),
-    "`log_lik` and `log_vol` must have the same length."
-  )
-
-  log_lik <- c(3, 2, 1)
-  log_vol <- c(-0.5, -0.75, -0.95)
-  expect_warning(
-    res <- compute_integral(log_lik, log_vol, n_iter = 3),
-    "`log_lik` should be a vector in ascending order."
-  )
-  expect_equal(
-    res,
-    vctrs::new_rcrd(
-      fields = list(log_lik = log_lik, log_vol = log_vol),
-      n_iter = 3,
-      partial = TRUE
-    )
-  )
-
-  log_lik <- c(1, 2, 3)
-  log_vol <- c(-0.95, -0.75, -0.5)
-  expect_warning(
-    res <- compute_integral(log_lik, log_vol, n_iter = 3),
-    "`log_vol` should be a vector in strictly ascending order."
-  )
-  expect_equal(
-    res,
-    vctrs::new_rcrd(
-      fields = list(log_lik = log_lik, log_vol = log_vol),
-      n_iter = 3,
-      partial = TRUE
-    )
+    "must have the same length"
   )
 })
 
 test_that("compute_integral delivers expected results", {
   expected <- readRDS(test_path("./compute_integral_test.rds"))
-  observed <- compute_integral(expected$log_lik, expected$log_vol, 500)
+  observed <- compute_integral(expected$log_lik, expected$log_vol)
 
-  expect_equal(expected$log_wt, vctrs::field(observed, "log_weight"))
-  expect_equal(expected$log_z, vctrs::field(observed, "log_z"))
-  expect_equal(expected$log_z_var, vctrs::field(observed, "log_z_var"))
-  expect_equal(expected$h, vctrs::field(observed, "h"))
-  expect_equal(500, attr(observed, "n_iter"))
+  expect_equal(expected$log_wt, observed$log_weight)
+  expect_equal(expected$log_z, observed$log_z)
+  expect_equal(expected$log_z_var, observed$log_z_var)
+  expect_equal(expected$h, observed$information)
 })

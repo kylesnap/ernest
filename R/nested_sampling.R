@@ -11,30 +11,21 @@
 #' prior parameter space. This function should accept a `n_dim`-length vector
 #' of points where each value is in the range \eqn{[0, 1]} and return a
 #' same-length vector where each point represents a parameter.
-#' @param n_dim Number of parameters returned by `prior_transform` and accepted
-#' by `log_lik`.
+#' @param ptype Either a single integer, a vector of character strings giving
+#' variable names, or a zero-row [tibble::tibble()] that defines the name of
+#' each variable and the dimensionality of the prior space.
 #' @param sampler An `ernest_lrps` object, which is a list specifying a given
 #' likelihood-restricted prior sampler.
 #' @param n_points Number of live points to use during the nested sampling run.
 #' Defaults to `500L`.
-#' @param first_update Number of likelihood calls that are performed using the
-#' uniform sampling before swapping to the method specified by `sampler`.
-#' Either an integer or a double, in which case the parameter is cast to an
-#' integer by `first_update * n_points`. Defaults to `2.0 * n_points`.
-#' @param between_update Number of likelihood calls that are performed between
-#' updates to the `sampler`. Currently ignored. Either an integer or a double,
-#' in which case the parameter is cast to an integer by
-#' `first_update * n_points`. Defaults to `1.5 * n_points`.
+#' @param update_interval Number of likelihood calls that are performed between
+#' updates to the `sampler`. Either an integer or a double, in which case the
+#' parameter is cast to an integer by `first_update * n_points`.
 #' @param verbose Whether to print progress messages to the console. Defaults to
 #' the value of `getOption("verbose")`.
-#' @param ... Additional arguments passed to the method-specific function.
+#' @param ... If `x` is a function, then these must be empty.
 #'
-#' @returns An `ErnestSampler` object that can be passed to `generate` to
-#' perform nested sampling.
-#'
-#' @note Currently, `between_update` will not impact the behaviour of the
-#' nested samplers, as both `uniform_cube` and `rwmh_cube` do not support
-#' in-run updating.
+#' @returns An `ernest_sampler` object.
 #'
 #' @export
 nested_sampling <- function(x, ...) {
@@ -49,33 +40,34 @@ nested_sampling.default <- function(x, ...) {
 
 #' @rdname nested_sampling
 #' @export
-nested_sampling.function <- function(x, prior_transform, n_dim,
+nested_sampling.function <- function(x,
+                                     prior_transform,
+                                     ptype,
                                      sampler = rwmh_cube(),
                                      n_points = 500,
-                                     first_update = 2.0,
-                                     between_update = 1.5,
+                                     update_interval = 1.5,
                                      verbose = getOption("verbose"),
                                      ...) {
   check_function(x)
   check_function(prior_transform)
-  check_number_whole(n_dim, min = 1, allow_infinite = FALSE)
-  check_number_whole(n_points, min = 1, allow_infinite = FALSE)
-  first_update <- validate_integer_parameter(first_update, n_points, min = 0)
-  between_update <- validate_integer_parameter(
-    between_update,
+  ptype <- make_ptype(ptype)
+  n_dim <- length(ptype)
+  check_number_whole(n_points, min = 1)
+  update_interval <- validate_integer_parameter(
+    update_interval,
     n_points,
     min = 0
   )
   check_logical(verbose)
 
+  # TODO: This can probably be moved to another function
   if (!inherits(sampler, "ernest_lrps")) {
     cli::cli_abort("sampler must be an ernest_lrps object")
   }
-  if (!is.null(sampler$max_loop)) {
-    check_number_whole(sampler$max_loop, min = 1, allow_infinite = FALSE)
-    options(ernest.max_loop = sampler$max_loop)
-  }
-
-  build_sampler(sampler, x, prior_transform, n_dim, n_points,
-                first_update, between_update, verbose)
+  sampler$log_lik <- x
+  sampler$prior_transform <- prior_transform
+  sampler$update_interval <- update_interval
+  sampler$n_dim <- n_dim
+  sampler <- refresh_lrps(sampler)
+  ernest_sampler$new(sampler, ptype, n_points, verbose = verbose)
 }

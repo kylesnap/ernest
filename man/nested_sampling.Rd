@@ -13,11 +13,10 @@ nested_sampling(x, ...)
 \method{nested_sampling}{`function`}(
   x,
   prior_transform,
-  n_dim,
+  ptype,
   sampler = rwmh_cube(),
   n_points = 500,
-  first_update = 2,
-  between_update = 1.5,
+  update_interval = 1.5,
   verbose = getOption("verbose"),
   ...
 )
@@ -26,15 +25,16 @@ nested_sampling(x, ...)
 \item{x}{Function returning the log-likelihood given a \code{n_dim}-length
 vector of parameters.}
 
-\item{...}{Additional arguments passed to the method-specific function.}
+\item{...}{If \code{x} is a function, then these must be empty.}
 
 \item{prior_transform}{Function translating a point in the unit cube to the
 prior parameter space. This function should accept a \code{n_dim}-length vector
 of points where each value is in the range \eqn{[0, 1]} and return a
 same-length vector where each point represents a parameter.}
 
-\item{n_dim}{Number of parameters returned by \code{prior_transform} and accepted
-by \code{log_lik}.}
+\item{ptype}{Either a single integer, a vector of character strings giving
+variable names, or a zero-row \code{\link[tibble:tibble]{tibble::tibble()}} that defines the name of
+each variable and the dimensionality of the prior space.}
 
 \item{sampler}{An \code{ernest_lrps} object, which is a list specifying a given
 likelihood-restricted prior sampler.}
@@ -42,31 +42,19 @@ likelihood-restricted prior sampler.}
 \item{n_points}{Number of live points to use during the nested sampling run.
 Defaults to \code{500L}.}
 
-\item{first_update}{Number of likelihood calls that are performed using the
-uniform sampling before swapping to the method specified by \code{sampler}.
-Either an integer or a double, in which case the parameter is cast to an
-integer by \code{first_update * n_points}. Defaults to \code{2.0 * n_points}.}
-
-\item{between_update}{Number of likelihood calls that are performed between
-updates to the \code{sampler}. Currently ignored. Either an integer or a double,
-in which case the parameter is cast to an integer by
-\code{first_update * n_points}. Defaults to \code{1.5 * n_points}.}
+\item{update_interval}{Number of likelihood calls that are performed between
+updates to the \code{sampler}. Either an integer or a double, in which case the
+parameter is cast to an integer by \code{first_update * n_points}.}
 
 \item{verbose}{Whether to print progress messages to the console. Defaults to
 the value of \code{getOption("verbose")}.}
 }
 \value{
-An \code{ErnestSampler} object that can be passed to \code{generate} to
-perform nested sampling.
+An \code{ernest_sampler} object.
 }
 \description{
 The top-level function constructs an instance of an \code{ErnestSampler},
 containing the necessary information for nested sampling. Currently,
 \code{nested_sampling} relies on the user to specify \code{R} functions for both
 the log-likelihood and prior transform.
-}
-\note{
-Currently, \code{between_update} will not impact the behaviour of the
-nested samplers, as both \code{uniform_cube} and \code{rwmh_cube} do not support
-in-run updating.
 }

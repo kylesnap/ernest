@@ -13,7 +13,6 @@ Imports:
     generics,
     glue,
     lifecycle,
-    prettyunits,
     posterior,
     R6,
     Rcpp,

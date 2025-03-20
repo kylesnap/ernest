@@ -32,8 +32,9 @@ test_that("ErnestSampler can start from an existing run", {
   sampler2 <- sampler$clone(deep = TRUE)
   expect_message(
     sampler2$compile(refresh = FALSE),
-    "ernest will continue an existing run."
+    "existing live points"
   )
+
   expect_equal(sampler2$live, run$live_units)
   expect_false(obj_address(sampler2) == obj_address(sampler))
 })
@@ -43,9 +44,12 @@ test_that("compile can refresh a sampler", {
   sampler$compile()
   live_cpy <- sampler$live_points
 
+  expect_no_message(sampler$compile(TRUE))
+  sampler$generate(max_iterations = 10)
+
   expect_message(
     sampler$compile(TRUE),
-    "ernest will overwrite an existing run."
+    "Resetting"
   )
 
   expect_equal(dim(sampler$live_points$units), dim(live_cpy$units))

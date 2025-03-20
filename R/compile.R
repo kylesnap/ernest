@@ -19,10 +19,7 @@ compile.ernest_sampler <- function(object, refresh = FALSE, ...) {
 #' live sample (a list with three elements)
 #'
 #' @noRd
-.compile_sampler <- function(live, lrps, n_points, refresh) {
-  if (!is_empty(live) && !refresh) {
-    return(NULL)
-  }
+.compile_sampler <- function(lrps, n_points) {
   live <- list(
     "units" = matrix(NA_real_, nrow = n_points, ncol = lrps$n_dim),
     "points" = matrix(NA_real_, nrow = n_points, ncol = lrps$n_dim),

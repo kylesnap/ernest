@@ -45,17 +45,24 @@ ernest_sampler <- R6Class(
     #' @returns A copy of `self`, invisibly.
     compile = function(refresh = FALSE) {
       check_bool(refresh)
-      new_live <- .compile_sampler(
-        private$.live,
-        private$.lrps,
-        private$.n_points,
-        refresh
-      )
-      if (is_empty(new_live) && !refresh) {
-        cli::cli_alert_info("{.pkg ernest} will continue an existing run.")
-      } else if (!is_empty(private$.live) && !is_empty(new_live)) {
-        cli::cli_alert_info("{.pkg ernest} will overwrite an existing run.")
+      if (!refresh && !is_empty(private$.live)) {
+        cli::cli_inform("Using existing live points.")
+        return(invisible(self))
       }
+      if (refresh) {
+        if (!is_empty(private$.dead)) {
+          cli::cli_inform("Resetting a run containing {self$n_iterations} iterations.")
+        }
+        private$.live <- list()
+        private$.dead <- list()
+        private$.progress <- list()
+        private$.log_vol <- list()
+        private$.last_log_z <- -1e300
+        private$.worst_idx <- NULL
+      }
+      new_live <- if (refresh || is_empty(private$.live)) {
+        .compile_sampler(private$.lrps, private$.n_points)
+      } else NULL
       private$.live <- new_live %||% private$.live
       invisible(self)
     },
@@ -177,7 +184,6 @@ ernest_sampler <- R6Class(
     .dead = list(),
     .progress = list(),
 
-    .calls = list(),
     .log_vol = list(),
     .last_log_z = -1e300,
 
@@ -202,7 +208,7 @@ ernest_sampler <- R6Class(
       if (self$verbose) {
         cli::cli_progress_bar(
           type = "custom",
-          format = "{cli::pb_spin} Sampling | ln(z): {pretty_signif(log_z)}"
+          format = "{cli::pb_spin} Nested Sampling | ln(z): {.val {log_z}}"
         )
       }
 
@@ -223,7 +229,7 @@ ernest_sampler <- R6Class(
           status <- "`min_logz` reached"
           break
         }
-        if (self$verbose) cli::cli_progress_update()
+        if (self$verbose && (iter %% 10 == 0)) cli::cli_progress_update()
 
         # Find and remove the worst point in the live sampler
         worst_idx <- which.min(private$.live$log_lik)

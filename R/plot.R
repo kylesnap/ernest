@@ -23,7 +23,10 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     "val.max" = NA,
     "val.2min" = NA,
     "val.2max" = NA,
-    "panel" = "Likelihood\n(Normalized)"
+    "panel" = paste0(
+      if (isFALSE(exponentiate)) "Log-" else NULL,
+      "Likelihood\n(Normalized)"
+    )
   )
   lw_df <- tibble(
     "log_vol" = calc$log_vol,
@@ -33,7 +36,10 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     "val.max" = NA,
     "val.2min" = NA,
     "val.2max" = NA,
-    "panel" = "Weight\n(Normalized)"
+    "panel" = paste0(
+      if (isFALSE(exponentiate)) "Log. " else NULL,
+      "Weight\n(Normalized)"
+    )
   )
   z_df <- tibble(
     "log_vol" = calc$log_vol,
@@ -43,8 +49,15 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     "val.max" = exp(.data$val + .data$err),
     "val.2min" = exp(.data$val - 2 * .data$err),
     "val.2max" = exp(.data$val + 2 * .data$err),
-    "panel" = "Evidence"
+    "panel" = paste0(
+      if (isFALSE(exponentiate)) "Log. " else NULL,
+      "Evidence"
+    )
   )
+  print(paste0(
+    if (isFALSE(exponentiate)) "Log. " else NULL,
+    "Evidence"
+  ))
   plot_df <- rbind(ll_df, lw_df, z_df)
   if (exponentiate) {
     plot_df$val <- exp(plot_df$val)
@@ -75,7 +88,7 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
   if (!is.null(true_log_z)) {
     p <- p + geom_hline(
       data = z_df,
-      aes(xintercept = true_log_z),
+      aes(yintercept = if (exponentiate) exp(true_log_z) else true_log_z),
       linetype = "dotted"
     )
   }
@@ -102,5 +115,5 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
 #' @importFrom graphics plot
 #' @export
 plot.ernest_sampler <- function(x, exponentiate = TRUE, true_log_z = NULL, ...) {
-  print(autoplot(x, exponentiate = TRUE, true_log_z = true_log_z, ...))
+  print(autoplot(x, exponentiate = exponentiate, true_log_z = true_log_z, ...))
 }

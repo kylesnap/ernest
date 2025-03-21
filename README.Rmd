@@ -1,0 +1,107 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# ernest: Nested Sampling in R
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+ernest provides a toolkit for performing the nested sampling algorithm to estimate the marginal likelihood (i.e., evidence) and posterior distributions of statistical models. To this end, ernest aims to accomplish two different goals:
+
+1. If you're unfamiliar with nested sampling, ernest and its documentation will allow you to learn how nested sampling works and how you might incorporate it within your analyses.
+2. If you're already familiar with nested sampling, ernest provides a powerful and reliable implementation of the algorithm and different likelihood-restricted prior samplers, allowing you to complete and analyse runs with existing tools offered by [ggplot](https://CRAN.R-project.org/package=ggplot2) and [posterior](https://CRAN.R-project.org/package=posterior).
+
+## Installation
+
+You can install the development version of ernest from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("kylesnap/ernest")
+```
+
+## Example
+
+To perform nested sampling, R requires two R functions: (1) A log-likelihood function, describing the likelihood of each point within the prior space, and a prior transformation function, which can use points in the (0-1)-unit cube to represent points in the prior space. As a simple example, we can use a 3D, highly correlated normal distribution, with a uniform prior in the range of -5 to 5.
+
+```{r example}
+library(ernest)
+n_dim <- 3
+sigma <- diag(n_dim) # Covariance matrix
+sigma[sigma == 0] <- 0.4 
+inv_sigma <- solve(sigma) # Precision matrix
+det_sigma <- det(sigma) # The determinant of the covariance matrix
+l_norm <- -0.5 * (log(2 * pi) * n_dim + log(det_sigma))
+
+# Log-likelihood of the multivariate normal distribution
+log_lik <- function(x) {
+  -0.5 * drop(crossprod(x, crossprod(inv_sigma, x))) + l_norm
+}
+
+# Prior transformation function: (0, 1) -> (-5, 5)
+prior_transform <- function(u) {
+  5. * (2. * u - 1.)
+}
+```
+
+With these functions, we call [nested_sampling()] to build an `ernest_sampler` object. This object contains several `S3` methods, including:
+
+- `generate()`: Perform the nested sampling algorithm until a given criteria is met.
+- `calculate()`: Prepare a table of iterative model evidence estimates, along with point-wise log-likelihoods and posterior importance weights.
+
+```{r}
+sampler <- nested_sampling(
+  log_lik,
+  prior_transform,
+  ptype = n_dim,
+  verbose = TRUE
+)
+
+run <- generate(sampler, min_logz = 0.01)
+run
+calculate(run)
+```
+
+We can also use the `plot()` method to visualize the iterative estimations performed during the run, and use the posterior package to resample from and summarize the posterior distribution.
+
+```{r}
+plot(run)
+
+posterior::as_draws(run) |>
+  posterior::resample_draws() |> 
+  posterior::summarize_draws()
+```
+
+## Status
+
+`ernest` is still quite experimental, and additional features are intended to be added in the future. While we hope to avoid them, this does mean that certain components of ernest may be subject to breaking changes. 
+
+If you encounter any issues or have any suggestions, please feel free to open an issue.
+
+## Acknowledgements
+
+The nested sampling algorithm was first developed and introduced by J. Skilling across two major papers:
+
+- Skilling, J. (2004). Nested sampling. In R. Fischer and R. Preuss and U. V. Toussaint (Eds.), _Bayesian Inference and Maximum Entropy Methods in Science and Engineering_ (pp. 395-405). AIP. [10.1063/1.1835238](https://doi.org/10.1063/1.1835238)
+- Skilling, J. (2006). Nested sampling for general Bayesian computation. _Bayesian Analysis_, 1(4), 833-859. [10.1214/06-BA127](https://doi.org/10.1214/06-BA127)
+
+ernest's design takes much inspiration from from the excellent [dynesty](https://dynesty.readthedocs.io/en/stable/index.html) package, and from its stellar documentation.
+
+- Speagle, J. S. (2020). DYNESTY: A dynamic nested sampling package for estimating Bayesian posteriors and evidences. _Monthly Notices of the Royal Astronomical Society_, 493(3), 3132-3158. [10.1093/mnras/staa278](https://doi.org/10.1093/mnras/staa278)
+- Koposov, S., Speagle, J. S., Barbary, K., Ashton, G., Bennett, E., Buchner, J., Scheffler, C., Cook, B., Talbot, C., Guillochon, J., Cubillos, P., Ramos, A. A., Dartiailh, M., Ilya., Tollerud, E., Lang, D., Johnson, B., jtmendel, Higson, E., ... Goldstein, D. (2021). _dynesty_ (Version 1.1.1.) [Python package]. [10.5281/zenodo.4543937](https://doi.org/10.5281/zenodo.4543937)
+
+In addition, the [nestle](https://github.com/kbarbary/nestle/tree/master) python package and an article from J. Buchner provided consistent and clear terminology to describe and organize components of the nested sampling algorithm:
+
+- Buchner, J. (2023). Nested sampling methods. _Statistics Surveys_, 17, 169-215. [10.1214/23-SS144](https://doi.org/10.1214/23-SS144)

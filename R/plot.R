@@ -54,10 +54,6 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
       "Evidence"
     )
   )
-  print(paste0(
-    if (isFALSE(exponentiate)) "Log. " else NULL,
-    "Evidence"
-  ))
   plot_df <- rbind(ll_df, lw_df, z_df)
   if (exponentiate) {
     plot_df$val <- exp(plot_df$val)

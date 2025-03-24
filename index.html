@@ -110,24 +110,24 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Nested Sampling Run from ernest ─────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; No. Live Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 4499</span></span>
-<span><span class="co">#&gt; No. Calls: 112475</span></span>
-<span><span class="co">#&gt; Log Evidence: -6.92927749302562</span></span>
+<span><span class="co">#&gt; No. Iterations: 4451</span></span>
+<span><span class="co">#&gt; No. Calls: 111275</span></span>
+<span><span class="co">#&gt; Log Evidence: -6.83435374840042</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 4,999 × 6</span></span>
-<span><span class="co">#&gt;    log_lik  log_vol log_weight log_z log_z_var information</span></span>
-<span><span class="co">#&gt;      &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1   -53.8 -0.00200      -60.7 -60.7  4.32e-25   -2.16e-22</span></span>
-<span><span class="co">#&gt;  2   -53.0 -0.00400      -59.5 -59.2  1.77e-24   -8.88e-22</span></span>
-<span><span class="co">#&gt;  3   -49.3 -0.00599      -56.2 -56.2  3.47e-23   -1.74e-20</span></span>
-<span><span class="co">#&gt;  4   -49.2 -0.00799      -55.5 -55.1  1.02e-22   -5.10e-20</span></span>
-<span><span class="co">#&gt;  5   -48.0 -0.00999      -54.6 -54.2  2.58e-22   -1.29e-19</span></span>
-<span><span class="co">#&gt;  6   -47.4 -0.0120       -53.9 -53.3  5.89e-22   -2.95e-19</span></span>
-<span><span class="co">#&gt;  7   -46.5 -0.0140       -53.1 -52.5  1.29e-21   -6.46e-19</span></span>
-<span><span class="co">#&gt;  8   -45.3 -0.0160       -52.0 -51.5  3.37e-21   -1.69e-18</span></span>
-<span><span class="co">#&gt;  9   -45.1 -0.0180       -51.5 -50.8  6.89e-21   -3.45e-18</span></span>
-<span><span class="co">#&gt; 10   -43.4 -0.0200       -50.1 -49.7  1.96e-20   -9.83e-18</span></span>
-<span><span class="co">#&gt; # ℹ 4,989 more rows</span></span></code></pre></div>
+<span><span class="co">#&gt; # A tibble: 4,951 × 7</span></span>
+<span><span class="co">#&gt;    .iter log_lik  log_vol log_weight log_z log_z_var information</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     1   -52.9 -0.00200      -59.8 -59.8  9.23e-25   -4.62e-22</span></span>
+<span><span class="co">#&gt;  2     2   -51.2 -0.00400      -58.0 -57.8  6.45e-24   -3.23e-21</span></span>
+<span><span class="co">#&gt;  3     3   -47.6 -0.00599      -54.5 -54.4  1.76e-22   -8.82e-20</span></span>
+<span><span class="co">#&gt;  4     4   -47.3 -0.00799      -53.7 -53.3  5.45e-22   -2.73e-19</span></span>
+<span><span class="co">#&gt;  5     5   -46.9 -0.00999      -53.3 -52.6  1.06e-21   -5.28e-19</span></span>
+<span><span class="co">#&gt;  6     6   -45.7 -0.0120       -52.4 -51.8  2.35e-21   -1.18e-18</span></span>
+<span><span class="co">#&gt;  7     7   -44.7 -0.0140       -51.3 -50.8  6.01e-21   -3.01e-18</span></span>
+<span><span class="co">#&gt;  8     8   -44.1 -0.0160       -50.6 -50.0  1.35e-20   -6.77e-18</span></span>
+<span><span class="co">#&gt;  9     9   -43.6 -0.0180       -50.1 -49.3  2.60e-20   -1.30e-17</span></span>
+<span><span class="co">#&gt; 10    10   -41.7 -0.0200       -48.5 -48.2  8.13e-20   -4.07e-17</span></span>
+<span><span class="co">#&gt; # ℹ 4,941 more rows</span></span></code></pre></div>
 <p>We can also use the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method to visualize the iterative estimations performed during the run, and use the posterior package to resample from and summarize the posterior distribution.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span></code></pre></div>
@@ -138,11 +138,11 @@
 <span>  <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarize_draws</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 10</span></span>
-<span><span class="co">#&gt;   variable     mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 X...1    -0.0391  -0.0573 0.974 0.929 -1.57  1.59  1.12    1083.     14.1</span></span>
-<span><span class="co">#&gt; 2 X...2     0.0114   0.0148 0.972 0.948 -1.50  1.62  1.18    1058.     15.5</span></span>
-<span><span class="co">#&gt; 3 X...3     0.00390  0.0253 0.999 0.979 -1.59  1.65  1.24     951.     14.6</span></span></code></pre></div>
+<span><span class="co">#&gt;   variable      mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 X...1    -0.0479   -0.0501 1.04  1.06  -1.76  1.67  1.18    1315.     13.0</span></span>
+<span><span class="co">#&gt; 2 X...2    -0.00846  -0.0304 1.00  0.975 -1.65  1.59  1.19    1016.     13.8</span></span>
+<span><span class="co">#&gt; 3 X...3    -0.000163  0.0197 0.992 0.992 -1.63  1.65  1.17    1300.     14.2</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
@@ -160,14 +160,14 @@
 <li>Skilling, J. (2006). Nested sampling for general Bayesian computation. <em>Bayesian Analysis</em>, 1(4), 833-859. <a href="https://doi.org/10.1214/06-BA127" class="external-link">10.1214/06-BA127</a>
 </li>
 </ul>
-<p>ernest’s design takes much inspiration from from the excellent <a href="https://dynesty.readthedocs.io/en/stable/index.html" class="external-link">dynesty</a> package, and from its stellar documentation.</p>
+<p>ernest’s design takes much inspiration from from the well-documented <a href="https://dynesty.readthedocs.io/en/stable/index.html" class="external-link">dynesty</a> package:</p>
 <ul>
 <li>Speagle, J. S. (2020). DYNESTY: A dynamic nested sampling package for estimating Bayesian posteriors and evidences. <em>Monthly Notices of the Royal Astronomical Society</em>, 493(3), 3132-3158. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link">10.1093/mnras/staa278</a>
 </li>
 <li>Koposov, S., Speagle, J. S., Barbary, K., Ashton, G., Bennett, E., Buchner, J., Scheffler, C., Cook, B., Talbot, C., Guillochon, J., Cubillos, P., Ramos, A. A., Dartiailh, M., Ilya., Tollerud, E., Lang, D., Johnson, B., jtmendel, Higson, E., … Goldstein, D. (2021). <em>dynesty</em> (Version 1.1.1.) [Python package]. <a href="https://doi.org/10.5281/zenodo.4543937" class="external-link">10.5281/zenodo.4543937</a>
 </li>
 </ul>
-<p>In addition, the <a href="https://github.com/kbarbary/nestle/tree/master" class="external-link">nestle</a> python package and an article from J. Buchner provided consistent and clear terminology to describe and organize components of the nested sampling algorithm:</p>
+<p>In addition, the <a href="https://github.com/kbarbary/nestle/tree/master" class="external-link">nestle</a> python package and an article from J. Buchner provide consistent and clear terminology to describe and organize components of the nested sampling algorithm:</p>
 <ul>
 <li>Buchner, J. (2023). Nested sampling methods. <em>Statistics Surveys</em>, 17, 169-215. <a href="https://doi.org/10.1214/23-SS144" class="external-link">10.1214/23-SS144</a>
 </li>

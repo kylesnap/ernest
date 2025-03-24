@@ -2,24 +2,63 @@
 % Please edit documentation in R/calculate.R
 \name{calculate.ernest_sampler}
 \alias{calculate.ernest_sampler}
-\title{Calculate statistics from an \code{ernest_sampler} object.}
+\title{Estimate the Log-Evidence of a Model}
 \usage{
-\method{calculate}{ernest_sampler}(x, ...)
+\method{calculate}{ernest_sampler}(
+  x,
+  add_points = c("none", "unit", "parameter", "both"),
+  add_progress = FALSE,
+  ...
+)
 }
 \arguments{
-\item{x}{An \code{ernest_sampler} object.}
+\item{x}{An object of class \code{ernest_sampler}.}
 
-\item{...}{Ignored.}
+\item{add_points}{A string, either \code{"none"}, \code{"unit"}, \code{"parameter"}, or \code{"both"}.
+If \code{"none"}, no additional columns are added. If \code{"unit"}or \code{"parameter"},
+the parameter values associated with each point are added, in their respective
+units. If \code{"both"}, both the unit and parameter values are added.}
+
+\item{add_progress}{Adds columns for the number of calls to the likelihood
+function between each iteration.}
+
+\item{...}{Must be empty.}
 }
 \value{
-A tibble with the following columns:
+\code{NULL}, if \code{x} does not contain any iterations. Otherwise, a \code{tibble}
+with at least these columns:
 \itemize{
-\item \code{log_vol}: The estimated log volume of the prior.
-\item \code{log_lik}: The likelihood of the live points at that iteration.
-\item \code{log_evidence}: The evidence estimate.
-\item \code{log_evidence_err}: The error in the evidence estimate.
+\item \code{.iter}: The iteration number.
+\item \code{log_lik}, \code{log_vol}: The log likelihood and estimated prior volume associated with
+the point extracted from the live set.
 }
+
+If \code{log_lik} and \code{log_vol} are well-specified (see details), then these
+additional columns are added:
+\itemize{
+\item \code{log_z}: The log-evidence estimate.
+\item \code{log_z_var}: The variance of the log-evidence estimate.
+\item \code{log_weight}: The posterior log-weight of the point.
+\item \code{h}: Information, reported through the Kullback–Leibler divergence.
+}
+
+If \code{add_points} is not \code{"none"}, columns are added with names given by the 'ptypes'
+argument for the sampler. Points in unit scale have names prefixed with \code{unit_}.
+
+Finally, if \code{add_efficiency} is \code{TRUE}, columns \code{.calls}, \code{.id}, and \code{.sampler}
+are added, reporting the number of likelihood calls between iterations,
+the index of the point within the live set upon removal, and the number of
+updates to the \code{ernest_lrps} object, respectively.
 }
 \description{
-Calculate statistics from an \code{ernest_sampler} object.
+Calculate the marginal likelihood of a given model and return the estimates
+in a tidy \code{\link[=tibble]{tibble()}}.
+}
+\details{
+Nested sampling must generate a series of increasing likelihood values
+and a series of strictly decreasing contour volume estimates. If neither of
+these hold, ernest will warn the user and return a stripped down \code{tibble}
+with no evidence estimates or log weights. In this case, the user should
+check the behaviour of the sampler used to generate points, or report
+the issue to the package authors.
 }

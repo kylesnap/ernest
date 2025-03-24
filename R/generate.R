@@ -1,15 +1,19 @@
-#' Generate nested samples from an `ernest_sampler` object.
+#' Generate Samples from Nested Sampling
 #'
-#' @param x An `ernest_sampler` object.
-#' @param max_iterations The maximum number of iterations needed to run the
-#' sampler. Must be a number larger than zero.
-#' @param max_calls Maximum number of calls to the likelihood function. Must
-#' be a number larger than zero.
-#' @param min_logz The threshold for the remaining prior volume to the total
-#' evidence. Must represent a number larger or equal to zero.
-#' @param refresh  If `TRUE`, and if the `ernest_sampler` already contains
-#' a list of live points, the existing live points will be overwritten.
-#' @param ... Must be left blank.
+#' Use this function to perform nested sampling until a given criterion is met.
+#' Calling [generate()] implicitly calls [compile()] to ensure the sampler
+#' object is valid before running samples.
+#'
+#' @param x An object of class `ernest_sampler`.
+#' @param max_iterations The maximum number of iterations to perform. If set to
+#' Inf, this stopping criterion is ignored.
+#' @param max_calls The maximum number of calls to the likelihood function.
+#' If set to Inf, this stopping criterion is ignored.
+#' @param min_logz The minimum log-evidence value to achieve. Must be a number
+#' strictly larger than zero.
+#' @param refresh Whether to clear existing points from the sampler, starting
+#' a run from scratch.
+#' @param ... Must be empty.
 #'
 #' @returns `x`, invisibly.
 #' @export

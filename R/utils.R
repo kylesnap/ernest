@@ -85,12 +85,12 @@ push_progress <- function(progress, saved_progress) {
   new_progress <- list(
     ".calls" = unlist(lapply(saved_progress, `[[`, ".calls")),
     ".id" = unlist(lapply(saved_progress, `[[`, ".id")),
-    "sampler" = unlist(lapply(saved_progress, `[[`, "sampler"))
+    ".sampler" = unlist(lapply(saved_progress, `[[`, "sampler"))
   )
   vctrs::df_list(
     ".calls" = c(progress$.calls, new_progress$.calls),
     ".id" = c(progress$.id, new_progress$.id),
-    "sampler" = c(progress$sampler, new_progress$sampler)
+    ".sampler" = c(progress$sampler, new_progress$sampler)
   )
 }
 
@@ -108,9 +108,6 @@ push_progress <- function(progress, saved_progress) {
 #'
 #' @noRd
 compute_integral <- function(log_lik, log_vol) {
-  if (length(log_lik) != length(log_vol)) {
-    cli::cli_abort("Fatal error: {.arg log_lik} and {.arg log_vol} must have the same length.")
-  }
   pad_log_lik <- c(-1e300, log_lik)
   d_log_vol <- diff(c(0, log_vol))
   log_d_vol <- log_vol - d_log_vol + log(-expm1(d_log_vol))

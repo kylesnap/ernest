@@ -1,125 +1,86 @@
-#' The Ernest Sampler Object
+#' Ernest Nested Sampler
 #'
-#' Objects of class `ernest_sampler` are responsible for managing the objects
-#' involved in nested sampling.
-#' * Create a nested sampler with (compile)
-#' * Generate nested samples with (generate)
-#' * Calculate an estimated evidence integral with (calculate)
+#' @description
+#' An R6 class that contains a nested sampling run.
 #'
+#' This object is normally created by calling [nested_sampling()], and
+#' interacted with by calling S3 methods like [generate()], [calculate()],
+#' and [glance()].
 #' @importFrom R6 R6Class
 ernest_sampler <- R6Class(
   "ernest_sampler",
   public = list(
-    #' @field verbose Whether to produce output during a run.
+    #' @field verbose
+    #' Should a progress bar be displayed during sampling?
     verbose = NULL,
 
     #' @description
-    #' Initialize an ernest sampler with an lrps, number of points, and
-    #' verbosity
-    #' @param lrps The likelihood-restricted prior sampler to use
-    #' @param ptype Either a single integer, a vector of variable names, or a
-    #' zero-row [tibble::tibble()] describing the dimensions of the prior space.
-    #' @param n_points The number of live points to use
-    #' @param verbose Whether to produce verbose output
-    initialize = function(lrps, ptype, n_points, verbose = getOption("verbose")) {
-      if (!rlang::inherits_any(lrps, "ernest_lrps")) {
-        stop_input_type(lrps, "an object of class `ernest_lrps`")
-      }
-      check_number_whole(n_points, min = 1)
-      if (n_points < 2 * lrps$n_dim) {
-        cli::cli_warn(
-          "The number of live points ({n_points}) is less than twice the number of dimensions ({lrps$n_dim})."
-        )
-      }
-      check_bool(verbose)
-      private$.lrps <- lrps
-      private$.ptype <- ptype
-      private$.n_points <- n_points
-      self$verbose <- verbose
-    },
+    #' Creates a new `ernest_sampler`.
+    #'
+    #' @param lrps An `ernest_lrps` object describing the model and prior space.
+    #' @param ptype The parameters involved in nested sampling. Possible values
+    #' are:
+    #' * A single integer, describing the dimensions of the prior space.
+    #' * A character vector, naming each dimension in the prior space.
+    #' * A zero-row [tibble::tibble()], where each column names a dimension of
+    #' the prior space.
+    #' @param n_points The number of live points to use during nested sampling.
+    #' Higher values allow for more accurate estimates of the evidence integral
+    #' at the cost of increased computational time.
+    #' @param verbose Whether to display a progress bar during a run.
+    #'
+    #' @returns An `ernest_sampler` object.
+    initialize = function(lrps, ptype, n_points = 500L, verbose = getOption("verbose"))
+      es_init(self, private, lrps, ptype, n_points, verbose),
 
     #' @description
-    #' Create a starting set of live points
-    #' @param refresh If `TRUE`, and if the `ernest_sampler` already contains
-    #' a list of live points, the existing live points will be overwritten.
-    #' @returns A copy of `self`, invisibly.
-    compile = function(refresh = FALSE) {
-      check_bool(refresh)
-      if (!refresh && !is_empty(private$.live)) {
-        cli::cli_inform("Using existing live points.")
-        return(invisible(self))
-      }
-      if (refresh) {
-        if (!is_empty(private$.dead)) {
-          cli::cli_inform("Resetting a run containing {self$n_iterations} iterations.")
-        }
-        private$.live <- list()
-        private$.dead <- list()
-        private$.progress <- list()
-        private$.log_vol <- list()
-        private$.last_log_z <- -1e300
-        private$.worst_idx <- NULL
-      }
-      new_live <- if (refresh || is_empty(private$.live)) {
-        .compile_sampler(private$.lrps, private$.n_points)
-      } else NULL
-      private$.live <- new_live %||% private$.live
-      invisible(self)
-    },
+    #' Prepare the `ernest_sampler` for generating nested samples by validating
+    #' the set of live points within the object, creating live points if none
+    #' exist yet.
+    #'
+    #' @param refresh Whether to clear existing points from `object` and generating new ones.
+    #' If `TRUE`, the function will clear both the live points and dead points gathered
+    #' from previous runs.
+    #'
+    #' @returns `object`, invisibly.
+    #' @seealso [compile.ernest_sampler()]
+    compile = function(refresh = FALSE)
+      es_compile(self, private, refresh, call = caller_env()),
+
 
     #' @description
-    #' Generate nested samples.
-    #' @param max_iterations The maximum number of iterations to run.
+    #' Generate samples from nested sampling until a given criterion is met.
+    #'
+    #' @param max_iterations The maximum number of iterations to perform. If set to
+    #' Inf, this stopping criterion is ignored.
     #' @param max_calls The maximum number of calls to the likelihood function.
-    #' @param min_logz The minimum log-evidence to reach before stopping.
-    #' @param refresh If `TRUE`, and if the `ernest_sampler` already contains
-    #' a list of live points, the existing live points will be overwritten.
-    #' @returns A single-row tibble reporting the state of the sample.
-    generate = function(max_iterations = Inf, max_calls = Inf, min_logz = 0.05, refresh = TRUE) {
-      max_it <- if (max_iterations == Inf) {
-        .Machine$integer.max
-      } else {
-        max_iterations
-      }
-      max_c <- if (max_calls == Inf) .Machine$integer.max else max_calls
-      check_number_whole(max_it, min = 1, allow_infinite = FALSE)
-      check_number_whole(max_c, min = 1, allow_infinite = FALSE)
-      check_number_decimal(min_logz, min = 0, allow_infinite = FALSE)
-      check_bool(refresh)
-      if (self$n_iterations == 0) {
-        self$compile()
-      } else {
-        self$compile(refresh)
-      }
-      private$nested_sampling_impl(max_it, max_c, min_logz)
-      invisible(self)
-    },
+    #' If set to Inf, this stopping criterion is ignored.
+    #' @param min_logz The minimum log-evidence value to achieve. Must be a number
+    #' strictly larger than zero.
+    #' @param refresh Whether to clear existing points from the sampler, starting
+    #' a run from scratch.
+    #'
+    #' @return `x`, invisibly.
+    #' @seealso [generate.ernest_sampler()]
+    generate = function(max_iterations = Inf, max_calls = Inf, min_logz = 0.05, refresh = FALSE)
+      es_generate(self, private, max_iterations, max_calls, min_logz, refresh),
 
     #' @description
-    #' Calculate the evidence integral.
-    calculate = function() {
-      if (self$n_iterations == 0) {
-        cli::cli_alert_info("No iterations performed yet.")
-      }
-      dead_lik <- list_c(private$.dead$log_lik)
-      dead_vol <- list_c(private$.log_vol)
-      last_vol <- tail(dead_vol, 1)
-      live_vol <- log1p(
-        (-1 - private$.n_points)^(-1) * seq_len(private$.n_points)
-      ) + last_vol
-
-      log_lik <- c(dead_lik, sort(private$.live$log_lik))
-      log_vol <-  c(dead_vol, live_vol)
-
-      if (is.unsorted(log_lik)) {
-        cli::cli_warn("`log_lik` should be a vector in ascending order; cannot estimate integral.")
-        return(tibble::tibble("log_lik" = log_lik, "log_vol" = log_vol))
-      } else if (is.unsorted(rev(log_vol), strictly = TRUE)) {
-        cli::cli_abort("`log_vol` should be a vector in strictly ascending order; cannot estimate integral.")
-        return(tibble::tibble("log_lik" = log_lik, "log_vol" = log_vol))
-      }
-
-      compute_integral("log_lik" = log_lik, "log_vol" = log_vol)
+    #' Calculate the marginal likelihood of a given model and return the estimates
+    #' in a tidy [tibble()].
+    #'
+    #' @param add_points A string, either `"none"`, `"unit"`, `"parameter"`, or `"both"`.
+    #' If `"none"`, no additional columns are added. If `"unit"`or `"parameter"`,
+    #' the parameter values associated with each point are added, in their respective
+    #' units. If `"both"`, both the unit and parameter values are added.
+    #' @param add_progress Adds columns for the number of calls to the likelihood
+    #' function between each iteration.
+    #'
+    #' @returns A `tibble` with columns reporting the results of the run.
+    #' @seealso [calculate.ernest_sampler()]
+    calculate = function(add_points = c("none", "unit", "parameter", "both"),
+                         add_progress = FALSE) {
+      es_calculate(self, private, add_points, add_progress)
     },
 
     #' @description
@@ -190,111 +151,17 @@ ernest_sampler <- R6Class(
     .worst_idx = NULL,
     .since_update = 0,
 
-    # Nested Sampling Implementation
-    nested_sampling_impl = function(max_it, max_c, min_logz) {
-      iter <- self$n_iterations
-      calls <- self$n_calls
-      log_z <- private$.last_log_z
-      log_vol <- unlist(tail(private$.log_vol, 1)) %||% 0
-      d_log_vol <- log((private$.n_points + 1) / private$.n_points)
-      worst_log_lik <- unlist(tail(private$.dead$log_lik, 1)) %||% -1e300
-      num_updates <- 0
+    # Clear run data from the sampler
+    .clear = function() {
+      private$.live <- list()
+      private$.dead <- list()
+      private$.progress <- list()
 
-      saved_units <- list()
-      saved_points <- list()
-      saved_log_lik <- list()
-      saved_progress <- list()
+      private$.log_vol <- list()
+      private$.last_log_z <- -1e300
 
-      if (self$verbose) {
-        cli::cli_progress_bar(
-          type = "custom",
-          format = "{cli::pb_spin} Nested Sampling | ln(z): {.val {log_z}}"
-        )
-      }
-
-      status <- NULL
-      for (iter in seq2(iter + 1, max_it)) {
-        # Check kill criteria
-        if (calls > max_c) {
-          if (self$verbose) cli::cli_progress_done()
-          status <- "`max_calls` reached"
-          break
-        }
-        d_log_z <- logaddexp(
-          0,
-          max(private$.live$log_lik) + log_vol - log_z
-        )
-        if (d_log_z < min_logz) {
-          if (self$verbose) cli::cli_progress_done()
-          status <- "`min_logz` reached"
-          break
-        }
-        if (self$verbose && (iter %% 10 == 0)) cli::cli_progress_update()
-
-        # Find and remove the worst point in the live sampler
-        worst_idx <- which.min(private$.live$log_lik)
-        saved_units[[iter]] <- private$.live$units[worst_idx, ]
-        saved_points[[iter]] <- private$.live$points[worst_idx, ]
-        saved_log_lik[[iter]] <- private$.live$log_lik[worst_idx]
-        new_worst_lik <- private$.live$log_lik[worst_idx]
-
-        # Constrict the prior volume and push an update to the integral
-        log_vol <- log_vol - d_log_vol
-        log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
-        log_wt <- logaddexp(new_worst_lik, worst_log_lik) + log_d_vol
-        log_z <- logaddexp(log_z, log_wt)
-        private$.log_vol[[iter]] <- log_vol
-        worst_log_lik <- new_worst_lik
-
-        # Update the LRPS
-        if ((private$.lrps$update_interval != 0) &&
-            (private$.since_update >= private$.lrps$update_interval)) {
-          private$.lrps <- update_sampler(private$.lrps)
-          private$.since_update <- 0
-          num_updates <- num_updates + 1
-        }
-
-        # Create a new point and push it to the live set
-        copy <- sample.int(private$.n_points, size = 1)
-        while (copy == worst_idx) {
-          copy <- sample.int(private$.n_points, size = 1)
-        }
-        new <- propose_live(
-          private$.lrps,
-          private$.live$unit[copy, ],
-          worst_log_lik
-        )
-        if (is_empty(new$unit)) {
-          cli::cli_abort(
-            "Region-based sampler couldn't improve the worst point."
-          )
-        }
-        private$.live$units[worst_idx, ] <- new$unit
-        private$.live$points[worst_idx, ] <- new$parameter
-        private$.live$log_lik[worst_idx] <- new$log_lik
-
-        saved_progress[[iter]] <- list(
-          ".calls" = new$num_calls,
-          ".id" = worst_idx,
-          "sampler" = num_updates
-        )
-
-        calls <- calls + new$num_calls
-        private$.since_update <- private$.since_update + new$num_calls
-      }
-      if (self$verbose) cli::cli_progress_done()
-      private$.dead <- push_dead_points(
-        private$.dead,
-        saved_units,
-        saved_points,
-        saved_log_lik
-      )
-      private$.progress <- push_progress(
-        private$.progress,
-        saved_progress
-      )
-      private$.last_log_z <- log_z
-      status <- status %||% "`max_iterations` reached"
+      private$.worst_idx <- NULL
+      invisible(self)
     }
   ),
   active = list(
@@ -334,3 +201,145 @@ ernest_sampler <- R6Class(
     }
   )
 )
+
+#' @noRd
+es_init <- function(self, private, lrps, ptype, n_points, verbose) {
+  if (!rlang::inherits_any(lrps, "ernest_lrps")) {
+    stop_input_type(lrps, "an object of class `ernest_lrps`")
+  }
+  check_number_whole(n_points, min = 1)
+  if (n_points < 2 * lrps$n_dim) {
+    cli::cli_warn(
+      "The number of live points ({n_points}) is less than twice the
+      number of dimensions ({lrps$n_dim})."
+    )
+  }
+  check_bool(verbose)
+  private$.lrps <- lrps
+  private$.ptype <- make_ptype(ptype)
+  private$.n_points <- n_points
+  self$verbose <- verbose
+  invisible(self)
+}
+
+#' @noRd
+es_compile <- function(self, private, refresh, call) {
+  check_bool(refresh)
+  if (refresh) {
+    private$.clear()
+  }
+  if (is_empty(private$.live)) {
+    private$.live <- create_live(private$.lrps, private$.n_points, call = call)
+  }
+  try_fetch(
+    check_live(private$.live, private$.lrps, private$.n_points),
+    error = \(cmd) {
+      cli::cli_alert_danger(
+        "An error was encounter when validating the live points. This likely means
+        that {.pkg ernest} encountered an internal error. Please consider filing a
+        bug report."
+      )
+      cli::cli_abort("Encountered a fatal error when validating sampler. Please recompile
+      the sampler from scratch.", parent = cmd, call = call)
+    }
+  )
+  invisible(self)
+}
+
+#' @noRd
+es_generate <- function(self, private, max_iterations, max_calls, min_logz, refresh) {
+  max_iterations <- if (max_iterations == Inf) {
+    .Machine$integer.max
+  } else as.integer(max_iterations)
+  max_calls <- if (max_calls == Inf) {
+    .Machine$integer.max
+  } else as.integer(max_calls)
+  min_logz <- as.double(min_logz)
+
+  check_number_whole(max_iterations, min = 1)
+  check_number_whole(max_calls, min = 1)
+  check_number_decimal(min_logz, min = 0, allow_infinite = FALSE)
+  self$compile(refresh)
+
+  nested_sampling_impl(self, private, max_iterations, max_calls, min_logz)
+  invisible(self)
+}
+
+#' Calculate the integral and other statistics for the sampler.
+#'
+#' This function calculates the integral of the log-likelihood and other
+#' statistics for the sampler, including unit and parameter points, and
+#' efficiency if requested.
+#'
+#' @param self The reference to the current object.
+#' @param private The reference to the private fields of the current object.
+#' @param add_points A character string indicating whether to add points to the
+#' output. Possible values are "none", "unit", "parameter", and "both".
+#' @param add_progress A logical value indicating whether to add efficiency
+#' progress to the output.
+#' @return A tibble containing the calculated integral and other statistics.
+#' @noRd
+es_calculate <- function(self, private, add_points, add_progress) {
+  add_points <- arg_match0(add_points, values = c("none", "unit", "parameter", "both"))
+  if (is_empty(private$.dead)) {
+    rlang::inform("No iterations have been performed yet.")
+    return(NULL)
+  }
+
+  dead_vol <- list_c(private$.log_vol)
+  last_vol <- tail(dead_vol, 1)
+  live_vol <- log1p(
+    (-1 - private$.n_points)^(-1) * seq_len(private$.n_points)
+  ) + last_vol
+  log_lik <- c(private$.dead$log_lik, sort(private$.live$log_lik))
+  log_vol <-  c(dead_vol, live_vol)
+
+  # Check whether log_lik and log_vol are ordered correctly.
+  improper_integral <- if(length(log_lik) != length(log_vol)) {
+    cli::cli_warn("Length of `log_lik` and `log_vol` must match.")
+    TRUE
+  } else if (is.unsorted(log_lik)) {
+    cli::cli_warn("`log_lik` must be a vector in ascending order;
+                  cannot estimate integral.")
+    TRUE
+  } else if (is.unsorted(rev(log_vol), strictly = TRUE)) {
+    cli::cli_warn("`log_vol` must be a vector in strictly descending order.")
+    TRUE
+  } else FALSE
+
+  if (improper_integral) {
+    return(tibble::tibble(".iter" = seq_len(length(log_lik)), "log_lik" = log_lik, "log_vol" = log_vol))
+  }
+
+  integral <- compute_integral("log_lik" = log_lik, "log_vol" = log_vol)
+  unit <- if (add_points %in% c("unit", "both")) {
+    tmp <- rbind(
+      private$.dead$unit,
+      private$.live$unit[order(private$.live$log_lik),]
+    )
+    colnames(tmp) <- paste0("unit_", names(private$.ptype))
+    tibble::as_tibble(tmp)
+  } else NULL
+  points <- if (add_points %in% c("parameter", "both")) {
+    tmp <- rbind(
+      private$.dead$point,
+      private$.live$point[order(private$.live$log_lik),]
+    )
+    colnames(tmp) <- names(private$.ptype)
+    tibble::as_tibble(tmp)
+  } else NULL
+  efficiency <- if (add_progress) {
+    tibble::tibble(
+      ".calls" = c(private$.progress$.calls, rep(NA_real_, private$.n_points)),
+      ".id" = c(private$.progress$.id, order(private$.live$log_lik)),
+      ".sampler" = c(private$.progress$.sampler, rep(NA_integer_, private$.n_points)),
+    )
+  } else NULL
+  tibble::tibble(
+    ".iter" = seq_len(length(log_lik)),
+    unit,
+    points,
+    integral,
+    efficiency
+  )
+}

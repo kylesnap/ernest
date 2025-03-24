@@ -2,21 +2,32 @@
 % Please edit documentation in R/compile.R
 \name{compile.ernest_sampler}
 \alias{compile.ernest_sampler}
-\title{Configure an ErnestSampler object}
+\title{Compile an \code{ernest_sampler} object.}
 \usage{
 \method{compile}{ernest_sampler}(object, refresh = FALSE, ...)
 }
 \arguments{
 \item{object}{An \code{ernest_sampler} object.}
 
-\item{refresh}{If \code{TRUE}, and if \code{object} already contains a list of live points,
-the existing live points will be overwritten.}
+\item{refresh}{Whether to clear existing points from \code{object} and generating new ones.
+If \code{TRUE}, the function will clear both the live points and dead points gathered
+from previous runs.}
 
 \item{...}{Ignored.}
 }
 \value{
-A copy of \code{object}, invisibly.
+\code{object}, invisibly.
 }
 \description{
-Clean and prepare an \code{ernest_sampler} so that it can be used to generate nested samples.
+Prepare the \code{ernest_sampler} for generating nested samples by validating
+the set of live points within the object, creating live points if none
+exist yet.
+}
+\details{
+Usually, a user will not need to call this method directly, as it is
+called automatically by \code{\link[=generate]{generate()}}. \code{compile()} is kept as a distinct step
+from \code{\link[=generate]{generate()}} so users can understand and troubleshoot errors with
+their log-likelihood and prior transformation functions before a run begins.
+It also catches errors that were generated during a run: These are more indicative
+of a problem with ernest itself, and such errors are labelled appropriately.
 }

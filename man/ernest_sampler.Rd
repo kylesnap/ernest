@@ -2,30 +2,32 @@
 % Please edit documentation in R/ernest_sampler-class.R
 \name{ernest_sampler}
 \alias{ernest_sampler}
-\title{The Ernest Sampler Object}
+\title{Ernest Nested Sampler}
 \value{
-A copy of \code{self}, invisibly.
+An \code{ernest_sampler} object.
 
-A single-row tibble reporting the state of the sample.
+\code{object}, invisibly.
+
+A \code{tibble} with columns reporting the results of the run.
 }
 \description{
-The Ernest Sampler Object
+An R6 class that contains a nested sampling run.
 
-The Ernest Sampler Object
+This object is normally created by calling \code{\link[=nested_sampling]{nested_sampling()}}, and
+interacted with by calling S3 methods like \code{\link[=generate]{generate()}}, \code{\link[=calculate]{calculate()}},
+and \code{\link[=glance]{glance()}}.
 }
-\details{
-Objects of class \code{ernest_sampler} are responsible for managing the objects
-involved in nested sampling.
-\itemize{
-\item Create a nested sampler with (compile)
-\item Generate nested samples with (generate)
-\item Calculate an estimated evidence integral with (calculate)
-}
+\seealso{
+\code{\link[=compile.ernest_sampler]{compile.ernest_sampler()}}
+
+\code{\link[=generate.ernest_sampler]{generate.ernest_sampler()}}
+
+\code{\link[=calculate.ernest_sampler]{calculate.ernest_sampler()}}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{verbose}}{Whether to produce output during a run.}
+\item{\code{verbose}}{Should a progress bar be displayed during sampling?}
 }
 \if{html}{\out{</div>}}
 }
@@ -62,23 +64,35 @@ or \code{0L} if no calls have been made yet.}
 \if{html}{\out{<a id="method-ernest_sampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-new}{}}}
 \subsection{Method \code{new()}}{
-Initialize an ernest sampler with an lrps, number of points, and
-verbosity
+Creates a new \code{ernest_sampler}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$new(lrps, ptype, n_points, verbose = getOption("verbose"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$new(
+  lrps,
+  ptype,
+  n_points = 500L,
+  verbose = getOption("verbose")
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{lrps}}{The likelihood-restricted prior sampler to use}
+\item{\code{lrps}}{An \code{ernest_lrps} object describing the model and prior space.}
 
-\item{\code{ptype}}{Either a single integer, a vector of variable names, or a
-zero-row \code{\link[tibble:tibble]{tibble::tibble()}} describing the dimensions of the prior space.}
+\item{\code{ptype}}{The parameters involved in nested sampling. Possible values
+are:
+\itemize{
+\item A single integer, describing the dimensions of the prior space.
+\item A character vector, naming each dimension in the prior space.
+\item A zero-row \code{\link[tibble:tibble]{tibble::tibble()}}, where each column names a dimension of
+the prior space.
+}}
 
-\item{\code{n_points}}{The number of live points to use}
+\item{\code{n_points}}{The number of live points to use during nested sampling.
+Higher values allow for more accurate estimates of the evidence integral
+at the cost of increased computational time.}
 
-\item{\code{verbose}}{Whether to produce verbose output}
+\item{\code{verbose}}{Whether to display a progress bar during a run.}
 }
 \if{html}{\out{</div>}}
 }
@@ -87,7 +101,9 @@ zero-row \code{\link[tibble:tibble]{tibble::tibble()}} describing the dimensions
 \if{html}{\out{<a id="method-ernest_sampler-compile"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-compile}{}}}
 \subsection{Method \code{compile()}}{
-Create a starting set of live points
+Prepare the \code{ernest_sampler} for generating nested samples by validating
+the set of live points within the object, creating live points if none
+exist yet.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$compile(refresh = FALSE)}\if{html}{\out{</div>}}
 }
@@ -95,8 +111,9 @@ Create a starting set of live points
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{refresh}}{If \code{TRUE}, and if the \code{ernest_sampler} already contains
-a list of live points, the existing live points will be overwritten.}
+\item{\code{refresh}}{Whether to clear existing points from \code{object} and generating new ones.
+If \code{TRUE}, the function will clear both the live points and dead points gathered
+from previous runs.}
 }
 \if{html}{\out{</div>}}
 }
@@ -105,40 +122,63 @@ a list of live points, the existing live points will be overwritten.}
 \if{html}{\out{<a id="method-ernest_sampler-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-generate}{}}}
 \subsection{Method \code{generate()}}{
-Generate nested samples.
+Generate samples from nested sampling until a given criterion is met.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$generate(
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
-  refresh = TRUE
+  refresh = FALSE
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{max_iterations}}{The maximum number of iterations to run.}
+\item{\code{max_iterations}}{The maximum number of iterations to perform. If set to
+Inf, this stopping criterion is ignored.}
 
-\item{\code{max_calls}}{The maximum number of calls to the likelihood function.}
+\item{\code{max_calls}}{The maximum number of calls to the likelihood function.
+If set to Inf, this stopping criterion is ignored.}
 
-\item{\code{min_logz}}{The minimum log-evidence to reach before stopping.}
+\item{\code{min_logz}}{The minimum log-evidence value to achieve. Must be a number
+strictly larger than zero.}
 
-\item{\code{refresh}}{If \code{TRUE}, and if the \code{ernest_sampler} already contains
-a list of live points, the existing live points will be overwritten.}
+\item{\code{refresh}}{Whether to clear existing points from the sampler, starting
+a run from scratch.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{x}, invisibly.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ernest_sampler-calculate"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-calculate}{}}}
 \subsection{Method \code{calculate()}}{
-Calculate the evidence integral.
+Calculate the marginal likelihood of a given model and return the estimates
+in a tidy \code{\link[=tibble]{tibble()}}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$calculate()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$calculate(
+  add_points = c("none", "unit", "parameter", "both"),
+  add_progress = FALSE
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{add_points}}{A string, either \code{"none"}, \code{"unit"}, \code{"parameter"}, or \code{"both"}.
+If \code{"none"}, no additional columns are added. If \code{"unit"}or \code{"parameter"},
+the parameter values associated with each point are added, in their respective
+units. If \code{"both"}, both the unit and parameter values are added.}
+
+\item{\code{add_progress}}{Adds columns for the number of calls to the likelihood
+function between each iteration.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ernest_sampler-glance"></a>}}

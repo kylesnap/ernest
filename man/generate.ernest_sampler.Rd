@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate.R
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
-\title{Generate nested samples from an \code{ernest_sampler} object.}
+\title{Generate Samples from Nested Sampling}
 \usage{
 \method{generate}{ernest_sampler}(
   x,
@@ -14,25 +14,27 @@
 )
 }
 \arguments{
-\item{x}{An \code{ernest_sampler} object.}
+\item{x}{An object of class \code{ernest_sampler}.}
 
-\item{max_iterations}{The maximum number of iterations needed to run the
-sampler. Must be a number larger than zero.}
+\item{max_iterations}{The maximum number of iterations to perform. If set to
+Inf, this stopping criterion is ignored.}
 
-\item{max_calls}{Maximum number of calls to the likelihood function. Must
-be a number larger than zero.}
+\item{max_calls}{The maximum number of calls to the likelihood function.
+If set to Inf, this stopping criterion is ignored.}
 
-\item{min_logz}{The threshold for the remaining prior volume to the total
-evidence. Must represent a number larger or equal to zero.}
+\item{min_logz}{The minimum log-evidence value to achieve. Must be a number
+strictly larger than zero.}
 
-\item{refresh}{If \code{TRUE}, and if the \code{ernest_sampler} already contains
-a list of live points, the existing live points will be overwritten.}
+\item{refresh}{Whether to clear existing points from the sampler, starting
+a run from scratch.}
 
-\item{...}{Must be left blank.}
+\item{...}{Must be empty.}
 }
 \value{
 \code{x}, invisibly.
 }
 \description{
-Generate nested samples from an \code{ernest_sampler} object.
+Use this function to perform nested sampling until a given criterion is met.
+Calling \code{\link[=generate]{generate()}} implicitly calls \code{\link[=compile]{compile()}} to ensure the sampler
+object is valid before running samples.
 }

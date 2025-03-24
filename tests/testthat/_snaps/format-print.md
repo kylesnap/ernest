@@ -27,5 +27,5 @@
       No. Live Points: 100
       No. Iterations: 100
       No. Calls: 2000
-      Log Evidence: -6.10985429494128
+      Log Evidence: -8.76021996918078
 

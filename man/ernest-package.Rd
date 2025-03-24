@@ -8,6 +8,13 @@
 \description{
 A complete implementation of the nested sampling algorithm for R, allowing users to estimate the evidence and posterior of a statistical model.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://kylesnap.github.io/ernest/}
+}
+
+}
 \author{
 \strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
 

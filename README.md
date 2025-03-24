@@ -83,24 +83,24 @@ run
 #> 
 #> ── Nested Sampling Run from ernest ─────────────────────────────────────────────
 #> No. Live Points: 500
-#> No. Iterations: 4499
-#> No. Calls: 112475
-#> Log Evidence: -6.92927749302562
+#> No. Iterations: 4451
+#> No. Calls: 111275
+#> Log Evidence: -6.83435374840042
 calculate(run)
-#> # A tibble: 4,999 × 6
-#>    log_lik  log_vol log_weight log_z log_z_var information
-#>      <dbl>    <dbl>      <dbl> <dbl>     <dbl>       <dbl>
-#>  1   -53.8 -0.00200      -60.7 -60.7  4.32e-25   -2.16e-22
-#>  2   -53.0 -0.00400      -59.5 -59.2  1.77e-24   -8.88e-22
-#>  3   -49.3 -0.00599      -56.2 -56.2  3.47e-23   -1.74e-20
-#>  4   -49.2 -0.00799      -55.5 -55.1  1.02e-22   -5.10e-20
-#>  5   -48.0 -0.00999      -54.6 -54.2  2.58e-22   -1.29e-19
-#>  6   -47.4 -0.0120       -53.9 -53.3  5.89e-22   -2.95e-19
-#>  7   -46.5 -0.0140       -53.1 -52.5  1.29e-21   -6.46e-19
-#>  8   -45.3 -0.0160       -52.0 -51.5  3.37e-21   -1.69e-18
-#>  9   -45.1 -0.0180       -51.5 -50.8  6.89e-21   -3.45e-18
-#> 10   -43.4 -0.0200       -50.1 -49.7  1.96e-20   -9.83e-18
-#> # ℹ 4,989 more rows
+#> # A tibble: 4,951 × 7
+#>    .iter log_lik  log_vol log_weight log_z log_z_var information
+#>    <int>   <dbl>    <dbl>      <dbl> <dbl>     <dbl>       <dbl>
+#>  1     1   -52.9 -0.00200      -59.8 -59.8  9.23e-25   -4.62e-22
+#>  2     2   -51.2 -0.00400      -58.0 -57.8  6.45e-24   -3.23e-21
+#>  3     3   -47.6 -0.00599      -54.5 -54.4  1.76e-22   -8.82e-20
+#>  4     4   -47.3 -0.00799      -53.7 -53.3  5.45e-22   -2.73e-19
+#>  5     5   -46.9 -0.00999      -53.3 -52.6  1.06e-21   -5.28e-19
+#>  6     6   -45.7 -0.0120       -52.4 -51.8  2.35e-21   -1.18e-18
+#>  7     7   -44.7 -0.0140       -51.3 -50.8  6.01e-21   -3.01e-18
+#>  8     8   -44.1 -0.0160       -50.6 -50.0  1.35e-20   -6.77e-18
+#>  9     9   -43.6 -0.0180       -50.1 -49.3  2.60e-20   -1.30e-17
+#> 10    10   -41.7 -0.0200       -48.5 -48.2  8.13e-20   -4.07e-17
+#> # ℹ 4,941 more rows
 ```
 
 We can also use the `plot()` method to visualize the iterative
@@ -119,11 +119,11 @@ posterior::as_draws(run) |>
   posterior::resample_draws() |> 
   posterior::summarize_draws()
 #> # A tibble: 3 × 10
-#>   variable     mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-#>   <chr>       <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 X...1    -0.0391  -0.0573 0.974 0.929 -1.57  1.59  1.12    1083.     14.1
-#> 2 X...2     0.0114   0.0148 0.972 0.948 -1.50  1.62  1.18    1058.     15.5
-#> 3 X...3     0.00390  0.0253 0.999 0.979 -1.59  1.65  1.24     951.     14.6
+#>   variable      mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>        <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 X...1    -0.0479   -0.0501 1.04  1.06  -1.76  1.67  1.18    1315.     13.0
+#> 2 X...2    -0.00846  -0.0304 1.00  0.975 -1.65  1.59  1.19    1016.     13.8
+#> 3 X...3    -0.000163  0.0197 0.992 0.992 -1.63  1.65  1.17    1300.     14.2
 ```
 
 ## Status
@@ -149,9 +149,8 @@ Skilling across two major papers:
   *Bayesian Analysis*, 1(4), 833-859.
   [10.1214/06-BA127](https://doi.org/10.1214/06-BA127)
 
-ernest’s design takes much inspiration from from the excellent
-[dynesty](https://dynesty.readthedocs.io/en/stable/index.html) package,
-and from its stellar documentation.
+ernest’s design takes much inspiration from from the well-documented
+[dynesty](https://dynesty.readthedocs.io/en/stable/index.html) package:
 
 - Speagle, J. S. (2020). DYNESTY: A dynamic nested sampling package for
   estimating Bayesian posteriors and evidences. *Monthly Notices of the
@@ -166,7 +165,7 @@ and from its stellar documentation.
 
 In addition, the
 [nestle](https://github.com/kbarbary/nestle/tree/master) python package
-and an article from J. Buchner provided consistent and clear terminology
+and an article from J. Buchner provide consistent and clear terminology
 to describe and organize components of the nested sampling algorithm:
 
 - Buchner, J. (2023). Nested sampling methods. *Statistics Surveys*, 17,

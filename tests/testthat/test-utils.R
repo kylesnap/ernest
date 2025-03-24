@@ -10,15 +10,6 @@ test_that("validate_integer_parameter works correctly", {
   )
 })
 
-test_that("Errors are thrown for compute_integral", {
-  log_lik <- c(1, 2, 3)
-  log_vol <- c(-0.5, -0.75)
-  expect_error(
-    compute_integral(log_lik, log_vol),
-    "must have the same length"
-  )
-})
-
 test_that("compute_integral delivers expected results", {
   expected <- readRDS(test_path("./compute_integral_test.rds"))
   observed <- compute_integral(expected$log_lik, expected$log_vol)

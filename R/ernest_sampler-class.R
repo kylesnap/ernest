@@ -1,4 +1,5 @@
-#' Ernest Nested Sampler
+#' @name ernest_sampler-class
+#' @title The Ernest Nested Sampler Object
 #'
 #' @description
 #' An R6 class that contains a nested sampling run.
@@ -29,7 +30,7 @@ ernest_sampler <- R6Class(
     #' at the cost of increased computational time.
     #' @param verbose Whether to display a progress bar during a run.
     #'
-    #' @returns An `ernest_sampler` object.
+    #' @return An `ernest_sampler` object.
     initialize = function(lrps, ptype, n_points = 500L, verbose = getOption("verbose"))
       es_init(self, private, lrps, ptype, n_points, verbose),
 
@@ -42,7 +43,7 @@ ernest_sampler <- R6Class(
     #' If `TRUE`, the function will clear both the live points and dead points gathered
     #' from previous runs.
     #'
-    #' @returns `object`, invisibly.
+    #' @return itself, invisibly.
     #' @seealso [compile.ernest_sampler()]
     compile = function(refresh = FALSE)
       es_compile(self, private, refresh, call = caller_env()),
@@ -60,7 +61,7 @@ ernest_sampler <- R6Class(
     #' @param refresh Whether to clear existing points from the sampler, starting
     #' a run from scratch.
     #'
-    #' @return `x`, invisibly.
+    #' @return itself, invisibly.
     #' @seealso [generate.ernest_sampler()]
     generate = function(max_iterations = Inf, max_calls = Inf, min_logz = 0.05, refresh = FALSE)
       es_generate(self, private, max_iterations, max_calls, min_logz, refresh),
@@ -76,63 +77,49 @@ ernest_sampler <- R6Class(
     #' @param add_progress Adds columns for the number of calls to the likelihood
     #' function between each iteration.
     #'
-    #' @returns A `tibble` with columns reporting the results of the run.
+    #' @return A `tibble` with columns reporting the results of the run.
     #' @seealso [calculate.ernest_sampler()]
-    calculate = function(add_points = c("none", "unit", "parameter", "both"),
-                         add_progress = FALSE) {
-      es_calculate(self, private, add_points, add_progress)
-    },
+    calculate = function(add_points = c("none", "unit", "original", "both"),
+                         add_progress = FALSE)
+      es_calculate(self, private, add_points, add_progress),
 
     #' @description
-    #' Glance at an ernest_sampler object.
-    glance = function() {
-      integral_summary <- if (self$n_iterations > 0) {
-        calc <- self$calculate()
-        tibble::tibble_row(
-          "log_z" = tail(calc$log_z, 1),
-          "log_z_err" = sqrt(tail(calc$log_z_var, 1)),
-          "information" = tail(calc$information, 1),
-        )
-      } else {
-        NULL
-      }
-      vctrs::vec_cbind(
-        tibble::tibble_row(
-          "n_dim" = private$.lrps$n_dim,
-          "n_points" = private$.n_points,
-          "n_iterations" = self$n_iterations,
-          "n_calls" = self$n_calls,
-          "eff" = if (.data$n_calls == 0) NULL else .data$n_iterations/.data$n_calls,
-        ),
-        integral_summary
-      )
-    },
+    #' Summarise the results of a nested sampling run.
+    #'
+    #' @return A list with class [summary.ernest_sampler()].
+    summary = function()
+      es_summary(self, private),
 
     #' @description
-    #' Format an ernest_sampler object
-    #' @param digits The number of digits to display
-    format = function(digits = getOption("digits")) {
+    #' Encode the run as a string for pretty printing.
+    #'
+    #' @param digits The number of digits to display.
+    #'
+    #' @return A string.
+    format = function(digits = max(3, getOption("digits") - 3)) {
       cli::cli_format_method({
-        cli::cli_h1("Nested Sampling Run from {.pkg ernest}")
-        format(private$.lrps, digits = digits)
-        cli::cli_dl(c(
-          "No. Live Points" = "{.val {private$.n_points}}",
-          "No. Iterations" = "{.val {self$n_iterations}}"
-        ))
+        cli::cli_text("{.emph Nested Sampling Run from {.pkg ernest}}")
+        cli::cli_text(
+          "{.val {private$.n_points}} Live Points, {.val {self$n_iterations}} Samples Generated."
+        )
         if (self$n_iterations > 0) {
-          cli::cli_dl(c(
-            "No. Calls" = "{.val {self$n_calls}}",
-            "Log Evidence" = "{.val {tail(self$calculate()$log_z, 1)}}"
-          ))
+          log_z <- prettyunits::pretty_round(
+            tail(self$summary()$log_z, 1),
+            digits = digits
+          )
+          cli::cli_text("Estimated Log. Evidence: {log_z}")
         } else {
-          cli::cli_alert_info("No samples generated yet.")
+          cli::cli_alert_info("Estimate log. evidence with {.fn generate}.")
         }
       })
     },
 
     #' @description
-    #' Print an ernest_sampler object
+    #' Print a brief summary of the sampler to the string.
+    #'
     #' @param ... Arguments forwarded to [`format()`]
+    #'
+    #' @return itself, invisibly.
     print = function(...) {
       cat(self$format(...), sep = "\n")
     }
@@ -265,22 +252,12 @@ es_generate <- function(self, private, max_iterations, max_calls, min_logz, refr
   invisible(self)
 }
 
-#' Calculate the integral and other statistics for the sampler.
-#'
-#' This function calculates the integral of the log-likelihood and other
-#' statistics for the sampler, including unit and parameter points, and
-#' efficiency if requested.
-#'
-#' @param self The reference to the current object.
-#' @param private The reference to the private fields of the current object.
-#' @param add_points A character string indicating whether to add points to the
-#' output. Possible values are "none", "unit", "parameter", and "both".
-#' @param add_progress A logical value indicating whether to add efficiency
-#' progress to the output.
-#' @return A tibble containing the calculated integral and other statistics.
 #' @noRd
 es_calculate <- function(self, private, add_points, add_progress) {
-  add_points <- arg_match0(add_points, values = c("none", "unit", "parameter", "both"))
+  add_points <- arg_match0(
+    add_points,
+    values = c("none", "unit", "original", "both")
+  )
   if (is_empty(private$.dead)) {
     rlang::inform("No iterations have been performed yet.")
     return(NULL)
@@ -320,7 +297,7 @@ es_calculate <- function(self, private, add_points, add_progress) {
     colnames(tmp) <- paste0("unit_", names(private$.ptype))
     tibble::as_tibble(tmp)
   } else NULL
-  points <- if (add_points %in% c("parameter", "both")) {
+  points <- if (add_points %in% c("original", "both")) {
     tmp <- rbind(
       private$.dead$point,
       private$.live$point[order(private$.live$log_lik),]
@@ -341,5 +318,27 @@ es_calculate <- function(self, private, add_points, add_progress) {
     points,
     integral,
     efficiency
+  )
+}
+
+#' @noRd
+es_summary <- function(self, private) {
+  calc <- self$calculate()
+  structure(
+    vctrs::list_drop_empty(
+      list(
+        n_points = private$.n_points,
+        n_iterations = self$n_iterations,
+        n_calls = self$n_calls,
+        eff = if (is_empty(calc)) NULL else self$n_iterations / self$n_calls,
+        log_weight = calc$log_weight,
+        log_lik = calc$log_lik,
+        log_vol = calc$log_vol,
+        log_z = calc$log_z,
+        log_z_err = if (is_empty(calc)) NULL else sqrt(calc$log_z_var),
+        information = calc$information
+      )
+    ),
+    class = "summary.ernest_sampler"
   )
 }

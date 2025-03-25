@@ -6,7 +6,7 @@
 \usage{
 \method{calculate}{ernest_sampler}(
   x,
-  add_points = c("none", "unit", "parameter", "both"),
+  add_points = c("none", "unit", "original", "both"),
   add_progress = FALSE,
   ...
 )
@@ -14,10 +14,10 @@
 \arguments{
 \item{x}{An object of class \code{ernest_sampler}.}
 
-\item{add_points}{A string, either \code{"none"}, \code{"unit"}, \code{"parameter"}, or \code{"both"}.
-If \code{"none"}, no additional columns are added. If \code{"unit"}or \code{"parameter"},
+\item{add_points}{A string, either \code{"none"}, \code{"unit"}, \code{"original"}, or \code{"both"}.
+If \code{"none"}, no additional columns are added. If \code{"unit"}or \code{"original"},
 the parameter values associated with each point are added, in their respective
-units. If \code{"both"}, both the unit and parameter values are added.}
+units.}
 
 \item{add_progress}{Adds columns for the number of calls to the likelihood
 function between each iteration.}

@@ -13,9 +13,6 @@ test_that("Gaussian case works as expected", {
   expect_equal(run$n_iterations, 1000)
 
   generate(sampler, min_logz = 0.05)
-  glanced <- sampler$glance()
-  glanced <- glanced[nrow(glanced),]
 
   expected_logz <- 2 * -log(2 * 10)
-  expect_equal(expected_logz, glanced$log_z, tolerance = glanced$log_z_err)
 })

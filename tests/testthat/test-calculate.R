@@ -69,7 +69,7 @@ test_that("calculate works correctly", {
       "log_weight", "log_z", "log_z_var", "information")
   )
   expect_equal(
-    sampler$calculate(add_points = "parameter") |> names(),
+    sampler$calculate(add_points = "original") |> names(),
     c(".iter", "X...1", "X...2", "X...3", "log_lik", "log_vol",
       "log_weight", "log_z", "log_z_var", "information")
   )

@@ -18,6 +18,7 @@
 #' @param ... Ignored.
 #'
 #' @returns `object`, invisibly.
+#' @export
 compile.ernest_sampler <- function(object, refresh = FALSE, ...) {
   object$compile(refresh)
 }

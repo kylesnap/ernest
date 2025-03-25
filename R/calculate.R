@@ -4,10 +4,10 @@
 #' in a tidy [tibble()].
 #'
 #' @param x An object of class `ernest_sampler`.
-#' @param add_points A string, either `"none"`, `"unit"`, `"parameter"`, or `"both"`.
-#' If `"none"`, no additional columns are added. If `"unit"`or `"parameter"`,
+#' @param add_points A string, either `"none"`, `"unit"`, `"original"`, or `"both"`.
+#' If `"none"`, no additional columns are added. If `"unit"`or `"original"`,
 #' the parameter values associated with each point are added, in their respective
-#' units. If `"both"`, both the unit and parameter values are added.
+#' units.
 #' @param add_progress Adds columns for the number of calls to the likelihood
 #' function between each iteration.
 #' @param ... Must be empty.
@@ -42,7 +42,7 @@
 #' updates to the `ernest_lrps` object, respectively.
 #' @export
 calculate.ernest_sampler <- function(x,
-                                     add_points = c("none", "unit", "parameter", "both"),
+                                     add_points = c("none", "unit", "original", "both"),
                                      add_progress = FALSE,
                                      ...) {
   check_dots_empty()

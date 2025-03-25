@@ -11,21 +11,16 @@
     Code
       sampler
     Output
-      
-      -- Nested Sampling Run from ernest ---------------------------------------------
-      No. Live Points: 100
-      No. Iterations: 0
-      i No samples generated yet.
+      Nested Sampling Run from ernest
+      100 Live Points, 0 Samples Generated.
+      i Estimate log. evidence with `generate()`.
 
 ---
 
     Code
       run
     Output
-      
-      -- Nested Sampling Run from ernest ---------------------------------------------
-      No. Live Points: 100
-      No. Iterations: 100
-      No. Calls: 2000
-      Log Evidence: -8.76021996918078
+      Nested Sampling Run from ernest
+      100 Live Points, 100 Samples Generated.
+      Estimated Log. Evidence: -8.7602
 

@@ -220,11 +220,9 @@ run.</p>
 <span>  sampler <span class="op">=</span> <span class="fu"><a href="../reference/lrps.html">rwmh_cube</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">sampler</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Run from </span><span style="color: #0000BB; font-weight: bold;">ernest</span> <span style="color: #00BBBB;">─────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; No. Live Points: <span style="color: #0000BB;">500</span></span></span>
-<span><span class="co">#&gt; No. Iterations: <span style="color: #0000BB;">0</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No samples generated yet.</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">0</span> Samples Generated.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimate log. evidence with `generate()`.</span></span></code></pre></div>
 <p>This produces an <code>R6</code> object with the class
 <code>ernest_sampler</code>. This object is responsible for dispatching
 across the various functions that <code>ernest</code> provides for
@@ -236,12 +234,9 @@ run the sampling until 1000 iterations are performed.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="va">run1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Run from </span><span style="color: #0000BB; font-weight: bold;">ernest</span> <span style="color: #00BBBB;">─────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; No. Live Points: <span style="color: #0000BB;">500</span></span></span>
-<span><span class="co">#&gt; No. Iterations: <span style="color: #0000BB;">1000</span></span></span>
-<span><span class="co">#&gt; No. Calls: <span style="color: #0000BB;">25000</span></span></span>
-<span><span class="co">#&gt; Log Evidence: <span style="color: #0000BB;">-6.27666779736913</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">1000</span> Samples Generated.</span></span>
+<span><span class="co">#&gt; Estimated Log. Evidence: -6.2767</span></span></code></pre></div>
 <p>To improve the evidence estimate from this model, the user can
 continue a run by calling <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> on a
 previously-generated <code>ErnestSampler</code>. By setting the
@@ -251,12 +246,9 @@ evidence falls below some criterion.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, min_logz <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="va">run2</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Run from </span><span style="color: #0000BB; font-weight: bold;">ernest</span> <span style="color: #00BBBB;">─────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; No. Live Points: <span style="color: #0000BB;">500</span></span></span>
-<span><span class="co">#&gt; No. Iterations: <span style="color: #0000BB;">4237</span></span></span>
-<span><span class="co">#&gt; No. Calls: <span style="color: #0000BB;">105925</span></span></span>
-<span><span class="co">#&gt; Log Evidence: <span style="color: #0000BB;">-6.11857418045797</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">4237</span> Samples Generated.</span></span>
+<span><span class="co">#&gt; Estimated Log. Evidence: -6.1186</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>

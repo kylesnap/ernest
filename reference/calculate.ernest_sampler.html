@@ -47,7 +47,7 @@ in a tidy <code>tibble()</code>.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'ernest_sampler'</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  add_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"unit"</span>, <span class="st">"parameter"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
+<span>  add_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"unit"</span>, <span class="st">"original"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  add_progress <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -62,10 +62,10 @@ in a tidy <code>tibble()</code>.</p>
 
 
 <dt id="arg-add-points">add_points<a class="anchor" aria-label="anchor" href="#arg-add-points"></a></dt>
-<dd><p>A string, either <code>"none"</code>, <code>"unit"</code>, <code>"parameter"</code>, or <code>"both"</code>.
-If <code>"none"</code>, no additional columns are added. If <code>"unit"</code>or <code>"parameter"</code>,
+<dd><p>A string, either <code>"none"</code>, <code>"unit"</code>, <code>"original"</code>, or <code>"both"</code>.
+If <code>"none"</code>, no additional columns are added. If <code>"unit"</code>or <code>"original"</code>,
 the parameter values associated with each point are added, in their respective
-units. If <code>"both"</code>, both the unit and parameter values are added.</p></dd>
+units.</p></dd>
 
 
 <dt id="arg-add-progress">add_progress<a class="anchor" aria-label="anchor" href="#arg-add-progress"></a></dt>

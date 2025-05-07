@@ -11,6 +11,7 @@ License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 Imports: 
     cli,
+    distributional,
     generics,
     ggplot2,
     glue,

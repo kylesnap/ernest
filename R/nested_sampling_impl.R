@@ -1,19 +1,22 @@
 #' Nested Sampling Implementation
 #'
-#' This function performs the nested sampling algorithm to estimate the evidence (log Z) of a model.
-#' It iteratively updates the live points, calculates the log evidence, and checks for convergence criteria.
-#' The function also handles progress updates and manages the live and dead points in the sampler.
+#' This function performs the nested sampling algorithm to estimate the evidence
+#' of a model. It iteratively updates the live points, calculates evidence,
+#' and checks for stoppage criteria. The function also handles progress updates
+#' and manages the live and dead points in the sampler.
 #'
 #' @param self An object containing the current state of the nested sampler.
-#' @param private A list containing private variables and functions used by the nested sampler.
+#' @param private A list containing private variables and functions used by the
+#' nested sampler.
 #' @param max_it Integer. The maximum number of iterations to perform.
 #' @param max_c Integer. The maximum number of calls to the likelihood function.
-#' @param min_logz Numeric. The minimum change in the log evidence (log Z) to continue sampling.
+#' @param min_logz Numeric. The minimum change in the log evidence (log Z) to
+#' continue sampling.
 #'
 #' @return The updated `self` object with the new state of the nested sampler.
 #' @keywords internal
 #' @noRd
-nested_sampling_impl = function(self, private, max_it, max_c, min_logz) {
+nested_sampling_impl <- function(self, private, max_it, max_c, min_logz) {
   iter <- self$niterations
   call <- self$ncalls
   if (iter == 0) {
@@ -65,7 +68,10 @@ nested_sampling_impl = function(self, private, max_it, max_c, min_logz) {
     # If current number of calls exceeds first_update, OR
     # if first_update is already exceeded and the number of calls
     # exceeds the update_interval, then update the LRPS
-    if (call > private$first_update && private$lrps$since_update > private$update_interval) {
+    if (
+      call > private$first_update &&
+        private$lrps$since_update > private$update_interval
+    ) {
       private$lrps <- private$lrps$update()
     }
 
@@ -85,8 +91,8 @@ nested_sampling_impl = function(self, private, max_it, max_c, min_logz) {
           "Region-based sampler couldn't improve the worst point."
         )
       }
-      private$live$unit[worst_idx[idx],] <- new$unit
-      private$live$point[worst_idx[idx],] <- new$parameter
+      private$live$unit[worst_idx[idx], ] <- new$unit
+      private$live$point[worst_idx[idx], ] <- new$parameter
       private$live$log_lik[worst_idx[idx]] <- new$log_lik
     }
     call <- call + new$num_calls

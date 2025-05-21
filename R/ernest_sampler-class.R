@@ -22,7 +22,14 @@ ernest_sampler <- R6Class(
     #' @param update_interval The subsequent update interval.
     #'
     #' @return Itself, invisibly.
-    initialize = function(log_lik_fn, prior, sampler, n_points, first_update, update_interval) {
+    initialize = function(
+      log_lik_fn,
+      prior,
+      sampler,
+      n_points,
+      first_update,
+      update_interval
+    ) {
       if (!inherits(sampler, "lrps_call")) {
         cli::cli_abort("sampler must be of class {.cls lrps_call}.")
       }
@@ -46,7 +53,8 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Clears the previous runs from the sampler, including the sampler's live points.
+    #' Clears the previous runs from the sampler, including the sampler's live
+    #' points.
     #'
     #' @return Itself, invisibly.
     clear = function() {
@@ -91,21 +99,49 @@ ernest_sampler <- R6Class(
     #' @param min_logz The minimum log-evidence value to achieve.
     #'
     #' @return Itself, invisibly.
-    generate = function(max_iterations = Inf, max_calls = Inf, min_logz = 0.05) {
-      check_number_whole(max_iterations, min = 1, allow_infinite = TRUE, allow_null = FALSE)
-      check_number_whole(max_calls, min = 1, allow_infinite = TRUE, allow_null = FALSE)
-      check_number_decimal(min_logz, min = 0, allow_infinite = FALSE, allow_null = TRUE)
+    generate = function(
+      max_iterations = Inf,
+      max_calls = Inf,
+      min_logz = 0.05
+    ) {
+      check_number_whole(
+        max_iterations,
+        min = 1,
+        allow_infinite = TRUE,
+        allow_null = FALSE
+      )
+      check_number_whole(
+        max_calls,
+        min = 1,
+        allow_infinite = TRUE,
+        allow_null = FALSE
+      )
+      check_number_decimal(
+        min_logz,
+        min = 0,
+        allow_infinite = FALSE,
+        allow_null = FALSE
+      )
 
-      if (is.infinite(max_iterations) & is.infinite(max_calls) & is.null(min_logz)) {
-        rlang::abort("At least one of `max_iterations`, `max_calls`, or `min_logz` must represent a stopping condition.")
+      if (
+        is.infinite(max_iterations) & is.infinite(max_calls) & is.null(min_logz)
+      ) {
+        cli::cli_abort(c(
+          "No stopping condition set.",
+          "i" = "Consider setting `max_iterations`, `max_calls`, or `min_logz`."
+        ))
       }
       max_iterations <- if (max_iterations == Inf) {
         .Machine$integer.max
-      } else as.integer(max_iterations)
+      } else {
+        as.integer(max_iterations)
+      }
       max_calls <- if (max_calls == Inf) {
         .Machine$integer.max
-      } else as.integer(max_calls)
-      min_logz <- min_logz %||% 0
+      } else {
+        as.integer(max_calls)
+      }
+      min_logz <- as.double(min_logz)
 
       self$compile()
       nested_sampling_impl(self, private, max_iterations, max_calls, min_logz)
@@ -116,16 +152,19 @@ ernest_sampler <- R6Class(
     #' Accesses the sampler's live points.
     #'
     #' @param units A string, either `"original"` or `"unit"`.
-    #' @param reorder Whether to reorder the points by increasing log-likelihood.
+    #' @param reorder Whether to reorder the points by increasing
+    #' log-likelihood.
     #'
     #' @return A `tibble` containing the live points.
     get_live_points = function(units = c("original", "unit"), reorder = FALSE) {
       if (is_empty(private$live)) {
         inform("No live points have been generated yet.")
-        return(tibble::tibble(!!!setNames(
-          replicate(length(self$variables), double(0)),
-          self$variables
-        )))
+        return(tibble::tibble(
+          !!!setNames(
+            replicate(length(self$variables), double(0)),
+            self$variables
+          )
+        ))
       }
       units <- arg_match(units)
       mat <- if (units == "original") {
@@ -149,10 +188,12 @@ ernest_sampler <- R6Class(
     get_dead_points = function(units = c("original", "unit")) {
       if (is_empty(private$dead)) {
         inform("No dead points have been generated yet.")
-        return(tibble::tibble(!!!setNames(
-          replicate(length(self$variables), double(0)),
-          self$variables
-        )))
+        return(tibble::tibble(
+          !!!setNames(
+            replicate(length(self$variables), double(0)),
+            self$variables
+          )
+        ))
       }
       units <- arg_match(units)
       mat <- if (units == "original") {
@@ -185,11 +226,12 @@ ernest_sampler <- R6Class(
         )
       } else {
         last_vol <- tail(dead_int$log_volume, 1)
-        live_vol <- last_vol + log1p(
-          (-1 - private$n_points)^(-1) * seq_len(private$n_points)
-        )
+        live_vol <- last_vol +
+          log1p(
+            (-1 - private$n_points)^(-1) * seq_len(private$n_points)
+          )
         log_lik <- c(dead_lik, sort(private$live$log_lik))
-        log_vol <-  c(dead_int$log_volume, live_vol)
+        log_vol <- c(dead_int$log_volume, live_vol)
         compute_integral(log_lik, log_vol)
       }
     },
@@ -198,8 +240,7 @@ ernest_sampler <- R6Class(
     #' Summarize the nested sampling run.
     #'
     #' @return See [summary.ernest_sampler()]
-    summary = function()
-      new_es_summary(self, private),
+    summary = function() new_es_summary(self, private),
 
     #' @description
     #' Prints a brief summary of the sampler.

@@ -6,14 +6,14 @@
 #' @param object A fitted model object, such as one from [glm()].
 #' @param ... Additional arguments passed to methods.
 #'
-#' @return A vector with class `distributional`, describing the prior distributions
-#' for the model coefficients, named accordingly.
+#' @return A vector with class `distributional`, describing the prior
+#' distributions for the model coefficients, named accordingly.
 #'
 #' @details The default priors are based on the model type and family:
 #' * For GLM models, coefficients are assigned a standard normal prior.
-#' * For GLM models with Gaussian or Gamma families, a dispersion parameter is assigned a
-#'  truncated $Cauchy(0, 25)$ prior.
-#' 
+#' * For GLM models with Gaussian or Gamma families, a dispersion parameter is
+#' assigned a truncated $Cauchy(0, 25)$ prior.
+#'
 #' @export
 default_prior <- function(object, ...) {
   UseMethod("default_prior")

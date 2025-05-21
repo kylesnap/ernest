@@ -37,7 +37,7 @@ test_that("Summarise a run with results", {
   calc <- sampler$calculate()
   expect_equal(summary$n_points, 500L)
   expect_equal(summary$n_iterations, 1000L)
-  expect_equal(summary$n_calls, 25000L) # (25 * 1000)
+  expect_equal(summary$n_calls, 25000L) # That is, (25 calls * 1000 steps)
   expect_equal(summary$log_evidence, calc$log_evidence)
   expect_equal(summary$log_evidence.sd, sqrt(calc$log_evidence.var))
   expect_equal(summary$information, calc$information)

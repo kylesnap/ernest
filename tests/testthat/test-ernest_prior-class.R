@@ -9,7 +9,10 @@ test_that("ernest_prior creates a valid object", {
 
 test_that("ernest_prior validates input types", {
   expect_error(ernest_prior(1:10), "no applicable method")
-  expect_error(ernest_prior(distributional::dist_normal(), names = 1), "must be a character vector")
+  expect_error(
+    ernest_prior(distributional::dist_normal(), names = 1),
+    "must be a character vector"
+  )
 })
 
 
@@ -23,7 +26,10 @@ test_that("ernest_prior handles empty names", {
 
 test_that("validate_ernest_prior checks unsupported distributions", {
   dist <- distributional::dist_missing()
-  expect_error(ernest_prior(c("x" = dist), repair = "unique_quiet"), "Some distributions are NULL")
+  expect_error(
+    ernest_prior(c("x" = dist), repair = "unique_quiet"),
+    "Some distributions are NULL"
+  )
 
   dist <- c(
     distributional::dist_normal(0, 1),
@@ -66,7 +72,10 @@ test_that("ernest_prior printing", {
   dist <- c(
     "int" = distributional::dist_normal(0, 10),
     "coef" = distributional::dist_normal(0, 10),
-    "sigma" = distributional::dist_truncated(distributional::dist_cauchy(0, 1), 0)
+    "sigma" = distributional::dist_truncated(
+      distributional::dist_cauchy(0, 1),
+      0
+    )
   )
 
   prior <- ernest_prior(dist)

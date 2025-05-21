@@ -34,7 +34,10 @@ test_that("check_live validates live points correctly", {
 
   # Test case: Empty live points
   live <- list()
-  expect_error(check_live(live, n_points = 5, n_var = 4), "No live points found.")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "No live points found."
+  )
 
   # Test case: live$unit is not a matrix
   live <- list(
@@ -53,7 +56,10 @@ test_that("check_live validates live points correctly", {
     point = matrix(rnorm(20), nrow = 5, ncol = 4),
     log_lik = c(-10, -5, -3, -1, -0.5)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Unit points must be stored as a matrix with dim")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Unit points must be stored as a matrix with dim"
+  )
 
   # Test case: live$unit contains non-finite values
   live <- list(
@@ -61,7 +67,10 @@ test_that("check_live validates live points correctly", {
     point = matrix(rnorm(20), nrow = 5, ncol = 4),
     log_lik = c(-10, -5, -3, -1, -0.5)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Unit points must contain only finite values.")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Unit points must contain only finite values."
+  )
 
   # Test case: live$unit contains values outside [0, 1]
   live <- list(
@@ -69,7 +78,10 @@ test_that("check_live validates live points correctly", {
     point = matrix(rnorm(20), nrow = 5, ncol = 4),
     log_lik = c(-10, -5, -3, -1, -0.5)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Unit points must contain values within \\[0, 1\\].")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Unit points must contain values within \\[0, 1\\]."
+  )
 
   # Test case: live$point is not a matrix
   live <- list(
@@ -77,7 +89,10 @@ test_that("check_live validates live points correctly", {
     point = runif(20),
     log_lik = c(-10, -5, -3, -1, -0.5)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Live points could'nt be stored as a matrix.")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Live points couldn't be stored as a matrix."
+  )
 
   # Test case: live$log_lik contains non-finite values
   live <- list(
@@ -85,7 +100,10 @@ test_that("check_live validates live points correctly", {
     point = matrix(rnorm(20), nrow = 5, ncol = 4),
     log_lik = c(-10, -5, -3, -1, Inf)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Log-likelihood values can only be finite or `-Inf`.")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Log-likelihood values can only be finite or `-Inf`."
+  )
 
   # Test case: live$log_lik contains only one unique value
   live <- list(
@@ -93,7 +111,10 @@ test_that("check_live validates live points correctly", {
     point = matrix(rnorm(20), nrow = 5, ncol = 4),
     log_lik = rep(-10, 5)
   )
-  expect_error(check_live(live, n_points = 5, n_var = 4), "Every point had a calculated log-likelihood value of")
+  expect_error(
+    check_live(live, n_points = 5, n_var = 4),
+    "Every point had a calculated log-lik. value of -10."
+  )
 })
 
 test_that("which_minn works correctly", {

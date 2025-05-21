@@ -1,18 +1,18 @@
 #' Wrap a Log-Likelihood Function for Ernest
 #'
 #' @description
-#' This generic function wraps a log-likelihood function or a fitted model object
-#' (e.g., from [stats::glm()]) for use with the `ernest` package. It ensures
-#' compatibility with the nested sampling framework by standardizing the
+#' This generic function wraps a log-likelihood function or a fitted model
+#' object (e.g., from [stats::glm()]) for use with the `ernest` package. It
+#' ensures compatibility with the nested sampling framework by standardizing the
 #' log-likelihood computation.
 #'
 #' @param object One of the following:
-#' * A function that must take a single argument (a parameter vector) and return the
-#'   scalar-valued log-likelihood.
-#' * A fitted model object (e.g., from [stats::glm()]) that can be used to compute
-#'   the log-likelihood. The model must be fitted using a family that supports
-#'   log-likelihood computation. The model must have a response variable and
-#'   model matrix.
+#' * A function that must take a single argument (a parameter vector) and return
+#' the scalar-valued log-likelihood.
+#' * A fitted model object (e.g., from [stats::glm()]) that can be used to
+#' compute the log-likelihood. The model must be fitted using a family that
+#' supports log-likelihood computation. The model must have a response variable
+#' and model matrix.
 #' @param ... These are currently ignored.
 #'
 #' @return An object of class `ernest_likelihood`, which is a function that
@@ -48,7 +48,8 @@ ernest_likelihood.function <- function(object, ...) {
 utils::globalVariables("theta")
 
 #' @rdname ernest_likelihood
-#' @importFrom stats family model.matrix model.response model.offset update model.weights
+#' @importFrom stats family model.matrix model.response
+#' @importFrom stats model.offset update model.weights
 #' @export
 ernest_likelihood.glm <- function(object, ...) {
   if (is.null(object$model)) {
@@ -62,14 +63,14 @@ ernest_likelihood.glm <- function(object, ...) {
   off <- model.offset(object$model)
   prior_weights <- model.weights(object$model)
 
-  # In the case of binomial data, parse the response object
-  non_constant_weight <- all(prior_weights == 1)
-  intercept <- attr(object$terms, "intercept")
-
   family <- family(object)
   linkinv <- family$linkinv
 
-  eta <- expr(!!x %*% theta[!!c(1:p)])
+  eta <- if (is_empty(off)) {
+    expr(!!x %*% theta[!!c(1:p)])
+  } else {
+    expr(!!x %*% theta[!!c(1:p)] + !!off)
+  }
   mu <- call2(linkinv, eta)
   dispersion <- expr(theta[!!(p + 1)])
 
@@ -77,30 +78,32 @@ ernest_likelihood.glm <- function(object, ...) {
     family$family,
     "gaussian" = {
       if (!is_empty(prior_weights)) {
-        expr(stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion / !!prior_weights), log = TRUE))
+        expr(
+          stats::dnorm(
+            !!y,
+            mean = !!mu,
+            sd = sqrt(!!dispersion / !!prior_weights),
+            log = TRUE
+          )
+        )
       } else {
-        expr(stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion), log = TRUE))
+        expr(
+          stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion), log = TRUE)
+        )
       }
     },
     "binomial" = {
       response <- parse_binomial_response(y, prior_weights)
-      expr(stats::dbinom(!!response$y, size = !!response$size, prob = !!mu, log = TRUE))
+      expr(
+        stats::dbinom(
+          !!response$y,
+          size = !!response$size,
+          prob = !!mu,
+          log = TRUE
+        )
+      )
     },
-    # TODO: Add support for other families
-    # "Gamma" = {
-    #   if (!is_empty(prior_weights)) {
-    #     cli::cli_inform("Using prior weights in the shape parameters.")
-    #     expr(dgamma(!!y, shape = !!prior_weights/!!dispersion, scale = !!mu * !!dispersion, log = TRUE))
-    #   } else {
-    #     expr(dgamma(!!y, shape = 1 / !!dispersion, scale = !!mu * !!dispersion, log = TRUE))
-    #   }
-    # },
-    # "poisson" = {
-    #   if (!is_empty(prior_weights)) {
-    #     cli::cli_warn("`prior weights` will be ignored for the poisson family.")
-    #   }
-    #   expr(dpois(!!y, lambda = !!fitted_values, log = TRUE))
-    # },
+    # TODO: Add support for Gamma and Poisson families
     cli::cli_abort("The {family$family} family is not supported.")
   )
 
@@ -134,7 +137,7 @@ parse_binomial_response <- function(y, weights) {
     y <- as.integer(y) - 1
     return(list(y = drop(y), size = 1L))
   }
-  return(list(y = y * weights, size = weights))
+  list(y = y * weights, size = weights)
 }
 
 #' Create a new `ernest_likelihood` object

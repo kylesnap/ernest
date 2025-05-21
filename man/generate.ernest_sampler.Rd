@@ -16,7 +16,7 @@
 If set to \code{Inf}, this stopping criterion is ignored.}
 
 \item{min_logz}{The minimum log-evidence value to achieve. Must be a number
-equal to or larger than zero, or \code{NULL}, in which case it is transformed to zero.}
+equal to or larger than zero.}
 
 \item{...}{Must be empty.}
 }

@@ -15,7 +15,9 @@ test_that("ernest_sampler initializes correctly", {
   expect_equal(sampler$niterations, 0)
   expect_equal(sampler$ncalls, 0)
   expect_message(
-    {live <- sampler$get_live_points()},
+    {
+      live <- sampler$get_live_points()
+    },
     "No live points have been generated yet"
   )
   expect_mapequal(
@@ -23,7 +25,9 @@ test_that("ernest_sampler initializes correctly", {
     tibble::tibble(A = double(0), B = double(0))
   )
   expect_message(
-    {dead <- sampler$get_dead_points()},
+    {
+      dead <- sampler$get_dead_points()
+    },
     "No dead points have been generated yet"
   )
   expect_mapequal(
@@ -31,7 +35,9 @@ test_that("ernest_sampler initializes correctly", {
     tibble::tibble(A = double(0), B = double(0))
   )
   expect_warning(
-    {calc <- expect_null(sampler$calculate())},
+    {
+      calc <- expect_null(sampler$calculate())
+    },
     "No iterations have been performed yet"
   )
   expect_null(calc)
@@ -59,7 +65,9 @@ test_that("compile method initializes live points", {
     t(apply(as.matrix(orig_units), 1, prior_fn))
   )
   expect_message(
-    {dead <- sampler$get_dead_points()},
+    {
+      dead <- sampler$get_dead_points()
+    },
     "No dead points have been generated yet"
   )
   expect_warning(
@@ -108,7 +116,14 @@ test_that("calculate method returns correct evidence integral", {
   )
   expect_named(
     calc,
-    c('log_likelihood', 'log_volume', 'log_weight', 'log_evidence', 'log_evidence.var', 'information')
+    c(
+      "log_likelihood",
+      "log_volume",
+      "log_weight",
+      "log_evidence",
+      "log_evidence.var",
+      "information"
+    )
   )
 })
 

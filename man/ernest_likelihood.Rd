@@ -15,12 +15,12 @@ ernest_likelihood(object, ...)
 \arguments{
 \item{object}{One of the following:
 \itemize{
-\item A function that must take a single argument (a parameter vector) and return the
-scalar-valued log-likelihood.
-\item A fitted model object (e.g., from \code{\link[stats:glm]{stats::glm()}}) that can be used to compute
-the log-likelihood. The model must be fitted using a family that supports
-log-likelihood computation. The model must have a response variable and
-model matrix.
+\item A function that must take a single argument (a parameter vector) and return
+the scalar-valued log-likelihood.
+\item A fitted model object (e.g., from \code{\link[stats:glm]{stats::glm()}}) that can be used to
+compute the log-likelihood. The model must be fitted using a family that
+supports log-likelihood computation. The model must have a response variable
+and model matrix.
 }}
 
 \item{...}{These are currently ignored.}
@@ -32,9 +32,9 @@ If the object is of class \code{glm}, it will also include the original call,
 \code{\link[=family]{family()}}, and \code{\link[=terms]{terms()}} objects as attributes.
 }
 \description{
-This generic function wraps a log-likelihood function or a fitted model object
-(e.g., from \code{\link[stats:glm]{stats::glm()}}) for use with the \code{ernest} package. It ensures
-compatibility with the nested sampling framework by standardizing the
+This generic function wraps a log-likelihood function or a fitted model
+object (e.g., from \code{\link[stats:glm]{stats::glm()}}) for use with the \code{ernest} package. It
+ensures compatibility with the nested sampling framework by standardizing the
 log-likelihood computation.
 }
 \examples{

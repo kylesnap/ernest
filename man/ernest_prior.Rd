@@ -28,8 +28,8 @@ or a function that maps the unit cube to the prior space.}
 
 \item{...}{Additional arguments passed to \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}}.}
 
-\item{names}{A character vector of variable names, with length equal to \code{x}, or \code{NULL}.
-For a function, names must not be \code{NULL}.}
+\item{names}{A character vector of variable names, with length equal to \code{x},
+or \code{NULL}. For a function, names must not be \code{NULL}.}
 
 \item{repair}{A string or function specifying how to handle duplicate names.
 See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
@@ -44,15 +44,18 @@ either a vector of distributions or a transformation function.
 \details{
 The \code{ernest_prior} object supports two types of inputs:
 \itemize{
-\item A vector of distributions, where each element specifies the prior for a variable.
-\item A transformation function that maps points from the unit cube to the prior space.
+\item A vector of distributions, where each element specifies the prior for a
+variable.
+\item A transformation function that maps points from the unit cube to the prior
+space.
 }
 }
 \note{
 See \link[stats]{Distributions} for distributions currently supported through
-\code{distributional}. In addition, \code{dist_truncated} is current supported when wrapped
-around a base R distribution. If you need to use a distribution that is not
-supported, you can define a custom transformation function.
+\code{distributional}. In addition, \code{\link[distributional:dist_truncated]{distributional::dist_truncated()}} is
+supported when wrapped around a base R distribution. If you need to use a
+distribution that is not supported, you can define a custom transformation
+function.
 }
 \examples{
 # Using distributions

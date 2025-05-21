@@ -17,15 +17,17 @@ Note that volume estimates are always plotted in negative log units.}
 \item{...}{Must be left empty.}
 }
 \value{
-A plot of the run's progress, which is made up of three stacked plots:
+A plot of the run's progress, which is made up of three stacked
+plots:
 \itemize{
 \item Normalized likelihood values over log volumes.
 \item importance weights over log volumes.
-\item Model evidence over log volumes, with an error envelope showing the 1 and 2
-standard deviations of the estimate.
+\item Model evidence over log volumes, with an error envelope showing 1 and 2
+SDs from the estimate.
 }
 }
 \description{
-Use \code{ggplot} to create a plot of the evidence, importance weights, and normalized
-likelihood values over the estimated volumes from a nested sampling run.
+Use \code{ggplot} to create a plot of the evidence, importance weights, and
+normalized likelihood values over the estimated volumes from a nested
+sampling run.
 }

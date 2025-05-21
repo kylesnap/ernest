@@ -45,7 +45,7 @@ log_lik <- \(x) {
 
 tibble(
   expand.grid(
-    "x" = seq(-10, 10, length.out = 500), 
+    "x" = seq(-10, 10, length.out = 500),
     "y" = seq(-10, 10, length.out = 500)
   ),
   "ll" = log_lik(cbind(x, y))

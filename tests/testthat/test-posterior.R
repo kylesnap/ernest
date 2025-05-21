@@ -46,6 +46,6 @@ test_that("as_draws works", {
   expect_snapshot(draws)
 
   draws_units <- as_draws_matrix(sampler, scale = "unit")
-  expect_true(all(draws_units[,c("X","Y","Z")] >= 0))
-  expect_true(all(draws_units[,c("X","Y","Z")] <= 1))
+  expect_true(all(draws_units[, c("X", "Y", "Z")] >= 0))
+  expect_true(all(draws_units[, c("X", "Y", "Z")] <= 1))
 })

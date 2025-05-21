@@ -30,7 +30,12 @@ NULL
 #'
 #' @export
 unif_cube <- function(max_attempts = NULL) {
-  check_number_whole(max_attempts, min = 1, allow_null = TRUE, allow_infinite = FALSE)
+  check_number_whole(
+    max_attempts,
+    min = 1,
+    allow_null = TRUE,
+    allow_infinite = FALSE
+  )
   # TODO: This has to set something...^^^^
   structure(
     expr(uniform_lrps$new(log_lik_fn = , prior_fn = , n_dim = )),

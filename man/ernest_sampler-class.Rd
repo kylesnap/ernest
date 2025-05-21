@@ -77,7 +77,8 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-clear"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-clear}{}}}
 \subsection{Method \code{clear()}}{
-Clears the previous runs from the sampler, including the sampler's live points.
+Clears the previous runs from the sampler, including the sampler's live
+points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$clear()}\if{html}{\out{</div>}}
 }
@@ -144,7 +145,8 @@ Accesses the sampler's live points.
 \describe{
 \item{\code{units}}{A string, either \code{"original"} or \code{"unit"}.}
 
-\item{\code{reorder}}{Whether to reorder the points by increasing log-likelihood.}
+\item{\code{reorder}}{Whether to reorder the points by increasing
+log-likelihood.}
 }
 \if{html}{\out{</div>}}
 }

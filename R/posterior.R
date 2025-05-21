@@ -108,9 +108,11 @@ as_draws.ernest_sampler <- function(x, scale = c("original", "unit"), ...) {
 #' @importFrom posterior as_draws_list
 #' @method as_draws_list ernest_sampler
 #' @export
-as_draws_list.ernest_sampler <- function(x,
-                                        scale = c("original", "unit"),
-                                        ...) {
+as_draws_list.ernest_sampler <- function(
+  x,
+  scale = c("original", "unit"),
+  ...
+) {
   scale <- arg_match(scale)
   if (x$niterations < 1L) {
     cli::cli_abort("No iterations have been run with this sampler.")
@@ -133,6 +135,10 @@ as_draws_list.ernest_sampler <- function(x,
 #' @importFrom posterior as_draws_matrix
 #' @method as_draws_matrix ernest_sampler
 #' @export
-as_draws_matrix.ernest_sampler <- function(x, scale = c("original", "unit"), ...) {
-  as_draws_matrix(as_draws_list.ernest_sampler(x, scale = scale,...))
+as_draws_matrix.ernest_sampler <- function(
+  x,
+  scale = c("original", "unit"),
+  ...
+) {
+  as_draws_matrix(as_draws_list.ernest_sampler(x, scale = scale, ...))
 }

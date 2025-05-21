@@ -4,7 +4,9 @@ library(distributional)
 n_dim <- 3
 sigma <- diag(n_dim)
 sigma[sigma == 0] <- 0.4
-log_lik_fn <- \(x) dmvnorm(x, mean = seq(-1, 1, length.out = n_dim), sigma = sigma, log = TRUE)
+log_lik_fn <- \(x) {
+  dmvnorm(x, mean = seq(-1, 1, length.out = n_dim), sigma = sigma, log = TRUE)
+}
 prior_fn <- \(x) qunif(x, -5, 5)
 prior_fn2 <- ernest_prior(c(
   "a" = dist_uniform(-5, 5),
@@ -78,14 +80,22 @@ test_that("Uniform subclass can propose_uniform", {
 
 test_that("Uniform logs correctly after update", {
   uniform$update()
-  expect_named({hist <- uniform$history}, c("n_iter", "n_call"))
+  expect_named(
+    {
+      hist <- uniform$history
+    },
+    c("n_iter", "n_call")
+  )
   expect_equal(hist$n_iter, 12L)
   expect_gt(hist$n_call, 1L)
 })
 
 test_that("rwcube subclass initializes and clears correctly", {
   rw <- rwcube_lrps$new(
-    log_lik_fn, prior_fn, n_dim, epsilon = 0.5
+    log_lik_fn,
+    prior_fn,
+    n_dim,
+    epsilon = 0.5
   )
 
   expect_s3_class(rw, c("uniform_sampler", "ernest_lrps"))
@@ -151,7 +161,11 @@ test_that("rw subclass can propose_live", {
 test_that("rw update", {
   rw$clear()
   test_mat <- matrix(runif(100 * 3), nrow = 100, ncol = 3)
-  apply(test_mat, 1, \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x))))
+  apply(
+    test_mat,
+    1,
+    \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x)))
+  )
   rw$update()
   expect_named(rw$history, c("n_iter", "n_call", "epsilon", "acc_ratio"))
   expect_equal(rw$history$n_iter, 100L)
@@ -160,7 +174,11 @@ test_that("rw update", {
   expect_lt(rw$history$acc_ratio, 1)
   cur_eps <- rw$epsilon
 
-  apply(test_mat, 1, \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x))))
+  apply(
+    test_mat,
+    1,
+    \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x)))
+  )
   rw$update()
   expect_equal(rw$history$n_iter, c(100, 200))
   expect_equal(rw$history$n_call, c(2000, 4000))

@@ -25,7 +25,7 @@ compile.ernest_sampler <- function(object, clear = FALSE, ...) {
 #' @param max_calls The maximum number of calls to the likelihood function.
 #' If set to `Inf`, this stopping criterion is ignored.
 #' @param min_logz The minimum log-evidence value to achieve. Must be a number
-#' equal to or larger than zero, or `NULL`, in which case it is transformed to zero.
+#' equal to or larger than zero.
 #' @param ... Must be empty.
 #'
 #' @return The modified `ernest_sampler` object, invisibly.
@@ -33,11 +33,13 @@ compile.ernest_sampler <- function(object, clear = FALSE, ...) {
 #' @importFrom generics generate
 #' @export
 #' @method generate ernest_sampler
-generate.ernest_sampler <- function(x,
-                                    max_iterations = Inf,
-                                    max_calls = Inf,
-                                    min_logz = 0.05,
-                                    ...) {
+generate.ernest_sampler <- function(
+  x,
+  max_iterations = Inf,
+  max_calls = Inf,
+  min_logz = 0.05,
+  ...
+) {
   check_dots_empty()
   x$generate(max_iterations, max_calls, min_logz)
 }

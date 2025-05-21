@@ -9,7 +9,10 @@ test_that("ernest_likelihood.function works with valid input", {
 
 test_that("ernest_likelihood.function throws error for invalid input", {
   invalid_fn <- function(x, y) x + y
-  expect_error(ernest_likelihood(invalid_fn), "`object` must be a function of exactly one argument.")
+  expect_error(
+    ernest_likelihood(invalid_fn),
+    "`object` must be a function of exactly one argument."
+  )
 })
 
 test_that("ernest_likelihood.glm works with glm objects", {
@@ -27,13 +30,21 @@ test_that("ernest_likelihood.glm works with glm objects", {
 test_that("ernest_likelihood.glm handles unsupported families", {
   data(mtcars)
   glm_model <- glm(mpg ~ wt + hp, data = mtcars, family = inverse.gaussian())
-  expect_error(ernest_likelihood(glm_model), "The inverse.gaussian family is not supported.")
+  expect_error(
+    ernest_likelihood(glm_model),
+    "The inverse.gaussian family is not supported."
+  )
 })
 
 test_that("ernest_likelihood.glm handles prior weights correctly", {
   data(mtcars)
   mtcars$weights <- rep(2, nrow(mtcars))
-  glm_model <- glm(mpg ~ wt + hp, data = mtcars, family = gaussian(), weights = weights)
+  glm_model <- glm(
+    mpg ~ wt + hp,
+    data = mtcars,
+    family = gaussian(),
+    weights = weights
+  )
   wrapped_fn <- ernest_likelihood(glm_model)
 
   expect_s3_class(wrapped_fn, "ernest_likelihood")
@@ -42,8 +53,8 @@ test_that("ernest_likelihood.glm handles prior weights correctly", {
 
 test_that("ernest_likelihood with gaussian GLM", {
   data(mtcars)
-  mtcars[1:10,]
-  glm_model <- glm(mpg ~ wt + hp, data = mtcars[1:10,], family = gaussian())
+  mtcars[1:10, ]
+  glm_model <- glm(mpg ~ wt + hp, data = mtcars[1:10, ], family = gaussian())
   wrapped_fn <- ernest_likelihood(glm_model)
 
   expect_s3_class(wrapped_fn, "ernest_likelihood")
@@ -91,7 +102,7 @@ test_that("ernest_likelihood with weighted binomial", {
     family = binomial()
   )
   model2 <- glm(
-    formula = ncases/(ncases + ncontrols) ~ agegp + tobgp * alcgp,
+    formula = ncases / (ncases + ncontrols) ~ agegp + tobgp * alcgp,
     data = esoph,
     family = binomial(),
     weights = (ncases + ncontrols)

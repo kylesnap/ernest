@@ -42,8 +42,8 @@ defaults to \code{\link[=default_prior]{default_prior()}}.}
 
 \item{names}{Optional character vector of variable names.}
 
-\item{sampler}{An \code{\link[=lrps_call]{lrps_call()}} object, declaring which likelihood-restricted prior
-sampler to use for the nested sampling run.}
+\item{sampler}{An \code{\link[=lrps_call]{lrps_call()}} object, declaring which likelihood-restricted
+prior sampler to use for the nested sampling run.}
 
 \item{n_points}{The number of live points to use in the nested sampling run.}
 
@@ -53,8 +53,8 @@ multiplied by the number of live points before being coerced to an
 integer.}
 
 \item{update_interval}{The number of calls to the likelihood function
-between subsequent updates of the sampler. If left as a double, this will be
-multiplied by the number of live points before being coerced to an
+between subsequent updates of the sampler. If left as a double, this will
+be multiplied by the number of live points before being coerced to an
 integer.}
 }
 \value{

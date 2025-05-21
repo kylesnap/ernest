@@ -19,6 +19,12 @@ test_that("Plot works as expected", {
   generate(sampler, max_calls = 1000L)
   expect_no_error(plot(sampler))
   expect_no_error(plot(sampler, true_log_z = -5.991465))
-  vdiffr::expect_doppelganger("ernest-max_it", plot(sampler, true_log_z = -5.991465))
-  vdiffr::expect_doppelganger("ernest-no_exp", plot(sampler, exponentiate = FALSE))
+  vdiffr::expect_doppelganger(
+    "ernest-max_it",
+    plot(sampler, true_log_z = -5.991465)
+  )
+  vdiffr::expect_doppelganger(
+    "ernest-no_exp",
+    plot(sampler, exponentiate = FALSE)
+  )
 })

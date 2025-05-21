@@ -48,7 +48,7 @@ create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
   log_lik <- numeric(n_points)
   i <- 0L
   try_fetch(
-    for (i in seq(nrow(unit))) {
+    for (i in seq_len(nrow(unit))) {
       proposed <- lrps$propose_uniform()
       unit[i, ] <- proposed$unit
       point[i, ] <- proposed$parameter
@@ -95,21 +95,29 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
     cli::cli_abort("Internal error: Unit points must be stored as a matrix.")
   }
   if (!identical(dim(live$unit), dim(tmplate))) {
-    cli::cli_abort("Internal error: Unit points must be stored as a matrix with dim ({n_points}, {n_var}).")
+    cli::cli_abort(
+      "Unit points must be stored as a matrix with dim ({n_points}, {n_var})."
+    )
   }
   if (any(!is.finite(live$unit))) {
-    cli::cli_abort("Internal error: Unit points must contain only finite values.")
+    cli::cli_abort(
+      "Unit points must contain only finite values."
+    )
   }
   if (any(live$unit < 0) || any(live$unit > 1)) {
-    cli::cli_abort("Internal error: Unit points must contain values within [0, 1].")
+    cli::cli_abort(
+      "Unit points must contain values within [0, 1]."
+    )
   }
   # live$point: Must be a matrix of points with dim [n_points, n_var],
   # all points should be finite (warn if not)
   if (!is.matrix(live$point)) {
-    cli::cli_abort("Live points could'nt be stored as a matrix.")
+    cli::cli_abort("Live points couldn't be stored as a matrix.")
   }
   if (!identical(dim(live$point), dim(tmplate))) {
-    cli::cli_abort("Live points couldn't be stored as a matrix with dim ({n_points}, {n_var}).")
+    cli::cli_abort(
+      "Live points couldn't be stored as a [{n_points}, {n_var}] matrix."
+    )
   }
   if (any(!is.finite(live$point))) {
     idx <- which(rowSums(!is.finite(live$point) > 0))
@@ -153,16 +161,16 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
   if (length(unique_logl) == 1) {
     cli::cli_abort(c(
       "Couldn't generate unique log-likelihood values for each point.",
-      "x" = "Every point had a calculated log-likelihood value of {unique_logl}.",
-      "i" = "This generally indicates an error with your log-likelihood function."
+      "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
+      "i" = "This generally indicates an error with your log-lik. function."
     ))
   }
   if (length(unique_logl) < length(live$log_lik) * 0.25) {
     perc <- prettyNum(length(unique_logl) / length(live$log_lik))
     cli::cli_warn(c(
       "Suspected flatness in the log-likelihood surface.",
-      "x" = "Only {perc}% of the live points have unique log-likelihood values.",
-      "i" = "Consider reviewing your model or adjusting your prior for more efficient sampling."
+      "x" = "Only {perc}% of the live points have unique log-lik. values.",
+      "i" = "Consider reviewing your model or adjusting your prior."
     ))
   }
   NULL
@@ -180,7 +188,7 @@ which_minn <- function(x, n = 1L) {
   if (n == 1L) {
     which.min(x)
   } else {
-    order(x)[1:min(n, length(x))]
+    order(x)[seq_len(min(n, length(x)))]
   }
 }
 
@@ -209,8 +217,10 @@ compute_integral <- function(log_lik, log_vol) {
   log_z <- accumulate(log_wt, \(cur, nxt) logaddexp(cur, nxt))
   log_z_max <- tail(log_z, 1)
   h_term <- cumsum(
-    exp(tail(pad_log_lik, -1) - log_z_max + log_d_vol2) * tail(pad_log_lik, -1) +
-      exp(head(pad_log_lik, -1) - log_z_max + log_d_vol2) * head(pad_log_lik, -1)
+    exp(tail(pad_log_lik, -1) - log_z_max + log_d_vol2) *
+      tail(pad_log_lik, -1) +
+      exp(head(pad_log_lik, -1) - log_z_max + log_d_vol2) *
+        head(pad_log_lik, -1)
   )
   h <- h_term - log_z_max * exp(log_z - log_z_max)
   dh <- diff(c(0, h))

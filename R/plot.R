@@ -1,10 +1,16 @@
 #' Autoplot an `ernest_sampler` object
 #'
-#' @importFrom ggplot2 autoplot ggplot aes geom_line geom_ribbon geom_vline geom_hline
+#' @importFrom ggplot2 autoplot ggplot aes geom_line geom_ribbon geom_vline
+#' @importFrom ggplot2 geom_hline
 #' @importFrom ggplot2 facet_grid vars scale_x_continuous scale_y_continuous
 #' @export
 #' @noRd
-autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NULL, ...) {
+autoplot.ernest_sampler <- function(
+  object,
+  exponentiate = TRUE,
+  true_log_z = NULL,
+  ...
+) {
   check_dots_empty()
   if (object$niterations < 1L) {
     cli::cli_abort("No iterations have been run.")
@@ -82,19 +88,21 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     scale_y_continuous(NULL) +
     geom_vline(aes(xintercept = -vol_cutoff), linetype = "dashed")
   if (!is.null(true_log_z)) {
-    p <- p + geom_hline(
-      data = z_df,
-      aes(yintercept = if (exponentiate) exp(true_log_z) else true_log_z),
-      linetype = "dotted"
-    )
+    p <- p +
+      geom_hline(
+        data = z_df,
+        aes(yintercept = if (exponentiate) exp(true_log_z) else true_log_z),
+        linetype = "dotted"
+      )
   }
   p
 }
 
 #' Plot an `ernest_sampler` object
 #'
-#' Use `ggplot` to create a plot of the evidence, importance weights, and normalized
-#' likelihood values over the estimated volumes from a nested sampling run.
+#' Use `ggplot` to create a plot of the evidence, importance weights, and
+#' normalized likelihood values over the estimated volumes from a nested
+#' sampling run.
 #'
 #' @param x An `ernest_sampler` object.
 #' @param exponentiate Whether to transform log values before plotting.
@@ -102,14 +110,20 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
 #' @param true_log_z The analytic evidence value on a log scale.
 #' @param ... Must be left empty.
 #'
-#' @returns A plot of the run's progress, which is made up of three stacked plots:
+#' @returns A plot of the run's progress, which is made up of three stacked
+#' plots:
 #' * Normalized likelihood values over log volumes.
 #' * importance weights over log volumes.
-#' * Model evidence over log volumes, with an error envelope showing the 1 and 2
-#' standard deviations of the estimate.
+#' * Model evidence over log volumes, with an error envelope showing 1 and 2
+#' SDs from the estimate.
 #'
 #' @importFrom graphics plot
 #' @export
-plot.ernest_sampler <- function(x, exponentiate = TRUE, true_log_z = NULL, ...) {
+plot.ernest_sampler <- function(
+  x,
+  exponentiate = TRUE,
+  true_log_z = NULL,
+  ...
+) {
   print(autoplot(x, exponentiate = exponentiate, true_log_z = true_log_z, ...))
 }

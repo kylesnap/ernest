@@ -1,3 +1,30 @@
+#' Summarize an `ernest_sampler` object
+#'
+#' This function provides a detailed summary of a nested sampling run, including
+#' information about the sampling process, the sampler configuration, and the
+#' results of the run.
+#'
+#' @param object An `ernest_sampler` object.
+#' @param ... Must be empty.
+#'
+#' @return A list of class `summary.ernest_sampler` containing:
+#' - `n_points`: The number of live points used in the sampling process.
+#' - `n_iterations`: The total number of iterations performed during the run.
+#' - `n_calls`: The total number of calls made to the likelihood function.
+#' - `sampler`: A list containing details about the sampler configuration:
+#'   - `lrps`: The likelihood-restricted prior sampler (LRPS) used.
+#'   - `first_update`: The first update interval.
+#'   - `update_interval`: The subsequent update interval.
+#' - `samples`: A list containing:
+#'   - `original`: A matrix of sampled points in the original parameter space.
+#'   - `unit`: A matrix of sampled points in the unit hypercube space.
+#' - `log_likelihood`: A vector of log-likelihood values for the sampled points.
+#' - `log_volume`: A vector of log-volume values for the sampled points.
+#' - `log_importance_weight`: A vector of log-importance weights for the
+#'    sampled points.
+#' - `log_evidence`: The estimated log-evidence of the model.
+#' - `log_evidence.sd`: The standard deviation of the log-evidence estimate.
+#' - `information`: The estimated information content of the model.
 #' @export
 summary.ernest_sampler <- function(object, ...) {
   check_dots_empty()

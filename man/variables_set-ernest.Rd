@@ -3,7 +3,7 @@
 \name{variables<-.ernest_prior}
 \alias{variables<-.ernest_prior}
 \alias{variables<-.ernest_sampler}
-\title{Set Variable Names in an \code{ernest_prior} Object}
+\title{Set Variable Names in an \code{ernest_prior} or \code{ernest_sampler} Object}
 \usage{
 \method{variables}{ernest_prior}(x, ...) <- value
 
@@ -12,8 +12,16 @@
 \arguments{
 \item{x}{An \code{ernest_prior} or \code{ernest_sampler} object.}
 
-\item{...}{Must be left empty.}
+\item{...}{Must be empty.}
+
+\item{value}{A character vector of unique variable names.}
+}
+\value{
+The modified object with updated variable names.
 }
 \description{
-Set Variable Names in an \code{ernest_prior} Object
+Assign variable names to \code{ernest} objects.
+}
+\seealso{
+\code{\link[posterior:variables-set]{posterior::variables<-()}}
 }

@@ -4,7 +4,7 @@
 \alias{as_draws.ernest_sampler}
 \alias{as_draws_list.ernest_sampler}
 \alias{as_draws_matrix.ernest_sampler}
-\title{Transform \code{ernest_sampler} to \code{posterior::draws} objects}
+\title{Transform \code{ernest_sampler} to \code{posterior::draws} Objects}
 \usage{
 \method{as_draws}{ernest_sampler}(x, scale = c("original", "unit"), ...)
 
@@ -13,18 +13,22 @@
 \method{as_draws_matrix}{ernest_sampler}(x, scale = c("original", "unit"), ...)
 }
 \arguments{
-\item{x}{An \code{ernest_sampler} object, or another \R object for which
-the methods are defined.}
+\item{x}{An \code{ernest_sampler} object.}
 
-\item{scale}{One of \code{original} or \code{unit}. If \code{unit}, the returned
-\code{draws} object will contain points expressed in the unit hypercube, which
-was originally used by ernest for generated sampling. If \code{original} (the
-default), the returned \code{draws} object will contain points in the original
-parameter space defined by the prior transformation.}
+\item{scale}{A character string, either \code{"original"} (default) or \code{"unit"}.
+If \code{"unit"}, the returned \code{draws} object contains points in the unit
+hypercube. If \code{"original"}, the points are in the original parameter space.}
 
-\item{...}{Arguments passed to individual methods (if applicable).}
+\item{...}{Additional arguments passed to methods.}
+}
+\value{
+A \code{posterior::draws} object.
 }
 \description{
-Transform an \code{ernest_sampler} object to a format supported by the
+Convert an \code{ernest_sampler} object to a format compatible with the
 posterior package.
+}
+\seealso{
+\code{\link[posterior:draws]{posterior::as_draws()}}, \code{\link[posterior:draws_list]{posterior::as_draws_list()}},
+\code{\link[posterior:draws_matrix]{posterior::as_draws_matrix()}}
 }

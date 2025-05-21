@@ -1,16 +1,25 @@
-#' Likelihood Restricted Prior Samplers for ernest
+#' Likelihood-Restricted Prior Samplers for Ernest
 #'
-#' Likelihood-restricted prior sampling (or LRPS) aims to generate points within
-#' the parameter space defined by the prior. Many options exist for conducting
-#' LRPS, though two currently are implemented in ernest: uniform sampling and
-#' a random walk with step evolution.
+#' @description
+#' The `ernest_lrps` class provides a framework for likelihood-restricted prior sampling (LRPS),
+#' which generates points within the parameter space defined by the prior while satisfying
+#' a likelihood constraint. This is a key component of nested sampling algorithms.
 #'
-#' @param log_lik A function that returns the log-likelihood of a point in the
-#' parameter space.
-#' @param prior_transform A function that transforms a unit cube to the prior
-#' space.
+#' @details
+#' The base class `ernest_lrps` defines the structure and common methods for LRPS. Subclasses
+#' implement specific sampling strategies, such as uniform sampling or random walks with
+#' adaptive step sizes.
+#'
+#' @param log_lik A function that computes the log-likelihood of a point in the parameter space.
+#' @param prior_transform A function that maps a unit cube to the prior space.
+#' @param n_dim The number of dimensions in the parameter space.
+#'
+#' @section Subclasses:
+#' - `uniform_lrps`: Implements uniform sampling within the unit cube.
+#' - `rwcube_lrps`: Implements a random walk within the unit cube with adaptive step sizes.
 #'
 #' @rdname ernest_lrps
+#' @section Internal
 #' @noRd
 NULL
 
@@ -98,6 +107,20 @@ ernest_lrps <- R6Class(
   )
 )
 
+#' Uniform Sampling in Unit Cube
+#'
+#' @description
+#' The `uniform_lrps` subclass performs uniform sampling within the unit cube
+#' while satisfying a likelihood constraint.
+#'
+#' @details
+#' This subclass overrides the `propose_live` method to generate points uniformly
+#' within the unit cube.
+#'
+#' @rdname ErnestSampler
+#' @noRd
+NULL
+
 #' Uniform Sampling in Unit Cube Subclass
 #' @rdname ErnestSampler
 #' @noRd
@@ -115,6 +138,25 @@ uniform_lrps <- R6Class(
     }
   )
 )
+
+#' Random Walk within the Unit Cube
+#'
+#' @description
+#' The `rwcube_lrps` subclass performs a random walk within the unit cube, with
+#' step sizes that adapt based on the acceptance ratio.
+#'
+#' @details
+#' This subclass introduces additional parameters for controlling the random walk:
+#' - `steps`: The number of steps to take in the random walk.
+#' - `epsilon`: The initial step size, which is adjusted dynamically to target
+#'   an acceptance ratio of 0.5.
+#'
+#' @param steps The minimum number of steps to take in the random walk.
+#' @param epsilon The initial step size of the random walk.
+#'
+#' @rdname ErnestSampler
+#' @noRd
+NULL
 
 #' Random Walk within the Unit Cube
 #' @rdname ErnestSampler

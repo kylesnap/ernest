@@ -30,7 +30,37 @@ nested_sampling(x, ...)
   ...
 )
 }
+\arguments{
+\item{x}{A function or a \code{glm} object. For functions, this represents the
+log-likelihood function. For \code{glm} objects, the model is used to derive
+the log-likelihood.}
+
+\item{...}{Additional arguments passed to methods.}
+
+\item{prior}{A prior distribution function or object. For \code{glm} objects,
+defaults to \code{\link[=default_prior]{default_prior()}}.}
+
+\item{names}{Optional character vector of variable names.}
+
+\item{sampler}{An \code{\link[=lrps_call]{lrps_call()}} object, declaring which likelihood-restricted prior
+sampler to use for the nested sampling run.}
+
+\item{n_points}{The number of live points to use in the nested sampling run.}
+
+\item{first_update}{The number of calls to the likelihood function
+before the first update of the sampler. If left as a double, this will be
+multiplied by the number of live points before being coerced to an
+integer.}
+
+\item{update_interval}{The number of calls to the likelihood function
+between subsequent updates of the sampler. If left as a double, this will be
+multiplied by the number of live points before being coerced to an
+integer.}
+}
+\value{
+An \code{ernest_sampler} object.
+}
 \description{
-The top-level function constructs an instance of an \code{ernest_sampling},
-containing the necessary information for nested sampling.
+Constructs an instance of an \code{ernest_sampler} containing the necessary
+information for performing nested sampling.
 }

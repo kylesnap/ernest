@@ -62,12 +62,12 @@ This function must take in a vector of parameters equal in length to `n_dim` who
 
 ### Example: A Uniform Prior in 2D-Space
 ```{r}
-prior_t <- \(u) qunif(u, min = -10, max = 10)
+prior <- \(u) qunif(u, min = -10, max = 10)
 ```
 
 ### Example: A Uniform Prior in 2D-Space (Heterogenous Scales)
 ```{r}
-prior_t2 <- function(u) {
+prior_2 <- function(u) {
   c(qunif(u[1], min = -10, max = 10), qunif(u[2], min = -5, max = 5))
 }
 ```
@@ -94,7 +94,8 @@ Using the 2D-Gaussian likelihood example provided earlier, along with the unifor
 ```{r}
 sampler <- nested_sampling(
   log_lik,
-  prior_transform = prior_t,
+  prior = prior,
+  names = c(".x", ".y"),
   ptype = 2L,
   n_points = 500L,
   sampler = rwmh_cube()
@@ -134,10 +135,10 @@ We can also produce trace plots of the distributions of the points across the ru
 ```{r}
 draws <- posterior::as_draws_df(run2, unit = TRUE)
 
-ggplot(draws, aes(x = `.draw`, y = `X...1`, colour = exp(`.log_weight`))) +
+ggplot(draws, aes(x = `.draw`, y = `.x`, colour = exp(`.log_weight`))) +
   geom_point() +
   scale_colour_viridis_c("Post. Weight")
-ggplot(draws, aes(x = `.draw`, y = `X...2`, colour = exp(`.log_weight`))) +
+ggplot(draws, aes(x = `.draw`, y = `.y`, colour = exp(`.log_weight`))) +
   geom_point() +
   scale_colour_viridis_c("Post. Weight")
 ```

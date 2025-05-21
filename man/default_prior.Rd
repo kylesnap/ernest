@@ -3,21 +3,30 @@
 \name{default_prior}
 \alias{default_prior}
 \alias{default_prior.glm}
-\title{Construct a default prior distribution for a given model}
+\title{Construct a default prior distribution for a model}
 \usage{
 default_prior(object, ...)
 
 \method{default_prior}{glm}(object, ...)
 }
 \arguments{
-\item{object}{A fitted model object from \code{\link[=glm]{glm()}}.}
+\item{object}{A fitted model object, such as one from \code{\link[=glm]{glm()}}.}
 
-\item{...}{}
+\item{...}{Additional arguments passed to methods.}
 }
 \value{
-A vector with class \code{distributional}, describing each prior placed
-on the model coefficients, and named accordingly.
+A vector with class \code{distributional}, describing the prior distributions
+for the model coefficients, named accordingly.
 }
 \description{
-Construct a default prior distribution for a given model
+This function generates a default prior distribution for the parameters of a
+given model. Currently, it supports models created by \code{\link[=glm]{glm()}}.
+}
+\details{
+The default priors are based on the model type and family:
+\itemize{
+\item For GLM models, coefficients are assigned a standard normal prior.
+\item For GLM models with Gaussian or Gamma families, a dispersion parameter is assigned a
+truncated $Cauchy(0, 25)$ prior.
+}
 }

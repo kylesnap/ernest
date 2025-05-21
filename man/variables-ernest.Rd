@@ -5,7 +5,7 @@
 \alias{variables.ernest_sampler}
 \alias{nvariables.ernest_prior}
 \alias{nvariables.ernest_sampler}
-\title{Get Variable Names from an \code{ernest_prior} object}
+\title{Get Variable Names from an \code{ernest_prior} or \code{ernest_sampler} Object}
 \usage{
 \method{variables}{ernest_prior}(x, ...)
 
@@ -18,12 +18,15 @@
 \arguments{
 \item{x}{An \code{ernest_prior} or \code{ernest_sampler} object.}
 
-\item{...}{Must be left empty.}
+\item{...}{Must be empty.}
 }
 \value{
-\code{variables()} returns a vector of all variable names. \code{nvariables()}
-returns the number of variables.
+\code{variables()} returns a character vector of variable names.
+\code{nvariables()} returns the number of variables as an integer.
 }
 \description{
-Get variable names from \code{ernest} objects.
+Extract variable names from \code{ernest} objects.
+}
+\seealso{
+\code{\link[posterior:variables]{posterior::variables()}}, \code{\link[posterior:variables]{posterior::nvariables()}}
 }

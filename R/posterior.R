@@ -1,12 +1,14 @@
-#' Get Variable Names from an `ernest_prior` object
+#' Get Variable Names from an `ernest_prior` or `ernest_sampler` Object
 #'
-#' Get variable names from `ernest` objects.
+#' Extract variable names from `ernest` objects.
 #'
 #' @param x An `ernest_prior` or `ernest_sampler` object.
-#' @param ... Must be left empty.
+#' @param ... Must be empty.
 #'
-#' @returns `variables()` returns a vector of all variable names. `nvariables()`
-#' returns the number of variables.
+#' @return `variables()` returns a character vector of variable names.
+#' `nvariables()` returns the number of variables as an integer.
+#'
+#' @seealso [posterior::variables()], [posterior::nvariables()]
 #'
 #' @rdname variables-ernest
 #' @importFrom vctrs vec_names
@@ -45,10 +47,17 @@ nvariables.ernest_sampler <- function(x, ...) {
   length(x$variables)
 }
 
-#' Set Variable Names in an `ernest_prior` Object
+#' Set Variable Names in an `ernest_prior` or `ernest_sampler` Object
+#'
+#' Assign variable names to `ernest` objects.
 #'
 #' @param x An `ernest_prior` or `ernest_sampler` object.
-#' @param ... Must be left empty.
+#' @param value A character vector of unique variable names.
+#' @param ... Must be empty.
+#'
+#' @return The modified object with updated variable names.
+#'
+#' @seealso [posterior::variables<-()]
 #'
 #' @rdname variables_set-ernest
 #' @importFrom vctrs vec_names
@@ -71,19 +80,21 @@ nvariables.ernest_sampler <- function(x, ...) {
   x$variables <- value
 }
 
-#' Transform `ernest_sampler` to `posterior::draws` objects
+#' Transform `ernest_sampler` to `posterior::draws` Objects
 #'
-#' Transform an `ernest_sampler` object to a format supported by the
+#' Convert an `ernest_sampler` object to a format compatible with the
 #' posterior package.
 #'
-#' @param x An `ernest_sampler` object, or another \R object for which
-#' the methods are defined.
-#' @param scale One of `original` or `unit`. If `unit`, the returned
-#' `draws` object will contain points expressed in the unit hypercube, which
-#' was originally used by ernest for generated sampling. If `original` (the
-#' default), the returned `draws` object will contain points in the original
-#' parameter space defined by the prior transformation.
-#' @param ... Arguments passed to individual methods (if applicable).
+#' @param x An `ernest_sampler` object.
+#' @param scale A character string, either `"original"` (default) or `"unit"`.
+#'   If `"unit"`, the returned `draws` object contains points in the unit
+#'   hypercube. If `"original"`, the points are in the original parameter space.
+#' @param ... Additional arguments passed to methods.
+#'
+#' @return A `posterior::draws` object.
+#'
+#' @seealso [posterior::as_draws()], [posterior::as_draws_list()],
+#'   [posterior::as_draws_matrix()]
 #'
 #' @rdname as_draws-ernest
 #' @importFrom posterior as_draws

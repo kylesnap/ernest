@@ -13,15 +13,38 @@ ernest_likelihood(object, ...)
 \method{ernest_likelihood}{glm}(object, ...)
 }
 \arguments{
-\item{object}{A function or a fitted model object from \code{glm()}.}
+\item{object}{One of the following:
+\itemize{
+\item A function that must take a single argument (a parameter vector) and return the
+scalar-valued log-likelihood.
+\item A fitted model object (e.g., from \code{\link[stats:glm]{stats::glm()}}) that can be used to compute
+the log-likelihood. The model must be fitted using a family that supports
+log-likelihood computation. The model must have a response variable and
+model matrix.
+}}
 
-\item{...}{Additional arguments passed to the method. These are currently ignored.}
+\item{...}{These are currently ignored.}
 }
 \value{
 An object of class \code{ernest_likelihood}, which is a function that
-computes the log-likelihood of the data given a set of parameters. If the object
-is of class \code{glm}, it will also include the original call, \code{\link[=family]{family()}}, and \code{\link[=terms]{terms()}} object.
+computes the log-likelihood of the data given a set of parameters.
+If the object is of class \code{glm}, it will also include the original call,
+\code{\link[=family]{family()}}, and \code{\link[=terms]{terms()}} objects as attributes.
 }
 \description{
-Wrap a Log-Likelihood Function for Ernest
+This generic function wraps a log-likelihood function or a fitted model object
+(e.g., from \code{\link[stats:glm]{stats::glm()}}) for use with the \code{ernest} package. It ensures
+compatibility with the nested sampling framework by standardizing the
+log-likelihood computation.
+}
+\examples{
+# Example with a custom log-likelihood function
+log_lik_fn <- function(x) -sum((x - 1)^2)
+wrapped_fn <- ernest_likelihood(log_lik_fn)
+
+# Example with a glm object
+data(mtcars)
+glm_model <- glm(mpg ~ wt + hp, data = mtcars, family = gaussian())
+wrapped_glm <- ernest_likelihood(glm_model)
+
 }

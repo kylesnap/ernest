@@ -10,34 +10,14 @@ An R6 class that contains a nested sampling run.
 This object is normally created by calling \code{\link[=nested_sampling]{nested_sampling()}}, and
 interacted with by calling S3 methods like \code{\link[=generate]{generate()}} and \code{\link[=calculate]{calculate()}}.
 }
-\seealso{
-\code{\link[=compile.ernest_sampler]{compile.ernest_sampler()}}
-
-\code{\link[=generate.ernest_sampler]{generate.ernest_sampler()}}
-
-\code{\link[=calculate.ernest_sampler]{calculate.ernest_sampler()}}
-}
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{n_iterations}}{The total number of sampling iterations.}
-
-\item{\code{n_calls}}{The total calls made to the likelihood function,
-or \code{0L} if no calls have been made yet.}
-
-\item{\code{prior}}{The \code{ernest_prior} object associated with the sampler.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{n_iterations}}{The total number of sampling iterations.}
+\item{\code{niterations}}{The total number of sampling iterations.}
 
-\item{\code{n_calls}}{The total calls made to the likelihood function,
-or \code{0L} if no calls have been made yet.}
+\item{\code{ncalls}}{The total calls made to the likelihood function.}
 
-\item{\code{prior}}{The \code{ernest_prior} object associated with the sampler.}
+\item{\code{variables}}{The variables associated with the prior.}
 }
 \if{html}{\out{</div>}}
 }
@@ -72,6 +52,23 @@ Creates a new \code{ernest_sampler}.
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{log_lik_fn}}{A function representing the log-likelihood.}
+
+\item{\code{prior}}{An \code{ernest_prior} object defining the prior distribution.}
+
+\item{\code{sampler}}{A likelihood-restricted prior sampler (LRPS).}
+
+\item{\code{n_points}}{The number of live points.}
+
+\item{\code{first_update}}{The first update interval.}
+
+\item{\code{update_interval}}{The subsequent update interval.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 Itself, invisibly.
 }
@@ -80,7 +77,7 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-clear"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-clear}{}}}
 \subsection{Method \code{clear()}}{
-Clear the previous runs from the sampler, including the sampler's live points.
+Clears the previous runs from the sampler, including the sampler's live points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$clear()}\if{html}{\out{</div>}}
 }
@@ -93,12 +90,18 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-compile"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-compile}{}}}
 \subsection{Method \code{compile()}}{
-Generate a sample of live points from the prior, and check the live
-points for finite values.
+Generates a sample of live points from the prior and validates them.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$compile(clear = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{clear}}{A logical value indicating whether to clear existing points.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 Itself, invisibly.
 }
@@ -107,7 +110,7 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-generate}{}}}
 \subsection{Method \code{generate()}}{
-Generate samples from nested sampling until a given criterion is met.
+Performs nested sampling until a stopping criterion is met.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$generate(max_iterations = Inf, max_calls = Inf, min_logz = 0.05)}\if{html}{\out{</div>}}
 }
@@ -115,29 +118,23 @@ Generate samples from nested sampling until a given criterion is met.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{max_iterations}}{The maximum number of iterations to perform. If set to
-Inf, this stopping criterion is ignored.}
+\item{\code{max_iterations}}{The maximum number of iterations to perform.}
 
-\item{\code{max_calls}}{The maximum number of calls to the likelihood function.
-If set to Inf, this stopping criterion is ignored.}
+\item{\code{max_calls}}{The maximum number of calls to the likelihood function.}
 
-\item{\code{min_logz}}{The minimum log-evidence value to achieve. Must be a number
-strictly larger than zero.}
-
-\item{\code{refresh}}{Whether to clear existing points from the sampler, starting
-a run from scratch.}
+\item{\code{min_logz}}{The minimum log-evidence value to achieve.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-itself, invisibly.
+Itself, invisibly.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ernest_sampler-get_live_points"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-get_live_points}{}}}
 \subsection{Method \code{get_live_points()}}{
-Access the sampler's live points.
+Accesses the sampler's live points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$get_live_points(units = c("original", "unit"), reorder = FALSE)}\if{html}{\out{</div>}}
 }
@@ -145,12 +142,9 @@ Access the sampler's live points.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{units}}{A string, either \code{"original"} or \code{"unit"}.
-If \code{"original"}, the original points are returned.
-If \code{"unit"}, the unit points are returned.}
+\item{\code{units}}{A string, either \code{"original"} or \code{"unit"}.}
 
-\item{\code{reorder}}{Whether to reorder the points so they appear in increasing
-log-likelihood values.}
+\item{\code{reorder}}{Whether to reorder the points by increasing log-likelihood.}
 }
 \if{html}{\out{</div>}}
 }
@@ -162,7 +156,7 @@ A \code{tibble} containing the live points.
 \if{html}{\out{<a id="method-ernest_sampler-get_dead_points"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-get_dead_points}{}}}
 \subsection{Method \code{get_dead_points()}}{
-Access the discarded (or \code{dead}) points list.
+Accesses the sampler's discarded (dead) points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$get_dead_points(units = c("original", "unit"))}\if{html}{\out{</div>}}
 }
@@ -170,9 +164,7 @@ Access the discarded (or \code{dead}) points list.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{units}}{A string, either \code{"original"} or \code{"unit"}.
-If \code{"original"}, the original points are returned.
-If \code{"unit"}, the unit points are returned.}
+\item{\code{units}}{A string, either \code{"original"} or \code{"unit"}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -184,7 +176,7 @@ A \code{tibble} containing the dead points.
 \if{html}{\out{<a id="method-ernest_sampler-calculate"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-calculate}{}}}
 \subsection{Method \code{calculate()}}{
-Calculate the evidence integral of the nested sampling run.
+Calculates the evidence integral of the nested sampling run.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$calculate(include_live = TRUE)}\if{html}{\out{</div>}}
 }
@@ -192,7 +184,7 @@ Calculate the evidence integral of the nested sampling run.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{include_live}}{Whether to include the live points in the calculation.}
+\item{\code{include_live}}{Whether to include live points in the calculation.}
 }
 \if{html}{\out{</div>}}
 }
@@ -204,17 +196,20 @@ A \code{tibble} with columns reporting the results of the run.
 \if{html}{\out{<a id="method-ernest_sampler-summary"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-summary}{}}}
 \subsection{Method \code{summary()}}{
-Calculate the evidence integral of the nested sampling run.
+Summarize the nested sampling run.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$summary()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+See \code{\link[=summary.ernest_sampler]{summary.ernest_sampler()}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ernest_sampler-print"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-print}{}}}
 \subsection{Method \code{print()}}{
-Print a brief summary of the sampler to the string.
+Prints a brief summary of the sampler.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$print(...)}\if{html}{\out{</div>}}
 }
@@ -222,12 +217,12 @@ Print a brief summary of the sampler to the string.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Arguments forwarded to \code{\link[=format]{format()}}}
+\item{\code{...}}{Additional arguments, forwarded to \code{\link[=prettyNum]{prettyNum()}}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-itself, invisibly.
+Itself, invisibly.
 }
 }
 \if{html}{\out{<hr>}}

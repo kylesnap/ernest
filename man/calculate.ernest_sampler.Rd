@@ -2,26 +2,25 @@
 % Please edit documentation in R/generics.R
 \name{calculate.ernest_sampler}
 \alias{calculate.ernest_sampler}
-\title{Estimate the Log-Evidence of a Model}
+\title{Estimate the log-evidence of a model}
 \usage{
 \method{calculate}{ernest_sampler}(x, include_live = TRUE, ...)
 }
 \arguments{
+\item{x}{An \code{ernest_sampler} object.}
+
 \item{include_live}{A logical value indicating whether to include the live
 points in the calculation. If \code{FALSE}, the live points are excluded, and
 additional information about the integration is excluded.}
 
 \item{...}{Must be empty.}
-
-\item{object}{An \code{ernest_sampler} object.}
 }
 \value{
 A \code{\link[=tibble]{tibble()}} with the log-evidence estimates.
 }
 \description{
-Calculate the marginal likelihood of a given model and return the estimates
-in a tidy \code{\link[=tibble]{tibble()}}.
+Estimate the log-evidence of a model
 }
 \details{
-This method wraps a call to \code{\link[=ernest_sampler$generate]{ernest_sampler$generate()}}.
+This method wraps a call to \code{ernest_sampler$calculate()}.
 }

@@ -6,12 +6,20 @@
 #'
 #' This object is normally created by calling [nested_sampling()], and
 #' interacted with by calling S3 methods like [generate()] and [calculate()].
+#'
 #' @importFrom R6 R6Class
 ernest_sampler <- R6Class(
   "ernest_sampler",
   public = list(
     #' @description
     #' Creates a new `ernest_sampler`.
+    #'
+    #' @param log_lik_fn A function representing the log-likelihood.
+    #' @param prior An `ernest_prior` object defining the prior distribution.
+    #' @param sampler A likelihood-restricted prior sampler (LRPS).
+    #' @param n_points The number of live points.
+    #' @param first_update The first update interval.
+    #' @param update_interval The subsequent update interval.
     #'
     #' @return Itself, invisibly.
     initialize = function(log_lik_fn, prior, sampler, n_points, first_update, update_interval) {
@@ -38,7 +46,7 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Clear the previous runs from the sampler, including the sampler's live points.
+    #' Clears the previous runs from the sampler, including the sampler's live points.
     #'
     #' @return Itself, invisibly.
     clear = function() {
@@ -55,11 +63,11 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Generate a sample of live points from the prior, and check the live
-    #' points for finite values.
+    #' Generates a sample of live points from the prior and validates them.
+    #'
+    #' @param clear A logical value indicating whether to clear existing points.
     #'
     #' @return Itself, invisibly.
-    #' @seealso [compile.ernest_sampler()]
     compile = function(clear = FALSE) {
       check_bool(clear)
       if (clear) {
@@ -76,19 +84,13 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Generate samples from nested sampling until a given criterion is met.
+    #' Performs nested sampling until a stopping criterion is met.
     #'
-    #' @param max_iterations The maximum number of iterations to perform. If set to
-    #' Inf, this stopping criterion is ignored.
+    #' @param max_iterations The maximum number of iterations to perform.
     #' @param max_calls The maximum number of calls to the likelihood function.
-    #' If set to Inf, this stopping criterion is ignored.
-    #' @param min_logz The minimum log-evidence value to achieve. Must be a number
-    #' strictly larger than zero.
-    #' @param refresh Whether to clear existing points from the sampler, starting
-    #' a run from scratch.
+    #' @param min_logz The minimum log-evidence value to achieve.
     #'
-    #' @return itself, invisibly.
-    #' @seealso [generate.ernest_sampler()]
+    #' @return Itself, invisibly.
     generate = function(max_iterations = Inf, max_calls = Inf, min_logz = 0.05) {
       check_number_whole(max_iterations, min = 1, allow_infinite = TRUE, allow_null = FALSE)
       check_number_whole(max_calls, min = 1, allow_infinite = TRUE, allow_null = FALSE)
@@ -111,13 +113,10 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Access the sampler's live points.
+    #' Accesses the sampler's live points.
     #'
     #' @param units A string, either `"original"` or `"unit"`.
-    #' If `"original"`, the original points are returned.
-    #' If `"unit"`, the unit points are returned.
-    #' @param reorder Whether to reorder the points so they appear in increasing
-    #' log-likelihood values.
+    #' @param reorder Whether to reorder the points by increasing log-likelihood.
     #'
     #' @return A `tibble` containing the live points.
     get_live_points = function(units = c("original", "unit"), reorder = FALSE) {
@@ -142,11 +141,9 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Access the discarded (or `dead`) points list.
+    #' Accesses the sampler's discarded (dead) points.
     #'
     #' @param units A string, either `"original"` or `"unit"`.
-    #' If `"original"`, the original points are returned.
-    #' If `"unit"`, the unit points are returned.
     #'
     #' @return A `tibble` containing the dead points.
     get_dead_points = function(units = c("original", "unit")) {
@@ -168,12 +165,11 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Calculate the evidence integral of the nested sampling run.
+    #' Calculates the evidence integral of the nested sampling run.
     #'
-    #' @param include_live Whether to include the live points in the calculation.
+    #' @param include_live Whether to include live points in the calculation.
     #'
     #' @return A `tibble` with columns reporting the results of the run.
-    #' @seealso [calculate.ernest_sampler()]
     calculate = function(include_live = TRUE) {
       dead_int <- private$integration
       if (nrow(dead_int) < 1L) {
@@ -199,17 +195,20 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Calculate the evidence integral of the nested sampling run.
+    #' Summarize the nested sampling run.
+    #'
+    #' @return See [summary.ernest_sampler()]
     summary = function()
       new_es_summary(self, private),
 
     #' @description
-    #' Print a brief summary of the sampler to the string.
+    #' Prints a brief summary of the sampler.
     #'
-    #' @param ... Arguments forwarded to [`format()`]
+    #' @param ... Additional arguments, forwarded to [prettyNum()].
     #'
-    #' @return itself, invisibly.
+    #' @return Itself, invisibly.
     print = function(...) {
+      check_dots_used(...)
       cli::cli_h1("Ernest Nested Sampler")
       cli::cli_dl(c(
         "No. Points" = "{private$n_points}",
@@ -225,8 +224,8 @@ ernest_sampler <- R6Class(
         calc <- tail(calc, 1L)
         cli::cli_dl(c(
           "Ln. Likelihood" = "[{log_range[1]}, {log_range[2]}]",
-          "Ln. Volume" = "{prettyNum(calc$log_volume)}",
-          "Ln. Evidence" = "{prettyNum(calc$log_evidence)}"
+          "Ln. Volume" = "{prettyNum(calc$log_volume, ...)}",
+          "Ln. Evidence" = "{prettyNum(calc$log_evidence, ...)}"
         ))
       }
       invisible(self)
@@ -251,18 +250,17 @@ ernest_sampler <- R6Class(
     n_call = 0L
   ),
   active = list(
-    #' @field n_iterations The total number of sampling iterations.
+    #' @field niterations The total number of sampling iterations.
     niterations = function() {
       private$n_iter
     },
 
-    #' @field n_calls The total calls made to the likelihood function,
-    #' or `0L` if no calls have been made yet.
+    #' @field ncalls The total calls made to the likelihood function.
     ncalls = function() {
       private$n_call
     },
 
-    #' @field prior The `ernest_prior` object associated with the sampler.
+    #' @field variables The variables associated with the prior.
     variables = function(value) {
       if (missing(value)) {
         return(variables(private$prior))

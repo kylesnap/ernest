@@ -7,21 +7,21 @@
 \method{compile}{ernest_sampler}(object, clear = FALSE, ...)
 }
 \arguments{
+\item{object}{An \code{ernest_sampler} object.}
+
 \item{clear}{A logical value indicating whether to reload \code{object} before
 creating new live points. If \code{TRUE}, former results from the sampler are
 removed from the object. If \code{FALSE}, the sampler will not drop prior results,
 and continue using live points from the last sampling iteration performed.}
 
 \item{...}{Must be empty.}
-
-\item{An}{\code{ernest_sampler} object.}
 }
 \value{
-\code{object}, invisibly.
+The modified \code{ernest_sampler} object, invisibly.
 }
 \description{
 Prepare an \code{ernest_sampler} object for nested sampling
 }
 \details{
-This method wraps a call to \code{\link[=ernest_sampler$compile]{ernest_sampler$compile()}}.
+This method wraps a call to \code{ernest_sampler$compile()}.
 }

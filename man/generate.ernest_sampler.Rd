@@ -2,7 +2,7 @@
 % Please edit documentation in R/generics.R
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
-\title{Generate Samples from Nested Sampling}
+\title{Generate samples from nested sampling}
 \usage{
 \method{generate}{ernest_sampler}(x, max_iterations = Inf, max_calls = Inf, min_logz = 0.05, ...)
 }
@@ -10,25 +10,22 @@
 \item{x}{An object of class \code{ernest_sampler}.}
 
 \item{max_iterations}{The maximum number of iterations to perform. If set to
-Inf, this stopping criterion is ignored.}
+\code{Inf}, this stopping criterion is ignored.}
 
 \item{max_calls}{The maximum number of calls to the likelihood function.
-If set to Inf, this stopping criterion is ignored.}
+If set to \code{Inf}, this stopping criterion is ignored.}
 
-\item{min_logz}{The minimum log-evidence value to achieve. Be a number equal or
-larger than zero, or \code{NULL}, in which case it is transformed to zero.}
+\item{min_logz}{The minimum log-evidence value to achieve. Must be a number
+equal to or larger than zero, or \code{NULL}, in which case it is transformed to zero.}
 
 \item{...}{Must be empty.}
-
-\item{refresh}{Whether to clear existing points from the sampler, starting
-a run from scratch.}
 }
 \value{
-\code{x}, invisibly.
+The modified \code{ernest_sampler} object, invisibly.
 }
 \description{
-Generate Samples from Nested Sampling
+Generate samples from nested sampling
 }
 \details{
-This method wraps a call to \code{\link[=ernest_sampler$generate]{ernest_sampler$generate()}}.
+This method wraps a call to \code{ernest_sampler$generate()}.
 }

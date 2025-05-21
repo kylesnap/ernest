@@ -2,17 +2,13 @@
 #' @export
 generics::generate
 
-#' @importFrom generics compile
-#' @export
-generics::compile
-
 #' @importFrom generics calculate
 #' @export
 generics::calculate
 
-#' @importFrom generics glance
+#' @importFrom generics compile
 #' @export
-generics::glance
+generics::compile
 
 #' @keywords internal
 "_PACKAGE"

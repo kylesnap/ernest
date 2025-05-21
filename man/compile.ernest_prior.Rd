@@ -2,20 +2,27 @@
 % Please edit documentation in R/ernest_prior-class.R
 \name{compile.ernest_prior}
 \alias{compile.ernest_prior}
-\title{Compile an ernest_prior into an inverse transformation function for NS}
+\title{Compile an \code{ernest_prior} Object}
 \usage{
 \method{compile}{ernest_prior}(object, ...)
 }
 \arguments{
-\item{...}{Ignored}
+\item{object}{An \code{ernest_prior} object.}
 
-\item{x}{An \code{ernest_prior} object.}
+\item{...}{Additional arguments (ignored).}
 }
 \value{
-A function that takes a vector of uniform random variables and returns
-a vector of the same length with the corresponding values from the prior
-distribution.
+A function that takes a vector of uniform random variables and
+returns a vector of corresponding values from the prior distribution.
 }
 \description{
-Compile an ernest_prior into an inverse transformation function for NS
+Converts an \code{ernest_prior} object into an inverse transformation function
+for use in nested sampling.
+}
+\examples{
+dist <- distributional::dist_normal(mu = 0, sigma = 1)
+prior <- ernest_prior(dist, names = "x")
+fn <- compile(prior)
+fn(c(0.1, 0.5, 0.9))
+
 }

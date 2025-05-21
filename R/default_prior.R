@@ -1,10 +1,20 @@
-#' Construct a default prior distribution for a given model
+#' Construct a default prior distribution for a model
 #'
-#' @param object A fitted model object from [glm()].
-#' @param ...
+#' This function generates a default prior distribution for the parameters of a
+#' given model. Currently, it supports models created by [glm()].
 #'
-#' @return A vector with class `distributional`, describing each prior placed
-#' on the model coefficients, and named accordingly.
+#' @param object A fitted model object, such as one from [glm()].
+#' @param ... Additional arguments passed to methods.
+#'
+#' @return A vector with class `distributional`, describing the prior distributions
+#' for the model coefficients, named accordingly.
+#'
+#' @details The default priors are based on the model type and family:
+#' * For GLM models, coefficients are assigned a standard normal prior.
+#' * For GLM models with Gaussian or Gamma families, a dispersion parameter is assigned a
+#'  truncated $Cauchy(0, 25)$ prior.
+#' 
+#' @export
 default_prior <- function(object, ...) {
   UseMethod("default_prior")
 }
@@ -26,7 +36,7 @@ default_prior.glm <- function(object, ...) {
     c(
       dists,
       ".dispersion" = distributional::dist_truncated(
-        dist_cauchy(0, 25),
+        distributional::dist_cauchy(0, 25),
         lower = 0
       )
     )

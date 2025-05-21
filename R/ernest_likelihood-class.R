@@ -1,11 +1,34 @@
 #' Wrap a Log-Likelihood Function for Ernest
 #'
-#' @param object A function or a fitted model object from `glm()`.
-#' @param ... Additional arguments passed to the method. These are currently ignored.
+#' @description
+#' This generic function wraps a log-likelihood function or a fitted model object
+#' (e.g., from [stats::glm()]) for use with the `ernest` package. It ensures
+#' compatibility with the nested sampling framework by standardizing the
+#' log-likelihood computation.
+#'
+#' @param object One of the following:
+#' * A function that must take a single argument (a parameter vector) and return the
+#'   scalar-valued log-likelihood.
+#' * A fitted model object (e.g., from [stats::glm()]) that can be used to compute
+#'   the log-likelihood. The model must be fitted using a family that supports
+#'   log-likelihood computation. The model must have a response variable and
+#'   model matrix.
+#' @param ... These are currently ignored.
 #'
 #' @return An object of class `ernest_likelihood`, which is a function that
-#' computes the log-likelihood of the data given a set of parameters. If the object
-#' is of class `glm`, it will also include the original call, [family()], and [terms()] object.
+#' computes the log-likelihood of the data given a set of parameters.
+#' If the object is of class `glm`, it will also include the original call,
+#' [family()], and [terms()] objects as attributes.
+#'
+#' @examples
+#' # Example with a custom log-likelihood function
+#' log_lik_fn <- function(x) -sum((x - 1)^2)
+#' wrapped_fn <- ernest_likelihood(log_lik_fn)
+#'
+#' # Example with a glm object
+#' data(mtcars)
+#' glm_model <- glm(mpg ~ wt + hp, data = mtcars, family = gaussian())
+#' wrapped_glm <- ernest_likelihood(glm_model)
 #'
 #' @export
 ernest_likelihood <- function(object, ...) {
@@ -22,7 +45,10 @@ ernest_likelihood.function <- function(object, ...) {
   new_ernest_likelihood(fn, call = fn_body(fn))
 }
 
+utils::globalVariables("theta")
+
 #' @rdname ernest_likelihood
+#' @importFrom stats family model.matrix model.response model.offset update model.weights
 #' @export
 ernest_likelihood.glm <- function(object, ...) {
   if (is.null(object$model)) {
@@ -51,14 +77,14 @@ ernest_likelihood.glm <- function(object, ...) {
     family$family,
     "gaussian" = {
       if (!is_empty(prior_weights)) {
-        expr(dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion / !!prior_weights), log = TRUE))
+        expr(stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion / !!prior_weights), log = TRUE))
       } else {
-        expr(dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion), log = TRUE))
+        expr(stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion), log = TRUE))
       }
     },
     "binomial" = {
       response <- parse_binomial_response(y, prior_weights)
-      expr(dbinom(!!response$y, size = !!response$size, prob = !!mu, log = TRUE))
+      expr(stats::dbinom(!!response$y, size = !!response$size, prob = !!mu, log = TRUE))
     },
     # TODO: Add support for other families
     # "Gamma" = {
@@ -90,6 +116,8 @@ ernest_likelihood.glm <- function(object, ...) {
   )
 }
 
+#' Internal method to parse binomial response
+#' @section Internal
 #' @noRd
 parse_binomial_response <- function(y, weights) {
   weights <- if (is_empty(weights)) {
@@ -109,6 +137,7 @@ parse_binomial_response <- function(y, weights) {
   return(list(y = y * weights, size = weights))
 }
 
+#' Create a new `ernest_likelihood` object
 #' @noRd
 new_ernest_likelihood <- function(fn, call, family = NULL, terms = NULL) {
   structure(
@@ -120,6 +149,7 @@ new_ernest_likelihood <- function(fn, call, family = NULL, terms = NULL) {
   )
 }
 
+#' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
   check_dots_empty()
@@ -129,6 +159,7 @@ format.ernest_likelihood <- function(x, ...) {
   })
 }
 
+#' @noRd
 #' @export
 print.ernest_likelihood <- function(x, ...) {
   cat(format(x), sep = "\n")

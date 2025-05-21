@@ -20,8 +20,8 @@ nested_sampling_impl = function(self, private, max_it, max_c, min_logz) {
     log_vol <- 0
     log_z <- -1e300
   } else {
-    log_vol <- drop(tail(private$dead$log_volume, 1L))
-    log_z <- drop(tail(private$dead$log_evidence, 1L))
+    log_vol <- drop(tail(private$integration$log_volume, 1L))
+    log_z <- drop(tail(private$integration$log_evidence, 1L))
   }
   last_criterion <- drop(tail(private$dead$log_lik, 1)) %||% -1e300
   d_log_vol <- log((private$n_points + 1) / private$n_points)

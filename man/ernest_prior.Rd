@@ -4,7 +4,7 @@
 \alias{ernest_prior}
 \alias{ernest_prior.function}
 \alias{ernest_prior.distribution}
-\title{Specify a prior space for nested sampling}
+\title{Define a Prior Space for Nested Sampling}
 \usage{
 ernest_prior(x, ...)
 
@@ -19,24 +19,48 @@ ernest_prior(x, ...)
   x,
   names = vec_names(x),
   repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet"),
-  call = args$call,
   ...
 )
 }
 \arguments{
-\item{x}{A vector of class \code{distribution}, describing each variable in the
-parameter space.}
+\item{x}{A vector of objects satisfying \code{\link[distributional:is-distribution]{distributional::is_distribution()}},
+or a function that maps the unit cube to the prior space.}
 
-\item{...}{Arguments forwarded to \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}}.}
+\item{...}{Additional arguments passed to \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}}.}
 
-\item{names}{A character vector of length equal to \code{x} or \code{NULL}.}
+\item{names}{A character vector of variable names, with length equal to \code{x}, or \code{NULL}.
+For a function, names must not be \code{NULL}.}
 
-\item{repair}{Either a string or a function. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for
-details on name repair.}
+\item{repair}{A string or function specifying how to handle duplicate names.
+See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
 }
 \value{
-An \code{ernest_prior} object, which contains the following elements:
+An \code{ernest_prior} object containing the prior specification.
 }
 \description{
-Specify a prior space for nested sampling
+Create an object representing the prior space for nested sampling, using
+either a vector of distributions or a transformation function.
+}
+\details{
+The \code{ernest_prior} object supports two types of inputs:
+\itemize{
+\item A vector of distributions, where each element specifies the prior for a variable.
+\item A transformation function that maps points from the unit cube to the prior space.
+}
+}
+\note{
+See \link[stats]{Distributions} for distributions currently supported through
+\code{distributional}. In addition, \code{dist_truncated} is current supported when wrapped
+around a base R distribution. If you need to use a distribution that is not
+supported, you can define a custom transformation function.
+}
+\examples{
+# Using distributions
+dist <- distributional::dist_normal(mu = 0, sigma = 1)
+prior <- ernest_prior(dist, names = "x")
+
+# Using a transformation function
+prior_fn <- function(u) qunif(u, -5, 5)
+prior <- ernest_prior(prior_fn, names = c("x", "y"))
+
 }

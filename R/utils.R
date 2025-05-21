@@ -1,4 +1,12 @@
 # Helpers for validating user input -----
+
+#' Round a number to an integer after scaling by a multiplicand.
+#'
+#' @param x A numeric value to round.
+#' @param multiplicand A scaling factor to apply before rounding.
+#' @param min Optional minimum value for validation.
+#' @return An integer value after rounding.
+#' @noRd
 round_to_integer <- function(x, multiplicand, min = NULL) {
   x <- if (is.integer(x)) {
     x
@@ -10,6 +18,11 @@ round_to_integer <- function(x, multiplicand, min = NULL) {
   as.integer(x)
 }
 
+#' Check for duplicate names in a character vector.
+#'
+#' @param names A character vector of names to check.
+#' @return Throws an error if duplicates are found; otherwise, returns NULL.
+#' @noRd
 check_unique_names <- function(names) {
   if (anyDuplicated(names)) {
     duplicates <- unique(names[duplicated(names)])
@@ -21,7 +34,13 @@ check_unique_names <- function(names) {
 
 # Helpers for generating and validating the live points -----
 
-#' Internal method for creating a live sample with `n` live points
+#' Create a live sample with `n` live points.
+#'
+#' @param lrps An object containing the likelihood-restricted prior sampler.
+#' @param n_points The number of live points to generate.
+#' @param n_dim The number of dimensions for each point.
+#' @param call The calling environment for error handling.
+#' @return A list containing `unit`, `point`, and `log_lik` matrices/vectors.
 #' @noRd
 create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
   unit <- matrix(numeric(n_points * n_dim), nrow = n_points, ncol = n_dim)
@@ -55,19 +74,15 @@ create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
   )
 }
 
-#' Internal method for validating an existing nested sample.
+#' Validate an existing nested sample for correctness.
 #'
-#' Checks the following list of fatal conditions for the nested sampler:
-#' * The live points are a list.
-#' * The live points contain the following elements with corresponding types:
-#'  * `units`: A matrix of values between [0, 1].
-#'  * `points`: A matrix of finite values.
-#'  * `log_lik`: A vector of finite or -Inf values.
-#' * The number of live points matches the expected number of live points.
-#' * The number of dimensions in the live points matches the expected number (n_points)
-#' of dimensions (lrps)
-#' * `units` and `points` are of the exact same dimensions.
-#' * `points` has the same number of rows as `log_lik` has elements.
+#' @param live A list containing live points (`unit`, `point`, `log_lik`).
+#' @param n_points The expected number of live points.
+#' @param n_var The expected number of dimensions for each point.
+#' @param call The calling environment for error handling.
+#'
+#' @return Throws an error or warning if validation fails; otherwise, returns
+#' NULL.
 #' @noRd
 check_live <- function(live, n_points, n_var, call = caller_env()) {
   if (is_empty(live)) {
@@ -108,9 +123,9 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
       "x" = "First non-finite element: {first_unit} -> {first_point}."
     ))
   }
-  #' loglik: Must be numeric vector of length n_points. Must contain only values
-  #' that are either finite or -Inf. Abort if log_lik contains no
-  #' unique values, warn if 10% of the values are duplicates.
+  # loglik: Must be numeric vector of length n_points. Must contain only values
+  # that are either finite or -Inf. Abort if log_lik contains no
+  # unique values, warn if 10% of the values are duplicates.
   vctrs::vec_check_size(live$log_lik, size = n_points, call = caller_env)
   idx <- intersect(which(!is.finite(live$log_lik)), which(live$log_lik != -Inf))
   if (length(idx) > 0L) {
@@ -129,7 +144,7 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
     len <- length(idx)
     first_point <- live$point[idx[1]]
     first_logl <- live$log_lik[idx[1]]
-    cli::cli_warning(c(
+    cli::cli_warn(c(
       "Found {len} log-likelihood value{?s} equal to `-Inf`.",
       "i" = "First point: f({first_point}) = {.val {first_logl}}"
     ))
@@ -155,7 +170,12 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
 
 # Helpers for running nested sampling ---
 
-# Generalized which.min to any `n`
+#' Find the indices of the smallest `n` values in a vector.
+#'
+#' @param x A numeric vector to search.
+#' @param n The number of smallest values to find.
+#' @return An integer vector of indices corresponding to the smallest values.
+#' @noRd
 which_minn <- function(x, n = 1L) {
   if (n == 1L) {
     which.min(x)
@@ -166,13 +186,11 @@ which_minn <- function(x, n = 1L) {
 
 # Helpers for computing and reporting results -----
 
-#' Compute the nested sampling integral
+#' Compute the nested sampling integral and related statistics.
 #'
 #' @param log_lik A vector of log-likelihoods in descending order.
 #' @param log_vol A vector of log-volumes in ascending order.
-#'
-#' @return A tibble with integration results.
-#'
+#' @return A tibble containing integration results, including log weights, evidence, and information.
 #' @noRd
 compute_integral <- function(log_lik, log_vol) {
   pad_log_lik <- c(-1e300, log_lik)

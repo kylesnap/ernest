@@ -4,9 +4,8 @@
 \name{reexports}
 \alias{reexports}
 \alias{generate}
-\alias{compile}
 \alias{calculate}
-\alias{glance}
+\alias{compile}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -14,6 +13,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{calculate}}, \code{\link[generics]{compile}}, \code{\link[generics]{generate}}, \code{\link[generics]{glance}}}
+  \item{generics}{\code{\link[generics]{calculate}}, \code{\link[generics]{compile}}, \code{\link[generics]{generate}}}
 }}
 

@@ -1,8 +1,28 @@
 #' Build a Nested Sampler
 #'
-#' The top-level function constructs an instance of an `ernest_sampling`,
-#' containing the necessary information for nested sampling.
+#' Constructs an instance of an `ernest_sampler` containing the necessary
+#' information for performing nested sampling.
 #'
+#' @param x A function or a `glm` object. For functions, this represents the
+#'   log-likelihood function. For `glm` objects, the model is used to derive
+#'   the log-likelihood.
+#' @param prior A prior distribution function or object. For `glm` objects,
+#'   defaults to [default_prior()].
+#' @param names Optional character vector of variable names.
+#' @param sampler An [lrps_call()] object, declaring which likelihood-restricted prior 
+#' sampler to use for the nested sampling run.
+#' @param n_points The number of live points to use in the nested sampling run.
+#' @param first_update The number of calls to the likelihood function
+#'   before the first update of the sampler. If left as a double, this will be
+#'   multiplied by the number of live points before being coerced to an
+#'   integer.
+#' @param update_interval The number of calls to the likelihood function
+#'   between subsequent updates of the sampler. If left as a double, this will be
+#'   multiplied by the number of live points before being coerced to an
+#'   integer.
+#' @param ... Additional arguments passed to methods.
+#'
+#' @return An `ernest_sampler` object.
 #' @export
 nested_sampling <- function(x, ...) {
   UseMethod("nested_sampling")

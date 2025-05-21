@@ -1,13 +1,37 @@
-#' Specify a prior space for nested sampling
+#' Define a Prior Space for Nested Sampling
 #'
-#' @param x A vector of class `distribution`, describing each variable in the
-#' parameter space.
-#' @param names A character vector of length equal to `x` or `NULL`.
-#' @param repair Either a string or a function. See [vctrs::vec_as_names()] for
-#' details on name repair.
-#' @param ... Arguments forwarded to [vctrs::vec_as_names()].
+#' Create an object representing the prior space for nested sampling, using
+#' either a vector of distributions or a transformation function.
 #'
-#' @returns An `ernest_prior` object, which contains the following elements:
+#' @param x A vector of objects satisfying [distributional::is_distribution()],
+#' or a function that maps the unit cube to the prior space.
+#' @param names A character vector of variable names, with length equal to `x`, or `NULL`.
+#' For a function, names must not be `NULL`.
+#' @param repair A string or function specifying how to handle duplicate names.
+#' See [vctrs::vec_as_names()] for details.
+#' @param ... Additional arguments passed to [vctrs::vec_as_names()].
+#'
+#' @return An `ernest_prior` object containing the prior specification.
+#'
+#' @details
+#' The `ernest_prior` object supports two types of inputs:
+#' - A vector of distributions, where each element specifies the prior for a variable.
+#' - A transformation function that maps points from the unit cube to the prior space.
+#'
+#' @note
+#' See \link[stats]{Distributions} for distributions currently supported through
+#' `distributional`. In addition, `dist_truncated` is current supported when wrapped
+#' around a base R distribution. If you need to use a distribution that is not
+#' supported, you can define a custom transformation function.
+#'
+#' @examples
+#' # Using distributions
+#' dist <- distributional::dist_normal(mu = 0, sigma = 1)
+#' prior <- ernest_prior(dist, names = "x")
+#'
+#' # Using a transformation function
+#' prior_fn <- function(u) qunif(u, -5, 5)
+#' prior <- ernest_prior(prior_fn, names = c("x", "y"))
 #'
 #' @importFrom vctrs vec_names2 vec_as_names vec_set_names
 #' @export
@@ -43,7 +67,6 @@ ernest_prior.distribution <- function(x,
                                                  "check_unique", "unique_quiet",
                                                  "universal_quiet"
                                                  ),
-                                      call = args$call,
                                       ...) {
   repair <- arg_match(repair)
   if (is_missing(names) || is_empty(names)) {
@@ -114,14 +137,23 @@ print.ernest_prior <- function(x, ...) {
   invisible(x)
 }
 
-#' Compile an ernest_prior into an inverse transformation function for NS
+#' Compile an `ernest_prior` Object
 #'
-#' @param x An `ernest_prior` object.
-#' @param ... Ignored
+#' @description
+#' Converts an `ernest_prior` object into an inverse transformation function
+#' for use in nested sampling.
 #'
-#' @returns A function that takes a vector of uniform random variables and returns
-#' a vector of the same length with the corresponding values from the prior
-#' distribution.
+#' @param object An `ernest_prior` object.
+#' @param ... Additional arguments (ignored).
+#'
+#' @return A function that takes a vector of uniform random variables and
+#' returns a vector of corresponding values from the prior distribution.
+#'
+#' @examples
+#' dist <- distributional::dist_normal(mu = 0, sigma = 1)
+#' prior <- ernest_prior(dist, names = "x")
+#' fn <- compile(prior)
+#' fn(c(0.1, 0.5, 0.9))
 #'
 #' @export
 compile.ernest_prior <- function(object, ...) {
@@ -142,6 +174,7 @@ compile.ernest_prior <- function(object, ...) {
 }
 
 # ----- Compile functions for supported distributions
+utils::globalVariables("x")
 
 #' @export
 compile.dist_default <- function(object, idx, ...) {

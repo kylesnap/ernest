@@ -17,7 +17,6 @@ Imports:
     glue,
     lifecycle,
     posterior,
-    prettyunits,
     R6,
     Rcpp,
     rlang (>= 1.1.0),

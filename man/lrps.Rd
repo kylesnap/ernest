@@ -6,12 +6,12 @@
 \alias{rwmh_cube}
 \title{Likelihood-Restricted Prior Samplers (LRPS)}
 \usage{
-unif_cube(max_loop = NULL)
+unif_cube(max_attempts = NULL)
 
-rwmh_cube(steps = 25, target_acceptance = 0.5, epsilon = 1)
+rwmh_cube(steps = 25L, epsilon = 1)
 }
 \arguments{
-\item{max_loop}{The maximum number of calls to the likelihood function a
+\item{max_attempts}{The maximum number of calls to the likelihood function a
 sampler will make when trying to propose a new point given one likelihood
 constraint. Once exceeded, ernest will abort and report an error to the user.
 If non-null, this overwrites the \code{ernest.max_loop} global option
@@ -19,10 +19,10 @@ If non-null, this overwrites the \code{ernest.max_loop} global option
 
 \item{steps}{Number of steps to take when generating a proposal point.}
 
+\item{epsilon}{Step-size parameter, adjusted over the course of a run.}
+
 \item{target_acceptance}{The targeted acceptance ratio from sampling.
 \code{epsilon} will be adjusted throughout the run to target this ratio.}
-
-\item{epsilon}{Step-size parameter, adjusted over the course of a run.}
 }
 \value{
 an \code{ErnestLRPS} object that can be passed to \code{\link[=nested_sampling]{nested_sampling()}}

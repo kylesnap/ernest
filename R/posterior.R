@@ -1,22 +1,24 @@
-#' View, set, and count the variables in an `ernest_sampler` object
+#' Get Variable Names from an `ernest_prior` object
 #'
-#' Read and modify the variable names within an `ernest_sampler` object, or
-#' count the variables (i.e., the dimensionality of the nested sampling problem.
+#' Get variable names from `ernest` objects.
 #'
-#' @param x An `ernest_sampler` object.
-#' @param variables,value Either a character vector, an empty tibble of
-#' variable names, or a scalar value describing the dimensions of the
-#' parameter space.
+#' @param x An `ernest_prior` or `ernest_sampler` object.
 #' @param ... Must be left empty.
 #'
-#' @returns For [variables()], a character vector of variable names. For
-#' [variables<-()] and [set_variables()], the modified `ernest_sampler` object.
-#' For [nvariables()], a scalar integer.
+#' @returns `variables()` returns a vector of all variable names. `nvariables()`
+#' returns the number of variables.
 #'
-#' @note The `ernest_sampler` stores an empty prototype tibble to keep track
-#' of the variable names and the dimensionality of the sampled prior space.
-#' Overwriting the number of parameters within an existing sampler is not supported.
-#'
+#' @rdname variables-ernest
+#' @importFrom vctrs vec_names
+#' @importFrom posterior variables
+#' @method variables ernest_prior
+#' @export
+variables.ernest_prior <- function(x, ...) {
+  check_dots_empty()
+  vec_names(x)
+}
+
+#' @rdname variables-ernest
 #' @importFrom posterior variables
 #' @method variables ernest_sampler
 #' @export
@@ -25,38 +27,48 @@ variables.ernest_sampler <- function(x, ...) {
   x$variables
 }
 
-#' @rdname variables.ernest_sampler
-#'
-#' @param variables,value Either a character vector or empty tibble of variable names,
-#' or a scalar value describing the dimensions of the parameter space (in which
-#' case, variable names will be denoted with `X...i`).
-#'
-#' @importFrom posterior variables<-
-#' @method variables<- ernest_sampler
+#' @rdname variables-ernest
+#' @importFrom posterior nvariables
+#' @method nvariables ernest_prior
 #' @export
-`variables<-.ernest_sampler` <- function(x,..., value) {
+nvariables.ernest_prior <- function(x, ...) {
   check_dots_empty()
-  new_ptype <- make_ptype(value)
-  x$variables <- new_ptype
-  x
+  length(vec_names(x))
 }
 
-#' @rdname variables.ernest_sampler
-#' @importFrom posterior set_variables
-#' @method set_variables ernest_sampler
-#' @export
-set_variables.ernest_sampler <- function(x, variables, ...) {
-  check_dots_empty()
-  `variables<-`(x, variables)
-}
-
-#' @rdname variables.ernest_sampler
+#' @rdname variables-ernest
 #' @importFrom posterior nvariables
 #' @method nvariables ernest_sampler
 #' @export
 nvariables.ernest_sampler <- function(x, ...) {
   check_dots_empty()
   length(x$variables)
+}
+
+#' Set Variable Names in an `ernest_prior` Object
+#'
+#' @param x An `ernest_prior` or `ernest_sampler` object.
+#' @param ... Must be left empty.
+#'
+#' @rdname variables_set-ernest
+#' @importFrom vctrs vec_names
+#' @importFrom posterior variables<-
+#' @method variables<- ernest_prior
+#' @export
+`variables<-.ernest_prior` <- function(x, ..., value) {
+  check_dots_empty()
+  check_unique_names(value)
+  x <- vec_set_names(x, value)
+  x
+}
+
+#' @rdname variables_set-ernest
+#' @importFrom posterior variables<-
+#' @method variables<- ernest_sampler
+#' @export
+`variables<-.ernest_sampler` <- function(x, ..., value) {
+  check_dots_empty()
+  x$variables <- value
 }
 
 #' Transform `ernest_sampler` to `posterior::draws` objects
@@ -71,18 +83,14 @@ nvariables.ernest_sampler <- function(x, ...) {
 #' was originally used by ernest for generated sampling. If `original` (the
 #' default), the returned `draws` object will contain points in the original
 #' parameter space defined by the prior transformation.
-#' @param inc_live Should the live points be included? Defaults to `TRUE`.
 #' @param ... Arguments passed to individual methods (if applicable).
 #'
 #' @rdname as_draws-ernest
 #' @importFrom posterior as_draws
 #' @method as_draws ernest_sampler
 #' @export
-as_draws.ernest_sampler <- function(x, scale = c("original", "unit"),
-                                   inc_live = TRUE, ...) {
-  as_draws_list(
-    x, scale = scale, inc_live = inc_live
-  )
+as_draws.ernest_sampler <- function(x, scale = c("original", "unit"), ...) {
+  as_draws_list(x, scale = scale)
 }
 
 #' @rdname as_draws-ernest
@@ -91,35 +99,18 @@ as_draws.ernest_sampler <- function(x, scale = c("original", "unit"),
 #' @export
 as_draws_list.ernest_sampler <- function(x,
                                         scale = c("original", "unit"),
-                                        inc_live = TRUE,
                                         ...) {
   scale <- arg_match(scale)
-  lst <- if (scale == "original") {
-    "points"
-  } else {
-    "units"
-  }
-  if (x$n_iterations == 0) {
+  if (x$niterations < 1L) {
     cli::cli_abort("No iterations have been run with this sampler.")
   }
-  dead_points <- x$dead_points[[lst]]
-  live_points <- if (inc_live) {
-    x$live_points[[lst]]
-  } else {
-    NULL
-  }
+  live <- x$get_live_points(scale, reorder = TRUE)
+  dead <- x$get_dead_points(scale)
 
-  points <- rbind(dead_points, live_points)
-  point_list <- lapply(seq_len(ncol(points)), function(i) points[,i])
-  names(point_list) <- x$variables
+  points <- rbind(dead, live)
+  point_list <- vctrs::df_list(!!!points)
 
-  log_weight <- calculate(x)[["log_weight"]]
-  if (is.null(log_weight)) {
-    cli::cli_abort("No log_weight found in ernest_sampler object.")
-  }
-  if (!inc_live) {
-    log_weight <- head(log_weight, x$n_iterations)
-  }
+  log_weight <- x$summary()$log_importance_weight
   posterior::weight_draws(
     posterior::as_draws_list(point_list),
     weights = log_weight,
@@ -131,6 +122,6 @@ as_draws_list.ernest_sampler <- function(x,
 #' @importFrom posterior as_draws_matrix
 #' @method as_draws_matrix ernest_sampler
 #' @export
-as_draws_matrix.ernest_sampler <- function(x, scale = c("original", "unit"), inc_live = TRUE, ...) {
-  as_draws_matrix(as_draws_list.ernest_sampler(x, scale = scale, inc_live = inc_live,...))
+as_draws_matrix.ernest_sampler <- function(x, scale = c("original", "unit"), ...) {
+  as_draws_matrix(as_draws_list.ernest_sampler(x, scale = scale,...))
 }

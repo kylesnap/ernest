@@ -8,38 +8,35 @@
 \usage{
 ernest_prior(x, ...)
 
-\method{ernest_prior}{`function`}(x, variables, ...)
+\method{ernest_prior}{`function`}(
+  x,
+  names,
+  repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet"),
+  ...
+)
 
-\method{ernest_prior}{distribution}(x, ...)
+\method{ernest_prior}{distribution}(
+  x,
+  names = vec_names(x),
+  repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet"),
+  call = args$call,
+  ...
+)
 }
 \arguments{
-\item{x}{Either a function or a vector with S3 class \code{distribution}. See details.}
+\item{x}{A vector of class \code{distribution}, describing each variable in the
+parameter space.}
 
-\item{...}{Arguments forwarded to \code{vctrs::vec_as_names}.}
+\item{...}{Arguments forwarded to \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}}.}
 
-\item{variables}{Either a character vector of names for each free variable in the
-parameter space, or a single number indicating the number of variables.}
+\item{names}{A character vector of length equal to \code{x} or \code{NULL}.}
+
+\item{repair}{Either a string or a function. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for
+details on name repair.}
 }
 \value{
 An \code{ernest_prior} object, which contains the following elements:
 }
 \description{
 Specify a prior space for nested sampling
-}
-\details{
-The \code{ernest_prior} function is used to specify a prior space for nested
-sampling. It can take either a function or a vector with S3 class
-\code{distribution}. If a function is provided, it should take in a
-matrix slice from the unit space and return the slice in the original
-parameter space. If a distribution vector is provided, it will be used to
-create a function that applies the inverse probability transformation to
-each slice.
-
-Note that, at this time, \code{ernest_prior} only supports the following families:
-\code{dist_beta}, \code{dist_binomial}, \code{dist_cauchy}, \code{dist_chisq}, \code{dist_exponential},
-\code{dist_f}, \code{dist_gamma}, \code{dist_geometric}, \code{dist_hypergeometric},
-\code{dist_lognormal}, \code{dist_negbin}, \code{dist_normal}, \code{dist_poisson},
-\code{dist_student_t}, \code{dist_uniform}, and \code{dist_weibull}. You may also use
-\code{dist_truncated} to specify a truncated distribution around one of the prior
-families.
 }

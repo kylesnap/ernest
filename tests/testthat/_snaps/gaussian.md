@@ -1,7 +1,7 @@
-# Call nested_sampling with a function and function prior
+# Gaussian case works with prior function
 
     Code
-      ns
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
@@ -10,10 +10,26 @@
       No. Calls: 0
       i No iterations have been performed yet.
 
-# Call nested_sampling with a function and distribution prior
+---
 
     Code
-      ns
+      sampler
+    Message
+      
+      -- Ernest Nested Sampler -------------------------------------------------------
+      No. Points: 500
+      No. Iterations: 5752
+      No. Calls: 143800
+      
+      -- Results 
+      Ln. Likelihood: [-2611.537, -0.2981643]
+      Ln. Volume: -17.70912
+      Ln. Evidence: -8.774071
+
+# Gaussian case works with a vector of prior distributions
+
+    Code
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
@@ -22,27 +38,19 @@
       No. Calls: 0
       i No iterations have been performed yet.
 
-# Call nested_sampling with a glm and function prior
+---
 
     Code
-      ns
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
       No. Points: 500
-      No. Iterations: 0
-      No. Calls: 0
-      i No iterations have been performed yet.
-
-# call nested_sampling with glm and default priors
-
-    Code
-      ns
-    Message
+      No. Iterations: 5752
+      No. Calls: 143800
       
-      -- Ernest Nested Sampler -------------------------------------------------------
-      No. Points: 500
-      No. Iterations: 0
-      No. Calls: 0
-      i No iterations have been performed yet.
+      -- Results 
+      Ln. Likelihood: [-2611.537, -0.2981643]
+      Ln. Volume: -17.70912
+      Ln. Evidence: -8.774071
 

@@ -1,7 +1,7 @@
-# Call nested_sampling with a function and function prior
+# ernest_sampler initializes correctly
 
     Code
-      ns
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
@@ -10,10 +10,10 @@
       No. Calls: 0
       i No iterations have been performed yet.
 
-# Call nested_sampling with a function and distribution prior
+# compile method initializes live points
 
     Code
-      ns
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
@@ -22,27 +22,19 @@
       No. Calls: 0
       i No iterations have been performed yet.
 
-# Call nested_sampling with a glm and function prior
+# generate method performs sampling
 
     Code
-      ns
+      sampler
     Message
       
       -- Ernest Nested Sampler -------------------------------------------------------
       No. Points: 500
-      No. Iterations: 0
-      No. Calls: 0
-      i No iterations have been performed yet.
-
-# call nested_sampling with glm and default priors
-
-    Code
-      ns
-    Message
+      No. Iterations: 100
+      No. Calls: 2500
       
-      -- Ernest Nested Sampler -------------------------------------------------------
-      No. Points: 500
-      No. Iterations: 0
-      No. Calls: 0
-      i No iterations have been performed yet.
+      -- Results 
+      Ln. Likelihood: [-2388.402, -1.168021]
+      Ln. Volume: -6.416406
+      Ln. Evidence: -6.013427
 

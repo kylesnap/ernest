@@ -2,7 +2,8 @@ test_that("Plot works as expected", {
   gauss_2 <- make_gaussian(2L)
   sampler <- nested_sampling(
     gauss_2$log_lik,
-    prior_transform = gauss_2$prior_transform,
+    prior = gauss_2$prior_transform,
+    variables = c(".x", ".y"),
     ptype = 2L,
     n_points = 500L,
     sampler = unif_cube()

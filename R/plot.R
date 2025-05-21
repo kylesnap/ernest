@@ -6,18 +6,18 @@
 #' @noRd
 autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NULL, ...) {
   check_dots_empty()
-  if (object$n_iterations < 1) {
+  if (object$niterations < 1L) {
     cli::cli_abort("No iterations have been run.")
   }
   calc <- object$calculate()
-  if (!("log_z" %in% names(calc))) {
+  if (is_empty(calc)) {
     cli::cli_abort("No evidence has been calculated.")
   }
 
   # Variables for plotting
   ll_df <- tibble(
-    "log_vol" = calc$log_vol,
-    "val" = calc$log_lik - max(calc$log_lik),
+    "log_volume" = calc$log_volume,
+    "val" = calc$log_likelihood - max(calc$log_likelihood),
     "err" = NA,
     "val.min" = NA,
     "val.max" = NA,
@@ -29,7 +29,7 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     )
   )
   lw_df <- tibble(
-    "log_vol" = calc$log_vol,
+    "log_volume" = calc$log_volume,
     "val" = calc$log_weight - max(calc$log_weight),
     "err" = NA,
     "val.min" = NA,
@@ -42,9 +42,9 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     )
   )
   z_df <- tibble(
-    "log_vol" = calc$log_vol,
-    "val" = calc$log_z,
-    "err" = sqrt(calc$log_z_var),
+    "log_volume" = calc$log_volume,
+    "val" = calc$log_evidence,
+    "err" = sqrt(calc$log_evidence.var),
     "val.min" = exp(.data$val - .data$err),
     "val.max" = exp(.data$val + .data$err),
     "val.2min" = exp(.data$val - 2 * .data$err),
@@ -62,8 +62,8 @@ autoplot.ernest_sampler <- function(object, exponentiate = TRUE, true_log_z = NU
     plot_df$val.2min <- exp(plot_df$val.2min)
     plot_df$val.2max <- exp(plot_df$val.2max)
   }
-  vol_cutoff <- calc$log_vol[object$n_iterations]
-  p <- ggplot(data = plot_df, aes(x = -.data$log_vol, y = .data$val)) +
+  vol_cutoff <- calc$log_volume[object$niterations]
+  p <- ggplot(data = plot_df, aes(x = -.data$log_volume, y = .data$val)) +
     facet_grid(rows = vars(.data$panel), scales = "free_y") +
     geom_ribbon(
       data = z_df,

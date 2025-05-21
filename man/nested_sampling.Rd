@@ -2,59 +2,35 @@
 % Please edit documentation in R/nested_sampling.R
 \name{nested_sampling}
 \alias{nested_sampling}
-\alias{nested_sampling.default}
 \alias{nested_sampling.function}
+\alias{nested_sampling.glm}
 \title{Build a Nested Sampler}
 \usage{
 nested_sampling(x, ...)
 
-\method{nested_sampling}{default}(x, ...)
-
 \method{nested_sampling}{`function`}(
   x,
-  prior_transform,
-  ptype,
+  prior,
+  names = NULL,
   sampler = rwmh_cube(),
   n_points = 500,
+  first_update = 2.5,
   update_interval = 1.5,
-  verbose = getOption("verbose"),
+  ...
+)
+
+\method{nested_sampling}{glm}(
+  x,
+  prior = default_prior(x),
+  names = NULL,
+  sampler = rwmh_cube(),
+  n_points = 500,
+  first_update = 2.5,
+  update_interval = 1.5,
   ...
 )
 }
-\arguments{
-\item{x}{Function returning the log-likelihood given a \code{n_dim}-length
-vector of parameters.}
-
-\item{...}{If \code{x} is a function, then these must be empty.}
-
-\item{prior_transform}{Function translating a point in the unit cube to the
-prior parameter space. This function should accept a \code{n_dim}-length vector
-of points where each value is in the range \eqn{[0, 1]} and return a
-same-length vector where each point represents a parameter.}
-
-\item{ptype}{Either a single integer, a vector of character strings giving
-variable names, or a zero-row \code{\link[tibble:tibble]{tibble::tibble()}} that defines the name of
-each variable and the dimensionality of the prior space.}
-
-\item{sampler}{An \code{ernest_lrps} object, which is a list specifying a given
-likelihood-restricted prior sampler.}
-
-\item{n_points}{Number of live points to use during the nested sampling run.
-Defaults to \code{500L}.}
-
-\item{update_interval}{Number of likelihood calls that are performed between
-updates to the \code{sampler}. Either an integer or a double, in which case the
-parameter is cast to an integer by \code{first_update * n_points}.}
-
-\item{verbose}{Whether to print progress messages to the console. Defaults to
-the value of \code{getOption("verbose")}.}
-}
-\value{
-An \code{ernest_sampler} object.
-}
 \description{
-The top-level function constructs an instance of an \code{ErnestSampler},
-containing the necessary information for nested sampling. Currently,
-\code{nested_sampling} relies on the user to specify \code{R} functions for both
-the log-likelihood and prior transform.
+The top-level function constructs an instance of an \code{ernest_sampling},
+containing the necessary information for nested sampling.
 }

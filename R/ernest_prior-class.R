@@ -1,29 +1,15 @@
 #' Specify a prior space for nested sampling
 #'
-#' @param x Either a function or a vector with S3 class `distribution`. See details.
-#' @param variables Either a character vector of names for each free variable in the
-#' parameter space, or a single number indicating the number of variables.
-#' @param ... Arguments forwarded to `vctrs::vec_as_names`.
-#'
-#' @details
-#' The `ernest_prior` function is used to specify a prior space for nested
-#' sampling. It can take either a function or a vector with S3 class
-#' `distribution`. If a function is provided, it should take in a
-#' matrix slice from the unit space and return the slice in the original
-#' parameter space. If a distribution vector is provided, it will be used to
-#' create a function that applies the inverse probability transformation to
-#' each slice.
-#'
-#' Note that, at this time, `ernest_prior` only supports the following families:
-#' `dist_beta`, `dist_binomial`, `dist_cauchy`, `dist_chisq`, `dist_exponential`,
-#' `dist_f`, `dist_gamma`, `dist_geometric`, `dist_hypergeometric`,
-#' `dist_lognormal`, `dist_negbin`, `dist_normal`, `dist_poisson`,
-#' `dist_student_t`, `dist_uniform`, and `dist_weibull`. You may also use
-#' `dist_truncated` to specify a truncated distribution around one of the prior
-#' families.
+#' @param x A vector of class `distribution`, describing each variable in the
+#' parameter space.
+#' @param names A character vector of length equal to `x` or `NULL`.
+#' @param repair Either a string or a function. See [vctrs::vec_as_names()] for
+#' details on name repair.
+#' @param ... Arguments forwarded to [vctrs::vec_as_names()].
 #'
 #' @returns An `ernest_prior` object, which contains the following elements:
 #'
+#' @importFrom vctrs vec_names2 vec_as_names vec_set_names
 #' @export
 ernest_prior <- function(x, ...) {
   UseMethod("ernest_prior")
@@ -31,200 +17,230 @@ ernest_prior <- function(x, ...) {
 
 #' @rdname ernest_prior
 #' @export
-ernest_prior.function <- function(x, variables, ...) {
-  if (is.numeric(variables)) {
-    check_number_whole(variables, min = 1)
-    variables <- vctrs::vec_as_names(rep("", variables), ...)
+ernest_prior.function <- function(x,
+                                  names,
+                                  repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet"),
+                                  ...) {
+  args <- list2(...)
+  check_character(names, call = args$call)
+  fn <- as_function(x)
+  if (length(rlang::fn_fmls(fn)) != 1) {
+    cli::cli_abort("`x` must be a function of exactly one argument.")
   }
-  new_ernest_prior(
-    variables = variables,
-    fn = x,
-    dist = NULL
+
+  empty_vec <- vec_set_names(
+    rep(distributional::dist_missing(), length(names)),
+    vec_as_names(names, repair = repair, ...)
   )
+  new_ernest_prior(empty_vec, fn = fn)
 }
 
 #' @rdname ernest_prior
 #' @export
-ernest_prior.distribution <- function(x, ...) {
-  names <- vctrs::vec_names2(x, ...)
-  x <- unname(x)
-  x_data <- vctrs::vec_data(x)
-  if (any(vapply(x_data, is.null, logical(1L)))) {
-    abort("Some distributions are NULL.")
+ernest_prior.distribution <- function(x,
+                                      names = vec_names(x),
+                                      repair = c("unique", "universal",
+                                                 "check_unique", "unique_quiet",
+                                                 "universal_quiet"
+                                                 ),
+                                      call = args$call,
+                                      ...) {
+  repair <- arg_match(repair)
+  if (is_missing(names) || is_empty(names)) {
+    names <- vec_names2(x)
   }
-  p <- length(x_data)
-  expr_list <- do.call(
-    mapply,
-    c(ernest_prior, list(x_data, idx = seq_along(x_data)), SIMPLIFY = FALSE, USE.NAMES = FALSE)
-  )
-  expr_vec <- call2("c", !!!expr_list, .ns = "base")
-  fn <- new_function(
-    exprs(x = ),
-    expr(matrix(!!expr_vec, nrow = nrow(x), ncol = !!p))
-  )
-  new_ernest_prior(
-    variables = names,
-    fn = fn,
-    dist = x
+  x <- vec_set_names(x, vec_as_names(names, repair = repair, ...))
+
+  validate_distributions(x)
+  new_ernest_prior(x)
+}
+
+#' @noRd
+validate_distributions <- function(x) {
+  accepted <- c('beta', 'binomial', 'cauchy', 'chisq', 'exponential', 'f',
+                'gamma', 'geometric', 'hypergeometric', 'lognormal', 'negbin',
+                'normal', 'poisson', 'student_t', 'uniform', 'weibull')
+
+  if (any(vapply(vctrs::vec_data(x), is.null, logical(1L)))) {
+    cli::cli_abort("Some distributions are NULL.")
+  }
+
+  families <- family(x)
+  non_compat <- x[which(!(families %in% c(accepted, "truncated")))]
+  if (!is_empty(non_compat)) {
+    cli::cli_abort(
+      "The following distributions are not currently supported: {non_compat}."
+    )
+  }
+
+  if (any(families == "truncated")) {
+    truncs <- x[which(families == "truncated")]
+    non_compat <- truncs[which(
+      !(vapply(vctrs::vec_data(truncs), \(x) family(x[["dist"]]), character(1L)) %in% accepted))
+    ]
+    if (!is_empty(non_compat)) {
+      cli::cli_abort(
+        "The following truncated distributions are not currently supported: {non_compat}."
+      )
+    }
+  }
+
+  return(NULL)
+}
+
+new_ernest_prior <- function(vec, fn = NULL) {
+  structure(
+    vec,
+    class = c("ernest_prior", class(vec)),
+    fn = fn
   )
 }
 
+#' @noRd
 #' @export
-ernest_prior.dist_default <- function(x, idx, ...) {
+format.ernest_prior <- function(x, ...) {
+  check_dots_empty()
+  cli::cli_format_method({
+    cli::cli_h3("Prior with {nvariables(x)} Variables")
+    cli::cli_text("Names: {vctrs::vec_names(x)}")
+  })
+}
+
+#' @noRd
+#' @export
+print.ernest_prior <- function(x, ...) {
+  check_dots_empty()
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+#' Compile an ernest_prior into an inverse transformation function for NS
+#'
+#' @param x An `ernest_prior` object.
+#' @param ... Ignored
+#'
+#' @returns A function that takes a vector of uniform random variables and returns
+#' a vector of the same length with the corresponding values from the prior
+#' distribution.
+#'
+#' @export
+compile.ernest_prior <- function(object, ...) {
+  if (!is_empty(attr(object, "fn"))) {
+    return(attr(object, "fn"))
+  }
+  x_data <- vctrs::vec_data(object)
+
+  expr_list <- do.call(
+    mapply,
+    c(compile, list(x_data, idx = seq_along(x_data)), SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  )
+  expr_vec <- call2("c", !!!expr_list, .ns = "base")
+  new_function(
+    exprs(x = ),
+    expr(c(!!expr_vec))
+  )
+}
+
+# ----- Compile functions for supported distributions
+
+#' @export
+compile.dist_default <- function(object, idx, ...) {
   cli::cli_abort(
     "The distribution class {class(x)[[1]]} does not support `ernest_prior()`"
   )
 }
 
 #' @export
-ernest_prior.dist_beta <- function(x, idx, ...) {
-  call2("qbeta", p = expr(x[,!!idx]), x[["shape1"]], x[["shape2"]], .ns = "stats")
+compile.dist_beta <- function(object, idx, ...) {
+  call2("qbeta", p = expr(x[!!idx]), object[["shape1"]], object[["shape2"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_binomial <- function(x, idx, ...) {
-  call2("qbinom", p = expr(x[,!!idx]), x[["n"]], x[["p"]], .ns = "stats")
+compile.dist_binomial <- function(object, idx, ...) {
+  call2("qbinom", p = expr(x[!!idx]), object[["n"]], object[["p"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_cauchy <- function(x, idx, ...) {
-  call2("qcauchy", p = expr(x[,!!idx]), x[["location"]], x[["scale"]], .ns = "stats")
+compile.dist_cauchy <- function(object, idx, ...) {
+  call2("qcauchy", p = expr(x[!!idx]), object[["location"]], object[["scale"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_chisq <- function(x, idx, ...) {
-  call2("qchisq", p = expr(x[,!!idx]), x[["df"]], .ns = "stats")
+compile.dist_chisq <- function(object, idx, ...) {
+  call2("qchisq", p = expr(x[!!idx]), object[["df"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_exponential <- function(x, idx, ...) {
-  call2("qexp", p = expr(x[,!!idx]), x[["rate"]], .ns = "stats")
+compile.dist_exponential <- function(object, idx, ...) {
+  call2("qexp", p = expr(x[!!idx]), object[["rate"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_f <- function(x, idx, ...) {
-  call2("qf", p = expr(x[,!!idx]), x[["df1"]], x[["df2"]], .ns = "stats")
+compile.dist_f <- function(object, idx, ...) {
+  call2("qf", p = expr(x[!!idx]), object[["df1"]], object[["df2"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_gamma <- function(x, idx, ...) {
-  call2("qgamma", p = expr(x[,!!idx]), x[["shape"]], x[["rate"]], .ns = "stats")
+compile.dist_gamma <- function(object, idx, ...) {
+  call2("qgamma", p = expr(x[!!idx]), object[["shape"]], object[["rate"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_geometric <- function(x, idx, ...) {
-  call2("qgeom", p = expr(x[,!!idx]), x[["p"]], .ns = "stats")
+compile.dist_geometric <- function(object, idx, ...) {
+  call2("qgeom", p = expr(x[!!idx]), object[["p"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_hypergeometric <- function(x, idx, ...) {
-  call2("qhyper", p = expr(x[,!!idx]), x[["m"]], x[["n"]], x[["k"]], .ns = "stats")
+compile.dist_hypergeometric <- function(object, idx, ...) {
+  call2("qhyper", p = expr(x[!!idx]), object[["m"]], object[["n"]], object[["k"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_lognormal <- function(x, idx, ...) {
-  call2("qlnorm", p = expr(x[,!!idx]), x[["mu"]], x[["sigma"]], .ns = "stats")
+compile.dist_lognormal <- function(object, idx, ...) {
+  call2("qlnorm", p = expr(x[!!idx]), object[["mu"]], object[["sigma"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_negbin <- function(x, idx, ...) {
-  call2("qnbinom", p = expr(x[,!!idx]), x[["n"]], x[["p"]], .ns = "stats")
+compile.dist_negbin <- function(object, idx, ...) {
+  call2("qnbinom", p = expr(x[!!idx]), object[["n"]], object[["p"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_normal <- function(x, idx, ...) {
-  call2("qnorm", p = expr(x[,!!idx]), x[["mu"]], x[["sigma"]], .ns = "stats")
+compile.dist_normal <- function(object, idx, ...) {
+  call2("qnorm", p = expr(x[!!idx]), object[["mu"]], object[["sigma"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_poisson <- function(x, idx, ...) {
-  call2("qpois", p = expr(x[,!!idx]), x[["l"]], .ns = "stats")
+compile.dist_poisson <- function(object, idx, ...) {
+  call2("qpois", p = expr(x[!!idx]), object[["l"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_student_t <- function(x, idx, ...) {
-  qt_call <- if (rlang::is_empty(x[["ncp"]])) {
-    call2("qt", p = expr(x[,!!idx]), x[["df"]], .ns = "stats")
+compile.dist_student_t <- function(object, idx, ...) {
+  qt_call <- if (rlang::is_empty(object[["ncp"]])) {
+    call2("qt", p = expr(x[!!idx]), object[["df"]], .ns = "stats")
   } else {
-    call2("qt", p = expr(x[,!!idx]), x[["df"]], x[["ncp"]], .ns = "stats")
+    call2("qt", p = expr(x[!!idx]), object[["df"]], object[["ncp"]], .ns = "stats")
   }
-  expr(!!qt_call * !!x[["sigma"]] + !!x[["mu"]])
+  expr(!!qt_call * !!object[["sigma"]] + !!object[["mu"]])
 }
 
 #' @export
-ernest_prior.dist_uniform <- function(x, idx, ...) {
-  call2("qunif", p = expr(x[,!!idx]), x[["l"]], x[["u"]], .ns = "stats")
+compile.dist_uniform <- function(object, idx, ...) {
+  call2("qunif", p = expr(x[!!idx]), object[["l"]], object[["u"]], .ns = "stats")
 }
 
 #' @export
-ernest_prior.dist_weibull <- function(x, idx, ...) {
-  call2("qweibull", p = expr(x[,!!idx]), x[["shape"]], x[["scale"]], .ns = "stats")
+compile.dist_weibull <- function(object, idx, ...) {
+  call2("qweibull", p = expr(x[!!idx]), object[["shape"]], object[["scale"]], .ns = "stats")
 }
 
 #' @importFrom distributional cdf
 #' @export
-ernest_prior.dist_truncated <- function(x, idx, ...) {
-  F_lwr <- cdf(x[["dist"]], x[["lower"]])
-  F_upr <- cdf(x[["dist"]], x[["upper"]])
-  qt <- ernest_prior(x[["dist"]], idx)
-  qt <- call_modify(qt, p = expr(!!F_lwr + x[,!!idx] * !!(F_upr - F_lwr)))
-  expr(pmin(pmax(!!x[["lower"]], !!qt), !!x[["upper"]]))
-}
-
-#' Construct a new ernest prior object
-#' @noRd
-new_ernest_prior <- function(variables, fn, dist = NULL, check = FALSE) {
-  check_character(variables)
-  if (!is_empty(dist) && !inherits(dist, "distribution")) {
-    stop_input_type(dist, "a distribution vector")
-  }
-  check_function(fn)
-  check_bool(check)
-
-  structure(
-    list(
-      "variables" = variables,
-      "dist" = dist,
-      "fn" = fn
-    ),
-    class = "ernest_prior"
-  )
-}
-
-#' @export
-format.ernest_prior <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("{.emph Prior Transformation}")
-    cli::cli_text("Num. Variables: {length(x$variables)}")
-    var_names <- x$variables[x$variables != ""]
-    if (!is_empty(var_names)) {
-      cli::cli_text("{var_names}")
-    }
-    num_unnamed <- sum(x$variables == "")
-    if (num_unnamed > 0) {
-      cli::cli_alert_info("Includes {num_unnamed} unnamed variables.")
-    }
-    if (!is_empty(x$dist)) {
-      cli::cli_text("Distributions:")
-      cli::cli_text("{x$dist}")
-    } else {
-      cli::cli_text("User provided prior transformation function.")
-    }
-  })
-}
-
-#' @export
-print.ernest_prior <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
-#' @export
-variables.ernest_prior <- function(x, ...) {
-  x$variables
-}
-
-#' @export
-nvariables.ernest_prior <- function(x, ...) {
-  length(variables(x, ...))
+compile.dist_truncated <- function(object, idx, ...) {
+  F_lwr <- cdf(object[["dist"]], object[["lower"]])
+  F_upr <- cdf(object[["dist"]], object[["upper"]])
+  qt <- compile(object[["dist"]], idx)
+  qt <- call_modify(qt, p = expr(!!F_lwr + x[!!idx] * !!(F_upr - F_lwr)))
+  expr(pmin(pmax(!!object[["lower"]], !!qt), !!object[["upper"]]))
 }

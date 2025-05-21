@@ -1,35 +1,45 @@
 test_that("unif_cube creates correct structure", {
-  sampler <- unif_cube(max_loop = 1000)
-  expect_s3_class(sampler, "uniform_cube")
-  expect_s3_class(sampler, "ernest_lrps")
-
-  expect_error(
-    unif_cube(max_loop = 0),
-    "larger than or equal to 1 or `NULL`"
+  sampler <- unif_cube()
+  expect_s3_class(sampler, c("lrps_call", "call"))
+  expect_mapequal(
+    call_args(sampler),
+    list(
+      log_lik_fn = missing_arg(),
+      prior_fn = missing_arg(),
+      n_dim = missing_arg()
+    )
   )
+
+  sampler <- call_modify(
+    sampler,
+    log_lik_fn = gaussian_2$log_lik,
+    prior_fn = \(x) qunif(x, -5, 5),
+    n_dim = 2
+  )
+  sampler <- eval_bare(sampler)
+  expect_s3_class(sampler, c("uniform_lrps", "ernest_lrps"))
 })
 
 test_that("rwmh_cube creates correct structure", {
-  sampler <- rwmh_cube(epsilon = 0.2, steps = 30)
-  expect_s3_class(sampler, "rw_cube")
-  expect_s3_class(sampler, "ernest_lrps")
-  expect_equal(sampler$epsilon, list(0.2))
-  expect_equal(sampler$num_steps, 30)
-  expect_equal(sampler$target_acceptance, 0.5)
+  sampler <- rwmh_cube()
+  expect_s3_class(sampler, c("lrps_call", "call"))
+  expect_mapequal(
+    call_args(sampler),
+    list(
+      log_lik_fn = missing_arg(),
+      prior_fn = missing_arg(),
+      n_dim = missing_arg(),
+      steps = 25L,
+      epsilon = 1
+    )
+  )
 
-  expect_error(
-    rwmh_cube(steps = 0),
-    "larger than or equal to 2"
+  sampler <- call_modify(
+    sampler,
+    log_lik_fn = gaussian_2$log_lik,
+    prior_fn = \(x) qunif(x, -5, 5),
+    n_dim = 2
   )
-  expect_error(
-    rwmh_cube(epsilon = 0),
-    "larger than zero"
-  )
-  expect_error(
-    rwmh_cube(target_acceptance = 1.5)
-  )
-  expect_error(
-    rwmh_cube(epsilon = 'a'),
-    "must be a number"
-  )
+  sampler <- eval_bare(sampler)
+  expect_s3_class(sampler, c("rwcube_lrps", "ernest_lrps"))
 })

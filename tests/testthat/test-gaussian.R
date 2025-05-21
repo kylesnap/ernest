@@ -1,18 +1,65 @@
-test_that("Gaussian case works as expected", {
-  gauss_2 <- make_gaussian(2L)
-  sampler <- nested_sampling(
-    gauss_2$log_lik,
-    prior_transform = gauss_2$prior_transform,
-    ptype = 2L,
-    n_points = 500L,
-    sampler = rwmh_cube()
-  )
+# Case Test: Three-dimensional, highly correlated gaussian
+library(distributional)
+
+n_dim <- 3
+mean <- c(-1, 0, 1)
+cov <- diag(n_dim)
+cov[cov == 0] <- 0.95
+inv_cov <- solve(cov)
+prior_win <- 10
+expected_log_z <- n_dim * (-log(2 * prior_win))
+
+logl_norm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
+log_l <- function(x) {
+  -0.5 * crossprod(x - mean, crossprod(inv_cov, x - mean)) + logl_norm
+}
+
+test_that("Gaussian case works with prior function", {
+  skip_on_cran()
+  set.seed(42)
+  prior <- \(x) qunif(x, -10, 10)
+  sampler <- nested_sampling(log_l, prior, names = c("x1", "x2", "x3"))
+  expect_snapshot(sampler)
 
   compile(sampler)
-  run <- generate(sampler, max_it = 1000)
-  expect_equal(run$n_iterations, 1000)
+  units <- sampler$get_live_points("unit")
+  expect_equal(
+    as.matrix(sampler$get_live_points()),
+    t(apply(units, 1, prior))
+  )
 
-  generate(sampler, min_logz = 0.05)
+  generate(sampler)
+  expect_snapshot(sampler)
+  result <- calculate(sampler)
+  expect_lt(
+    tail(result$log_evidence, 1) - expected_log_z,
+    4 * tail(sqrt(result$log_evidence.var), 1)
+  )
+})
 
-  expected_logz <- 2 * -log(2 * 10)
+test_that("Gaussian case works with a vector of prior distributions", {
+  skip_on_cran()
+  set.seed(42)
+  prior <- c(
+    "x" = dist_uniform(-10, 10),
+    "y" = dist_uniform(-10, 10),
+    "z" = dist_uniform(-10, 10)
+  )
+  sampler <- nested_sampling(log_l, prior)
+  expect_snapshot(sampler)
+
+  compile(sampler)
+  units <- sampler$get_live_points("unit")
+  expect_equal(
+    as.matrix(sampler$get_live_points()),
+    t(apply(units, 1, \(x) qunif(x, -10, 10)))
+  )
+
+  generate(sampler)
+  expect_snapshot(sampler)
+  result <- calculate(sampler)
+  expect_lt(
+    tail(result$log_evidence, 1) - expected_log_z,
+    4 * tail(sqrt(result$log_evidence.var), 1)
+  )
 })

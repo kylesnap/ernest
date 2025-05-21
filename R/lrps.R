@@ -11,7 +11,7 @@
 #' but ernest currently offers two foundational examples: A simple region-based
 #' sampler in `uniform_cube`, and a local-step algorithm in `rwmh_cube`.
 #'
-#' @param max_loop The maximum number of calls to the likelihood function a
+#' @param max_attempts The maximum number of calls to the likelihood function a
 #' sampler will make when trying to propose a new point given one likelihood
 #' constraint. Once exceeded, ernest will abort and report an error to the user.
 #' If non-null, this overwrites the `ernest.max_loop` global option
@@ -31,10 +31,13 @@ NULL
 #' moderately-large dimensions, but is useful for testing and debugging.
 #'
 #' @export
-unif_cube <- function(max_loop = NULL) {
-  check_number_whole(max_loop, min = 1, allow_null = TRUE, allow_infinite = FALSE)
-  options("ernest.max_loop" = max_loop)
-  new_uniform_cube()
+unif_cube <- function(max_attempts = NULL) {
+  check_number_whole(max_attempts, min = 1, allow_null = TRUE, allow_infinite = FALSE)
+  # TODO: This has to set something...^^^^
+  structure(
+    expr(uniform_lrps$new(log_lik_fn = , prior_fn = , n_dim = )),
+    class = c("lrps_call", "call")
+  )
 }
 
 #' @rdname lrps
@@ -50,12 +53,11 @@ unif_cube <- function(max_loop = NULL) {
 #' @param epsilon Step-size parameter, adjusted over the course of a run.
 #'
 #' @export
-rwmh_cube <- function(steps = 25, target_acceptance = 0.5, epsilon = 1) {
+rwmh_cube <- function(steps = 25L, epsilon = 1) {
   check_number_whole(steps, min = 2, allow_infinite = FALSE)
-  check_number_decimal(target_acceptance, min = 0, max = 1, allow_infinite = FALSE)
   check_number_decimal(epsilon, min = 0, allow_infinite = FALSE)
-  if (epsilon <= 0) {
-    stop_input_type(epsilon, "a number larger than zero")
-  }
-  new_rwmh_cube(num_steps = steps, target_acceptance = target_acceptance, epsilon = epsilon)
+  structure(
+    expr(rwcube_lrps$new(log_lik_fn = , prior_fn = , n_dim = , steps = !!steps, epsilon = !!epsilon)),
+    class = c("lrps_call", "call")
+  )
 }

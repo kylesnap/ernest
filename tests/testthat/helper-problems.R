@@ -4,6 +4,13 @@ make_gaussian <- function(num_dim, corr = 0.95) {
   sigma <- diag(num_dim)
   sigma[sigma == 0] <- 0.95
 
+  names <- LETTERS[seq_len(num_dim)]
+  dists <- rep(
+    distributional::dist_uniform(-10, 10),
+    num_dim
+  )
+  names(dists) <- names
+
   list(
     log_lik = rlang::new_function(
       rlang::exprs(x = ),
@@ -17,7 +24,7 @@ make_gaussian <- function(num_dim, corr = 0.95) {
         )
       }),
     ),
-    prior_transform = \(x) stats::qunif(x, -10, 10)
+    prior_transform = dists
   )
 }
 

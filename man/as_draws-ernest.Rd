@@ -6,11 +6,11 @@
 \alias{as_draws_matrix.ernest_sampler}
 \title{Transform \code{ernest_sampler} to \code{posterior::draws} objects}
 \usage{
-\method{as_draws}{ernest_sampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
+\method{as_draws}{ernest_sampler}(x, scale = c("original", "unit"), ...)
 
-\method{as_draws_list}{ernest_sampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
+\method{as_draws_list}{ernest_sampler}(x, scale = c("original", "unit"), ...)
 
-\method{as_draws_matrix}{ernest_sampler}(x, scale = c("original", "unit"), inc_live = TRUE, ...)
+\method{as_draws_matrix}{ernest_sampler}(x, scale = c("original", "unit"), ...)
 }
 \arguments{
 \item{x}{An \code{ernest_sampler} object, or another \R object for which
@@ -21,8 +21,6 @@ the methods are defined.}
 was originally used by ernest for generated sampling. If \code{original} (the
 default), the returned \code{draws} object will contain points in the original
 parameter space defined by the prior transformation.}
-
-\item{inc_live}{Should the live points be included? Defaults to \code{TRUE}.}
 
 \item{...}{Arguments passed to individual methods (if applicable).}
 }

@@ -59,7 +59,10 @@ new_es_summary <- function(self, private) {
     vctrs::list_of(
       "log_likelihood" = calc$log_likelihood,
       "log_volume" = calc$log_volume,
-      "log_importance_weight" = calc$log_weight - max(calc$log_evidence),
+      "log_importance_weight" = {
+        weight <- exp(calc$log_weight - tail(calc$log_evidence, 1))
+        log(weight / sum(weight))
+      },
       "log_evidence" = calc$log_evidence,
       "log_evidence.sd" = sqrt(calc$log_evidence.var),
       "information" = calc$information,

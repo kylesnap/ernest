@@ -95,7 +95,6 @@ test_that("rwcube subclass initializes and clears correctly", {
     log_lik_fn,
     prior_fn,
     n_dim,
-    epsilon = 0.5
   )
 
   expect_s3_class(rw, c("uniform_sampler", "ernest_lrps"))
@@ -108,7 +107,7 @@ test_that("rwcube subclass initializes and clears correctly", {
       acc_ratio = numeric(0L)
     )
   )
-  expect_equal(rw$epsilon, 0.5)
+  expect_equal(rw$epsilon, 1)
 
   rw$clear()
   expect_s3_class(rw, c("uniform_sampler", "ernest_lrps"))
@@ -121,10 +120,14 @@ test_that("rwcube subclass initializes and clears correctly", {
       acc_ratio = numeric(0L)
     )
   )
-  expect_equal(rw$epsilon, 0.5)
+  expect_equal(rw$epsilon, 1)
 })
 
-rw <- rwcube_lrps$new(log_lik_fn, prior_fn, n_dim)
+rw <- rwcube_lrps$new(
+  log_lik_fn,
+  prior_fn,
+  n_dim
+)
 test_that("rw subclass can propose_uniform", {
   new <- rw$propose_uniform(criterion = -Inf)
   expect_named(new, c("unit", "parameter", "log_lik", "num_calls"))
@@ -145,8 +148,8 @@ test_that("rw subclass can propose_live", {
   expect_length(new$unit, n_dim)
   expect_equal(new$parameter, prior_fn(new$unit))
   expect_gt(new$log_lik, -Inf)
-  expect_equal(new$num_calls, 20L)
-  expect_lte(new$num_acc, 20L)
+  expect_equal(new$num_calls, 25L)
+  expect_lte(new$num_acc, 25L)
 
   new <- rw$propose_live(c(0.46, 0.35, 0.62), criterion = -4.74)
   expect_gte(new$log_lik, -4.74)
@@ -169,7 +172,7 @@ test_that("rw update", {
   rw$update()
   expect_named(rw$history, c("n_iter", "n_call", "epsilon", "acc_ratio"))
   expect_equal(rw$history$n_iter, 100L)
-  expect_equal(rw$history$n_call, 2000L)
+  expect_equal(rw$history$n_call, 2500L)
   expect_equal(rw$history$epsilon, 1)
   expect_lt(rw$history$acc_ratio, 1)
   cur_eps <- rw$epsilon
@@ -181,7 +184,7 @@ test_that("rw update", {
   )
   rw$update()
   expect_equal(rw$history$n_iter, c(100, 200))
-  expect_equal(rw$history$n_call, c(2000, 4000))
+  expect_equal(rw$history$n_call, c(2500, 5000))
   expect_equal(rw$history$epsilon, c(1, cur_eps))
   expect_gt(
     (rw$history$acc_ratio[1] - 0.5)^2,

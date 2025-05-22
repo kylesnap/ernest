@@ -30,7 +30,7 @@ test_that("rwmh_cube creates correct structure", {
       prior_fn = missing_arg(),
       n_dim = missing_arg(),
       steps = 25L,
-      epsilon = 1
+      target_acceptance = 0.5
     )
   )
 

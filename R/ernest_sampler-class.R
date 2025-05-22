@@ -89,6 +89,7 @@ ernest_sampler <- R6Class(
         )
       }
       check_live(private$live, private$n_points, nvariables(private$prior))
+      invisible(self)
     },
 
     #' @description

@@ -18,13 +18,13 @@
       
       -- Ernest Nested Sampler -------------------------------------------------------
       No. Points: 500
-      No. Iterations: 5752
-      No. Calls: 143800
+      No. Iterations: 5819
+      No. Calls: 131027
       
       -- Results 
-      Ln. Likelihood: [-2611.537, -0.2981643]
-      Ln. Volume: -17.70912
-      Ln. Evidence: -8.774071
+      Ln. Likelihood: [-2611.537, -0.2945028]
+      Ln. Volume: -17.84298
+      Ln. Evidence: -8.90396
 
 # Gaussian case works with a vector of prior distributions
 
@@ -46,11 +46,11 @@
       
       -- Ernest Nested Sampler -------------------------------------------------------
       No. Points: 500
-      No. Iterations: 5752
-      No. Calls: 143800
+      No. Iterations: 5819
+      No. Calls: 131027
       
       -- Results 
-      Ln. Likelihood: [-2611.537, -0.2981643]
-      Ln. Volume: -17.70912
-      Ln. Evidence: -8.774071
+      Ln. Likelihood: [-2611.537, -0.2945028]
+      Ln. Volume: -17.84298
+      Ln. Evidence: -8.90396
 

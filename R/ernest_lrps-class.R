@@ -155,18 +155,15 @@ rwcube_lrps <- R6::R6Class(
       log_lik_fn,
       prior_fn,
       n_dim,
-      steps = 20L,
-      epsilon = 1
+      steps = 25L,
+      target_acceptance = 0.5
     ) {
       super$initialize(log_lik_fn, prior_fn, n_dim)
-      check_number_whole(steps, min = 2, allow_null = FALSE)
-      check_number_decimal(epsilon, min = 0, allow_null = FALSE)
       private$steps <- as.integer(steps)
-      private$cur_epsilon <- as.double(epsilon)
+      private$target_acceptance <- as.double(target_acceptance)
     },
     clear = function() {
-      private$cur_epsilon <- unlist(private$hist_epsilon[1]) %||%
-        private$cur_epsilon
+      private$cur_epsilon <- 1.0
       private$n_accept <- 0L
       private$hist_epsilon <- list()
       private$hist_acc_ratio <- list()
@@ -190,25 +187,29 @@ rwcube_lrps <- R6::R6Class(
       acc_ratio <- private$n_accept / private$n_call
       private$hist_epsilon[[list_length + 1]] <- private$cur_epsilon
       private$hist_acc_ratio[[list_length + 1]] <- acc_ratio
+
       # Newton-Like Update to Target 0.5 Acceptance Ratio
       private$cur_epsilon <- private$cur_epsilon *
-        exp((acc_ratio - 0.5) / private$n_dim / 0.5)
+        exp((acc_ratio - private$target_acceptance) / private$n_dim
+            / private$target_acceptance)
       private$n_accept <- 0L
       super$update()
     },
     print = function(...) {
       cli::cli_text("Random Walk in Unit Cube")
       cli::cli_dl(c(
-        "Current Config." =
-          "{private$steps} steps @ {prettyNum(private$cur_epsilon)} step-size",
-        "Last Update" = "{private$n_call} call{?s} ago."
+        "No. Steps" = "{private$steps}",
+        "Target Acceptance %" = "{prettyNum(private$target_acceptance * 100)}%",
+        "Current Step-Size (Last Update)" =
+          "{prettyNum(private$cur_epsilon)} @ {private$n_call} call{?s} ago"
       ))
       invisible(self)
     }
   ),
   private = list(
     steps = NULL,
-    cur_epsilon = NULL,
+    target_acceptance = NULL,
+    cur_epsilon = 1.0,
     n_accept = 0L,
     hist_epsilon = list(),
     hist_acc_ratio = list()

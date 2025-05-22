@@ -31,10 +31,10 @@
       -- Ernest Nested Sampler -------------------------------------------------------
       No. Points: 500
       No. Iterations: 100
-      No. Calls: 2500
+      No. Calls: 112
       
       -- Results 
       Ln. Likelihood: [-2388.402, -1.168021]
       Ln. Volume: -6.416406
-      Ln. Evidence: -6.013427
+      Ln. Evidence: -5.892025
 

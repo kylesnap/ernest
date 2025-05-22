@@ -51,12 +51,17 @@ unif_cube <- function(max_attempts = NULL) {
 #' a walk to target an acceptance rate of `0.5`.
 #'
 #' @param steps Number of steps to take when generating a proposal point.
-#' @param epsilon Step-size parameter, adjusted over the course of a run.
+#' @param target_acceptance Step-size parameter, adjusted over the course of a run.
 #'
 #' @export
-rwmh_cube <- function(steps = 25L, epsilon = 1) {
+rwmh_cube <- function(steps = 25L, target_acceptance = 0.5) {
   check_number_whole(steps, min = 2, allow_infinite = FALSE)
-  check_number_decimal(epsilon, min = 0, allow_infinite = FALSE)
+  check_number_decimal(
+    target_acceptance,
+    min = 1 / steps,
+    max = 1.0,
+    allow_null = FALSE
+  )
   structure(
     expr(
       rwcube_lrps$new(
@@ -64,7 +69,7 @@ rwmh_cube <- function(steps = 25L, epsilon = 1) {
         prior_fn = ,
         n_dim = ,
         steps = !!steps,
-        epsilon = !!epsilon
+        target_acceptance = !!target_acceptance
       )
     ),
     class = c("lrps_call", "call")

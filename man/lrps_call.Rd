@@ -8,7 +8,7 @@
 \usage{
 unif_cube(max_attempts = NULL)
 
-rwmh_cube(steps = 25L, epsilon = 1)
+rwmh_cube(steps = 25L, target_acceptance = 0.5)
 }
 \arguments{
 \item{max_attempts}{The maximum number of calls to the likelihood function a
@@ -17,7 +17,7 @@ constraint. Once exceeded, ernest will abort and report an error to the user.}
 
 \item{steps}{Number of steps to take when generating a proposal point.}
 
-\item{epsilon}{Step-size parameter, adjusted over the course of a run.}
+\item{target_acceptance}{Step-size parameter, adjusted over the course of a run.}
 }
 \value{
 an \code{lrps_call} object that can be passed to \code{\link[=nested_sampling]{nested_sampling()}}

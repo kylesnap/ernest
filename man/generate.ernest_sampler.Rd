@@ -4,7 +4,14 @@
 \alias{generate.ernest_sampler}
 \title{Generate samples from nested sampling}
 \usage{
-\method{generate}{ernest_sampler}(x, max_iterations = Inf, max_calls = Inf, min_logz = 0.05, ...)
+\method{generate}{ernest_sampler}(
+  x,
+  max_iterations = Inf,
+  max_calls = Inf,
+  min_logz = 0.05,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class \code{ernest_sampler}.}
@@ -17,6 +24,8 @@ If set to \code{Inf}, this stopping criterion is ignored.}
 
 \item{min_logz}{The minimum log-evidence value to achieve. Must be a number
 equal to or larger than zero.}
+
+\item{verbose}{Whether to print updates on the sampler's progress.}
 
 \item{...}{Must be empty.}
 }

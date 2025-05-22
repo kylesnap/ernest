@@ -16,6 +16,7 @@ log_l <- function(x) {
 
 test_that("Gaussian case works with prior function", {
   skip_on_cran()
+  options("cli.progress_show_after" = 60)
   set.seed(42)
   prior <- \(x) qunif(x, -10, 10)
   sampler <- nested_sampling(log_l, prior, names = c("x1", "x2", "x3"))
@@ -28,6 +29,10 @@ test_that("Gaussian case works with prior function", {
     t(apply(units, 1, prior))
   )
 
+  expect_message(
+    generate(sampler, max_iterations = 1000L, verbose = TRUE),
+    "Reached Max Iterations: 1000/1000"
+  )
   generate(sampler)
   expect_snapshot(sampler)
   result <- calculate(sampler)

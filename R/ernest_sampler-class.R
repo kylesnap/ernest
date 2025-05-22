@@ -98,12 +98,14 @@ ernest_sampler <- R6Class(
     #' @param max_iterations The maximum number of iterations to perform.
     #' @param max_calls The maximum number of calls to the likelihood function.
     #' @param min_logz The minimum log-evidence value to achieve.
+    #' @param verbose Whether to print updates on the sampler's progress.
     #'
     #' @return Itself, invisibly.
     generate = function(
       max_iterations = Inf,
       max_calls = Inf,
-      min_logz = 0.05
+      min_logz = 0.05,
+      verbose = FALSE
     ) {
       check_number_whole(
         max_iterations,
@@ -123,6 +125,7 @@ ernest_sampler <- R6Class(
         allow_infinite = FALSE,
         allow_null = FALSE
       )
+      check_bool(verbose)
 
       if (
         is.infinite(max_iterations) & is.infinite(max_calls) & is.null(min_logz)
@@ -145,7 +148,14 @@ ernest_sampler <- R6Class(
       min_logz <- as.double(min_logz)
 
       self$compile()
-      nested_sampling_impl(self, private, max_iterations, max_calls, min_logz)
+      nested_sampling_impl(
+        self,
+        private,
+        max_iterations,
+        max_calls,
+        min_logz,
+        verbose
+      )
       invisible(self)
     },
 

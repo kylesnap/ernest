@@ -113,7 +113,12 @@ Itself, invisibly.
 \subsection{Method \code{generate()}}{
 Performs nested sampling until a stopping criterion is met.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$generate(max_iterations = Inf, max_calls = Inf, min_logz = 0.05)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$generate(
+  max_iterations = Inf,
+  max_calls = Inf,
+  min_logz = 0.05,
+  verbose = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -124,6 +129,8 @@ Performs nested sampling until a stopping criterion is met.
 \item{\code{max_calls}}{The maximum number of calls to the likelihood function.}
 
 \item{\code{min_logz}}{The minimum log-evidence value to achieve.}
+
+\item{\code{verbose}}{Whether to print updates on the sampler's progress.}
 }
 \if{html}{\out{</div>}}
 }

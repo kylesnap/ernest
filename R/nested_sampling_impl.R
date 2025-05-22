@@ -15,8 +15,10 @@
 #'
 #' @return The updated `self` object with the new state of the nested sampler.
 #' @keywords internal
+#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #' @noRd
-nested_sampling_impl <- function(self, private, max_it, max_c, min_logz) {
+nested_sampling_impl <- function(self, private, max_it, max_c, min_logz,
+                                 verbose) {
   iter <- self$niterations
   call <- self$ncalls
   if (iter == 0) {
@@ -36,15 +38,24 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz) {
   saved_log_weight <- list()
   saved_log_z <- list()
 
+  progress <- paste0(
+    "{cli::pb_spin} Generating nested samples | ",
+    "{cli::pb_current} points created [{cli::pb_rate}]"
+  )
+  done <- "Reached Max Iterations: {iter}/{max_it}"
+  if (verbose) cli_progress_bar(format = progress, clear = TRUE)
   while (iter < max_it) {
     # 1. Check stop conditions
     if (call > max_c) {
+      done = "Reached Max Calls: {call}/{max_c}"
       break
     }
     d_log_z <- logaddexp(0, max(private$live$log_lik) + log_vol - log_z)
     if (d_log_z < min_logz) {
+      done = "Passed {.arg min_logz}: {prettyNum(d_log_z)} < {prettyNum(min_logz)}"
       break
     }
+    if (verbose) cli_progress_update()
 
     # 2. Identify and log the worst points in the sampler
     iter <- iter + 1
@@ -82,13 +93,14 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz) {
       while (copy == worst_idx[idx]) {
         copy <- sample.int(private$n_points, 1)
       }
-      new <- private$lrps$propose_live(
-        private$live$unit[copy, ],
-        new_criterion
-      )
+      new <- if (call < private$first_update) {
+        private$lrps$propose_uniform(new_criterion)
+      } else {
+        private$lrps$propose_live(private$live$unit[copy, ], new_criterion)
+      }
       if (is_empty(new$unit)) {
         cli::cli_abort(
-          "Region-based sampler couldn't improve the worst point."
+          "Sampler couldn't improve the worst point."
         )
       }
       private$live$unit[worst_idx[idx], ] <- new$unit
@@ -96,6 +108,10 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz) {
       private$live$log_lik[worst_idx[idx]] <- new$log_lik
     }
     call <- call + new$num_calls
+  }
+  if (verbose) {
+    cli_progress_done()
+    cli::cli_inform(done)
   }
 
   private$dead$unit <- rbind(

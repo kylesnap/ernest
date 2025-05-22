@@ -26,6 +26,7 @@ compile.ernest_sampler <- function(object, clear = FALSE, ...) {
 #' If set to `Inf`, this stopping criterion is ignored.
 #' @param min_logz The minimum log-evidence value to achieve. Must be a number
 #' equal to or larger than zero.
+#' @param verbose Whether to print updates on the sampler's progress.
 #' @param ... Must be empty.
 #'
 #' @return The modified `ernest_sampler` object, invisibly.
@@ -38,10 +39,11 @@ generate.ernest_sampler <- function(
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
+  verbose = FALSE,
   ...
 ) {
   check_dots_empty()
-  x$generate(max_iterations, max_calls, min_logz)
+  x$generate(max_iterations, max_calls, min_logz, verbose)
 }
 
 #' Estimate the log-evidence of a model

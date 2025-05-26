@@ -6,30 +6,20 @@
 #' ensures compatibility with the nested sampling framework by standardizing the
 #' log-likelihood computation.
 #'
-#' @param object One of the following:
-#' * A function that must take a single argument (a parameter vector) and return
-#' the scalar-valued log-likelihood.
-#' * A fitted model object (e.g., from [stats::glm()]) that can be used to
-#' compute the log-likelihood. The model must be fitted using a family that
-#' supports log-likelihood computation. The model must have a response variable
-#' and model matrix.
-#' @param ... These are currently ignored.
+#' @param object An object representing the log-likelihood function, specified in
+#' one of the following ways:
+#' * A named function, e.g. `mean`.
+#' * An anonymous function, e.g. `\(x) x + 1` or `function(x) x + 1`.
+#' * A fitted model object from [glm()].
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @return An object of class `ernest_likelihood`, which is a function that
 #' computes the log-likelihood of the data given a set of parameters.
-#' If the object is of class `glm`, it will also include the original call,
-#' [family()], and [terms()] objects as attributes.
 #'
 #' @examples
 #' # Example with a custom log-likelihood function
 #' log_lik_fn <- function(x) -sum((x - 1)^2)
 #' wrapped_fn <- ernest_likelihood(log_lik_fn)
-#'
-#' # Example with a glm object
-#' data(mtcars)
-#' glm_model <- glm(mpg ~ wt + hp, data = mtcars, family = gaussian())
-#' wrapped_glm <- ernest_likelihood(glm_model)
-#'
 #' @export
 ernest_likelihood <- function(object, ...) {
   UseMethod("ernest_likelihood")
@@ -37,15 +27,20 @@ ernest_likelihood <- function(object, ...) {
 
 #' @rdname ernest_likelihood
 #' @export
-ernest_likelihood.function <- function(object, ...) {
-  fn <- as_function(object)
-  if (length(rlang::fn_fmls(fn)) != 1) {
-    cli::cli_abort("`object` must be a function of exactly one argument.")
-  }
-  new_ernest_likelihood(fn, call = fn_body(fn))
+ernest_likelihood.default <- function(object, ...) {
+  stop_input_type(
+    object,
+    "a function or a fitted model object (e.g., from `glm()`)"
+  )
 }
 
-utils::globalVariables("theta")
+#' @rdname ernest_likelihood
+#' @export
+ernest_likelihood.function <- function(object, ...) {
+  check_dots_empty()
+  fn <- as_function(object)
+  new_ernest_likelihood(fn, body = object)
+}
 
 #' @rdname ernest_likelihood
 #' @importFrom stats family model.matrix model.response
@@ -58,97 +53,87 @@ ernest_likelihood.glm <- function(object, ...) {
 
   y <- unname(model.response(object$model))
   x <- model.matrix(object)
-  nobs <- nobs(object)
-  p <- ncol(x)
-  off <- model.offset(object$model)
-  prior_weights <- model.weights(object$model)
-
+  weights <- model.weights(object$model)
   family <- family(object)
-  linkinv <- family$linkinv
 
-  eta <- if (is_empty(off)) {
-    expr(!!x %*% theta[!!c(1:p)])
-  } else {
-    expr(!!x %*% theta[!!c(1:p)] + !!off)
-  }
-  mu <- call2(linkinv, eta)
-  dispersion <- expr(theta[!!(p + 1)])
-
-  dfun <- switch(
+  fn <- switch(
     family$family,
-    "gaussian" = {
-      if (!is_empty(prior_weights)) {
-        expr(
-          stats::dnorm(
-            !!y,
-            mean = !!mu,
-            sd = sqrt(!!dispersion / !!prior_weights),
-            log = TRUE
-          )
-        )
-      } else {
-        expr(
-          stats::dnorm(!!y, mean = !!mu, sd = sqrt(!!dispersion), log = TRUE)
-        )
-      }
-    },
+    "gaussian" = gaussian_lpdf(y, x),
     "binomial" = {
-      response <- parse_binomial_response(y, prior_weights)
-      expr(
-        stats::dbinom(
-          !!response$y,
-          size = !!response$size,
-          prob = !!mu,
-          log = TRUE
-        )
-      )
+      parsed_y <- parse_binomial_response(y, weights)
+      binomial_lpmf(parsed_y, x, family$linkinv)
     },
-    # TODO: Add support for Gamma and Poisson families
     cli::cli_abort("The {family$family} family is not supported.")
   )
 
-  fn <- new_function(
-    exprs(theta = ),
-    expr(sum(!!dfun))
-  )
-  new_ernest_likelihood(
-    fn,
-    call = object$call,
-    family = object$family,
-    terms = object$terms
-  )
+  new_ernest_likelihood(fn, body = object$call)
+}
+
+#' Internal method: Gaussian log-likelihood
+#' @section Internal
+#' @noRd
+gaussian_lpdf <- function(y, x) {
+  y <- as.double(y)
+  x <- as.matrix(x)
+  n <- length(y)
+  n_free <- ncol(x) + 1
+  coef_idx <- seq_len(ncol(x))
+
+  function(theta) {
+    mu <- drop(x %*% theta[coef_idx])
+    sigma <- theta[n_free]
+
+    y_scaled <- (y - mu) / sigma
+    y_scaled_sq_sum <- sum(y_scaled^2)
+    -0.5 * n * log(2 * pi) - sum(log(sigma) * n) - 0.5 * y_scaled_sq_sum
+  }
+}
+
+#' Internal method: Binomial log-likelihood
+#' @section Internal
+#' @noRd
+binomial_lpmf <- function(parsed_y, x, linkinv) {
+  # Helper functions
+  log_linkinv <- \(eta) log(linkinv(eta))
+  log1m_linkinv <- \(eta) log1p(-linkinv(eta))
+
+  # Broadcast scalars to vectors if necessary
+  y <- as.integer(parsed_y$y)
+  size <- as.integer(parsed_y$size)
+
+  function(theta) {
+    # Calculate linear predictor
+    eta <- drop(x %*% theta)
+
+    # Logit binomial log-likelihood calculation
+    log_inv <- log_linkinv(eta)
+    log1m_inv <- log1m_linkinv(eta)
+    logp <- sum(y * log_inv + (size - y) * log1m_inv)
+    logp + sum(lchoose(size, y))
+  }
 }
 
 #' Internal method to parse binomial response
 #' @section Internal
 #' @noRd
 parse_binomial_response <- function(y, weights) {
-  weights <- if (is_empty(weights)) {
-    rep(1L, length(y))
-  } else {
-    vctrs::vec_cast(weights, integer())
+  if (is.matrix(y)) {
+    weights <- rowSums(y)
+    y <- y[,1]
+  } else if (!is_empty(weights)) {
+    y <- round(weights * y)
   }
-  if (is.matrix(y) && ncol(y)) {
-    prior_weights <- as.integer(rowSums(y))
-    y <- y[, 1]
-    return(list(y = y, size = prior_weights))
-  }
-  if (is.factor(y)) {
-    y <- as.integer(y) - 1
-    return(list(y = drop(y), size = 1L))
-  }
-  list(y = y * weights, size = weights)
+  weights <- as.integer(weights %||% rep(1, length(y)))
+  list(y = y, size = weights)
 }
 
 #' Create a new `ernest_likelihood` object
 #' @noRd
-new_ernest_likelihood <- function(fn, call, family = NULL, terms = NULL) {
+new_ernest_likelihood <- function(fn, body) {
   structure(
     fn,
-    class = c("ernest_likelihood", "function"),
-    call = call,
-    family = family,
-    terms = terms
+    body = expr_deparse(body),
+    class = c("ernest_likelihood", "function")
   )
 }
 

@@ -80,8 +80,7 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz,
     # if first_update is already exceeded and the number of calls
     # exceeds the update_interval, then update the LRPS
     if (
-      call > private$first_update &&
-        private$lrps$since_update > private$update_interval
+      call > private$first_update && private$lrps$since_update > private$update_interval
     ) {
       private$lrps <- private$lrps$update()
     }
@@ -93,11 +92,7 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz,
       while (copy == worst_idx[idx]) {
         copy <- sample.int(private$n_points, 1)
       }
-      new <- if (call < private$first_update) {
-        private$lrps$propose_uniform(new_criterion)
-      } else {
-        private$lrps$propose_live(private$live$unit[copy, ], new_criterion)
-      }
+      new <- private$lrps$propose_live(private$live$unit[copy, ], new_criterion)
       if (is_empty(new$unit)) {
         cli::cli_abort(
           "Sampler couldn't improve the worst point."

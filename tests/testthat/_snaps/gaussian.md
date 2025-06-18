@@ -8,49 +8,30 @@
       No. Points: 500
       No. Iterations: 0
       No. Calls: 0
-      i No iterations have been performed yet.
+      No results compiled yet.
+      (see `generate.ernest_sampler()`).
 
 ---
 
     Code
-      sampler
-    Message
+      result
+    Output
       
-      -- Ernest Nested Sampler -------------------------------------------------------
-      No. Points: 500
-      No. Iterations: 5752
-      No. Calls: 143800
-      
-      -- Results 
-      Ln. Likelihood: [-2611.537, -0.2981643]
-      Ln. Volume: -17.70912
-      Ln. Evidence: -8.774071
-
-# Gaussian case works with a vector of prior distributions
-
-    Code
-      sampler
-    Message
-      
-      -- Ernest Nested Sampler -------------------------------------------------------
-      No. Points: 500
-      No. Iterations: 0
-      No. Calls: 0
-      i No iterations have been performed yet.
+      -- Ernest Nested Sampling Run --------------------------------------------------
+      No. Live Points: 500
+      No. Iterations: 5907
+      No. Lik. Calls: 147675
+      Log. Evidence (± Err.): -9.088 (± 0.1389)
 
 ---
 
     Code
-      sampler
-    Message
+      sum
+    Output
       
-      -- Ernest Nested Sampler -------------------------------------------------------
+      -- Ernest Nested Sampling Run Summary ------------------------------------------
       No. Points: 500
-      No. Iterations: 5752
-      No. Calls: 143800
-      
-      -- Results 
-      Ln. Likelihood: [-2611.537, -0.2981643]
-      Ln. Volume: -17.70912
-      Ln. Evidence: -8.774071
+      No. Iterations: 5907
+      No. Lik. Calls: 147675
+      Log. Evidence (± Err.): -9.088 (± 0.1389)
 

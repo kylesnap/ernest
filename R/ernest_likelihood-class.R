@@ -1,52 +1,39 @@
-#' Wrap a Log-Likelihood Function for Ernest
+#' Specify a (Log) Likelihood Function
 #'
-#' @description
-#' This generic function wraps a log-likelihood function or a fitted model
-#' object (e.g., from [stats::glm()]) for use with the `ernest` package. It
-#' ensures compatibility with the nested sampling framework by standardizing the
-#' log-likelihood computation.
+#' Create a standardized log-likelihood function for use by ernest.
 #'
-#' @param object An object representing the log-likelihood function, specified in
-#' one of the following ways:
-#' * A named function, e.g. `mean`.
-#' * An anonymous function, e.g. `\(x) x + 1` or `function(x) x + 1`.
-#' * A fitted model object from [glm()].
+#' @param x A log-likelihood function, or an object inheriting from `glm`,
+#'   such as one from a call to [glm()].
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @return An object of class `ernest_likelihood`, which is a function that
-#' computes the log-likelihood of the data given a set of parameters.
-#'
-#' @examples
-#' # Example with a custom log-likelihood function
-#' log_lik_fn <- function(x) -sum((x - 1)^2)
-#' wrapped_fn <- ernest_likelihood(log_lik_fn)
+#' @returns
+#' A function of class `create_likelihood`, which calculates the
+#' log-likelihood of a model at a given parameter vector. The function
+#' is guaranteed to return a finite value, `-Inf`, or an error.
 #' @export
-ernest_likelihood <- function(object, ...) {
-  UseMethod("ernest_likelihood")
+create_likelihood <- function(object) {
+  UseMethod("create_likelihood")
 }
 
-#' @rdname ernest_likelihood
+#' @noRd
 #' @export
-ernest_likelihood.default <- function(object, ...) {
-  stop_input_type(
-    object,
-    "a function or a fitted model object (e.g., from `glm()`)"
-  )
-}
-
-#' @rdname ernest_likelihood
-#' @export
-ernest_likelihood.function <- function(object, ...) {
+create_likelihood.ernest_likelihood <- function(object, ...) {
   check_dots_empty()
-  fn <- as_function(object)
-  new_ernest_likelihood(fn, body = object)
+  create_likelihood.function(attr(object, "body"))
 }
 
-#' @rdname ernest_likelihood
-#' @importFrom stats family model.matrix model.response
-#' @importFrom stats model.offset update model.weights
+#' @rdname create_likelihood
 #' @export
-ernest_likelihood.glm <- function(object, ...) {
+create_likelihood.function <- function(object, ...) {
+  check_dots_empty()
+  x <- as_function(object)
+
+  new_ernest_likelihood(object)
+}
+
+#' @rdname create_likelihood
+#' @export
+create_likelihood.glm <- function(object, ...) {
   if (is.null(object$model)) {
     object <- update(object, model = TRUE)
   }
@@ -66,11 +53,10 @@ ernest_likelihood.glm <- function(object, ...) {
     cli::cli_abort("The {family$family} family is not supported.")
   )
 
-  new_ernest_likelihood(fn, body = object$call)
+  new_ernest_likelihood(fn)
 }
 
 #' Internal method: Gaussian log-likelihood
-#' @section Internal
 #' @noRd
 gaussian_lpdf <- function(y, x) {
   y <- as.double(y)
@@ -90,7 +76,6 @@ gaussian_lpdf <- function(y, x) {
 }
 
 #' Internal method: Binomial log-likelihood
-#' @section Internal
 #' @noRd
 binomial_lpmf <- function(parsed_y, x, linkinv) {
   # Helper functions
@@ -114,12 +99,11 @@ binomial_lpmf <- function(parsed_y, x, linkinv) {
 }
 
 #' Internal method to parse binomial response
-#' @section Internal
 #' @noRd
 parse_binomial_response <- function(y, weights) {
   if (is.matrix(y)) {
     weights <- rowSums(y)
-    y <- y[,1]
+    y <- y[, 1]
   } else if (!is_empty(weights)) {
     y <- round(weights * y)
   }
@@ -128,11 +112,44 @@ parse_binomial_response <- function(y, weights) {
 }
 
 #' Create a new `ernest_likelihood` object
+#'
+#' @param fn Incoming function.
+#' @param call The call that created the likelihood function. Either the
+#' user-inputted function, or the call component of the model.
+#'
+#' @return A new `ernest_likelihood` object, which is a function that takes in
+#' a single argument and returns the log-likelihood value for that argument or
+#' an error.
+#'
 #' @noRd
-new_ernest_likelihood <- function(fn, body) {
+new_ernest_likelihood <- function(fn) {
+  wrapped <- new_function(
+    exprs(point = ),
+    quote(tryCatch(
+      {
+        ll <- fn(point)
+        if (ll == Inf | is.nan(ll) | is.na(ll) | !is.numeric(ll)) {
+          cli::cli_warn(c(
+            "`ernest_likelihood` must only return finite values or {-Inf}.",
+            "i" = "Transformed ({style_vec(point)}) = {.arg {ll}}  to `-Inf`."
+          ))
+          -Inf
+        } else {
+          ll
+        }
+      },
+      error = function(e) {
+        cli::cli_abort(
+          "Couldn't calculate the log-lik. of ({style_vec(point)}).",
+          parent = e
+        )
+      }
+    ))
+  )
+
   structure(
-    fn,
-    body = expr_deparse(body),
+    wrapped,
+    body = expr(!!fn),
     class = c("ernest_likelihood", "function")
   )
 }
@@ -142,8 +159,7 @@ new_ernest_likelihood <- function(fn, body) {
 format.ernest_likelihood <- function(x, ...) {
   check_dots_empty()
   cli::cli_format_method({
-    cli::cli_h3("Ernest-Wrapped Log-Likelihood Function")
-    cli::cat_print(attr(x, "call"))
+    cli::cat_print(attr(x, "body"))
   })
 }
 

@@ -1,30 +1,18 @@
-#' Likelihood-Restricted Prior Samplers for Ernest
+#' Likelihood-Restricted Prior Samplers (Internal)
 #'
-#' @description
-#' The `ernest_lrps` class provides a framework for likelihood-restricted prior
-#' sampling (LRPS), which generates points within the parameter space defined by
-#' the prior while satisfying a likelihood constraint. This is a key component
-#' of nested sampling algorithms.
+#' Internal R6 class for likelihood-restricted prior sampling (LRPS).
+#' Provides a base for subclasses implementing specific LRPS strategies.
 #'
-#' @details
-#' The base class `ernest_lrps` defines the structure and common methods for
-#' LRPS. Subclasses implement specific sampling strategies, such as uniform
-#' sampling or random walks with adaptive step sizes.
-#'
-#' @param log_lik A function that computes the log-likelihood of a point in the
-#' parameter space.
-#' @param prior_transform A function that maps a unit cube to the prior space.
-#' @param n_dim The number of dimensions in the parameter space.
-#'
-#' @rdname ernest_lrps
-#' @section Internal
-#' @noRd
-NULL
-
-#' @rdname ernest_lrps
+#' @param log_lik_fn Function computing log-likelihood at a point.
+#' @param prior_fn Function mapping unit cube to prior space.
+#' @param n_dim Number of dimensions.
+#' @keywords internal
 #' @noRd
 ernest_lrps <- R6Class(
   "ernest_lrps",
+  class = FALSE,
+  portable = FALSE,
+  lock_class = TRUE,
   public = list(
     initialize = function(log_lik_fn, prior_fn, n_dim) {
       check_function(log_lik_fn)
@@ -33,123 +21,150 @@ ernest_lrps <- R6Class(
       private$log_lik_fn <- log_lik_fn
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
+      private$unit_log_lik <- function(unit) {
+        vec <- private$prior_fn(unit)
+        private$log_lik_fn(vec)
+      }
     },
+
     clear = function() {
       private$n_call <- 0L
       private$n_iter <- 0L
-      private$hist_iter <- list()
-      private$hist_call <- list()
+      private$hist_length <- 0L
+      private$hist_iter <- vctrs::list_of(.ptype = integer())
+      private$hist_call <- vctrs::list_of(.ptype = integer())
       invisible(self)
     },
-    update = function() {
-      list_length <- length(private$hist_iter)
-      private$hist_iter[[list_length + 1]] <- private$n_iter
-      private$hist_call[[list_length + 1]] <- private$n_call
-      private$n_iter <- 0L
+
+    update = function(...) {
       private$n_call <- 0L
-      invisible(self)
+      return(self)
     },
-    propose_uniform = function(criterion = -Inf) {
-      new <- lrps_uniform(
-        log_lik_f = private$log_lik_fn,
-        prior_transform = private$prior_fn,
-        num_dim = private$n_dim,
-        criterion = criterion,
-        maxtry = getOption("ernest.max_loop", default = 1e6)
+
+    find_point = function(unit) {
+      point <- private$prior_fn(unit)
+      log_lik <- private$log_lik_fn(point)
+      list("unit" = drop(unit), "point" = point, "log_lik" = log_lik)
+    },
+
+    propose_uniform = function(criteria) {
+      res <- UniformCube(
+        criteria,
+        private$unit_log_lik,
+        private$n_dim,
+        private$max_loop
       )
-      private$increment_count(new$num_calls)
-      new
+      res$unit <- t(res$unit)
+      res
     },
-    propose_live = function(original, criterion) {
-      cli::cli_abort(
-        "{.fn propose_live} must be called on a subclass of
-        {.cls propose_live}."
-      )
-    },
-    print = function(...) {
-      cli::cli_text("Likelihood Restricted Prior Sampler")
-      invisible(self)
+
+    as_string = function() {
+      cli::cli_fmt({
+        cli::cli_text("Abstract LRPS Sampler")
+      })
     }
   ),
   private = list(
+    # Parameters
     log_lik_fn = NULL,
     prior_fn = NULL,
     n_dim = NULL,
+    unit_log_lik = NULL,
+    max_loop = max(
+      as.integer(getOption("ernest.max_loop", 1e6L)),
+      2L
+    ),
+
+    # Counters
     n_call = 0L,
     n_iter = 0L,
-    hist_iter = list(),
-    hist_call = list(),
-    increment_count = function(n_call) {
-      private$n_iter <- private$n_iter + 1L
-      private$n_call <- private$n_call + n_call
+    hist_length = 0L,
+
+    # History
+    hist_iter = vctrs::list_of(.ptype = integer()),
+    hist_call = vctrs::list_of(.ptype = integer()),
+
+    # Helpers
+    increment = function(res) {
+      private$n_call <- private$n_call + res$n_call
+      private$n_iter <- private$n_iter + vctrs::vec_size(res$log_lik)
+      private$hist_length <- private$hist_length + 1L
+      private$hist_iter[[private$hist_length]] <- private$n_iter
+      private$hist_call[[private$hist_length]] <- private$n_call
+      invisible(self)
     }
   ),
   active = list(
-    since_update = function() {
-      private$n_call
-    },
     history = function() {
-      tibble::tibble(
-        "n_iter" = cumsum(list_c(private$hist_iter)) %||% integer(0L),
-        "n_call" = cumsum(list_c(private$hist_call)) %||% integer(0L)
+      vctrs::df_list(
+        "n_iter" = list_c(private$hist_iter) %||% integer(0L),
+        "n_call" = list_c(private$hist_call) %||% integer(0L)
       )
     },
-    summary = function() {
-      utils::tail(self$history, 1L)
+
+    since_update = function() {
+      private$n_call
     }
   )
 )
 
-#' Uniform Sampling in Unit Cube
+#' Uniform LRPS Sampler (Internal)
 #'
-#' @description
-#' The `uniform_lrps` subclass performs uniform sampling within the unit cube
-#' while satisfying a likelihood constraint.
+#' Internal R6 subclass for uniform sampling in the unit cube under a likelihood constraint.
 #'
-#' @details
-#' This subclass overrides the `propose_live` method to generate points
-#' uniformly within the unit cube.
-#'
-#' @rdname ErnestSampler
-#' @noRd
-NULL
-
-#' Uniform Sampling in Unit Cube Subclass
-#' @rdname ErnestSampler
+#' @keywords internal
 #' @noRd
 uniform_lrps <- R6Class(
   "uniform_lrps",
   inherit = ernest_lrps,
+  class = FALSE,
+  portable = FALSE,
+  lock_class = TRUE,
   public = list(
-    propose_live = function(original, criterion) {
-      self$propose_uniform(criterion)
+    initialize = function(log_lik_fn, prior_fn, n_dim) {
+      super$initialize(log_lik_fn, prior_fn, n_dim)
     },
-    print = function(...) {
-      cli::cli_text("Uniform Cube Random Sampling")
-      invisible(self)
+
+    clear = function() {
+      super$clear()
+    },
+
+    update = function(...) {
+      super$update(...)
+    },
+
+    propose_live = function(original, criteria) {
+      res <- self$propose_uniform(criteria)
+      super$increment(res)
+      res
+    },
+
+    as_string = function() {
+      cli::cli_fmt({
+        cli::cli_text("Uniform Sampling in Unit Cube")
+        cli::cli_dl(c(
+          "No. Iter" = "{private$n_iter}",
+          "No. Call" = "{private$n_call}"
+        ))
+      })
     }
   )
 )
 
-#' Random Walk within the Unit Cube
+#' Random Walk LRPS Sampler (Internal)
 #'
-#' @description
-#' The `rwcube_lrps` subclass performs a random walk within the unit cube, with
-#' step sizes that adapt based on the acceptance ratio.
+#' Internal R6 subclass for random walk sampling in the unit cube with adaptive step size.
 #'
-#' @details
-#' This subclass introduces additional parameters for controlling the random
-#' walk:
-#' - `steps`: The number of steps to take in the random walk.
-#' - `epsilon`: The initial step size, which is adjusted dynamically to target
-#'   an acceptance ratio of 0.5.
-#'
-#' @param steps The minimum number of steps to take in the random walk.
-#' @param epsilon The initial step size of the random walk.
+#' @param steps Number of random walk steps.
+#' @param epsilon Initial step size.
+#' @keywords internal
 #' @noRd
 rwcube_lrps <- R6::R6Class(
   "rwcube_lrps",
   inherit = ernest_lrps,
+  class = FALSE,
+  portable = FALSE,
+  lock_class = TRUE,
   public = list(
     initialize = function(
       log_lik_fn,
@@ -159,71 +174,102 @@ rwcube_lrps <- R6::R6Class(
       target_acceptance = 0.5
     ) {
       super$initialize(log_lik_fn, prior_fn, n_dim)
+      check_number_whole(steps, min = 2)
+      check_number_decimal(target_acceptance, max = 1)
+      if (target_acceptance < 1 / steps) {
+        cli::cli_abort("Target acceptance must be at least 1/{steps}.")
+      }
       private$steps <- as.integer(steps)
       private$target_acceptance <- as.double(target_acceptance)
     },
+
     clear = function() {
       private$cur_epsilon <- 1.0
       private$n_accept <- 0L
-      private$hist_epsilon <- list()
-      private$hist_acc_ratio <- list()
+      private$hist_accept <- vctrs::list_of(.ptype = integer())
+      private$hist_epsilon <- vctrs::list_of(.ptype = double())
       super$clear()
     },
-    propose_live = function(original, criterion) {
-      new <- lrps_rwcube(
-        log_lik = private$log_lik_fn,
-        prior_transform = private$prior_fn,
-        original = original,
-        criterion = criterion,
-        steps = private$steps,
-        epsilon = private$cur_epsilon
-      )
-      private$increment_count(new$num_calls)
-      private$n_accept <- private$n_accept + new$num_acc
-      new
-    },
-    update = function() {
-      list_length <- length(private$hist_iter)
-      acc_ratio <- private$n_accept / private$n_call
-      private$hist_epsilon[[list_length + 1]] <- private$cur_epsilon
-      private$hist_acc_ratio[[list_length + 1]] <- acc_ratio
 
+    update = function() {
+      acc_ratio <- private$n_accept / private$n_call
       # Newton-Like Update to Target 0.5 Acceptance Ratio
       private$cur_epsilon <- private$cur_epsilon *
-        exp((acc_ratio - private$target_acceptance) / private$n_dim
-            / private$target_acceptance)
+        exp(
+          (acc_ratio - private$target_acceptance) /
+            private$n_dim /
+            private$target_acceptance
+        )
       private$n_accept <- 0L
       super$update()
     },
-    print = function(...) {
-      cli::cli_text("Random Walk in Unit Cube")
-      cli::cli_dl(c(
-        "No. Steps" = "{private$steps}",
-        "Target Acceptance %" = "{prettyNum(private$target_acceptance * 100)}%",
-        "Current Step-Size (Last Update)" =
-          "{prettyNum(private$cur_epsilon)} @ {private$n_call} call{?s} ago"
-      ))
-      invisible(self)
+
+    propose_live = function(original, criteria) {
+      dim(original) <- c(length(criteria), private$n_dim)
+      res <- RandomWalkMetropolis(
+        original,
+        criteria,
+        private$unit_log_lik,
+        private$n_dim,
+        private$steps,
+        private$cur_epsilon
+      )
+      res$unit <- t(res$unit)
+      private$increment(res)
+      res
+    },
+
+    as_string = function() {
+      cli::cli_fmt({
+        cli::cli_text("Random-Walk in Ubit Cube with Adaptive Step Size")
+        cli::cli_dl(c(
+          "No. Iter" = "{private$n_iter}",
+          "No. Call" = "{private$n_call}",
+          "No. Steps" = "{private$steps}",
+          "Epsilon" = "{private$cur_epsilon}"
+        ))
+      })
     }
   ),
   private = list(
+    # Parameters
     steps = NULL,
     target_acceptance = NULL,
     cur_epsilon = 1.0,
+
+    # Counters
     n_accept = 0L,
-    hist_epsilon = list(),
-    hist_acc_ratio = list()
+
+    # History
+    hist_accept = vctrs::list_of(.ptype = integer()),
+    hist_epsilon = vctrs::list_of(.ptype = double()),
+
+    # Helpers
+    increment = function(res) {
+      super$increment(res)
+      private$n_accept <- private$n_accept + res$n_accept
+      private$hist_epsilon[[private$hist_length]] <- private$cur_epsilon
+      private$hist_accept[[private$hist_length]] <- private$n_accept
+    }
   ),
   active = list(
     history = function() {
-      tibble::tibble(
+      vctrs::df_list(
         !!!super$history,
-        "epsilon" = list_c(private$hist_epsilon) %||% numeric(0L),
-        "acc_ratio" = list_c(private$hist_acc_ratio) %||% numeric(0L),
+        "n_accept" = list_c(private$hist_accept) %||% integer(0L),
+        "epsilon" = list_c(private$hist_epsilon) %||% double(0L)
       )
     },
+
     epsilon = function() {
       private$cur_epsilon
+    },
+
+    acceptance_ratio = function() {
+      if (private$n_call == 0L) {
+        return(NA_real_)
+      }
+      private$n_accept / private$n_call
     }
   )
 )

@@ -1,193 +1,245 @@
-library(mvtnorm)
-library(distributional)
+gaussian_2 <- make_gaussian(2)
 
-n_dim <- 3
-sigma <- diag(n_dim)
-sigma[sigma == 0] <- 0.4
-log_lik_fn <- \(x) {
-  dmvnorm(x, mean = seq(-1, 1, length.out = n_dim), sigma = sigma, log = TRUE)
-}
-prior_fn <- \(x) qunif(x, -5, 5)
-prior_fn2 <- ernest_prior(c(
-  "a" = dist_uniform(-5, 5),
-  "b" = dist_uniform(-5, 5),
-  "c" = dist_uniform(-5, 5)
-))
 
 test_that("ernest_lrps class initializes correctly", {
-  lrps <- ernest_lrps$new(log_lik_fn, prior_fn, n_dim)
+  lrps <- ernest_lrps$new(gaussian_2$log_lik, gaussian_2$prior$fn, 2L)
 
-  expect_s3_class(lrps, "ernest_lrps")
-  expect_mapequal(
+  expect_equal(lrps$private$max_loop, 1e6L)
+  expect_equal(lrps$private$n_iter, 0L)
+  expect_equal(lrps$private$n_call, 0L)
+  expect_equal(lrps$private$n_dim, 2L)
+  expect_snapshot(lrps$as_string())
+  expect_equal(
     lrps$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L)
-    )
+    list("n_iter" = integer(), "n_call" = integer())
+  )
+})
+
+test_that("ernest_lrps class initializes find_point", {
+  lrps <- ernest_lrps$new(gaussian_2$log_lik, gaussian_2$prior$fn, 2L)
+  units <- matrix(seq(0, 1, length.out = 200), nrow = 100, ncol = 2)
+  transformed_units <- apply(units, 1, lrps$find_point)
+
+  expected_points <- apply(units, 1, gaussian_2$prior$fn)
+  expect_equal(
+    do.call(rbind, lapply(transformed_units, `[[`, "point")),
+    t(expected_points)
   )
 
-  lrps <- ernest_lrps$new(log_lik_fn, compile(prior_fn2), n_dim)
-  expect_s3_class(lrps, "ernest_lrps")
+  expected_log_lik <- apply(expected_points, 2, gaussian_2$log_lik)
+  expect_equal(
+    vctrs::vec_cast(
+      do.call(c, lapply(transformed_units, `[[`, "log_lik")),
+      numeric()
+    ),
+    expected_log_lik
+  )
+})
+
+test_that("Uniform subclass initalizes", {
+  uniform <- uniform_lrps$new(gaussian_2$log_lik, gaussian_2$prior$fn, 2L)
+
+  expect_snapshot(uniform$as_string())
+  expect_equal(
+    uniform$history,
+    list("n_iter" = integer(), "n_call" = integer())
+  )
+})
+
+uniform <- uniform_lrps$new(gaussian_2$log_lik, gaussian_2$prior$fn, 2L)
+test_that("Uniform subclass calls propose_uniform correctly", {
+  result <- uniform$propose_uniform(-Inf)
+  expect_equal(dim(result$unit), c(1, 2))
+  expect_equal(
+    gaussian_2$log_lik(gaussian_2$prior$fn(result$unit)),
+    result$log_lik
+  )
+  expect_gte(result$log_lik, -Inf)
+
+  test_val <- c(-37, -16, -9, -5, -3)
+  result <- uniform$propose_uniform(test_val)
+  expect_equal(dim(result$unit), c(5, 2))
+  expect_true(all(result$log_lik >= test_val))
+  expect_equal(
+    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x))),
+    result$log_lik
+  )
+  expect_equal(
+    uniform$history,
+    list("n_iter" = integer(), "n_call" = integer())
+  )
+})
+
+test_that("Uniform subclass calls propose_live correctly", {
+  original <- matrix(runif(5 * 2), ncol = 2)
+  test_val <- c(-37, -16, -9, -5, -3)
+  result <- uniform$propose_live(original, test_val)
+  expect_equal(dim(result$unit), dim(original))
+  expect_true(all(result$unit != original))
+  expect_true(all(result$log_lik >= test_val))
+  n_call <- result$n_call
   expect_mapequal(
-    lrps$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L)
+    uniform$history,
+    list("n_iter" = c(5L), "n_call" = n_call)
+  )
+
+  test_val <- c(-37, -16, -9, -5, -3)
+  result2 <- uniform$propose_live(original, test_val)
+  expect_mapequal(
+    uniform$history,
+    list(
+      "n_iter" = c(5L, 10L),
+      "n_call" = c(n_call, n_call + result2$n_call)
     )
   )
 })
 
-test_that("Uniform subclass initializes and clears correctly", {
-  uniform <- uniform_lrps$new(log_lik_fn, prior_fn, n_dim)
-
-  expect_s3_class(uniform, c("uniform_sampler", "ernest_lrps"))
-  expect_mapequal(
-    uniform$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L)
-    )
+test_that("Uniform can be updated without protest, and cleared", {
+  expect_no_message(
+    uniform$update()
   )
+  expect_equal(uniform$since_update, 0L)
 
   uniform$clear()
-  expect_s3_class(uniform, c("uniform_sampler", "ernest_lrps"))
-  expect_mapequal(
+  expect_equal(uniform$since_update, 0L)
+  expect_equal(
     uniform$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L)
+    list("n_iter" = integer(), "n_call" = integer())
+  )
+})
+
+test_that("RWMH can be initialized and catches bad parameters", {
+  expect_snapshot_error({
+    rwcube_lrps$new(
+      log_lik_fn = gaussian_2$log_lik,
+      prior_fn = gaussian_2$prior$fn,
+      n_dim = 2L,
+      target_acceptance = 0.02
     )
-  )
-})
-
-uniform <- uniform_lrps$new(log_lik_fn, prior_fn, n_dim)
-test_that("Uniform subclass can propose_uniform", {
-  new <- uniform$propose_uniform(criterion = -Inf)
-  expect_named(new, c("unit", "parameter", "log_lik", "num_calls"))
-  expect_length(new$unit, n_dim)
-  expect_equal(new$parameter, prior_fn(new$unit))
-  expect_gt(new$log_lik, -Inf)
-  expect_equal(new$num_calls, 1L)
-
-  for (i in seq(10)) {
-    new <- uniform$propose_uniform(criterion = -4.74)
-    expect_gt(new$log_lik, -4.74)
-  }
-
-  new <- uniform$propose_live(c(-0.4, -1.5, 1.2), criterion = -4.74)
-  expect_gt(new$log_lik, -4.74)
-})
-
-test_that("Uniform logs correctly after update", {
-  uniform$update()
-  expect_named(
-    {
-      hist <- uniform$history
-    },
-    c("n_iter", "n_call")
-  )
-  expect_equal(hist$n_iter, 12L)
-  expect_gt(hist$n_call, 1L)
-})
-
-test_that("rwcube subclass initializes and clears correctly", {
-  rw <- rwcube_lrps$new(
-    log_lik_fn,
-    prior_fn,
-    n_dim,
-  )
-
-  expect_s3_class(rw, c("uniform_sampler", "ernest_lrps"))
-  expect_mapequal(
-    rw$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L),
-      epsilon = numeric(0L),
-      acc_ratio = numeric(0L)
+  })
+  expect_snapshot_error({
+    rwcube_lrps$new(
+      log_lik_fn = gaussian_2$log_lik,
+      prior_fn = gaussian_2$prior$fn,
+      n_dim = 2L,
+      target_acceptance = 1.1
     )
-  )
-  expect_equal(rw$epsilon, 1)
-
-  rw$clear()
-  expect_s3_class(rw, c("uniform_sampler", "ernest_lrps"))
-  expect_mapequal(
-    rw$history,
-    tibble::tibble(
-      n_iter = integer(0L),
-      n_call = integer(0L),
-      epsilon = numeric(0L),
-      acc_ratio = numeric(0L)
+  })
+  expect_snapshot_error({
+    rwcube_lrps$new(
+      log_lik_fn = gaussian_2$log_lik,
+      prior_fn = gaussian_2$prior$fn,
+      n_dim = 2L,
+      steps = 1
     )
+  })
+
+  new <- rwcube_lrps$new(
+    log_lik_fn = gaussian_2$log_lik,
+    prior_fn = gaussian_2$prior$fn,
+    n_dim = 2L
   )
-  expect_equal(rw$epsilon, 1)
+  expect_snapshot(new$as_string())
+  expect_equal(new$epsilon, 1)
 })
 
-rw <- rwcube_lrps$new(
-  log_lik_fn,
-  prior_fn,
-  n_dim
+rwcube <- rwcube_lrps$new(
+  log_lik_fn = gaussian_2$log_lik,
+  prior_fn = gaussian_2$prior$fn,
+  n_dim = 2L
 )
-test_that("rw subclass can propose_uniform", {
-  new <- rw$propose_uniform(criterion = -Inf)
-  expect_named(new, c("unit", "parameter", "log_lik", "num_calls"))
-  expect_length(new$unit, n_dim)
-  expect_equal(new$parameter, prior_fn(new$unit))
-  expect_gt(new$log_lik, -Inf)
-  expect_equal(new$num_calls, 1L)
+test_that("rwcube can call propose_live on a single point", {
+  result <- rwcube$propose_live(c(0.5, 0.5), -Inf)
+  expect_equal(dim(result$unit), c(1, 2))
+  expect_equal(
+    gaussian_2$log_lik(gaussian_2$prior$fn(result$unit)),
+    result$log_lik
+  )
+  expect_gte(result$log_lik, -Inf)
+})
 
-  for (i in seq(10)) {
-    new <- rw$propose_uniform(criterion = -4.74)
-    expect_gt(new$log_lik, -4.74)
+test_that("rwcube can call propose_live on many points", {
+  prev <- rwcube$history
+  unit <- matrix(runif(10 * 2), nrow = 10)
+  original <- t(apply(unit, 1, gaussian_2$prior$fn))
+  logl_expected <- apply(original, 1, gaussian_2$log_lik)
+
+  result <- rwcube$propose_live(unit, logl_expected)
+  expect_equal(dim(result$unit), dim(original))
+  expect_equal(
+    result$log_lik,
+    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x)))
+  )
+  expect_true(all(result$log_lik >= logl_expected))
+
+  expect_mapequal(
+    rwcube$history,
+    list(
+      "n_iter" = c(1L, 11L),
+      "n_call" = c(25L, 275L),
+      "n_accept" = c(prev$n_accept, prev$n_accept + result$n_accept),
+      epsilon = c(1, 1)
+    )
+  )
+})
+
+test_that("rwcube can update", {
+  n_accept <- rwcube$history$n_accept[2]
+  rwcube$update()
+  epsilon <- rwcube$epsilon
+  expect_lt(epsilon, 1)
+
+  unit <- matrix(punif(seq(-5, 5, length.out = 10), -5, 5), nrow = 5)
+  logl_expected <- c(-10.311600, -6.41296, -5.113419, -6.412965, -10.311600)
+  result <- rwcube$propose_live(unit, logl_expected)
+  expect_equal(
+    rwcube$history$n_call,
+    c(25L, 275L, 125L)
+  )
+  expect_lt(rwcube$epsilon, 1)
+})
+
+test_that("rwcube can clear", {
+  rwcube$clear()
+  expect_equal(rwcube$since_update, 0L)
+  expect_equal(
+    rwcube$history,
+    list(
+      "n_iter" = integer(),
+      "n_call" = integer(),
+      "n_accept" = integer(),
+      "epsilon" = numeric()
+    )
+  )
+  expect_equal(rwcube$epsilon, 1)
+})
+
+test_that("rwcube can handle plateau", {
+  n_dim <- 3
+  mean <- c(-1, 0, 1)
+  cov <- diag(n_dim)
+  cov[cov == 0] <- 0.95
+  inv_cov <- solve(cov)
+  prior_win <- 10
+  expected_log_z <- n_dim * (-log(2 * prior_win))
+
+  logl_norm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
+  log_l <- function(x) {
+    -0.5 * crossprod(x - mean, crossprod(inv_cov, x - mean)) + logl_norm
   }
-})
+  prior <- create_uniform_prior(3, lower = -10, upper = 10)
 
-test_that("rw subclass can propose_live", {
-  new <- rw$propose_live(c(0.46, 0.35, 0.62), criterion = -Inf)
-  expect_named(new, c("unit", "parameter", "log_lik", "num_calls", "num_acc"))
-  expect_length(new$unit, n_dim)
-  expect_equal(new$parameter, prior_fn(new$unit))
-  expect_gt(new$log_lik, -Inf)
-  expect_equal(new$num_calls, 25L)
-  expect_lte(new$num_acc, 25L)
-
-  new <- rw$propose_live(c(0.46, 0.35, 0.62), criterion = -4.74)
-  expect_gte(new$log_lik, -4.74)
-
-  # Failsafe: Criterion impossible to reach
-  new <- rw$propose_live(c(0.46, 0.35, 0.62), criterion = 0)
-  expect_equal(new$unit, c(0.46, 0.35, 0.62))
-  expect_equal(new$num_acc, 0)
-})
-
-
-test_that("rw update", {
-  rw$clear()
-  test_mat <- matrix(runif(100 * 3), nrow = 100, ncol = 3)
-  apply(
-    test_mat,
-    1,
-    \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x)))
-  )
-  rw$update()
-  expect_named(rw$history, c("n_iter", "n_call", "epsilon", "acc_ratio"))
-  expect_equal(rw$history$n_iter, 100L)
-  expect_equal(rw$history$n_call, 2500L)
-  expect_equal(rw$history$epsilon, 1)
-  expect_lt(rw$history$acc_ratio, 1)
-  cur_eps <- rw$epsilon
-
-  apply(
-    test_mat,
-    1,
-    \(x) rw$propose_live(x, criterion = log_lik_fn(prior_fn(x)))
-  )
-  rw$update()
-  expect_equal(rw$history$n_iter, c(100, 200))
-  expect_equal(rw$history$n_call, c(2500, 5000))
-  expect_equal(rw$history$epsilon, c(1, cur_eps))
-  expect_gt(
-    (rw$history$acc_ratio[1] - 0.5)^2,
-    (rw$history$acc_ratio[2] - 0.5)^2
-  )
+  rwcube <- rwcube_lrps$new(log_l, prior$fn, n_dim)
+  point <- runif(3)
+  log_lik <- log_l(prior$fn(point))
+  checks <- rep(TRUE, 1000L)
+  for (i in seq(1000)) {
+    att <- rwcube$propose_live(matrix(point, ncol = n_dim), log_lik)
+    if (att$log_lik == log_lik) {
+      checks[i] <- identical(att$unit, point) && att$n_acc == 0L
+    }
+    point <- att$unit
+    log_lik <- att$log_lik
+  }
+  expect_true(all(checks))
 })

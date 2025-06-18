@@ -10,30 +10,54 @@ Description: A complete implementation of the nested sampling algorithm
 License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 Imports: 
+    carrier,
     cli,
     distributional,
     generics,
     ggplot2,
     glue,
     lifecycle,
+    msm,
     posterior,
     R6,
-    Rcpp,
     rlang (>= 1.1.0),
     tibble,
+    uniformly,
     utils,
     vctrs
 Suggests: 
+    future,
+    future.apply,
     knitr,
+    LaplacesDemon,
     mvtnorm,
     rmarkdown,
     testthat (>= 3.0.0),
     vdiffr
 LinkingTo:
-    Rcpp
+    cpp11
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Collate: 
+    'cpp11.R'
+    'ernest-package.R'
+    'ernest_likelihood-class.R'
+    'ernest_lrps-class.R'
+    'ernest_prior-class.R'
+    'ernest_result.R'
+    'import-standalone-purrr.R'
+    'utils.R'
+    'ernest_sampler-class.R'
+    'ernest_sampling.R'
+    'generics.R'
+    'import-standalone-obj-type.R'
+    'import-standalone-types-check.R'
+    'nested_sampling.R'
+    'nested_sampling_impl.R'
+    'plot.R'
+    'posterior.R'
+    'summary.ernest_sampler.R'

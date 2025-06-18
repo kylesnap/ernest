@@ -1,31 +1,25 @@
 # An N-D Gaussian Distribution with Zero Mean and Given Correlation
 make_gaussian <- function(num_dim, corr = 0.95) {
-  mean <- seq(-1, 1, length.out = num_dim)
-  sigma <- diag(num_dim)
-  sigma[sigma == 0] <- 0.95
-
-  names <- LETTERS[seq_len(num_dim)]
-  dists <- rep(
-    distributional::dist_uniform(-10, 10),
-    num_dim
+  mu <- seq(-1, 1, length.out = num_dim)
+  Sigma <- diag(corr, nrow = num_dim)
+  log_lik <- create_likelihood(
+    \(x) {
+      mvtnorm::dmvnorm(
+        x,
+        mean = seq(-1, 1, length.out = num_dim),
+        sigma = Sigma,
+        log = TRUE
+      )
+    }
   )
-  names(dists) <- names
+  prior <- create_uniform_prior(
+    n_dim = num_dim,
+    lower = -5,
+    upper = 5
+  )
 
   list(
-    log_lik = rlang::new_function(
-      rlang::exprs(x = ),
-      rlang::expr({
-        dim(x) <- c(1, !!num_dim)
-        mvtnorm::dmvnorm(
-          x,
-          mean = !!mean,
-          sigma = !!sigma,
-          log = TRUE
-        )
-      }),
-    ),
-    prior_transform = dists
+    log_lik = log_lik,
+    prior = prior
   )
 }
-
-gaussian_2 <- make_gaussian(2)

@@ -17,62 +17,64 @@
 #' @keywords internal
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #' @noRd
-nested_sampling_impl <- function(self, private, max_it, max_c, min_logz,
-                                 verbose) {
-  iter <- self$niterations
-  call <- self$ncalls
-  if (iter == 0) {
-    log_vol <- 0
-    log_z <- -1e300
-  } else {
-    log_vol <- drop(tail(private$integration$log_volume, 1L))
-    log_z <- drop(tail(private$integration$log_evidence, 1L))
-  }
-  last_criterion <- drop(tail(private$dead$log_lik, 1)) %||% -1e300
+nested_sampling_impl <- function(
+  self,
+  private,
+  max_it,
+  max_c,
+  min_logz,
+  verbose
+) {
+  prev <- private$results
+  iter <- prev$n_iter %||% 0L
+  call <- prev$n_call %||% 0L
+  log_vol <- prev$log_vol[prev$n_iter] %||% 0.0
+  log_z <- prev$log_evidence[prev$n_iter] %||% -1e300
+  last_criterion <- prev$log_lik[prev$n_iter] %||% -1e300
   d_log_vol <- log((private$n_points + 1) / private$n_points)
 
-  saved_unit <- list()
-  saved_point <- list()
-  saved_log_lik <- list()
-  saved_log_vol <- list()
-  saved_log_weight <- list()
-  saved_log_z <- list()
+  dead_unit <- vctrs::list_of(.ptype = double(private$n_points))
+  dead_birth <- vctrs::list_of(.ptype = integer())
+  dead_id <- vctrs::list_of(.ptype = integer())
+  dead_calls <- vctrs::list_of(.ptype = integer())
+  dead_log_lik <- vctrs::list_of(.ptype = double())
 
   progress <- paste0(
     "{cli::pb_spin} Generating nested samples | ",
     "{cli::pb_current} points created [{cli::pb_rate}]"
   )
   done <- "Reached Max Iterations: {iter}/{max_it}"
-  if (verbose) cli_progress_bar(format = progress, clear = TRUE)
-  while (iter < max_it) {
+  if (verbose) {
+    cli_progress_bar(format = progress, clear = TRUE)
+  }
+  for (i in seq(1, max_it - iter)) {
     # 1. Check stop conditions
     if (call > max_c) {
-      done = "Reached Max Calls: {call}/{max_c}"
+      done <- "Reached Max Calls: {call}/{max_c}"
       break
     }
-    d_log_z <- logaddexp(0, max(private$live$log_lik) + log_vol - log_z)
+    d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
     if (d_log_z < min_logz) {
-      done = "Passed {.arg min_logz}: {prettyNum(d_log_z)} < {prettyNum(min_logz)}"
+      done <- "Passed {.arg min_logz}."
       break
     }
-    if (verbose) cli_progress_update()
+    if (verbose) {
+      cli_progress_update()
+    }
 
     # 2. Identify and log the worst points in the sampler
-    iter <- iter + 1
-    worst_idx <- which_minn(private$live$log_lik)
-    saved_unit[[iter]] <- private$live$unit[worst_idx[1], ]
-    saved_point[[iter]] <- private$live$point[worst_idx[1], ]
-    saved_log_lik[[iter]] <- private$live$log_lik[worst_idx[1]]
+    worst_idx <- which_minn(private$live_log_lik)
+    dead_unit[[i]] <- private$live_unit[worst_idx[1], ]
+    dead_log_lik[[i]] <- private$live_log_lik[worst_idx[1]]
+    dead_birth[[i]] <- private$live_birth[worst_idx[1]]
+    dead_id[[i]] <- worst_idx[1]
 
     # 3. Update the integration
-    new_criterion <- private$live$log_lik[worst_idx[1]]
+    new_criterion <- private$live_log_lik[worst_idx[1]]
     log_vol <- log_vol - d_log_vol
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
     log_wt <- logaddexp(new_criterion, last_criterion) + log_d_vol
     log_z <- logaddexp(log_z, log_wt)
-    saved_log_vol[[iter]] <- log_vol
-    saved_log_weight[[iter]] <- log_wt
-    saved_log_z[[iter]] <- log_z
     last_criterion <- new_criterion
 
     # 3. If required, update the LRPS
@@ -80,57 +82,36 @@ nested_sampling_impl <- function(self, private, max_it, max_c, min_logz,
     # if first_update is already exceeded and the number of calls
     # exceeds the update_interval, then update the LRPS
     if (
-      call > private$first_update && private$lrps$since_update > private$update_interval
+      call > private$first_update &&
+        private$lrps$since_update > private$update_interval
     ) {
       private$lrps <- private$lrps$update()
     }
 
     # 4. Replace the worst points in live with new points
-    # TODO: Parallelize this!
-    for (idx in seq_along(worst_idx)) {
-      copy <- sample.int(private$n_points, 1)
-      while (copy == worst_idx[idx]) {
-        copy <- sample.int(private$n_points, 1)
-      }
-      new <- private$lrps$propose_live(private$live$unit[copy, ], new_criterion)
-      if (is_empty(new$unit)) {
-        cli::cli_abort(
-          "Sampler couldn't improve the worst point."
-        )
-      }
-      private$live$unit[worst_idx[idx], ] <- new$unit
-      private$live$point[worst_idx[idx], ] <- new$parameter
-      private$live$log_lik[worst_idx[idx]] <- new$log_lik
-    }
-    call <- call + new$num_calls
+    available_idx <- setdiff(seq_len(private$n_points), worst_idx)
+    copy <- sample(available_idx, length(worst_idx), replace = FALSE)
+
+    new_unit <- private$lrps$propose_live(
+      private$live_unit[copy, ],
+      private$live_log_lik[worst_idx]
+    )
+    private$live_log_lik[worst_idx] <- new_unit$log_lik
+    private$live_unit[worst_idx, ] <- new_unit$unit
+    private$live_birth[worst_idx] <- i + iter
+    dead_calls[[i]] <- new_unit$n_call
+    call <- call + new_unit$n_call
   }
   if (verbose) {
     cli_progress_done()
     cli::cli_inform(done)
   }
 
-  private$dead$unit <- rbind(
-    private$dead$unit,
-    do.call(rbind, saved_unit)
+  list(
+    "dead_unit" = dead_unit,
+    "dead_log_lik" = dead_log_lik,
+    "dead_id" = dead_id,
+    "dead_calls" = dead_calls,
+    "dead_birth" = dead_birth
   )
-  private$dead$point <- rbind(
-    private$dead$point,
-    do.call(rbind, saved_point)
-  )
-  private$dead$log_lik <- c(
-    private$dead$log_lik,
-    list_c(saved_log_lik)
-  )
-  private$integration <- rbind(
-    private$integration,
-    tibble::tibble(
-      "log_volume" = list_c(saved_log_vol),
-      "log_weight" = list_c(saved_log_weight),
-      "log_evidence" = list_c(saved_log_z)
-    )
-  )
-
-  private$n_iter <- iter
-  private$n_call <- call
-  invisible(self)
 }

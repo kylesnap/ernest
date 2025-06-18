@@ -7,6 +7,7 @@
 #' This object is normally created by calling [nested_sampling()], and
 #' interacted with by calling S3 methods like [generate()] and [calculate()].
 #'
+#' @include utils.R import-standalone-purrr.R
 #' @importFrom R6 R6Class
 ernest_sampler <- R6Class(
   "ernest_sampler",
@@ -14,9 +15,9 @@ ernest_sampler <- R6Class(
     #' @description
     #' Creates a new `ernest_sampler`.
     #'
-    #' @param log_lik_fn A function representing the log-likelihood.
-    #' @param prior An `ernest_prior` object defining the prior distribution.
-    #' @param sampler A likelihood-restricted prior sampler (LRPS).
+    #' @param log_lik_fn An `ernest_likelihood` object.
+    #' @param prior An `ernest_prior` object.
+    #' @param sampling An `ernest_sampling` object.
     #' @param n_points The number of live points.
     #' @param first_update The first update interval.
     #' @param update_interval The subsequent update interval.
@@ -25,27 +26,35 @@ ernest_sampler <- R6Class(
     initialize = function(
       log_lik_fn,
       prior,
-      sampler,
+      sampling,
       n_points,
       first_update,
       update_interval
     ) {
-      if (!inherits(sampler, "lrps_call")) {
-        cli::cli_abort("sampler must be of class {.cls lrps_call}.")
+      if (!inherits(log_lik_fn, "ernest_likelihood")) {
+        stop_input_type(log_lik_fn, "ernest_likelihood")
+      }
+      if (!inherits(prior, "ernest_prior")) {
+        stop_input_type(prior, "ernest_prior")
+      }
+      if (!inherits(sampling, "ernest_sampling")) {
+        stop_input_type(sampling, "ernest_sampling")
       }
       check_number_whole(n_points, min = 1)
       first_update <- round_to_integer(first_update, n_points)
+      check_number_whole(first_update, min = 0)
       update_interval <- round_to_integer(update_interval, n_points)
+      check_number_whole(update_interval, min = 0)
 
-      sampler <- call_modify(
-        sampler,
-        log_lik_fn = log_lik_fn,
-        prior_fn = compile(prior),
-        n_dim = nvariables(prior)
-      )
-      private$lrps <- eval(sampler)
       private$log_lik <- log_lik_fn
       private$prior <- prior
+      sampling_args <- pairlist2(
+        log_lik_fn = log_lik_fn,
+        prior_fn = prior$fn,
+        n_dim = prior$n_dim,
+        !!!sampling$parameters
+      )
+      private$lrps <- eval(call2(sampling$class$new, !!!sampling_args))
       private$n_points <- n_points
       private$first_update <- first_update
       private$update_interval <- update_interval
@@ -58,16 +67,12 @@ ernest_sampler <- R6Class(
     #'
     #' @return Itself, invisibly.
     clear = function() {
-      private$lrps <- private$lrps$clear()
-      private$live <- list()
-      private$dead <- list()
-      private$integration <- tibble::tibble(
-        "log_volume" = numeric(),
-        "log_weight" = numeric(),
-        "log_evidence" = numeric()
-      )
-      private$n_iter <- 0L
-      private$n_call <- 0L
+      private$lrps = private$lrps$clear()
+      private$live_unit = matrix(double(0L))
+      private$live_log_lik = double(0L)
+      private$live_birth = double(0L)
+      private$results = NULL
+      invisible(self)
     },
 
     #' @description
@@ -81,14 +86,23 @@ ernest_sampler <- R6Class(
       if (clear) {
         self$clear()
       }
-      if (is_empty(private$live)) {
-        private$live <- create_live(
+      if (any(map_lgl(self$live_points, is_null))) {
+        live <- create_live(
           private$lrps,
           private$n_points,
-          nvariables(private$prior)
+          private$prior$n_dim,
+          call = current_env()
         )
+        private$live_unit <- live$unit
+        private$live_log_lik <- live$log_lik
+        private$live_birth <- rep(0, private$n_points)
       }
-      check_live(private$live, private$n_points, nvariables(private$prior))
+      check_live(
+        private$live_unit,
+        private$live_log_lik,
+        private$n_points,
+        private$prior$n_dim
+      )
       invisible(self)
     },
 
@@ -107,9 +121,10 @@ ernest_sampler <- R6Class(
       min_logz = 0.05,
       verbose = FALSE
     ) {
+      min_iter <- max(1, self$niterations)
       check_number_whole(
         max_iterations,
-        min = 1,
+        min = min_iter,
         allow_infinite = TRUE,
         allow_null = FALSE
       )
@@ -147,8 +162,13 @@ ernest_sampler <- R6Class(
       }
       min_logz <- as.double(min_logz)
 
-      self$compile()
-      nested_sampling_impl(
+      if (!identical(
+        self$live_points$unit,
+        c(private$n_points, private$prior$n_dim)
+      )) {
+        self$compile()
+      }
+      result <- nested_sampling_impl(
         self,
         private,
         max_iterations,
@@ -156,168 +176,84 @@ ernest_sampler <- R6Class(
         min_logz,
         verbose
       )
-      invisible(self)
+      private$results <- do.call(
+        compile_results,
+        list2(self = self, private = private, !!!result)
+      )
+      return(private$results)
     },
-
-    #' @description
-    #' Accesses the sampler's live points.
-    #'
-    #' @param units A string, either `"original"` or `"unit"`.
-    #' @param reorder Whether to reorder the points by increasing
-    #' log-likelihood.
-    #'
-    #' @return A `tibble` containing the live points.
-    get_live_points = function(units = c("original", "unit"), reorder = FALSE) {
-      if (is_empty(private$live)) {
-        inform("No live points have been generated yet.")
-        return(tibble::tibble(
-          !!!setNames(
-            replicate(length(self$variables), double(0)),
-            self$variables
-          )
-        ))
-      }
-      units <- arg_match(units)
-      mat <- if (units == "original") {
-        private$live$point
-      } else {
-        private$live$unit
-      }
-      if (reorder) {
-        mat <- mat[order(private$live$log_lik), ]
-      }
-      colnames(mat) <- variables(private$prior)
-      tibble::as_tibble(mat)
-    },
-
-    #' @description
-    #' Accesses the sampler's discarded (dead) points.
-    #'
-    #' @param units A string, either `"original"` or `"unit"`.
-    #'
-    #' @return A `tibble` containing the dead points.
-    get_dead_points = function(units = c("original", "unit")) {
-      if (is_empty(private$dead)) {
-        inform("No dead points have been generated yet.")
-        return(tibble::tibble(
-          !!!setNames(
-            replicate(length(self$variables), double(0)),
-            self$variables
-          )
-        ))
-      }
-      units <- arg_match(units)
-      mat <- if (units == "original") {
-        private$dead$point
-      } else {
-        private$dead$unit
-      }
-      colnames(mat) <- variables(private$prior)
-      tibble::as_tibble(mat)
-    },
-
-    #' @description
-    #' Calculates the evidence integral of the nested sampling run.
-    #'
-    #' @param include_live Whether to include live points in the calculation.
-    #'
-    #' @return A `tibble` with columns reporting the results of the run.
-    calculate = function(include_live = TRUE) {
-      dead_int <- private$integration
-      if (nrow(dead_int) < 1L) {
-        warn("No iterations have been performed yet.")
-        return(NULL)
-      }
-      dead_lik <- list_c(private$dead$log_lik)
-
-      if (!include_live) {
-        tibble::tibble(
-          "log_likelihood" = dead_lik,
-          !!!dead_int
-        )
-      } else {
-        last_vol <- tail(dead_int$log_volume, 1)
-        live_vol <- last_vol +
-          log1p(
-            (-1 - private$n_points)^(-1) * seq_len(private$n_points)
-          )
-        log_lik <- c(dead_lik, sort(private$live$log_lik))
-        log_vol <- c(dead_int$log_volume, live_vol)
-        compute_integral(log_lik, log_vol)
-      }
-    },
-
-    #' @description
-    #' Summarize the nested sampling run.
-    #'
-    #' @return See [summary.ernest_sampler()]
-    summary = function() new_es_summary(self, private),
 
     #' @description
     #' Prints a brief summary of the sampler.
     #'
-    #' @param ... Additional arguments, forwarded to [prettyNum()].
+    #' @inheritParams rlang::args_dots_empty
     #'
     #' @return Itself, invisibly.
     print = function(...) {
-      check_dots_used(...)
+      check_dots_empty()
       cli::cli_h1("Ernest Nested Sampler")
-      cli::cli_dl(c(
-        "No. Points" = "{private$n_points}",
-        "No. Iterations" = "{self$niterations}",
-        "No. Calls" = "{self$ncalls}"
-      ))
-      if (is_empty(private$dead)) {
-        cli::cli_alert_info("No iterations have been performed yet.")
-      } else {
-        cli::cli_h3("Results")
-        calc <- self$calculate()
-        log_range <- prettyNum(range(calc$log_likelihood))
-        calc <- tail(calc, 1L)
+      if (is_empty(private$results)) {
         cli::cli_dl(c(
-          "Ln. Likelihood" = "[{log_range[1]}, {log_range[2]}]",
-          "Ln. Volume" = "{prettyNum(calc$log_volume, ...)}",
-          "Ln. Evidence" = "{prettyNum(calc$log_evidence, ...)}"
+          "No. Points" = "{private$n_points}",
+          "No. Iterations" = "{self$niterations}",
+          "No. Calls" = "{self$ncalls}"
         ))
+        cli::cli_inform(c(
+          "No results compiled yet.",
+          "(see {.fn generate.ernest_sampler})."
+        ))
+      } else {
+        cli::cli_text("Previous Run Results:")
+        cli::cat_print(private$results)
       }
       invisible(self)
     }
   ),
   private = list(
-    lrps = NULL,
     log_lik = NULL,
     prior = NULL,
+    lrps = NULL,
     n_points = NULL,
     first_update = NULL,
     update_interval = NULL,
 
-    live = list(),
-    dead = list(),
-    integration = tibble::tibble(
-      "log_volume" = numeric(),
-      "log_weight" = numeric(),
-      "log_evidence" = numeric()
-    ),
-    n_iter = 0L,
-    n_call = 0L
+    live_unit = matrix(double(0L)),
+    live_log_lik = double(0L),
+    live_birth = double(0L),
+
+    results = NULL
   ),
   active = list(
     #' @field niterations The total number of sampling iterations.
     niterations = function() {
-      private$n_iter
+      private$results$n_iter %||% 0L
     },
 
     #' @field ncalls The total calls made to the likelihood function.
     ncalls = function() {
-      private$n_call
+      private$results$n_call %||% 0L
     },
 
-    #' @field variables The variables associated with the prior.
-    variables = function(value) {
-      if (missing(value)) {
-        return(variables(private$prior))
+    #' @field live_points The matrix of live points currently in the sampler,
+    #' scaled to the unit-cube.
+    live_points = function() {
+      if (vctrs::vec_size(private$live_unit) == 0L) {
+        list(
+          "unit" = NULL,
+          "log_lik" = NULL
+        )
+      } else {
+        list(
+          "unit" = private$live_unit,
+          "log_lik" = private$live_log_lik
+        )
       }
-      variables(private$prior) <- value
+    },
+
+    #' @field run The `ernest_run` object binding the results of the previous
+    #' sampling runs. Returns `NULL` if no runs have been performed.
+    run = function() {
+      private$results
     }
   )
 )

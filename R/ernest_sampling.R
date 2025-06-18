@@ -1,4 +1,4 @@
-#' @name lrps_call
+#' @name ernest_sampling
 #'
 #' @title Likelihood-Restricted Prior Samplers (LRPS)
 #' @description Set up a nested sampling run by specifying a likelihood-
@@ -10,9 +10,6 @@
 #' There are many ways to perform this likelihood restricted prior sampling,
 #' but ernest currently offers two foundational examples: A simple region-based
 #' sampler in `uniform_cube`, and a local-step algorithm in `rwmh_cube`.
-#'
-#' @return an `lrps_call` object that can be passed to [nested_sampling()]
-NULL
 
 #' @rdname lrps_call
 #'
@@ -24,22 +21,12 @@ NULL
 #' constraint is not fulfilled. This method is horribly inefficient in even
 #' moderately-large dimensions, but is useful for testing and debugging.
 #'
-#' @param max_attempts The maximum number of calls to the likelihood function a
-#' sampler will make when trying to propose a new point given one likelihood
-#' constraint. Once exceeded, ernest will abort and report an error to the user.
-#'
 #' @export
-unif_cube <- function(max_attempts = NULL) {
-  check_number_whole(
-    max_attempts,
-    min = 1,
-    allow_null = TRUE,
-    allow_infinite = FALSE
-  )
-  # TODO: This has to set something...^^^^
-  structure(
-    expr(uniform_lrps$new(log_lik_fn = , prior_fn = , n_dim = )),
-    class = c("lrps_call", "call")
+unif_cube <- function() {
+  new_ernest_sampling(
+    parameters = list(),
+    name = "Uniform Cube",
+    class = uniform_lrps
   )
 }
 
@@ -55,23 +42,27 @@ unif_cube <- function(max_attempts = NULL) {
 #'
 #' @export
 rwmh_cube <- function(steps = 25L, target_acceptance = 0.5) {
-  check_number_whole(steps, min = 2, allow_infinite = FALSE)
-  check_number_decimal(
-    target_acceptance,
-    min = 1 / steps,
-    max = 1.0,
-    allow_null = FALSE
+  new_ernest_sampling(
+    parameters = list(steps = steps, target_acceptance = target_acceptance),
+    name = "Random Walk Cube",
+    class = rwcube_lrps
   )
+}
+
+#' Construct a generic ernest_sampling object.
+#'
+#' @param parameters Named list of control parameters.
+#' @param name Name of the sampler.
+#' @param class Associated R6 class for the sampler.
+#'
+#' @noRd
+new_ernest_sampling <- function(parameters, name, class) {
   structure(
-    expr(
-      rwcube_lrps$new(
-        log_lik_fn = ,
-        prior_fn = ,
-        n_dim = ,
-        steps = !!steps,
-        target_acceptance = !!target_acceptance
-      )
+    list(
+      parameters = parameters,
+      name = name,
+      class = class
     ),
-    class = c("lrps_call", "call")
+    class = "ernest_sampling"
   )
 }

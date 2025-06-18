@@ -2,26 +2,11 @@
 % Please edit documentation in R/nested_sampling.R
 \name{nested_sampling}
 \alias{nested_sampling}
-\alias{nested_sampling.function}
-\alias{nested_sampling.glm}
 \title{Build a Nested Sampler}
 \usage{
-nested_sampling(x, ...)
-
-\method{nested_sampling}{`function`}(
+nested_sampling(
   x,
   prior,
-  names = NULL,
-  sampler = rwmh_cube(),
-  n_points = 500,
-  first_update = 2.5,
-  update_interval = 1.5,
-  ...
-)
-
-\method{nested_sampling}{glm}(
-  x,
-  prior = default_prior(x),
   names = NULL,
   sampler = rwmh_cube(),
   n_points = 500,
@@ -35,12 +20,8 @@ nested_sampling(x, ...)
 log-likelihood function. For \code{glm} objects, the model is used to derive
 the log-likelihood.}
 
-\item{...}{Additional arguments passed to methods.}
-
-\item{prior}{A prior distribution function or object. For \code{glm} objects,
-defaults to \code{\link[=default_prior]{default_prior()}}.}
-
-\item{names}{Optional character vector of variable names.}
+\item{prior}{An \code{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
+its specializations.}
 
 \item{sampler}{An \code{\link[=lrps_call]{lrps_call()}} object, declaring which likelihood-restricted
 prior sampler to use for the nested sampling run.}
@@ -56,6 +37,8 @@ integer.}
 between subsequent updates of the sampler. If left as a double, this will
 be multiplied by the number of live points before being coerced to an
 integer.}
+
+\item{...}{Additional arguments passed to methods.}
 }
 \value{
 An \code{ernest_sampler} object.

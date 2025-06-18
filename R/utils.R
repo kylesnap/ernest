@@ -4,18 +4,16 @@
 #'
 #' @param x A numeric value to round.
 #' @param multiplicand A scaling factor to apply before rounding.
-#' @param min Optional minimum value for validation.
 #' @return An integer value after rounding.
 #' @noRd
-round_to_integer <- function(x, multiplicand, min = NULL) {
-  x <- if (is.integer(x)) {
+round_to_integer <- function(x, multiplicand = 1) {
+  if (is.integer(x)) {
     x
+  } else if (is.numeric(x)) {
+    as.integer(round(x * multiplicand))
   } else {
-    check_number_decimal(x, allow_infinite = FALSE)
-    as.integer(x * multiplicand)
+    stop_input_type(x, "numeric")
   }
-  check_number_whole(x, min = min, allow_infinite = FALSE)
-  as.integer(x)
 }
 
 #' Check for duplicate names in a character vector.
@@ -23,13 +21,26 @@ round_to_integer <- function(x, multiplicand, min = NULL) {
 #' @param names A character vector of names to check.
 #' @return Throws an error if duplicates are found; otherwise, returns NULL.
 #' @noRd
-check_unique_names <- function(names) {
+check_unique_names <- function(names, arg = caller_arg(), call = caller_env()) {
   if (anyDuplicated(names)) {
     duplicates <- unique(names[duplicated(names)])
     cli::cli_abort(
       "The following names are duplicated: {duplicates}."
     )
   }
+}
+
+#' Style a potentially long vector of doubles
+style_vec <- function(vec) {
+  vec <- cli::cli_vec(
+    prettyNum(vec),
+    style = list(
+      "vec-sep" = ", ",
+      "vec-sep2" = ", ",
+      "vec-last" = ", ",
+      "vec-trunc" = 3
+    )
+  )
 }
 
 # Helpers for generating and validating the live points -----
@@ -43,35 +54,21 @@ check_unique_names <- function(names) {
 #' @return A list containing `unit`, `point`, and `log_lik` matrices/vectors.
 #' @noRd
 create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
-  unit <- matrix(numeric(n_points * n_dim), nrow = n_points, ncol = n_dim)
-  point <- matrix(numeric(n_points * n_dim), nrow = n_points, ncol = n_dim)
-  log_lik <- numeric(n_points)
   i <- 0L
+  unit <- matrix()
   try_fetch(
-    for (i in seq_len(nrow(unit))) {
-      proposed <- lrps$propose_uniform()
-      unit[i, ] <- proposed$unit
-      point[i, ] <- proposed$parameter
-      log_lik[i] <- proposed$log_lik
+    {
+      unit <- lrps$propose_uniform(criteria = rep(-1e300, n_points))
     },
     error = function(cnd) {
       cli::cli_abort(
-        sprintf("Problem while mapping element %d.", i),
-        parent = cnd
-      )
-    },
-    warning = function(cnd) {
-      cli::cli_abort(
-        sprintf("Problem while mapping element %d.", i),
-        parent = cnd
+        "Problem while generating initial live points.",
+        parent = cnd,
+        call = call
       )
     }
   )
-  list(
-    unit = unit,
-    point = point,
-    log_lik = log_lik
-  )
+  unit
 }
 
 #' Validate an existing nested sample for correctness.
@@ -84,80 +81,50 @@ create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
 #' @return Throws an error or warning if validation fails; otherwise, returns
 #' NULL.
 #' @noRd
-check_live <- function(live, n_points, n_var, call = caller_env()) {
-  if (is_empty(live)) {
-    cli::cli_abort("No live points found.")
-  }
+check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
   tmplate <- matrix(nrow = n_points, ncol = n_var)
-  # live$unit: Must be a matrix of points with dim [n_points, n_var],
+  # unit: Must be a matrix of points with dim [n_points, n_var],
   # all points must be finite and within [0, 1]
-  if (!is.matrix(live$unit)) {
+  if (!is.matrix(unit)) {
     cli::cli_abort("Internal error: Unit points must be stored as a matrix.")
   }
-  if (!identical(dim(live$unit), dim(tmplate))) {
+  if (!identical(dim(unit), dim(tmplate))) {
     cli::cli_abort(
       "Unit points must be stored as a matrix with dim ({n_points}, {n_var})."
     )
   }
-  if (any(!is.finite(live$unit))) {
+  if (any(!is.finite(unit))) {
     cli::cli_abort(
       "Unit points must contain only finite values."
     )
   }
-  if (any(live$unit < 0) || any(live$unit > 1)) {
+  if (any(unit < 0) || any(unit > 1)) {
     cli::cli_abort(
       "Unit points must contain values within [0, 1]."
     )
   }
-  # live$point: Must be a matrix of points with dim [n_points, n_var],
-  # all points should be finite (warn if not)
-  if (!is.matrix(live$point)) {
-    cli::cli_abort("Live points couldn't be stored as a matrix.")
-  }
-  if (!identical(dim(live$point), dim(tmplate))) {
-    cli::cli_abort(
-      "Live points couldn't be stored as a [{n_points}, {n_var}] matrix."
-    )
-  }
-  if (any(!is.finite(live$point))) {
-    idx <- which(rowSums(!is.finite(live$point) > 0))
-    len <- length(idx)
-    first_unit <- live$unit[idx[1]]
-    first_point <- live$point[idx[1]]
-    cli::cli_warn(c(
-      "Live points currently contain finite values.",
-      "i" = "This may be intentional, but double-check the behaviour of {.arg prior}.",
-      "x" = "There {?is/are} {len} non-finite value{?s}.",
-      "x" = "First non-finite element: {first_unit} -> {first_point}."
-    ))
-  }
   # loglik: Must be numeric vector of length n_points. Must contain only values
   # that are either finite or -Inf. Abort if log_lik contains no
   # unique values, warn if 10% of the values are duplicates.
-  vctrs::vec_check_size(live$log_lik, size = n_points, call = caller_env)
-  idx <- intersect(which(!is.finite(live$log_lik)), which(live$log_lik != -Inf))
+  vctrs::vec_check_size(log_lik, size = n_points, call = caller_env)
+  idx <- intersect(which(!is.finite(log_lik)), which(log_lik != -Inf))
   if (length(idx) > 0L) {
     len <- length(idx)
-    first_point <- live$point[idx[1]]
-    first_logl <- live$log_lik[idx[1]]
+    first_logl <- log_lik[idx[1]]
     cli::cli_abort(c(
       "Couldn't avoid calculating non-finite log-likelihood values.",
       "i" = "Log-likelihood values can only be finite or `-Inf`.",
-      "x" = "There {?is/are} {len} non-finite value{?s}.",
-      "x" = "First non-finite value: f({first_point}) = {.val {first_logl}}"
+      "x" = "There {?is/are} {len} non-finite value{?s}."
     ))
   }
-  idx <- which(live$log_lik == -Inf)
+  idx <- which(log_lik == -Inf)
   if (length(idx) > 0L) {
     len <- length(idx)
-    first_point <- live$point[idx[1]]
-    first_logl <- live$log_lik[idx[1]]
-    cli::cli_warn(c(
-      "Found {len} log-likelihood value{?s} equal to `-Inf`.",
-      "i" = "First point: f({first_point}) = {.val {first_logl}}"
-    ))
+    cli::cli_warn(
+      "Found {len} log-likelihood value{?s} equal to `-Inf`."
+    )
   }
-  unique_logl <- unique(live$log_lik)
+  unique_logl <- unique(log_lik)
   if (length(unique_logl) == 1) {
     cli::cli_abort(c(
       "Couldn't generate unique log-likelihood values for each point.",
@@ -165,8 +132,8 @@ check_live <- function(live, n_points, n_var, call = caller_env()) {
       "i" = "This generally indicates an error with your log-lik. function."
     ))
   }
-  if (length(unique_logl) < length(live$log_lik) * 0.25) {
-    perc <- prettyNum(length(unique_logl) / length(live$log_lik))
+  if (length(unique_logl) < length(log_lik) * 0.25) {
+    perc <- prettyNum(length(unique_logl) / length(log_lik))
     cli::cli_warn(c(
       "Suspected flatness in the log-likelihood surface.",
       "x" = "Only {perc}% of the live points have unique log-lik. values.",
@@ -198,40 +165,127 @@ which_minn <- function(x, n = 1L) {
 #'
 #' @param log_lik A vector of log-likelihoods in descending order.
 #' @param log_vol A vector of log-volumes in ascending order.
-#' @return A tibble containing integration results, including log weights, evidence, and information.
+#'
+#' @return A list of calculations.
 #' @noRd
 compute_integral <- function(log_lik, log_vol) {
-  pad_log_lik <- c(-1e300, log_lik)
-  d_log_vol <- diff(c(0, log_vol))
-  log_d_vol <- log_vol - d_log_vol + log(-expm1(d_log_vol))
-  log_d_vol2 <- log_d_vol - log(2)
-  d_log_vol <- -diff(c(0, log_vol))
+  if (vctrs::vec_size_common(log_lik, log_vol) == 0L) {
+    return(list(
+      log_lik = double(0),
+      log_vol = double(0),
+      log_weight = double(0),
+      log_evidence = double(0),
+      log_evidence_var = double(0),
+      information = double(0)
+    ))
+  }
+  log_lik_pad <- c(-1e300, log_lik)
+  diff_log_vol <- diff(c(0, log_vol))
+  log_diff_vol <- log_vol - diff_log_vol + log(-expm1(diff_log_vol))
+  log_diff_vol2 <- log_diff_vol - log(2)
+  diff_log_vol <- -diff(c(0, log_vol))
 
-  log_wt <- mapply(
+  log_weight <- mapply(
     \(lik1, lik2, ldv) logaddexp(lik1, lik2) + ldv,
-    tail(pad_log_lik, -1),
-    head(pad_log_lik, -1),
-    log_d_vol2
+    tail(log_lik_pad, -1),
+    head(log_lik_pad, -1),
+    log_diff_vol2
+  )
+  log_evidence <- accumulate(log_weight, \(cur, nxt) logaddexp(cur, nxt))
+  max_log_evidence <- tail(log_evidence, 1)
+
+  # Compute information
+  exp1 <- exp(log_lik_pad[-1] - max_log_evidence + log_diff_vol2)
+  exp2 <- exp(
+    log_lik_pad[-length(log_lik_pad)] - max_log_evidence + log_diff_vol2
+  )
+  h_part1 <- cumsum(
+    exp1 * log_lik_pad[-1] + exp2 * log_lik_pad[-length(log_lik_pad)]
+  )
+  information <- h_part1 -
+    max_log_evidence *
+      exp(log_evidence - max_log_evidence)
+  dh <- c(information[1], diff(information))
+
+  # Compute logz variance
+  log_evidence_var <- abs(cumsum(dh * diff_log_vol))
+
+  vctrs::vec_cast_common(
+    log_lik = log_lik,
+    log_volume = log_vol,
+    log_weight = log_weight,
+    log_evidence = log_evidence,
+    log_evidence_var = log_evidence_var,
+    information = information,
+    .to = double()
+  )
+}
+
+simulate_volume <- function(points) {
+  non_decreasing <- c(TRUE, diff(points) >= 0)
+
+  # Contraction from nondecreasing live points follows Beta(npoints, 1)
+  vctrs::vec_slice(log_vol, non_decreasing) <- rbeta(
+    sum(non_decreasing),
+    points[non_decreasing],
+    1
   )
 
-  log_z <- accumulate(log_wt, \(cur, nxt) logaddexp(cur, nxt))
-  log_z_max <- tail(log_z, 1)
-  h_term <- cumsum(
-    exp(tail(pad_log_lik, -1) - log_z_max + log_d_vol2) *
-      tail(pad_log_lik, -1) +
-      exp(head(pad_log_lik, -1) - log_z_max + log_d_vol2) *
-        head(pad_log_lik, -1)
-  )
-  h <- h_term - log_z_max * exp(log_z - log_z_max)
-  dh <- diff(c(0, h))
-  log_z_var <- abs(cumsum(dh * d_log_vol))
+  # Contraction between decreasing points follows X_(j) / X_N =
+  # (Y_1 + ... + Y_j) / (Y_1 + ... + Y_{K+1}) where X_(j) is the prior volume of
+  # j-th best live point
+  compressed <- vctrs::vec_unrep(non_decreasing)
+  start <- cumsum(compressed$times)[compressed$key]
+  end <- cumsum(compressed$times)[!compressed$key]
+  for (i in seq_along(end)) {
+    s <- start[i]
+    e <- end[i]
+    start_points <- points[s]
+    y <- rexp(start_points + 1, rate = 1)
+    y_norm <- cumsum(y) / sum(y)
+    unif_order <- y_norm[c(start_points + 1, points[(s + 1):e])]
+    log_vol[(s + 1):e] <- unif_order[-1] / unif_order[-length(unif_order)]
+  }
 
-  tibble::tibble(
-    "log_likelihood" = log_lik,
-    "log_volume" = log_vol,
-    "log_weight" = log_wt,
-    "log_evidence" = log_z,
-    "log_evidence.var" = log_z_var,
-    "information" = h,
-  )
+  # Compute logvol
+  cumsum(log(log_vol))
+}
+
+#' Calculating weights
+get_weight <- function(log_lik, log_volume) {
+  n_samp <- vec_size_common(log_lik, log_volume)
+  log_lik <- c(-1e300, log_lik)
+  diff_volume <- diff(c(0, log_volume))
+  vol_term <- log_volume - diff_volume + log(-expm1(diff_volume))
+
+  idx <- c(2:(n_samp + 1))
+  lik_term <- logaddexp(log_lik[idx], log_lik[idx-1])
+  lik_term + vol_term + log(0.5)
+}
+
+#' Math utilities
+logaddexp <- function(a, b) {
+  m <- pmax(a, b)
+  m + log1p(exp(-abs(a - b)))
+}
+
+#' Estimate log vol for the live points
+get_live_vol <- function(dead_log_vol, n_points) {
+  last_vol <- dead_log_vol[[vctrs::vec_size(dead_log_vol)]]
+  last_vol + log1p((-1 - n_points)^(-1) * seq_len(n_points))
+}
+
+#' Fix a vector of cumulative increments into a proper cumulative sum.
+#'
+#' Given a vector of (possibly non-monotonic) cumulative iteration counts,
+#' returns a vector where each element is the running sum, treating any
+#' decrease as a new increment.
+#'
+#' @param x Integer vector of cumulative iteration counts.
+#' @return Integer vector of corrected cumulative sums.
+#' @noRd
+fix_cumulative_increments <- function(x) {
+  inc <- diff(c(0, x))
+  inc[inc <= 0] <- x[inc <= 0]
+  cumsum(inc)
 }

@@ -1,146 +1,186 @@
-test_that("ernest_prior creates a valid object", {
-  dist <- distributional::dist_normal(mu = 0, sigma = 1)
-  prior <- ernest_prior(dist, names = "x")
-
+test_that("create_prior returns a valid ernest_prior object with correct attributes", {
+  fn <- function(x) rep(1, length(x))
+  varnames <- c("a", "b", "c")
+  prior <- create_prior(fn, n_dim = 3, varnames = varnames)
   expect_s3_class(prior, "ernest_prior")
-  expect_equal(variables(prior), "x")
-  expect_equal(nvariables(prior), 1)
+  expect_equal(prior$varnames, varnames)
+  expect_equal(prior$n_dim, 3)
 })
 
-test_that("ernest_prior validates input types", {
-  expect_error(ernest_prior(1:10), "no applicable method")
+test_that("create_prior handles lower and upper bounds recycling", {
+  fn <- function(x) x
+  varnames <- c("x", "y")
+  lower <- c(0)
+  upper <- c(1)
+  prior <- create_prior(fn, n_dim = 2, varnames = varnames, lower = lower, upper = upper)
+  expect_equal(prior$lower, c(0, 0))
+  expect_equal(prior$upper, c(1, 1))
+})
+
+test_that("create_prior silently repairs var. names", {
+  fn <- function(x) x
+  varnames <- c("a", "a")
+  prior <- create_prior(fn, n_dim = 2, varnames = varnames)
+  expect_equal(prior$varnames, c("a", "a.1"))
+})
+
+test_that("create_prior errors if n_dim < 1", {
+  fn <- function(x) numeric(0)
+  varnames <- character(0)
   expect_error(
-    ernest_prior(distributional::dist_normal(), names = 1),
-    "must be a character vector"
+    create_prior(fn, n_dim = 0, varnames = varnames),
+    "`n_dim` must be a whole number larger than or equal to 1, not the number 0"
   )
 })
 
-
-test_that("ernest_prior handles empty names", {
-  dist <- distributional::dist_normal(mu = 0, sigma = 1)
-  expect_message(prior <- ernest_prior(dist), "New names")
-
-  expect_equal(variables(prior), c("...1"))
-  expect_equal(nvariables(prior), 1)
-})
-
-test_that("validate_ernest_prior checks unsupported distributions", {
-  dist <- distributional::dist_missing()
+test_that("create_prior errors if prior function output length is wrong", {
+  fn <- function(x) 1
+  varnames <- c("a", "b")
   expect_error(
-    ernest_prior(c("x" = dist), repair = "unique_quiet"),
-    "Some distributions are NULL"
+    create_prior(fn, n_dim = 2, varnames = varnames),
+    "Prior function must return a double vector of length 2"
   )
+})
 
-  dist <- c(
-    distributional::dist_normal(0, 1),
-    distributional::dist_multinomial(size = 4, prob = c(0.3, 0.5, 0.2))
-  )
+test_that("create_prior errors if prior returns non-finite values", {
+  fn <- function(x) rep(NaN, length(x))
+  varnames <- c("a", "b")
   expect_error(
-    ernest_prior(dist, repair = "unique_quiet"),
-    "The following distributions are not currently supported: Multinomial"
+    create_prior(fn, n_dim = 2, varnames = varnames),
+    "Prior must return finite values for all inputs in \\[0, 1)."
   )
 })
 
-test_that("validate_ernest_prior handles truncated distributions", {
-  dist <- distributional::dist_truncated(
-    distributional::dist_pareto(10, 1),
-    lower = 1
-  )
+test_that("create_prior errors if lower > min(prior)", {
+  fn <- function(x) rep(0, length(x))
+  varnames <- c("a", "b")
+  lower <- c(1, 1)
   expect_error(
-    ernest_prior(c("x" = dist)),
-    "The following truncated distributions are not currently supported: Pareto"
+    create_prior(fn, n_dim = 2, varnames = varnames, lower = lower),
+    "Prior must return values greater than or equal to the lower bound."
   )
 })
 
-test_that("renaming fails on duplicates", {
-  dist <- c(
-    distributional::dist_normal(0, 1),
-    distributional::dist_normal(0, 1)
-  )
-  expect_message(
-    prior <- ernest_prior(dist, names = c("x", "x"))
-  )
-  expect_named(prior, c("x...1", "x...2"))
-
+test_that("create_prior errors if lower >= upper", {
+  fn <- function(x) ifelse(x == 0, 1, -1)
+  varnames <- c("a", "b")
+  lower <- c(1, 1)
+  upper <- c(-1, -1)
   expect_error(
-    variables(prior) <- c("y", "y"),
-    "The following names are duplicated: y."
+    create_prior(fn, n_dim = 2, varnames = varnames, lower = lower, upper = upper),
+    "Prior must return values greater than or equal to the lower bound."
   )
 })
 
-test_that("ernest_prior printing", {
-  dist <- c(
-    "int" = distributional::dist_normal(0, 10),
-    "coef" = distributional::dist_normal(0, 10),
-    "sigma" = distributional::dist_truncated(
-      distributional::dist_cauchy(0, 1),
-      0
-    )
-  )
-
-  prior <- ernest_prior(dist)
-  expect_snapshot(print(prior))
-})
-
-test_that("ernest_prior.dist_* correctly forms a transformation function", {
-  distrs <- c(
-    distributional::dist_beta(shape1 = 1, shape2 = 1),
-    distributional::dist_binomial(size = 1, p = 0.5),
-    distributional::dist_cauchy(location = 0, scale = 1),
-    distributional::dist_chisq(df = 1),
-    distributional::dist_exponential(rate = 1),
-    distributional::dist_f(df1 = 1, df2 = 1),
-    distributional::dist_gamma(shape = 1, rate = 1),
-    distributional::dist_geometric(p = 0.5),
-    distributional::dist_hypergeometric(m = 1, n = 1, k = 1),
-    distributional::dist_lognormal(mu = 0, sigma = 1),
-    distributional::dist_negative_binomial(size = 1, p = 0.5),
-    distributional::dist_normal(mu = 0, sigma = 1),
-    distributional::dist_poisson(lambda = 1),
-    distributional::dist_student_t(df = 1),
-    distributional::dist_uniform(min = 0, max = 1),
-    distributional::dist_weibull(shape = 1, scale = 1)
-  )
-  test <- readRDS(test_path("prior_test_matrix.rds"))
-  key <- readRDS(test_path("prior_key_matrix.rds"))
-
-  prior <- ernest_prior(distrs, repair = "unique_quiet")
-  fn <- compile(prior)
-  expect_equal(apply(test, 1, fn), t(key))
-})
-
-test_that("truncated distributions are handled correctly", {
-  dist <- c(
-    distributional::dist_normal(0, 1),
-    distributional::dist_truncated(distributional::dist_normal(0, 1), -5, 5)
-  )
-  prior <- ernest_prior(dist, repair = "unique_quiet")
-  fn <- compile(prior)
+test_that("create_normal_prior returns correct object and values", {
+  skip_if_not_installed("LaplacesDemon")
+  prior <- create_normal_prior(1L, mean = 0, sd = 1)
+  expect_s3_class(prior, "ernest_prior")
+  expect_equal(prior$varnames, "N(0, 1)")
+  expect_equal(prior$n_dim, 1)
+  test_vec <- seq(0, 1, by = 0.01)
   expect_equal(
-    fn(c(0.1, 0.1)),
-    c(-1.2815515655, -1.2815502588)
+    sapply(test_vec, prior$fn),
+    sapply(test_vec, qnorm)
   )
+
+  skip_if_not_installed("LaplacesDemon")
+  prior <- create_normal_prior(mean = c(1, 0, 0), sd = c(1, 1, 10), n_dim = 3, lower = 0, upper = c(Inf, Inf, 1))
   expect_equal(
-    fn(c(0.5, 0.5)),
-    c(0, -1.391458e-16)
+    prior$varnames,
+    c("N(1, 1)", "N(0, 1)", "N(0, 100)")
+  )
+  test_mat <- matrix(runif(1000 * 3), nrow = 1000)
+  expect_equal(
+    apply(test_mat, 1, prior$fn),
+    apply(test_mat, 1, \(x) c(
+      LaplacesDemon::qtrunc(x[1], "norm", a = 0, mean = 1, sd = 1),
+      LaplacesDemon::qtrunc(x[2], "norm", a = 0, mean = 0, sd = 1),
+      LaplacesDemon::qtrunc(x[3], "norm", a = 0, b = 1, mean = 0, sd = 10)
+    ))
   )
 })
 
-test_that("Custom distributions are handled correctly", {
-  prior <- ernest_prior(\(x) qnorm(x), names = LETTERS[1:10])
-  fn <- compile(prior)
+test_that("create_t_prior returns correct object and values", {
+  prior <- create_t_prior(1, df = 1)
+  expect_s3_class(prior, "ernest_prior")
+  expect_equal(prior$varnames, "T(1, 0, 1)")
+  expect_equal(prior$n_dim, 1)
+  test_vec <- seq(0, 1, by = 0.01)
   expect_equal(
-    fn(c(0.1, 0.2, 0.3)),
-    qnorm(c(0.1, 0.2, 0.3))
+    sapply(test_vec, prior$fn),
+    sapply(test_vec, function(x) qt(x, 1))
   )
+
+  skip_if_not_installed("LaplacesDemon")
+  prior <- create_t_prior(3, df = c(1,2,5), mu = c(0,1,2), sigma = c(1,2,3), lower = c(0, -Inf, -Inf), upper = c(Inf, Inf, 1))
   expect_equal(
-    variables(prior),
-    LETTERS[1:10]
+    prior$varnames,
+    c("T(1, 0, 1)", "T(2, 1, 2)", "T(5, 2, 3)")
   )
-  variables(prior) <- LETTERS[11:20]
+  test_mat <- matrix(runif(1000 * 3), nrow = 1000)
   expect_equal(
-    variables(prior),
-    LETTERS[11:20]
+    t(apply(test_mat, 1, prior$fn)),
+    t(apply(test_mat, 1, \(x) c(
+      LaplacesDemon::qtrunc(x[1], "st", a = 0, nu = 1, mu = 0, sigma = 1),
+      LaplacesDemon::qtrunc(x[2], "st", nu = 2, mu = 1, sigma = 2),
+      LaplacesDemon::qtrunc(x[3], "st", b = 1, nu = 5, mu = 2, sigma = 3)
+    )))
   )
-  expect_equal(nvariables(prior), 10)
+})
+
+test_that("create_cauchy_prior returns correct object and values", {
+  prior <- create_cauchy_prior(1, location = 0, scale = 1)
+  expect_s3_class(prior, "ernest_prior")
+  expect_equal(prior$varnames, "Cauchy(0, 1)")
+  expect_equal(prior$n_dim, 1)
+  test_vec <- seq(0, 1, by = 0.01)
+  expect_equal(
+    sapply(test_vec, prior$fn),
+    sapply(test_vec, qcauchy)
+  )
+
+  skip_if_not_installed("LaplacesDemon")
+  prior <- create_cauchy_prior(4, location = c(0, 0, 0, -2), scale = c(0.5, 1, 2, 1), lower = c(0, 0, -Inf, -Inf), upper = c(Inf, 1, Inf, 1))
+  expect_equal(
+    prior$varnames,
+    c("Cauchy(0, 0.5)", "Cauchy(0, 1)", "Cauchy(0, 2)", "Cauchy(-2, 1)")
+  )
+  test_mat <- matrix(runif(1000 * 4), nrow = 1000)
+  expect_equal(
+    t(apply(test_mat, 1, prior$fn)),
+    t(apply(test_mat, 1, \(x) c(
+      LaplacesDemon::qtrunc(x[1], "cauchy", a = 0, location = 0, scale = 0.5),
+      LaplacesDemon::qtrunc(x[2], "cauchy", a = 0, b = 1, location = 0, scale = 1),
+      LaplacesDemon::qtrunc(x[3], "cauchy", location = 0, scale = 2),
+      LaplacesDemon::qtrunc(x[4], "cauchy", b = 1, location = -2, scale = 1)
+    )))
+  )
+})
+
+test_that("create_uniform_prior returns correct object and values", {
+  prior <- create_uniform_prior(1, lower = 0, upper = 1)
+  expect_s3_class(prior, "ernest_prior")
+  expect_equal(prior$varnames, "Uniform(0, 1)")
+  expect_equal(prior$n_dim, 1)
+  test_vec <- seq(0, 1, by = 0.01)
+  expect_equal(
+    sapply(test_vec, prior$fn),
+    sapply(test_vec, qunif)
+  )
+
+  prior <- create_uniform_prior(3, lower = c(0, -1, -2), upper = c(1, 0, 1))
+  expect_equal(
+    prior$varnames,
+    c("Uniform(0, 1)", "Uniform(-1, 0)", "Uniform(-2, 1)")
+  )
+  test_mat <- matrix(runif(1000 * 3), nrow = 1000)
+  expect_equal(
+    t(apply(test_mat, 1, prior$fn)),
+    t(apply(test_mat, 1, \(x) c(
+      qunif(x[1], 0, 1),
+      qunif(x[2], -1, 0),
+      qunif(x[3], -2, 1)
+    )))
+  )
 })

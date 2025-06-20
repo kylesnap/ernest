@@ -8,3 +8,5 @@ ernest.Rproj
 inst/doc
 docs
 .lintr
+/doc/
+/Meta/

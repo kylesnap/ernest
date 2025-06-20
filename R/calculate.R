@@ -12,67 +12,60 @@
 #'
 #' @returns A tibble.
 #' @export
-calculate.ernest_run <- function(x, ..., ndraws = FALSE, approx_live = FALSE) {
+calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   check_dots_empty()
   if (is.logical(ndraws)) ndraws <- as.integer(ndraws)
   check_number_whole(ndraws, min = 0)
-  check_bool(approx_live)
-
-  log_volume <- if (ndraws == 0) {
-    x$log_volume
-  } else {
-    t(replicate(ndraws, sim_volume(x$n_points, x$n_iter, approx_live)))
-  }
-  log_lik <- x$log_lik
-
-  log_weight <- if (is.matrix(log_volume)) {
-    t(apply(log_volume, 1, get_logweight, log_lik = log_lik))
-  } else {
-    get_logweight(log_lik, log_volume)
-  }
-  log_evidence <- if (is.matrix(log_weight)) {
-    t(apply(log_weight, 1, get_logevid))
-  } else {
-    get_logevid(log_weight)
-  }
 
   if (ndraws == 0) {
-    tibble::tibble(
-      "log_lik" = log_lik,
+    return(tibble::new_tibble(
+      list(
+        "log_lik" = posterior::as_rvar(x$log_lik),
+        "log_volume" = posterior::as_rvar(x$log_volume),
+        "log_weight" = posterior::as_rvar(x$log_weight),
+        "log_evidence" = posterior::as_rvar(x$log_evidence),
+        "log_evidence.err" = posterior::as_rvar(sqrt(x$log_evidence_var))
+      ),
+      ndraws = 0L,
+      class = "ernest_estimates"
+    ))
+  }
+
+  log_lik <- x$log_lik
+  log_volume <- posterior::rdo(sim_volume(!!x$n_points, !!x$n_iter), ndraws = ndraws)
+
+  log_weight <- posterior::rdo(get_logweight(log_lik, log_volume))
+  log_evidence <- posterior::rdo(get_logevid(log_weight))
+
+  tibble::new_tibble(
+    list(
+      "log_lik" = posterior::as_rvar(log_lik),
       "log_volume" = log_volume,
       "log_weight" = log_weight,
-      "log_evidence" = log_evidence,
-      "information" = get_information(log_lik, log_volume, log_evidence)
-    )
-  } else {
-    tibble::tibble(
-      "log_lik" = posterior::as_rvar(log_lik),
-      "log_volume" = posterior::rvar(log_volume),
-      "log_weight" = posterior::rvar(log_weight),
-      "log_evidence" = posterior::rvar(log_evidence)
-    )
-  }
+      "log_evidence" = log_evidence
+    ),
+    ndraws = ndraws,
+    class = "ernest_estimates"
+  )
 }
 
-sim_volume <- function(n_points, n_iter, approx_live = FALSE) {
+sim_volume <- function(n_points, n_iter) {
   volumes <- numeric(n_iter + n_points)
 
-  if (approx_live) {
-    points <- c(rep(n_points, n_iter), seq(n_points, 1))
-    volumes <- rbeta(n_iter + n_points, points, 1)
-  } else {
-    vctrs::vec_slice(volumes, 1:n_iter) <- rbeta(
-      n_iter,
-      n_points,
-      1
-    )
-    live_vol <- rexp(n_points + 1, rate = 1)
-    live_vol <- cumsum(live_vol)
-    live_vol <- live_vol / tail(live_vol, 1)
-    live_vol <- live_vol[c(n_points, n_points:1)]
-    vctrs::vec_slice(volumes, (n_iter + 1):length(volumes)) <-
-      live_vol[-1] / live_vol[-length(live_vol)]
-  }
+  vctrs::vec_slice(volumes, 1:n_iter) <- rbeta(n_iter, n_points, 1)
+
+  nstart <- 500
+  bound <- c(n_iter, n_iter+n_points)
+  sn <- seq(n_points, 1)
+
+  y_arr <- rexp(nstart + 1, rate = 1.0)
+  append <- c(nstart, sn - 1)
+  ycsum <- cumsum(y_arr)
+  ycsum <- ycsum / ycsum[length(ycsum)]
+  uorder <- ycsum[append + 1] # R is 1-indexed
+
+  rorder <- uorder[-1] / uorder[-length(uorder)]
+  vctrs::vec_slice(volumes, (bound[1] + 1):bound[2]) <- rorder
 
   cumsum(log(volumes))
 }
@@ -84,7 +77,8 @@ get_logweight <- function(log_lik, log_volume) {
   log_lik <- c(-1e300, log_lik)
   idx <- seq(2, length(log_lik))
   lik_term <- logaddexp_vec(log_lik[idx], log_lik[idx - 1])
-  lik_term + vol_term + log(0.5)
+  log_weight <- lik_term + vol_term + log(0.5)
+  log_weight
 }
 
 get_logevid <- function(log_weight) {

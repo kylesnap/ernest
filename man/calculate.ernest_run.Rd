@@ -4,7 +4,7 @@
 \alias{calculate.ernest_run}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
-\method{calculate}{ernest_run}(x, ..., ndraws = FALSE, approx_live = FALSE)
+\method{calculate}{ernest_run}(x, ..., ndraws = FALSE)
 }
 \arguments{
 \item{x}{An \code{ernest_run} object.}

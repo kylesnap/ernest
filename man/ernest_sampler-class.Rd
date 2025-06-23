@@ -147,6 +147,13 @@ Prints a brief summary of the sampler.
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$print(...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{These dots are for future extensions and must be empty.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 Itself, invisibly.
 }

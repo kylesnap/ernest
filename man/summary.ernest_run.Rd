@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An \code{ernest_run} object.}
 
-\item{...}{Additional arguments (currently unused).}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 An object of class \code{summary.ernest_run}, a list with:

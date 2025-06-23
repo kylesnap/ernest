@@ -1,5 +1,5 @@
 Package: ernest
-Title: The Nested Sampling Toolkit
+Title: The R Nested Sampling Toolkit
 Version: 0.0.0.9000
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
@@ -10,29 +10,22 @@ Description: A complete implementation of the nested sampling algorithm
 License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 Imports: 
-    carrier,
     cli,
     distributional,
     generics,
     ggplot2,
     glue,
     lifecycle,
-    msm,
     posterior,
     R6,
     rlang (>= 1.1.0),
     tibble,
     tidyselect,
-    uniformly,
     utils,
     vctrs
 Suggests: 
-    future,
-    future.apply,
     ggdist,
     knitr,
-    LaplacesDemon,
-    mvtnorm,
     rmarkdown,
     testthat (>= 3.0.0),
     vdiffr

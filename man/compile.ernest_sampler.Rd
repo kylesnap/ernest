@@ -14,7 +14,7 @@ creating new live points. If \code{TRUE}, former results from the sampler are
 removed from the object. If \code{FALSE}, the sampler will not drop prior results,
 and continue using live points from the last sampling iteration performed.}
 
-\item{...}{Must be empty.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 The modified \code{ernest_sampler} object, invisibly.

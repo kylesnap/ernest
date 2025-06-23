@@ -27,7 +27,7 @@ equal to or larger than zero.}
 
 \item{verbose}{Whether to print updates on the sampler's progress.}
 
-\item{...}{Must be empty.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 The modified \code{ernest_sampler} object, invisibly.

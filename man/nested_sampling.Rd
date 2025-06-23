@@ -5,25 +5,22 @@
 \title{Build a Nested Sampler}
 \usage{
 nested_sampling(
-  x,
+  log_lik,
   prior,
-  names = NULL,
   sampler = rwmh_cube(),
   n_points = 500,
   first_update = 2.5,
-  update_interval = 1.5,
-  ...
+  update_interval = 1.5
 )
 }
 \arguments{
-\item{x}{A function or a \code{glm} object. For functions, this represents the
-log-likelihood function. For \code{glm} objects, the model is used to derive
-the log-likelihood.}
+\item{log_lik}{The log-likelihood function. This should take in a vector of
+parameters and return a scalar numeric value that is either finite or \code{-Inf}.}
 
 \item{prior}{An \code{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
 its specializations.}
 
-\item{sampler}{An \code{\link[=lrps_call]{lrps_call()}} object, declaring which likelihood-restricted
+\item{sampler}{An \link{ernest_sampling} object, declaring which likelihood-restricted
 prior sampler to use for the nested sampling run.}
 
 \item{n_points}{The number of live points to use in the nested sampling run.}
@@ -37,8 +34,6 @@ integer.}
 between subsequent updates of the sampler. If left as a double, this will
 be multiplied by the number of live points before being coerced to an
 integer.}
-
-\item{...}{Additional arguments passed to methods.}
 }
 \value{
 An \code{ernest_sampler} object.

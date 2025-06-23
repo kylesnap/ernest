@@ -5,7 +5,7 @@
 #' creating new live points. If `TRUE`, former results from the sampler are
 #' removed from the object. If `FALSE`, the sampler will not drop prior results,
 #' and continue using live points from the last sampling iteration performed.
-#' @param ... Must be empty.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @return The modified `ernest_sampler` object, invisibly.
 #' @details This method wraps a call to `ernest_sampler$compile()`.
@@ -27,7 +27,7 @@ compile.ernest_sampler <- function(object, clear = FALSE, ...) {
 #' @param min_logz The minimum log-evidence value to achieve. Must be a number
 #' equal to or larger than zero.
 #' @param verbose Whether to print updates on the sampler's progress.
-#' @param ... Must be empty.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @return The modified `ernest_sampler` object, invisibly.
 #' @details This method wraps a call to `ernest_sampler$generate()`.
@@ -44,22 +44,4 @@ generate.ernest_sampler <- function(
 ) {
   check_dots_empty()
   x$generate(max_iterations, max_calls, min_logz, verbose)
-}
-
-#' Estimate the log-evidence of a model
-#'
-#' @param x An `ernest_sampler` object.
-#' @param include_live A logical value indicating whether to include the live
-#' points in the calculation. If `FALSE`, the live points are excluded, and
-#' additional information about the integration is excluded.
-#' @param ... Must be empty.
-#'
-#' @return A [tibble()] with the log-evidence estimates.
-#' @details This method wraps a call to `ernest_sampler$calculate()`.
-#' @importFrom generics calculate
-#' @export
-#' @method calculate ernest_sampler
-calculate.ernest_sampler <- function(x, include_live = TRUE, ...) {
-  check_dots_empty()
-  x$calculate(include_live)
 }

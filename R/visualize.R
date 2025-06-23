@@ -20,7 +20,6 @@
 #' @export visualize
 visualize.ernest_run <- function(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE) {
   check_dots_used()
-  check_installed("tidyselect", reason = "Select variables to be visualized.")
   if (plot) {
     check_installed("ggdist", reason = "Plot posterior distributions.")
   }

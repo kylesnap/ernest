@@ -185,7 +185,7 @@ ernest_sampler <- R6Class(
     #' @description
     #' Prints a brief summary of the sampler.
     #'
-    #' @inheritParams rlang::args_dots_empty
+    #' @param ... These dots are for future extensions and must be empty.
     #'
     #' @return Itself, invisibly.
     print = function(...) {

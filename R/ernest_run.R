@@ -142,7 +142,7 @@ print.ernest_run <- function(x, ...) {
 #' log-evidence, evidence error, and information at each iteration.
 #'
 #' @param object An `ernest_run` object.
-#' @param ... Additional arguments (currently unused).
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @return An object of class `summary.ernest_run`, a list with:
 #' * `n_iter`: Number of iterations (number of dead points).

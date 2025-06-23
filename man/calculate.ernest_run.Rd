@@ -15,13 +15,23 @@
 will be derived from their expected values. If not \code{FALSE}, the log volumes
 will be simulated using \code{ndraws} samples from each volume's
 joint distribution.}
-
-\item{approx_live}{If \code{ndraws} is not \code{FALSE}, whether to approximate the
-distribution of log volumes of the live points using their associated
-marginals.}
 }
 \value{
-A tibble.
+A tibble, containing the following columns:
+\itemize{
+\item \code{log_lik}: The log-likelihood of the model.
+\item \code{log_volume}: The log volume of the prior space.
+\item \code{log_weight}: The log weights of the live points.
+\item \code{log_evidence}: The log evidence of the model.
+}
+
+These are all returned as \code{posterior::rvar()} vectors, which allows one vector
+to store \code{ndraws} samples.
+
+Additionally, in the case of \code{ndraws = 0}, the following column is also provided:
+\itemize{
+\item \code{log_evidence.err}: The standard error of the log evidence.
+}
 }
 \description{
 Estimate Evidence using a Nested Sampling Run

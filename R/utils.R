@@ -16,21 +16,8 @@ round_to_integer <- function(x, multiplicand = 1) {
   }
 }
 
-#' Check for duplicate names in a character vector.
-#'
-#' @param names A character vector of names to check.
-#' @return Throws an error if duplicates are found; otherwise, returns NULL.
-#' @noRd
-check_unique_names <- function(names, arg = caller_arg(), call = caller_env()) {
-  if (anyDuplicated(names)) {
-    duplicates <- unique(names[duplicated(names)])
-    cli::cli_abort(
-      "The following names are duplicated: {duplicates}."
-    )
-  }
-}
-
 #' Style a potentially long vector of doubles
+#' @noRd
 style_vec <- function(vec) {
   vec <- cli::cli_vec(
     prettyNum(vec),
@@ -198,29 +185,13 @@ compute_integral <- function(log_lik, log_volume) {
   )
 }
 
-#' Math utilities
-logaddexp <- function(a, b) {
-  m <- pmax(a, b)
-  m + log1p(exp(-abs(a - b)))
-}
-
 #' Estimate log vol for the live points
+#'
+#' @param dead_log_vol A vector of log volumes for dead points.
+#' @param n_points The number of live points to estimate log volume for.
+#' @return A vector of log volumes for the live points.
+#' @noRd
 get_live_vol <- function(dead_log_vol, n_points) {
   last_vol <- dead_log_vol[[vctrs::vec_size(dead_log_vol)]]
   last_vol + log1p((-1 - n_points)^(-1) * seq_len(n_points))
-}
-
-#' Fix a vector of cumulative increments into a proper cumulative sum.
-#'
-#' Given a vector of (possibly non-monotonic) cumulative iteration counts,
-#' returns a vector where each element is the running sum, treating any
-#' decrease as a new increment.
-#'
-#' @param x Integer vector of cumulative iteration counts.
-#' @return Integer vector of corrected cumulative sums.
-#' @noRd
-fix_cumulative_increments <- function(x) {
-  inc <- diff(c(0, x))
-  inc[inc <= 0] <- x[inc <= 0]
-  cumsum(inc)
 }

@@ -6,11 +6,19 @@
 #' will be derived from their expected values. If not `FALSE`, the log volumes
 #' will be simulated using `ndraws` samples from each volume's
 #' joint distribution.
-#' @param approx_live If `ndraws` is not `FALSE`, whether to approximate the
-#' distribution of log volumes of the live points using their associated
-#' marginals.
 #'
-#' @returns A tibble.
+#' @returns A tibble, containing the following columns:
+#' * `log_lik`: The log-likelihood of the model.
+#' * `log_volume`: The log volume of the prior space.
+#' * `log_weight`: The log weights of the live points.
+#' * `log_evidence`: The log evidence of the model.
+#'
+#' These are all returned as `posterior::rvar()` vectors, which allows one vector
+#' to store `ndraws` samples.
+#'
+#' Additionally, in the case of `ndraws = 0`, the following column is also provided:
+#' * `log_evidence.err`: The standard error of the log evidence.
+#'
 #' @export
 calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   check_dots_empty()

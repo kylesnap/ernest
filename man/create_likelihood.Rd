@@ -3,20 +3,16 @@
 \name{create_likelihood}
 \alias{create_likelihood}
 \alias{create_likelihood.function}
-\alias{create_likelihood.glm}
 \title{Specify a (Log) Likelihood Function}
 \usage{
 create_likelihood(object)
 
 \method{create_likelihood}{`function`}(object, ...)
-
-\method{create_likelihood}{glm}(object, ...)
 }
 \arguments{
-\item{...}{These dots are for future extensions and must be empty.}
+\item{object}{An object of class function or \code{ernest_likelihood}.}
 
-\item{x}{A log-likelihood function, or an object inheriting from \code{glm},
-such as one from a call to \code{\link[=glm]{glm()}}.}
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A function of class \code{create_likelihood}, which calculates the

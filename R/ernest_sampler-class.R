@@ -7,7 +7,6 @@
 #' This object is normally created by calling [nested_sampling()], and
 #' interacted with by calling S3 methods like [generate()] and [calculate()].
 #'
-#' @include utils.R import-standalone-purrr.R
 #' @importFrom R6 R6Class
 ernest_sampler <- R6Class(
   "ernest_sampler",

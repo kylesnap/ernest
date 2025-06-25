@@ -2,6 +2,7 @@
 #include "R_ext/Random.h"
 
 #include <iostream>
+#include "RandomData.hpp"
 
 // Scope guard to ensure PutRNGstate() is always called
 struct RNGScopeGuard {
@@ -42,10 +43,9 @@ cpp11::list UniformCube(const cpp11::doubles criteria,
   int n_call = 0;
 
   for (const auto& criterion : criteria) {
+    double *row_d = REAL(row.data());
     do {
-      for (std::size_t i = 0; i < static_cast<std::size_t>(num_dim); ++i) {
-        row[i] = unif_rand();
-      }
+      RandomData::unif_rand_n(num_dim, row_d);
       *new_lik = unit_log_lik(row);
       ++n_call;
     } while (*new_lik < criterion && n_call < max_loop);

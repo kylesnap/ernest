@@ -42,12 +42,16 @@ extern "C" SEXP _ernest_logcumsumexp(SEXP x) {
 }
 
 extern "C" {
+/* .Call calls */
+extern SEXP run_testthat_tests(void *);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_RandomWalkMetropolis", (DL_FUNC) &_ernest_RandomWalkMetropolis, 6},
     {"_ernest_UniformCube",          (DL_FUNC) &_ernest_UniformCube,          4},
     {"_ernest_logaddexp",            (DL_FUNC) &_ernest_logaddexp,            2},
     {"_ernest_logaddexp_vec",        (DL_FUNC) &_ernest_logaddexp_vec,        2},
     {"_ernest_logcumsumexp",         (DL_FUNC) &_ernest_logcumsumexp,         1},
+    {"run_testthat_tests",           (DL_FUNC) &run_testthat_tests,           1},
     {NULL, NULL, 0}
 };
 }

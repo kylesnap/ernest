@@ -28,9 +28,11 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    vdiffr
+    vdiffr,
+    xml2
 LinkingTo:
-    cpp11
+    cpp11,
+    testthat
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3

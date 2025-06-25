@@ -1,6 +1,7 @@
 #include <cpp11.hpp>
 #include "Rmath.h"
 #include "R_ext/Random.h"
+#include "RandomData.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -9,25 +10,6 @@ struct RNGScopeGuard {
   RNGScopeGuard() { GetRNGstate(); }
   ~RNGScopeGuard() { PutRNGstate(); }
 };
-
-cpp11::writable::doubles point_in_sphere(int m) {
-  double exponent = 1.0 / m;
-  double norm = 0.0;
-
-  cpp11::writable::doubles x(m);
-  // Fill vector with uniformly distributed values
-  for (auto val : x) {
-    val = norm_rand();
-    norm += val * val;
-  }
-  norm = sqrt(norm);
-  double radius = pow(unif_rand(), exponent);
-  for (auto val : x) {
-    val /= norm;
-    val *= radius;
-  }
-  return x;
-}
 
 /*
  * runif_in_sphere
@@ -44,11 +26,12 @@ cpp11::writable::doubles point_in_sphere(int m) {
  *   true if the generated point is valid, false otherwise.
  */
 bool shift_in_sphere(cpp11::writable::doubles &vec, double radius) {
-  cpp11::writable::doubles shift = point_in_sphere(vec.size());
-  for (size_t i = 0; i < vec.size(); ++i) {
-    vec[i] = vec[i] + (radius * shift[i]);
-    if (vec[i] < 0 || vec[i] > 1) {
-      return false;
+  double *vec_data = REAL(vec.data());
+  double *shift = RandomData::uniform_in_sphere(vec.size(), 1);
+  for (std::size_t i = 0; i < vec.size(); ++i) {
+    vec_data[i] += shift[i] * radius;
+    if (vec_data[i] < 0 || vec_data[i] > 1) {
+      return false; // Point is outside [0, 1]
     }
   }
   return true;

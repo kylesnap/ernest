@@ -22,8 +22,7 @@ ernest_lrps <- R6Class(
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
       private$unit_log_lik <- function(unit) {
-        vec <- private$prior_fn(unit)
-        private$log_lik_fn(vec)
+        private$log_lik_fn(private$prior_fn(unit))
       }
     },
 
@@ -54,7 +53,6 @@ ernest_lrps <- R6Class(
         private$n_dim,
         private$max_loop
       )
-      res$unit <- t(res$unit)
       res
     },
 
@@ -205,7 +203,9 @@ rwcube_lrps <- R6::R6Class(
     },
 
     propose_live = function(original, criteria) {
-      dim(original) <- c(length(criteria), private$n_dim)
+      if (!is.matrix(original)) {
+        dim(original) <- c(1, private$n_dim)
+      }
       res <- RandomWalkMetropolis(
         original,
         criteria,
@@ -214,7 +214,14 @@ rwcube_lrps <- R6::R6Class(
         private$steps,
         private$cur_epsilon
       )
-      res$unit <- t(res$unit)
+      if (any(is.na(res$log_lik))) {
+        no_swaps <- which(is.na(res$log_lik))
+        res$log_lik[no_swaps] <- apply(
+          original[no_swaps, , drop = FALSE],
+          1,
+          private$unit_log_lik
+        )
+      }
       private$increment(res)
       res
     },

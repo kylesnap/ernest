@@ -252,7 +252,7 @@ create_uniform_prior <- function(lower = 0, upper = 1, n_dim, varnames = NULL) {
     expr({
       if (!is_double(p, n = !!n_dim)) {
         cli::cli_abort(c(
-          "`p` must be a double vector of length {!!n_dim}.",
+          "`p` must be a double vector of length {!!n_dim}."
         ))
       }
       !!quantile

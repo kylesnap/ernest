@@ -8,7 +8,7 @@
       No. Live Points: 500
       No. Iterations: 100
       No. Lik. Calls: 2500
-      Log. Evidence (± Err.): -4.731 (± 0.5246)
+      Log. Evidence (± Err.): -4.607 (± 0.5003)
 
 # Runs can continue after one call
 
@@ -20,7 +20,7 @@
       No. Live Points: 500
       No. Iterations: 300
       No. Lik. Calls: 7500
-      Log. Evidence (± Err.): -4.859 (± 0.4803)
+      Log. Evidence (± Err.): -4.66 (± 0.4435)
 
 # Runs can continue after two calls
 
@@ -32,7 +32,7 @@
       No. Live Points: 500
       No. Iterations: 1000
       No. Lik. Calls: 25000
-      Log. Evidence (± Err.): -4.781 (± 0.279)
+      Log. Evidence (± Err.): -4.645 (± 0.2576)
 
 # Summary method returns
 
@@ -44,5 +44,5 @@
       No. Points: 500
       No. Iterations: 1000
       No. Lik. Calls: 25000
-      Log. Evidence (± Err.): -4.781 (± 0.279)
+      Log. Evidence (± Err.): -4.645 (± 0.2576)
 

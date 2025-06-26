@@ -215,31 +215,18 @@ test_that("rwcube can clear", {
 })
 
 test_that("rwcube can handle plateau", {
-  n_dim <- 3
-  mean <- c(-1, 0, 1)
-  cov <- diag(n_dim)
-  cov[cov == 0] <- 0.95
-  inv_cov <- solve(cov)
-  prior_win <- 10
-  expected_log_z <- n_dim * (-log(2 * prior_win))
-
-  logl_norm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
-  log_l <- function(x) {
-    -0.5 * crossprod(x - mean, crossprod(inv_cov, x - mean)) + logl_norm
-  }
+  log_l <- function(x) { -1 }
   prior <- create_uniform_prior(3, lower = -10, upper = 10)
 
-  rwcube <- rwcube_lrps$new(log_l, prior$fn, n_dim)
-  point <- runif(3)
-  log_lik <- log_l(prior$fn(point))
-  checks <- rep(TRUE, 1000L)
-  for (i in seq(1000)) {
-    att <- rwcube$propose_live(matrix(point, ncol = n_dim), log_lik)
-    if (att$log_lik == log_lik) {
-      checks[i] <- identical(att$unit, point) && att$n_acc == 0L
-    }
-    point <- att$unit
-    log_lik <- att$log_lik
-  }
-  expect_true(all(checks))
+  rwcube <- rwcube_lrps$new(log_l, prior$fn, 3L)
+  att_one <- rwcube$propose_live(c(0, 0, 0), 0)
+  expect_mapequal(
+    att_one,
+    list(
+      "unit" = matrix(c(0, 0, 0), ncol = 3),
+      "log_lik" = -1,
+      "n_accept" = 0L,
+      "n_call" = 25L
+    )
+  )
 })

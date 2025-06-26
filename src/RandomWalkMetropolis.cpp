@@ -5,38 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-// Scope guard to ensure PutRNGstate() is always called
-struct RNGScopeGuard {
-  RNGScopeGuard() { GetRNGstate(); }
-  ~RNGScopeGuard() { PutRNGstate(); }
-};
-
-/*
- * runif_in_sphere
- * ---------------
- * Generates a random point uniformly within a sphere of given radius,
- * modifies the input vector in-place, and returns true if the point is valid.
- * Returns false if any coordinate is outside [0, 1] after normalization.
- *
- * Args:
- *   vec: Vector to be filled with the random point.
- *   radius: Radius of the sphere.
- *
- * Returns:
- *   true if the generated point is valid, false otherwise.
- */
-bool shift_in_sphere(cpp11::writable::doubles &vec, double radius) {
-  double *vec_data = REAL(vec.data());
-  double *shift = RandomData::uniform_in_sphere(vec.size(), 1);
-  for (std::size_t i = 0; i < vec.size(); ++i) {
-    vec_data[i] += shift[i] * radius;
-    if (vec_data[i] < 0 || vec_data[i] > 1) {
-      return false; // Point is outside [0, 1]
-    }
-  }
-  return true;
-}
-
 /*
  * RandomWalkMetropolis
  * --------------------
@@ -64,50 +32,58 @@ cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit,
                                  const int num_dim,
                                  const int steps,
                                  const double epsilon)  {
-  RNGScopeGuard rng_guard;
-
-  const std::size_t n_criteria = criteria.size();
-  cpp11::writable::doubles_matrix<> out(num_dim, n_criteria);
-  cpp11::writable::doubles out_lik;
-  auto out_ptr = REAL(out.data());
+  RandomData::RNGScopeGuard rng_guard;
+  cpp11::writable::doubles_matrix<> cur(criteria.size(), num_dim); 
+  cpp11::writable::doubles_matrix<> nxt(criteria.size(), num_dim);
+  cpp11::writable::doubles_matrix<> shift(criteria.size(), num_dim);
+  cpp11::writable::doubles cur_lik(criteria);
+  std::vector<bool> swapped(criteria.size(), false);
   int n_call = 0;
   int n_accept = 0;
 
-  for (std::size_t row = 0; row < criteria.size(); ++row) {
-    cpp11::writable::doubles cur(num_dim);
-    for (std::size_t col = 0; col < cur.size(); ++col) {
-      cur[col] = static_cast<double>(unit(row, col));
-    }
+  int num_el = criteria.size() * num_dim;
+  int inc = 1;
+  // Copy the original points into the cur matrix.
+  dcopy_(&num_el, REAL(unit.data()), &inc, REAL(cur.data()), &inc);
 
-    double cur_lik = unit_log_lik(cur);
+  for (int s = 0; s < steps; ++s) {
+    RandomData::uniform_in_sphere(shift);
+    dcopy_(&num_el, REAL(cur.data()), &inc, REAL(nxt.data()), &inc);
+    daxpy_(&num_el, &epsilon, REAL(shift.data()), &inc, REAL(nxt.data()), &inc);
 
-    for (std::size_t step = 0; step < steps; ++step) {
-      ++n_call;
-      cpp11::writable::doubles nxt(cur);
-      if (!shift_in_sphere(nxt, epsilon)) {
-        continue;
+    for (int i = 0; i < criteria.size(); ++i) {
+      cpp11::writable::doubles row(num_dim);
+      bool invalid = false;
+      for (int j = 0; j < num_dim; ++j) {
+        row[j] = static_cast<double>(nxt(i, j));
+        invalid = invalid || (row[j] < 0.0 || row[j] > 1.0);
       }
-      double nxt_lik = unit_log_lik(nxt);
-      if (nxt_lik >= criteria[row]) {
-        cur = std::move(nxt);
-        cur_lik = nxt_lik;
-        ++n_accept;
+      n_call++;
+      if (invalid) continue;
+      double log_lik = unit_log_lik(row);
+      if (log_lik > criteria[i]) {
+        // If the log-likelihood exceeds the criterion, accept the sample.
+        swapped[i] = true;
+        cur_lik[i] = log_lik;
+        n_accept++;
+        for (int j = 0; j < num_dim; ++j) {
+          cur(i, j) = static_cast<double>(nxt(i, j));
+        }
       }
     }
-
-    for (auto c : cur) {
-      *out_ptr = c;
-      out_ptr++;
-    }
-    out_lik.push_back(cur_lik);
-    ++cur_lik;
   }
-
+  for (int i = 0; i < criteria.size(); ++i) {
+    if (!swapped[i]) {
+      // If no swap occurred, keep the original point.
+      cur_lik[i] = NA_REAL;
+    }
+  }
+  
   using namespace cpp11::literals;
   return cpp11::writable::list({
-    "unit"_nm = out,
+    "unit"_nm = cur,
     "n_call"_nm = n_call,
     "n_accept"_nm = n_accept,
-    "log_lik"_nm = out_lik
+    "log_lik"_nm = cur_lik
   });
 }

@@ -23,3 +23,4 @@ make_gaussian <- function(num_dim, corr = 0.95) {
     prior = prior
   )
 }
+

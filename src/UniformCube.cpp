@@ -4,12 +4,6 @@
 #include <iostream>
 #include "RandomData.hpp"
 
-// Scope guard to ensure PutRNGstate() is always called
-struct RNGScopeGuard {
-  RNGScopeGuard() { GetRNGstate(); }
-  ~RNGScopeGuard() { PutRNGstate(); }
-};
-
 /*
  * UniformCube
  * -----------
@@ -32,39 +26,48 @@ cpp11::list UniformCube(const cpp11::doubles criteria,
                         cpp11::function unit_log_lik,
                         const int num_dim,
                         const int max_loop)  {
-  RNGScopeGuard rng_guard;
-
-  const std::size_t n_criteria = criteria.size();
-  cpp11::writable::doubles_matrix<cpp11::by_row> out(num_dim, n_criteria);
-  cpp11::writable::doubles out_lik(n_criteria);
-  auto new_lik = out_lik.begin();
-  auto out_ptr = REAL(out.data());
-  cpp11::writable::doubles row(num_dim);
+  RandomData::RNGScopeGuard rng_guard;
+  cpp11::writable::doubles_matrix<> out(criteria.size(), num_dim); 
+  cpp11::writable::doubles_matrix<> nxt(criteria.size(), num_dim);
+  cpp11::writable::doubles nxt_lik(criteria.size());
+  std::vector<bool> is_valid(criteria.size(), false);
   int n_call = 0;
 
-  for (const auto& criterion : criteria) {
-    double *row_d = REAL(row.data());
-    do {
-      RandomData::unif_rand_n(num_dim, row_d);
-      *new_lik = unit_log_lik(row);
-      ++n_call;
-    } while (*new_lik < criterion && n_call < max_loop);
-
-    if (n_call > max_loop) {
-      cpp11::stop("Maximum number of attempts (%d) exceeded for criterion %f", max_loop, criterion);
+  while (n_call < max_loop) {
+    // Generate a new set of random points in the unit cube.
+    RandomData::uniform_in_cube(nxt);
+    for (int i = 0; i < criteria.size(); ++i) {
+      if (is_valid[i]) {
+        continue;
+      }
+      cpp11::writable::doubles row(num_dim);
+      for (int j = 0; j < num_dim; ++j) {
+        row[j] = static_cast<double>(nxt(i, j));
+      }
+      double log_lik = unit_log_lik(row);
+      n_call++;
+      if (log_lik > criteria[i]) {
+        // If the log-likelihood exceeds the criterion, accept the sample.
+        is_valid[i] = true;
+        nxt_lik[i] = log_lik;
+        for (int j = 0; j < num_dim; ++j) {
+          out(i, j) = static_cast<double>(nxt(i, j));
+        }
+      }
     }
-
-    for (auto r : row) {
-      *out_ptr = r;
-      out_ptr++;
+    if (std::find(is_valid.begin(), is_valid.end(), false) == is_valid.end()) {
+      break;
     }
-    ++new_lik;
+  }
+
+  if (n_call >= max_loop) {
+    cpp11::stop("Maximum number of attempts (%d) reached without finding valid samples.", max_loop);
   }
 
   using namespace cpp11::literals;
   return cpp11::writable::list({
     "unit"_nm = out,
     "n_call"_nm = n_call,
-    "log_lik"_nm = out_lik
+    "log_lik"_nm = nxt_lik
   });
 }

@@ -38,7 +38,7 @@
       No. Live Points: 500
       No. Iterations: 99
       No. Lik. Calls: 2475
-      Log. Evidence (± Err.): -4.588 (± 0.5037)
+      Log. Evidence (± Err.): -4.79 (± 0.5439)
 
 ---
 
@@ -50,5 +50,5 @@
       No. Points: 500
       No. Iterations: 99
       No. Lik. Calls: 2475
-      Log. Evidence (± Err.): -4.588 (± 0.5037)
+      Log. Evidence (± Err.): -4.79 (± 0.5439)
 

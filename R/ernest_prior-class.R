@@ -347,3 +347,18 @@ validate_prior <- function(prior, size = 1000L) {
   }
   prior
 }
+
+#' @export
+format.ernest_prior <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_text("{.cls {class(x)}} with {x$n_dim} dim{?s}.")
+    cli::cli_text("Vars.: {x$varnames}")
+  })
+}
+
+#' @export
+print.ernest_prior <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+

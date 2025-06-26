@@ -184,3 +184,11 @@ test_that("create_uniform_prior returns correct object and values", {
     )))
   )
 })
+
+test_that("Print methods", {
+  expect_snapshot(create_normal_prior(1, mean = 0, sd = 1))
+  expect_snapshot(create_t_prior(1, df = 1))
+  expect_snapshot(create_cauchy_prior(1, location = 0, scale = 1))
+  expect_snapshot(create_uniform_prior(1, lower = 0, upper = 1))
+  expect_snapshot(create_prior(function(x) x, n_dim = 1, varnames = "x"))
+})

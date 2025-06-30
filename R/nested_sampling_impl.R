@@ -43,19 +43,19 @@ nested_sampling_impl <- function(
     "{cli::pb_spin} Generating nested samples | ",
     "{cli::pb_current} points created [{cli::pb_rate}]"
   )
-  done <- "Reached Max Iterations: {iter}/{max_it}"
   if (verbose) {
     cli_progress_bar(format = progress, clear = TRUE)
   }
+  private$status <- "RUNNING"
   for (i in seq(1, max_it - iter)) {
     # 1. Check stop conditions
     if (call > max_c) {
-      done <- "Reached Max Calls: {call}/{max_c}"
+      private$status <- "MAX_CALLS"
       break
     }
     d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
     if (d_log_z < min_logz) {
-      done <- "Passed {.arg min_logz}."
+      private$status <- "MIN_LOGZ"
       break
     }
     if (verbose) {
@@ -102,9 +102,9 @@ nested_sampling_impl <- function(
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
   }
+  private$status <- "MAX_IT"
   if (verbose) {
     cli_progress_done()
-    cli::cli_inform(done)
   }
 
   list(

@@ -1,3 +1,7 @@
+#' Statuses for ernest sampler
+#' @noRd
+statuses <- c("UNINITIALIZED", "RUNNING", "MAX_IT", "MAX_CALL", "MIN_LOGZ")
+
 #' @name ernest_sampler-class
 #' @title The Ernest Nested Sampler Object
 #'
@@ -71,6 +75,7 @@ ernest_sampler <- R6Class(
       private$live_log_lik = double(0L)
       private$live_birth = double(0L)
       private$results = NULL
+      private$status = statuses[1L]
       invisible(self)
     },
 
@@ -120,13 +125,38 @@ ernest_sampler <- R6Class(
       min_logz = 0.05,
       verbose = FALSE
     ) {
-      can_stop <- FALSE
-      if (max_iterations == Inf) {
-        max_iterations <- .Machine$integer.max
-      } else {
-        can_stop <- TRUE
+      if (private$status == "RUNNING") {
+        cli::cli_warn(c(
+          "Sampler can't contain a half-completed run.",
+          "i" = "Rolling-back sampler to {self$niterations} iteration{?s}."
+        ))
+        if (self$niterations > 0) {
+          private$live_unit <-
+            private$results$samples_u[attr(private$results, "live_loc"), ]
+          private$live_log_lik <-
+            private$results$log_lik[attr(private$results, "live_loc")]
+          private$live_birth <-
+            private$results$birth[attr(private$results, "live_loc")]
+          private$status <- "MAX_IT"
+        } else {
+          private$status <- "UNINITIALIZED"
+        }
       }
+
+      if (identical(c(max_iterations, max_calls, min_logz), c(Inf, Inf, 0))) {
+        cli::cli_abort(c(
+          "Can't run `generate` without a stopping criteria.",
+          "i" = "At least one of `max_iterations`, `max_calls` must be finite.",
+          "i" = "Alternatively, `min_logz` must be greater than 0."
+        ))
+      }
+
+      if (max_iterations == Inf) max_iterations <- .Machine$integer.max
+      if (max_calls == Inf) max_calls <- .Machine$integer.max
       check_number_whole(max_iterations, min = 1)
+      check_number_whole(max_calls, min = 1)
+      check_number_decimal(min_logz, min = 0)
+
       if (self$niterations != 0 && max_iterations <= self$niterations) {
         cli::cli_abort(c(
           "`max_iterations` must be greater than the current number of iterations.",
@@ -134,13 +164,6 @@ ernest_sampler <- R6Class(
           "i" = "Already performed {self$niterations} iterations."
         ))
       }
-
-      if (max_calls == Inf) {
-        max_calls <- .Machine$integer.max
-      } else {
-        can_stop <- TRUE
-      }
-      check_number_whole(max_calls, min = 1)
       if (self$ncalls != 0 && max_calls <= self$ncalls) {
         cli::cli_abort(c(
           "`max_calls` must be greater than the current number of calls.",
@@ -148,15 +171,9 @@ ernest_sampler <- R6Class(
           "i" = "Already performed {self$ncalls} calls."
         ))
       }
-
-      check_number_decimal(min_logz, min = 0)
-      if (min_logz != 0) {
-        can_stop <- TRUE
-      }
       if (!is_empty(private$results)) {
-        prev <- private$results
-        log_vol <- prev$log_vol[prev$n_iter]
-        log_z <- prev$log_evidence[prev$n_iter]
+        log_vol <- private$results$log_vol[private$results$n_iter]
+        log_z <- private$results$log_evidence[private$results$n_iter]
         d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
         if (d_log_z <= min_logz) {
           cli::cli_abort(c(
@@ -166,21 +183,11 @@ ernest_sampler <- R6Class(
           ))
         }
       }
-      check_bool(verbose)
 
-      if (!can_stop) {
-        cli::cli_abort(c(
-          "Can't run `generate` without a stopping criteria.",
-          "i" = "At least one of `max_iterations`, `max_calls` must be finite.",
-          "i" = "Alternatively, `min_logz` must be greater than 0."
-        ))
-      }
-
-      if (!identical(
-        self$live_points$unit,
-        c(private$n_points, private$prior$n_dim)
-      )) {
-        self$compile()
+      if (private$status == "UNINITIALIZED") {
+        self$compile(clear = TRUE)
+      } else {
+        self$compile(clear = FALSE)
       }
       result <- nested_sampling_impl(
         self,
@@ -230,6 +237,7 @@ ernest_sampler <- R6Class(
     n_points = NULL,
     first_update = NULL,
     update_interval = NULL,
+    status = statuses[1L],
 
     live_unit = matrix(double(0L)),
     live_log_lik = double(0L),

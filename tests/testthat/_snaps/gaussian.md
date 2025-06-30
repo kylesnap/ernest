@@ -19,9 +19,9 @@
       
       -- Ernest Nested Sampling Run --------------------------------------------------
       No. Live Points: 500
-      No. Iterations: 5808
-      No. Lik. Calls: 145200
-      Log. Evidence (± Err.): -8.89 (± 0.1377)
+      No. Iterations: 5833
+      No. Lik. Calls: 145825
+      Log. Evidence (± Err.): -8.939 (± 0.1382)
 
 ---
 
@@ -31,7 +31,7 @@
       
       -- Ernest Nested Sampling Run Summary ------------------------------------------
       No. Points: 500
-      No. Iterations: 5808
-      No. Lik. Calls: 145200
-      Log. Evidence (± Err.): -8.89 (± 0.1377)
+      No. Iterations: 5833
+      No. Lik. Calls: 145825
+      Log. Evidence (± Err.): -8.939 (± 0.1382)
 

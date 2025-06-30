@@ -120,46 +120,61 @@ ernest_sampler <- R6Class(
       min_logz = 0.05,
       verbose = FALSE
     ) {
-      min_iter <- max(1, self$niterations)
-      check_number_whole(
-        max_iterations,
-        min = min_iter,
-        allow_infinite = TRUE,
-        allow_null = FALSE
-      )
-      check_number_whole(
-        max_calls,
-        min = 1,
-        allow_infinite = TRUE,
-        allow_null = FALSE
-      )
-      check_number_decimal(
-        min_logz,
-        min = 0,
-        allow_infinite = FALSE,
-        allow_null = FALSE
-      )
-      check_bool(verbose)
-
-      if (
-        is.infinite(max_iterations) & is.infinite(max_calls) & is.null(min_logz)
-      ) {
+      can_stop <- FALSE
+      if (max_iterations == Inf) {
+        max_iterations <- .Machine$integer.max
+      } else {
+        can_stop <- TRUE
+      }
+      check_number_whole(max_iterations, min = 1)
+      if (self$niterations != 0 && max_iterations <= self$niterations) {
         cli::cli_abort(c(
-          "No stopping condition set.",
-          "i" = "Consider setting `max_iterations`, `max_calls`, or `min_logz`."
+          "`max_iterations` must be greater than the current number of iterations.",
+          "i" = "Can't set `max_iterations` to {max_iterations}.",
+          "i" = "Already performed {self$niterations} iterations."
         ))
       }
-      max_iterations <- if (max_iterations == Inf) {
-        .Machine$integer.max
+
+      if (max_calls == Inf) {
+        max_calls <- .Machine$integer.max
       } else {
-        as.integer(max_iterations)
+        can_stop <- TRUE
       }
-      max_calls <- if (max_calls == Inf) {
-        .Machine$integer.max
-      } else {
-        as.integer(max_calls)
+      check_number_whole(max_calls, min = 1)
+      if (self$ncalls != 0 && max_calls <= self$ncalls) {
+        cli::cli_abort(c(
+          "`max_calls` must be greater than the current number of calls.",
+          "i" = "Can't set `max_calls` to {max_calls}.",
+          "i" = "Already performed {self$ncalls} calls."
+        ))
       }
-      min_logz <- as.double(min_logz)
+
+      check_number_decimal(min_logz, min = 0)
+      if (min_logz != 0) {
+        can_stop <- TRUE
+      }
+      if (!is_empty(private$results)) {
+        prev <- private$results
+        log_vol <- prev$log_vol[prev$n_iter]
+        log_z <- prev$log_evidence[prev$n_iter]
+        d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
+        if (d_log_z <= min_logz) {
+          cli::cli_abort(c(
+            "`min_logz` must be less than the estimated contribution of the remaining prior volume to the evidence.",
+            "i" = "Can't set `min_logz` to {min_logz}.",
+            "i" = "Current est. remaining contribution log volume is {round(d_log_z, 3)}."
+          ))
+        }
+      }
+      check_bool(verbose)
+
+      if (!can_stop) {
+        cli::cli_abort(c(
+          "Can't run `generate` without a stopping criteria.",
+          "i" = "At least one of `max_iterations`, `max_calls` must be finite.",
+          "i" = "Alternatively, `min_logz` must be greater than 0."
+        ))
+      }
 
       if (!identical(
         self$live_points$unit,
@@ -170,9 +185,9 @@ ernest_sampler <- R6Class(
       result <- nested_sampling_impl(
         self,
         private,
-        max_iterations,
-        max_calls,
-        min_logz,
+        as.integer(max_iterations),
+        as.integer(max_calls),
+        as.double(min_logz),
         verbose
       )
       private$results <- do.call(

@@ -45,26 +45,19 @@ compile.ernest_sampler <- function(object, ..., clear = FALSE) {
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
 #' @param n_points The number of live points to generate.
-#' @param n_dim The number of dimensions for each point.
 #' @param call The calling environment for error handling.
 #' @return A list containing `unit`, `point`, and `log_lik` matrices/vectors.
 #' @noRd
-create_live <- function(lrps, n_points, n_dim, call = caller_env()) {
-  i <- 0L
-  unit <- matrix()
-  try_fetch(
-    {
-      unit <- lrps$propose_uniform(criteria = rep(-1e300, n_points))
-    },
+create_live <- function(lrps, n_points, call = caller_env()) {
+  rlang::try_fetch(
+    lrps$propose_uniform(criteria = rep(-1e300, n_points)),
     error = function(cnd) {
       cli::cli_abort(
-        "Problem while generating initial live points.",
-        parent = cnd,
-        call = call
+        "Can't create live points.",
+        parent = cnd
       )
     }
   )
-  unit
 }
 
 #' Validate an existing nested sample for correctness.
@@ -82,22 +75,22 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
   # unit: Must be a matrix of points with dim [n_points, n_var],
   # all points must be finite and within [0, 1]
   if (!is.matrix(unit)) {
-    cli::cli_abort("Internal error: Unit points must be stored as a matrix.")
+    abort(
+      "Unit points must be stored as a matrix.",
+      call = call
+    )
   }
   if (!identical(dim(unit), dim(tmplate))) {
     cli::cli_abort(
-      "Unit points must be stored as a matrix with dim ({n_points}, {n_var})."
+      "Unit points must be stored as a matrix with dim. `c({n_points}, {n_var})`.",
+      call = call
     )
   }
   if (any(!is.finite(unit))) {
-    cli::cli_abort(
-      "Unit points must contain only finite values."
-    )
+    abort("Unit points must contain only finite values.", call = call)
   }
   if (any(unit < 0) || any(unit > 1)) {
-    cli::cli_abort(
-      "Unit points must contain values within [0, 1]."
-    )
+    abort("Unit points must contain values within [0, 1].", call = call)
   }
   # loglik: Must be numeric vector of length n_points. Must contain only values
   # that are either finite or -Inf. Abort if log_lik contains no
@@ -106,18 +99,17 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
   idx <- intersect(which(!is.finite(log_lik)), which(log_lik != -Inf))
   if (length(idx) > 0L) {
     len <- length(idx)
-    first_logl <- log_lik[idx[1]]
     cli::cli_abort(c(
       "Couldn't avoid calculating non-finite log-likelihood values.",
       "i" = "Log-likelihood values can only be finite or `-Inf`.",
-      "x" = "There {?is/are} {len} non-finite value{?s}."
-    ))
+      "x" = "There {?is/are} {len} non-finite, non-`-Inf` value{?s}."
+    ), call = call)
   }
   idx <- which(log_lik == -Inf)
   if (length(idx) > 0L) {
     len <- length(idx)
     cli::cli_warn(
-      "Found {len} log-likelihood value{?s} equal to `-Inf`."
+      "Found {len} log-likelihood value{?s} equal to `-Inf`.", call = call
     )
   }
   unique_logl <- unique(log_lik)
@@ -125,8 +117,8 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
     cli::cli_abort(c(
       "Couldn't generate unique log-likelihood values for each point.",
       "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
-      "i" = "This generally indicates an error with your log-lik. function."
-    ))
+      "i" = "This generally indicates an error within a log. lik. function."
+    ), call = call)
   }
   if (length(unique_logl) < length(log_lik) * 0.25) {
     perc <- prettyNum(length(unique_logl) / length(log_lik))
@@ -134,7 +126,7 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
       "Suspected flatness in the log-likelihood surface.",
       "x" = "Only {perc}% of the live points have unique log-lik. values.",
       "i" = "Consider reviewing your model or adjusting your prior."
-    ))
+    ), call = call)
   }
   NULL
 }

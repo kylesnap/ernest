@@ -363,7 +363,7 @@ create_uniform_prior <- function(lower = 0, upper = 1, n_dim, varnames = NULL) {
 #' Form a prior distribution object for ernest.
 #'
 #' @noRd
-new_ernest_prior <- function(prior_fn, n_dim, varnames = NULL, lower = NULL, upper = NULL, class = NULL) {
+new_ernest_prior <- function(prior_fn, n_dim, varnames = NULL, lower = NULL, upper = NULL, class = NULL, call = caller_env()) {
   check_function(prior_fn)
   check_number_whole(n_dim, min = 1)
 
@@ -385,21 +385,14 @@ new_ernest_prior <- function(prior_fn, n_dim, varnames = NULL, lower = NULL, upp
     ),
     class = c("ernest_prior", class)
   )
-  validate_prior(obj)
+  validate_prior(obj, call = call)
 }
 
 #' Validation for a prior function
 #' @returns obj if valid, else an error
 #' @noRd
-validate_prior <- function(prior, size = 1000L) {
+validate_prior <- function(prior, size = 1000L, call = caller_env()) {
   check_number_whole(size, min = 1)
-  test_val <- prior$fn(rep(0.5, prior$n_dim))
-  if (!is_double(test_val, n = prior$n_dim)) {
-    cli::cli_abort(c(
-      "Prior function must return a double vector of length {prior$n_dim}.",
-      "i" = "Returned: {rep(0.5, prior$n_dim)} = {test_val}"
-    ))
-  }
 
   testmat <- matrix(stats::runif(size * prior$n_dim), ncol = prior$n_dim)
   check <- t(apply(testmat, 1, prior$fn, simplify = TRUE))
@@ -407,33 +400,41 @@ validate_prior <- function(prior, size = 1000L) {
     dim(check) <- c(size, 1)
   }
 
-  if (any(!is.finite(check))) {
-    indx <- which(!is.finite(check), arr.ind = TRUE)[1, ]
-    cli::cli_abort(c(
-      "Prior must return finite values for all inputs in [0, 1).",
-      "i" = "Failed first on row: {testmat[indx]} = {check[indx]}"
-    ))
-  }
-  if (!is_empty(prior$lower)) {
-    cmp <- matrix(rep(prior$lower, times = size), nrow = size, byrow = TRUE)
-    if (any(check < cmp)) {
-      indx <- which(check < cmp, arr.ind = TRUE)[1,]
-      cli::cli_abort(c(
-        "Prior must return values greater than or equal to the lower bound.",
-        "i" = "Failed first on row: {testmat[indx]} = {check[indx]}"
-      ))
+  try_fetch(
+    {
+      for (i in nrow(check)) {
+        if (!is_double(check[i, ], n = prior$n_dim)) {
+          cli::cli_abort("`fn` must always return a double vector of length {prior$n_dim}.")
+        }
+        if (any(!is.finite(check[i, ]))) {
+          cli::cli_abort("`fn` must always return finite values for every vector in [0, 1).")
+        }
+        if (!is_empty(prior$lower) && any(check[i, ] < prior$lower)) {
+          cli::cli_abort(c(
+            "`fn` must return values greater than or equal to the lower bound.",
+            "i" = "Lower bounds: {prior$lower}"
+          ))
+        }
+        if (!is_empty(prior$upper) && any(check[i, ] > prior$upper)) {
+          cli::cli_abort(c(
+            "`fn` must return values less than or equal to the upper bound.",
+            "i" = "Upper bounds: {prior$upper}"
+          ))
+        }
+      }
+    },
+    error = function(cnd) {
+      cli::cli_abort(
+        c(
+          "{.cls ernest_prior} failed validation checks.",
+          "x" = "Failure at this input: {testmat[i, ]}",
+          "x" = "Failed with this output: {check[i, ]}"
+        ),
+        parent = cnd,
+        call = call
+      )
     }
-  }
-  if (!is_empty(prior$upper)) {
-    cmp <- matrix(rep(prior$upper, times = size), nrow = size, byrow = TRUE)
-    if (any(check > cmp)) {
-      indx <- which(check > cmp, arr.ind = TRUE)[1,]
-      cli::cli_abort(c(
-        "Prior must return values less than or equal to the upper bound.",
-        "i" = "Failed first on row: {testmat[indx]} = {check[indx]}"
-      ))
-    }
-  }
+  )
   prior
 }
 

@@ -105,12 +105,7 @@ ernest_sampler <- R6Class(
         self$clear()
       }
       if (any(map_lgl(self$live_points, is_null))) {
-        live <- create_live(
-          private$lrps,
-          private$n_points,
-          private$prior$n_dim,
-          call = current_env()
-        )
+        live <- create_live(private$lrps, private$n_points)
         private$live_unit <- live$unit
         private$live_log_lik <- live$log_lik
         private$live_birth <- rep(0, private$n_points)

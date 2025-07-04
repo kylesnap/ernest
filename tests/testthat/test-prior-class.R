@@ -1,3 +1,5 @@
+set.seed(42)
+
 test_that("create_prior returns a valid ernest_prior object with correct attributes", {
   fn <- function(x) rep(1, length(x))
   varnames <- c("a", "b", "c")
@@ -27,38 +29,26 @@ test_that("create_prior silently repairs var. names", {
 test_that("create_prior errors if n_dim < 1", {
   fn <- function(x) numeric(0)
   varnames <- character(0)
-  expect_error(
-    create_prior(fn, n_dim = 0, varnames = varnames),
-    "`n_dim` must be a whole number larger than or equal to 1, not the number 0"
-  )
+  expect_snapshot_error(create_prior(fn, n_dim = 0, varnames = varnames))
 })
 
 test_that("create_prior errors if prior function output length is wrong", {
-  fn <- function(x) 1
+  fn <- function(x) c(x[1], x[2], x[1]/x[2])
   varnames <- c("a", "b")
-  expect_error(
-    create_prior(fn, n_dim = 2, varnames = varnames),
-    "Prior function must return a double vector of length 2"
-  )
+  expect_snapshot_error(create_prior(fn, n_dim = 2, varnames = varnames))
 })
 
 test_that("create_prior errors if prior returns non-finite values", {
   fn <- function(x) rep(NaN, length(x))
   varnames <- c("a", "b")
-  expect_error(
-    create_prior(fn, n_dim = 2, varnames = varnames),
-    "Prior must return finite values for all inputs in \\[0, 1)."
-  )
+  expect_snapshot_error(create_prior(fn, n_dim = 2, varnames = varnames))
 })
 
 test_that("create_prior errors if lower > min(prior)", {
   fn <- function(x) rep(0, length(x))
   varnames <- c("a", "b")
   lower <- c(1, 1)
-  expect_error(
-    create_prior(fn, n_dim = 2, varnames = varnames, lower = lower),
-    "Prior must return values greater than or equal to the lower bound."
-  )
+  expect_snapshot_error(create_prior(fn, n_dim = 2, varnames = varnames, lower = lower))
 })
 
 test_that("create_prior errors if lower >= upper", {
@@ -66,10 +56,7 @@ test_that("create_prior errors if lower >= upper", {
   varnames <- c("a", "b")
   lower <- c(1, 1)
   upper <- c(-1, -1)
-  expect_error(
-    create_prior(fn, n_dim = 2, varnames = varnames, lower = lower, upper = upper),
-    "Prior must return values greater than or equal to the lower bound."
-  )
+  expect_snapshot_error(create_prior(fn, n_dim = 2, varnames = varnames, lower = lower, upper = upper))
 })
 
 test_that("create_normal_prior returns correct object and values", {

@@ -22,7 +22,21 @@ ernest_lrps <- R6Class(
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
       private$unit_log_lik <- function(unit) {
-        private$log_lik_fn(private$prior_fn(unit))
+        point <- try_fetch(private$prior_fn(unit), error = function(cnd) {
+          cli::cli_abort(c(
+            "Can't calculate the prior transformation.",
+            "x" = cnd_message(cnd)
+          ), parent = NA)
+        })
+        try_fetch(
+          private$log_lik_fn(point),
+          error = function(cnd) {
+            cli::cli_abort(c(
+              "Can't calculate the log. likelihood.",
+              "x" = cnd_message(cnd)
+            ), parent = NA)
+          }
+        )
       }
     },
 

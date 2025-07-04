@@ -62,7 +62,7 @@ test_that("Early exits are repaired", {
   }
 
   sampler <- nested_sampling(counting_ll, prior, n_point = 100)
-  expect_error(generate(sampler, max_iterations = 200), "Early exit")
+  expect_snapshot_error(generate(sampler, max_iterations = 200))
 
   test_env$max_count <- .Machine$integer.max
   expect_snapshot_warning(run <- generate(sampler, max_iterations = 100))
@@ -71,7 +71,7 @@ test_that("Early exits are repaired", {
   dead <- extract_dead(run, dead_it)
 
   test_env$max_count <- run$n_iter + 100L
-  expect_error(run <- generate(sampler), "Early exit")
+  expect_snapshot_error(run <- generate(sampler))
 
   test_env$max_count <- .Machine$integer.max
   expect_snapshot_warning(run2 <- generate(sampler))

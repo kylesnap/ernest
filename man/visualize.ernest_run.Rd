@@ -2,16 +2,16 @@
 % Please edit documentation in R/visualize.R
 \name{visualize.ernest_run}
 \alias{visualize.ernest_run}
-\title{Draw the Points From a Nested Sampling Run}
+\title{Plot the posterior distribution of an \code{ernest_run}}
 \usage{
 \method{visualize}{ernest_run}(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE)
 }
 \arguments{
-\item{x}{An \code{ernest_run} object.}
+\item{x}{An \link{ernest_run} object.}
 
 \item{...}{Arguments passed to \code{\link[=as_draws_rvars]{as_draws_rvars()}}.}
 
-\item{type}{The type of plot to create. Either a \code{"density"} plot, which shows
+\item{type}{The type of plot to create. Either \code{"density"}, which shows
 the posterior density of each distribution, or \code{"trace"}, which shows the
 distribution of points along estimates of the log prior volume.}
 
@@ -27,4 +27,27 @@ Either a \code{ggplot} object if \code{plot = TRUE}, or a \code{tibble}.
 Create a plot of the posterior distributions from a nested sampling run,
 or trace the evolution of the discarded live points along the log prior
 volume.
+}
+\note{
+This method requires the \code{ggdist} package for plotting the posterior.
+}
+\examples{
+# Load example run
+library(ggdist)
+data(ernest_run_example)
+
+# Plot posterior distributions of the parameters
+visualize(ernest_run_example, type = "density")
+
+# Plot the trace of the radial coordinate in unit scale
+visualize(
+  ernest_run_example,
+  type = "trace",
+  vars = ".radial",
+  units = "unit_cube",
+  radial = TRUE
+)
+}
+\seealso{
+\code{\link[=plot]{plot()}} for visualizing the evidence estimates from an \code{ernest_run}.
 }

@@ -6,7 +6,7 @@
  * https://people.math.sc.edu/Burkardt/cpp_src/random_data/random_data.html
  */
 
-#include "RandomData.hpp"
+#include "RandomData.h"
 
 /*
 * Generate uniform points in the unit hypercube [0, 1].

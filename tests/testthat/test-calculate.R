@@ -82,3 +82,5 @@ test_that("calculate works when ndraws = BIG", {
     rep(TRUE, n_samp)
   )
 })
+
+

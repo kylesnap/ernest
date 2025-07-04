@@ -1,4 +1,4 @@
-#include "RandomData.hpp"
+#include "RandomData.h"
 #include <iostream>
 #include "testthat.h"
 

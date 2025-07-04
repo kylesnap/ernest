@@ -2,7 +2,7 @@
 #include "R_ext/Random.h"
 
 #include <iostream>
-#include "RandomData.hpp"
+#include "RandomData.h"
 
 /*
  * UniformCube

@@ -3,28 +3,54 @@
 \name{plot.ernest_estimates}
 \alias{plot.ernest_estimates}
 \alias{plot.ernest_run}
-\title{Plot the Integration Progress From a Nested Sampling Run}
+\title{Plot diagnostics for a nested sampling run}
 \usage{
 \method{plot}{ernest_estimates}(x, ...)
 
-\method{plot}{ernest_run}(x, ndraws = 0, ...)
+\method{plot}{ernest_run}(x, ..., ndraws = 0)
 }
 \arguments{
-\item{x}{An object of class 'ernest_run' or 'ernest_estimates'.}
+\item{x}{Either an \code{ernest_estimates} (from \code{\link[=calculate]{calculate()}}) or an
+\code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{For \code{plot.ernest_run}, the number of draws to use for
-estimating the evidence integral. If 0, the original results are used.}
+\item{ndraws}{Number of simulated log. volume values to generate before plotting.
+If \code{ndraws = 0}, plot the log. volume estimates generated during the run.}
+}
+\value{
+\code{x}, invisibly. A \code{ggplot2::ggplot()} object is printed as a
+side effect.
+
+If \code{x} is an \code{ernest_estimates} object, or if \code{ndraws} is greater than one,
+the plot show \code{ndraw} simulated log. volume values at each iteration. Else,
+the plot will use the log. volume estimates that were recorded during the
+run.
 }
 \description{
-Using an \code{ernest_estimates} or an \code{ernest_run} object, \code{plot} creates
-a faceted \code{ggplot()} showing iterative integration results over estimates
-of the log prior volume. These plots show the likelihood values (normalized),
-the posterior weights, and the model evidence. The latter quantity is
-accompanied with an error ribbon capturing uncertainty.
+Show the normalized likelihood, importance weights, and evidence as functions
+of log. volume.
 }
-\details{
-Calling \code{plot.ernest_run(run, ndraws = n)} is identical to calling
-\code{plot.ernest_estimates(calculate(run, ndraws = n))}.
+\note{
+Plotting simulated results requires the \code{ggdist} package.
+}
+\examples{
+# Plot integration results from a run.
+data(ernest_run_example)
+plot(ernest_run_example)
+
+# Simulate results before plotting.
+library(ggdist)
+data(ernest_run_example)
+plot(ernest_run_example, ndraws = 50)
+# Simulate results from a run, then plot simulated results.
+library(ggdist)
+data(ernest_run_example)
+
+sim <- calculate(ernest_run_example, ndraws = 50)
+plot(sim)
+}
+\seealso{
+\code{\link[=calculate]{calculate()}} for generating \code{ernest_estimates} objects; also, \code{\link[=visualize]{visualize()}} to
+plot the posterior distributions of the parameters from a run.
 }

@@ -1,22 +1,35 @@
-#' Statuses for ernest sampler
-#' @noRd
-statuses <- c("UNINITIALIZED", "RUNNING", "MAX_IT", "MAX_CALL", "MIN_LOGZ")
-
-#' @name ernest_sampler-class
-#' @title The Ernest Nested Sampler Object
+#' Internal: The Ernest Nested Sampler R6 Class
 #'
 #' @description
-#' An R6 class that contains a nested sampling run.
+#' The `ernest_sampler` is an R6 class that implements the core logic for a
+#' nested sampling run.
 #'
-#' This object is normally created by calling [nested_sampling()], and
-#' interacted with by calling S3 methods like [generate()] and [calculate()].
+#' @details
+#' This class is primarily intended for internal use within the `ernest` package.
+#' Users should interact with nested sampling samplers via the provided S3 generics,
+#' rather than calling R6 methods directly.
 #'
+#' The R6 interface is documented here for developers and advanced users who
+#' want to extend or debug ernest.
+#'
+#' @section Usage:
+#'
+#' Users are not able to instantiate this class, as it is not exported.
+#' Instead, they use the following functions:
+#' - To create a new sampler, use [nested_sampling()].
+#' - To compile live points, use [compile()].
+#' - To run nested sampling, use [generate()].
+#' - To access the latest results, use the `$run` active binding.
+#'
+#' @keywords internal
+#' @rdname ernest_sampler-class
+#' @aliases ernest_sampler
 #' @importFrom R6 R6Class
 ernest_sampler <- R6Class(
   "ernest_sampler",
   public = list(
     #' @description
-    #' Creates a new `ernest_sampler`.
+    #' (Internal) Creates a new `ernest_sampler`.
     #'
     #' @param log_lik_fn An `ernest_likelihood` object.
     #' @param prior An `ernest_prior` object.
@@ -65,22 +78,23 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Clears the previous runs from the sampler, including the sampler's live
-    #' points.
+    #' (Internal) Clears the previous runs from the sampler, including the
+    #' sampler's live points.
     #'
     #' @return Itself, invisibly.
     clear = function() {
-      private$lrps = private$lrps$clear()
-      private$live_unit = matrix(double(0L))
-      private$live_log_lik = double(0L)
-      private$live_birth = double(0L)
-      private$results = NULL
-      private$status = statuses[1L]
+      private$lrps <- private$lrps$clear()
+      private$live_unit <- matrix(double(0L))
+      private$live_log_lik <- double(0L)
+      private$live_birth <- double(0L)
+      private$results <- NULL
+      private$status <- "UNINITIALIZED"
       invisible(self)
     },
 
     #' @description
-    #' Generates a sample of live points from the prior and validates them.
+    #' (Internal) Generates a sample of live points from the prior and
+    #' validates them.
     #'
     #' @param clear A logical value indicating whether to clear existing points.
     #'
@@ -111,7 +125,7 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Performs nested sampling until a stopping criterion is met.
+    #' (Internal) Performs nested sampling until a stopping criterion is met.
     #'
     #' @param max_iterations The maximum number of iterations to perform.
     #' @param max_calls The maximum number of calls to the likelihood function.
@@ -205,13 +219,12 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' Prints a brief summary of the sampler.
+    #' (Internal) Prints a brief summary of the sampler.
     #'
-    #' @param ... These dots are for future extensions and must be empty.
+    #' @param ... Ignored.
     #'
     #' @return Itself, invisibly.
     print = function(...) {
-      check_dots_empty()
       cli::cli_h1("Ernest Nested Sampler")
       if (is_empty(private$results)) {
         cli::cli_dl(c(
@@ -237,7 +250,7 @@ ernest_sampler <- R6Class(
     n_points = NULL,
     first_update = NULL,
     update_interval = NULL,
-    status = statuses[1L],
+    status = "UNINITIALIZED",
 
     live_unit = matrix(double(0L)),
     live_log_lik = double(0L),
@@ -256,8 +269,9 @@ ernest_sampler <- R6Class(
       private$results$n_call %||% 0L
     },
 
-    #' @field live_points The matrix of live points currently in the sampler,
-    #' scaled to the unit-cube.
+    #' @field live_points A list, containing the matrix of live points currently
+    #' in the sampler in unit-cube units, and a vector of their associated
+    #' log likelihood values.
     live_points = function() {
       if (vctrs::vec_size(private$live_unit) == 0L) {
         list(

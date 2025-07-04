@@ -1,26 +1,31 @@
-#' Build a Nested Sampler
+#' Prepare a nested sampler to evaluate Bayesian evidence
 #'
-#' Constructs an instance of an `ernest_sampler` containing the necessary
-#' information for performing nested sampling.
+#' Initialize a [ernest_sampler] object to perform nested sampling with a given
+#' log-likelihood function, prior distribution, and likelihood-restricted prior
+#' specification.
 #'
-#' @param log_lik The log-likelihood function. This should take in a vector of
-#' parameters and return a scalar numeric value that is either finite or `-Inf`.
-#' @param prior An `ernest_prior` object, created by [`create_prior()`] or
-#' its specializations.
+#' @param log_lik Either an `ernest_likelihood` or a function that takes in a vector
+#' of parameters and returns the corresponding log. likelihood. This parameter is
+#' sent to [create_likelihood()].
+#' @param prior An `ernest_prior` object, created by [create_prior()] or
+#' its [specializations][create_special_prior].
 #' @param sampler An [ernest_sampling] object, declaring which likelihood-restricted
-#' prior sampler to use for the nested sampling run.
+#' prior sampler to use.
 #' @param n_points The number of live points to use in the nested sampling run.
 #' @param first_update The number of calls to the likelihood function
-#' before the first update of the sampler. If left as a double, this will be
-#' multiplied by the number of live points before being coerced to an
-#' integer.
+#' before the first update to the behaviour of `sampler`. If left as a double,
+#' `first_update` is set to `first_update * n_points`.
 #' @param update_interval The number of calls to the likelihood function
-#' between subsequent updates of the sampler. If left as a double, this will
-#' be multiplied by the number of live points before being coerced to an
-#' integer.
+#' between updates to `sampler` after `first_update` has been reached. If left
+#' as a double, `update_interval` is set to `update_interval * n_points`.
 #'
-#' @return An `ernest_sampler` object.
+#' @return An [ernest_sampler] object.
 #' @export
+#' @examples
+#' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+#' ll_fn <- function(x) -sum(x^2)
+#' sampler <- nested_sampling(ll_fn, prior, n_points = 100)
+#' sampler
 nested_sampling <- function(
   log_lik,
   prior,

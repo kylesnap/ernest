@@ -1,7 +1,7 @@
 #include <cpp11.hpp>
 #include "Rmath.h"
 #include "R_ext/Random.h"
-#include "RandomData.hpp"
+#include "RandomData.h"
 #include <iostream>
 #include <algorithm>
 

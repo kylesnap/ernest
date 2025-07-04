@@ -1,13 +1,15 @@
 # An N-D Gaussian Distribution with Zero Mean and Given Correlation
+library(LaplacesDemon)
+
 make_gaussian <- function(num_dim, corr = 0.95) {
   mu <- seq(-1, 1, length.out = num_dim)
   Sigma <- diag(corr, nrow = num_dim)
   log_lik <- create_likelihood(
     \(x) {
-      mvtnorm::dmvnorm(
+      LaplacesDemon::dmvn(
         x,
-        mean = seq(-1, 1, length.out = num_dim),
-        sigma = Sigma,
+        mu = seq(-1, 1, length.out = num_dim),
+        Sigma = Sigma,
         log = TRUE
       )
     }

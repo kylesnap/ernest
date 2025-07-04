@@ -1,15 +1,3 @@
-#' @importFrom generics generate
-#' @export
-generics::generate
-
-#' @importFrom generics calculate
-#' @export
-generics::calculate
-
-#' @importFrom generics compile
-#' @export
-generics::compile
-
 #' @keywords internal
 "_PACKAGE"
 
@@ -18,7 +6,6 @@ generics::compile
 #' @importFrom generics generate
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
-#' @importFrom Rcpp sourceCpp
 #' @importFrom rlang %@%
 #' @importFrom rlang %@%<-
 #' @importFrom rlang %|%

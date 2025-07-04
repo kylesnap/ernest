@@ -18,7 +18,7 @@ test_that("ernest_run as_draws_matrix", {
 
 test_that("ernest_run units", {
   run <- readRDS(test_path("./example_run.rds"))
-  mat <- as_draws_matrix(run, unit_cube = TRUE)
+  mat <- as_draws_matrix(run, units = "unit_cube")
 
   n_iter <- run$n_iter + run$n_points
 

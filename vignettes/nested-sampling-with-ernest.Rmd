@@ -79,3 +79,7 @@ Results are stored in `ernest_run` objects, which themselves have several method
 summary(run)$run |> head()
 plot(run)
 ```
+```{r include=FALSE}
+# ernest_run_example <- run
+# usethis::use_data(ernest_run_example, overwrite = TRUE)
+```

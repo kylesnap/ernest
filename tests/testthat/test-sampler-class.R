@@ -2,13 +2,6 @@ set.seed(42)
 gaussian_2 <- make_gaussian(2)
 gaussian_2$log_lik(c(4.56, 1.52))
 
-mvtnorm::dmvnorm(
-  c(4.56, 1.52),
-  mean = c(-1, 1),
-  sigma = diag(0.95, nrow = 2),
-  log = TRUE
-)
-
 test_that("ernest_sampler initializes correctly", {
   sampler <- ernest_sampler$new(
     log_lik_fn = gaussian_2$log_lik,

@@ -1,32 +1,46 @@
-#' Results from Nested Sampling Runs
+#' Results from nested sampling runs
 #'
-#' The `ernest_run` object contains the results of a nested sampling run,
-#' including posterior samples, evidence estimates, and run diagnostics.
+#' The `ernest_run` object contains the results of a nested sampling run. It has
+#' methods for summary, plotting, and for simulating the uncertainty around the
+#' run's estimates.
 #'
 #' @name ernest_run-class
 #' @aliases ernest_run
 #' @docType class
 #'
-#' @slot n_iter Integer. Number of iterations (number of dead points).
-#' @slot n_points Integer. Number of live points at the end of the run.
-#' @slot n_calls Integer. Total number of likelihood calls made.
-#' @slot log_lik Numeric vector. Log-likelihood values for all samples (dead and live points).
-#' @slot log_volume Numeric vector. Log-volume associated with each sample.
-#' @slot log_weight Numeric vector. Log-posterior weights for each sample.
-#' @slot log_evidence Numeric vector. Cumulative log-evidence estimates at each iteration.
-#' @slot log_evidence_var Numeric vector. Cumulative uncertainty (variance) of log-evidence estimates.
-#' @slot information Numeric vector. Information integral (H) at each iteration.
-#' @slot id Integer vector. Index of each sample.
-#' @slot points Integer vector. Number of live points at each iteration.
-#' @slot calls Integer vector. Number of likelihood calls for each sample.
-#' @slot birth Integer vector. Iteration at which each sample was born.
-#' @slot samples Matrix. Posterior samples in parameter space.
-#' @slot samples_unit Matrix. Posterior samples in unit cube coordinates.
+#' @slot n_iter Total number of iterations performed.
+#' @slot n_points Number of points drawn into the live set.
+#' @slot n_calls Number of calls to the log likelihood function.
+#' @slot log_lik A vector of log likelihood values associated with each point
+#' generated during the run.
+#' @slot log_volume A vector of the estimated prior volumes associated with the
+#' removal of each point from the live set.
+#' @slot log_weight A vector of unnormalized posterior weights for each point.
+#' @slot log_evidence A vector of log. evidence estimates, generated after the
+#' removal of each point.
+#' @slot log_evidence_var A vector of uncertainty values associated with each
+#' entry in `log_evidence`. 1.
+#' @slot information A vector of the estimated KL-divergence (or information)
+#' between the prior and posterior distributions.
+#' @slot id The index of each point within the live set.
+#' @slot points The number of live points associated with each point's removal.
+#' @slot calls The number of likelihood calls made when generating a replacement
+#' live point.
+#' @slot birth The iteration at which the point was created and added to the live
+#' set.
+#' @slot samples A matrix of the sampled points, expressed in the units of the
+#' prior space.
+#' @slot samples_unit Identical to `samples`, but expressed in the units of the
+#' 0-1 hypercube.
 #'
 #' @details
-#' The `ernest_run` object is returned by running a nested sampling procedure in the `ernest` package.
-#' It can be used for posterior analysis, evidence estimation, and diagnostic plotting.
+#' The `ernest_run` object is returned by running a nested sampling procedure
+#' in the `ernest` package. It can be used for posterior analysis, evidence
+#' estimation, and diagnostic plotting.
 #'
+#' @seealso [ernest_run_example] for an example object, and [generate()] for how to
+#' create a new `ernest_run` object. [plot()] and [calculate()] on how to use
+#' `ernest_run` objects to examine uncertainty in the log volume estimates.
 NULL
 
 #' Internal method for cosntructing the ernest_run object using an ernest_sampler
@@ -137,9 +151,7 @@ print.ernest_run <- function(x, ...) {
 
 #' Summarise a nested sampling run
 #'
-#' Provides a summary of an `ernest_run` object, including cumulative likelihood calls,
-#' log-likelihood, log-volume, log-weights (relative to the final evidence), cumulative
-#' log-evidence, evidence error, and information at each iteration.
+#' Provides a summary of an `ernest_run` object.
 #'
 #' @param object An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
@@ -147,17 +159,23 @@ print.ernest_run <- function(x, ...) {
 #' @return An object of class `summary.ernest_run`, a list with:
 #' * `n_iter`: Number of iterations (number of dead points).
 #' * `n_points`: Number of live points at the end of the run.
-#' * `log_volume`: Final log-volume.
-#' * `log_evidence`: Final log-evidence estimate.
-#' * `log_evidence_err`: Final log-evidence error (standard deviation).
-#' * `run`, A tibble with columns:
-#' * * `call`: The cumulative number of likelihood calls at each iteration.
-#' * * `log_weight`: Log-posterior weights for each sample, now normalised
-#' by the final log-evidence estimate.
-#' * * `log_lik`, `log_volume`, `log_evidence`, `log_evidence_err` and
-#' `information`: Run results as in [ernest_run].
+#' * `log_volume`, `log_evidence`, `log_evidence_err`: The final estimates of the
+#' quantities performed by the run that generated `object`.
+#' * `run`, A tibble with `n_iter + n_points` rows, containing the vectors
+#'  `call`, `log_lik`, `log_volume`, `log_weight`, `log_evidence`,
+#'  `log_evidence_err`, and `information`.
 #'
+#' @seealso [ernest_run-class] for the `ernest_run` object. [as_draws()] for
+#' how to summarize the posterior distribution generated by nested sampling.
 #' @export
+#' @examples
+#' # Load an example run
+#' data(ernest_run_example)
+#'
+#' # Summarise the run and view a tibble of its results.
+#' run_sm <- summary(ernest_run_example)
+#' run_sm
+#' run_sm$run
 summary.ernest_run <- function(object, ...) {
   check_dots_empty()
   log_z_max <- tail(object$log_evidence, 1)

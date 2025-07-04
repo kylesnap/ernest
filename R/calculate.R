@@ -7,18 +7,30 @@
 #' will be simulated using `ndraws` samples from each volume's
 #' joint distribution.
 #'
-#' @returns A tibble, containing the following columns:
+#' @returns A tibble, containing `run$n_iter + run$n_points` rows and the
+#' following columns:
 #' * `log_lik`: The log-likelihood of the model.
 #' * `log_volume`: The log volume of the prior space.
 #' * `log_weight`: The log weights of the live points.
 #' * `log_evidence`: The log evidence of the model.
+#' * `log_evidence.err`: The standard error of the log evidence (only available
+#' when `ndraws = 0`).
 #'
-#' These are all returned as `posterior::rvar()` vectors, which allows one vector
-#' to store `ndraws` samples.
+#' The tibble has the additional class `ernest_estimates`, which has its own
+#' [plot][plot.ernest_estimates()] method.
 #'
-#' Additionally, in the case of `ndraws = 0`, the following column is also provided:
-#' * `log_evidence.err`: The standard error of the log evidence.
+#' Each column is returned as an [posterior::rvar()] vector.
+#' @examples
+#' # Load an example run
+#' data(ernest_run_example)
 #'
+#' # View results as a tibble with `ndraws = FALSE` (the default).
+#' calculate(ernest_run_example)
+#'
+#' # Generate 100 simulated log volume values for each iteration.
+#' calculate(ernest_run_example, ndraws = 100)
+#'
+#' @method calculate ernest_run
 #' @export
 calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   check_dots_empty()
@@ -41,6 +53,9 @@ calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
 
   log_lik <- x$log_lik
   log_volume <- posterior::rdo(sim_volume(!!x$n_points, !!x$n_iter), ndraws = ndraws)
+  if (any(is.na(log_volume))) {
+    stop("Missing volumes")
+  }
 
   log_weight <- posterior::rdo(get_logweight(log_lik, log_volume))
   log_evidence <- posterior::rdo(get_logevid(log_weight))
@@ -57,16 +72,18 @@ calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   )
 }
 
+#' Simulate log volumes for nested sampling
+#' @noRd
 sim_volume <- function(n_points, n_iter) {
   volumes <- numeric(n_iter + n_points)
 
-  vctrs::vec_slice(volumes, 1:n_iter) <- rbeta(n_iter, n_points, 1)
+  vctrs::vec_slice(volumes, 1:n_iter) <- stats::rbeta(n_iter, n_points, 1)
 
-  nstart <- 500
-  bound <- c(n_iter, n_iter+n_points)
+  nstart <- n_points
+  bound <- c(n_iter, n_iter + n_points)
   sn <- seq(n_points, 1)
 
-  y_arr <- rexp(nstart + 1, rate = 1.0)
+  y_arr <- stats::rexp(nstart + 1, rate = 1.0)
   append <- c(nstart, sn - 1)
   ycsum <- cumsum(y_arr)
   ycsum <- ycsum / ycsum[length(ycsum)]
@@ -78,6 +95,8 @@ sim_volume <- function(n_points, n_iter) {
   cumsum(log(volumes))
 }
 
+#' Compute log weights for nested sampling
+#' @noRd
 get_logweight <- function(log_lik, log_volume) {
   diff_volume <- diff(c(0, log_volume))
   vol_term <- log_volume - diff_volume + log(-expm1(diff_volume))
@@ -89,10 +108,14 @@ get_logweight <- function(log_lik, log_volume) {
   log_weight
 }
 
+#' Compute cumulative log evidence from log weights
+#' @noRd
 get_logevid <- function(log_weight) {
   logcumsumexp(log_weight)
 }
 
+#' Compute information (KL divergence) for nested sampling
+#' @noRd
 get_information <- function(log_lik, log_volume, log_evidence) {
   loglstar_pad <- c(-1e300, log_lik)
   dlogvol <- diff(c(0, log_volume))

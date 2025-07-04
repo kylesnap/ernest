@@ -7,7 +7,7 @@ test_that("Density tables", {
   expect_named(table, c(".var", ".dist"))
   expect_equal(table$.var, colnames(run$samples))
 
-  table <- visualize(run, unit_cube = TRUE, type = "density", plot = FALSE)
+  table <- visualize(run, units = "unit_cube", type = "density", plot = FALSE)
   expect_gt(min(min(table$.dist)), 0)
   expect_lt(max(max(table$.dist)), 1)
 })

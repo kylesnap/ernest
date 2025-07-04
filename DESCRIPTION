@@ -11,7 +11,6 @@ License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 Imports: 
     cli,
-    distributional,
     generics,
     ggplot2,
     glue,
@@ -26,6 +25,7 @@ Imports:
 Suggests: 
     ggdist,
     knitr,
+    LaplacesDemon,
     rmarkdown,
     testthat (>= 3.0.0),
     vdiffr,
@@ -39,3 +39,6 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends: 
+    R (>= 2.10)
+LazyData: true

@@ -1,4 +1,8 @@
-#' Specify a Prior Distribution for Nested Sampling
+#' Specify a prior distribution for nested sampling
+#'
+#' Create a prior specification for ernest using an R function that transforms
+#' coordinates from the unit cube space into coordinates in the prior
+#' distribution (see Details).
 #'
 #' @param fn A function that takes a vector of probabilities `p` and returns
 #' a vector of quantiles.
@@ -9,21 +13,80 @@
 #'
 #' @returns An object of type `ernest_prior` that represents the prior
 #' distribution, including:
-#' * `fn`: The function that computes the quantiles.
-#' * `n_dim`: The number of dimensions for the prior distribution.
+#' * `fn`: The function that performs the transformation from unit cube
+#' coordinates to coordinates in the prior space.
+#' * `n_dim`: The number of dimensions in the prior space.
 #' * `varnames`: Names for the variables in the prior distribution.
 #' * `lower`: Lower bounds for the prior distribution.
 #' * `upper`: Upper bounds for the prior distribution.
+#'
+#' @details
+#' Nested sampling with ernest requires a prior transformation function that
+#' takes in a vector of values between 0 and 1, and returns a same-length vector
+#' of parameters expressed in the scale of the model's prior distribution. When
+#' calling `create_prior`, ernest will test `fn` by presenting it with 1000
+#' `n_dim`-length vectors generated from [runif()]. These checks are passed if:
+#' * Every input returns a vector of `n_dim` finite values.
+#' * Every input returns a vector that respects the `lower` and `upper` bounds,
+#' if provided.
+#'
+#' Users are encouraged to run additional checks on the behaviour of the prior
+#' through calling the `fn` object bound to the produced `ernest_prior`.
+#'
+#' @examples
+#' # 3D uniform prior in the range [-10, 10]
+#' unif <- \(x) { -10 + x * 20 }
+#' prior <- create_prior(unif, n_dim = 3, lower = -10, upper = 10)
+#'
+#' # `ernest_prior` wraps `fn` in guards to prevent unexpected behaviour.
+#' prior$fn(c(0.25, 0.5, 0.75)) # OK
+#' try(prior$fn(c(0.33, 0.67))) # Input length is only length 3.
+#'
+#' # A prior for a simple linear regression model
+#' lm_f <- function(theta) {
+#'   beta_0 <- qnorm(theta[1], mean = 0, sd = 10) # (Beta0, Beta1) ~ N(0, 10)
+#'   beta_1 <- qnorm(theta[1], mean = 0, sd = 10) # Sigma ~ Exp(1)
+#'   sigma <- qexp(theta[1], rate = 1)
+#'   c(beta_0, beta_1, sigma)
+#' }
+#' create_prior(
+#'   lm_f,
+#'   n_dim = 3,
+#'   varnames = c("beta_0", "beta_1", "sigma"),
+#'   lower = c(-Inf, -Inf, 0)
+#' )
+#'
+#' # A normal prior with hyperprior parameters
+#' hier_f <- function(theta) {
+#'   mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
+#'   sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
+#'
+#'   x <- qnorm(theta[3], mu, sigma) # X ~ N(mu, sigma)
+#'   c(mu, sigma, x)
+#' }
+#' create_prior(
+#'   hier_f,
+#'   n_dim = 3,
+#'   varnames = c("mu", "sigma", "x"),
+#'   lower = c(-Inf, 0, -Inf)
+#' )
+#'
+#' # ernest will catch mistakes when provided with bounds
+#' try(create_prior(
+#'   hier_f,
+#'   n_dim = 3,
+#'   varnames = c("mu", "sigma", "x"),
+#'   lower = c(-Inf, -Inf, -1)
+#' ))
 #' @export
 create_prior <- function(fn, n_dim, varnames = NULL, lower = NULL, upper = NULL) {
+  p <- NULL
   quantile <- call2(fn, expr(p))
   prior_fn <- new_function(
     exprs(p = ),
     expr({
       if (!is_double(p, n = !!n_dim)) {
-        cli::cli_abort(c(
-          "`p` must be a double vector of length {!!n_dim}.",
-        ))
+        cli::cli_abort("`p` must be a double vector of length {!!n_dim}.")
       }
       !!quantile
     })
@@ -38,19 +101,41 @@ create_prior <- function(fn, n_dim, varnames = NULL, lower = NULL, upper = NULL)
   )
 }
 
-#' Special Prior Distributions
+#' Specify a common prior distribution
 #'
-#' These functions create specific types of prior distributions for use in
-#' ernest.
+#' Create a specialized version of [create_prior()] for prior spaces
+#' that are marginally independent and share a common marginal distribution.
 #'
-#' @param mean Vector of means.
-#' @param sd Vector of standard deviations.
+#' @inheritParams stats::qnorm
 #' @inheritParams create_prior
 #'
-#' @returns A subclass of `ernest_prior`.
+#' @returns A special instance of `ernest_prior` with an efficient implementation
+#' of the prior transformation function.
+#'
+#' @references For the truncation routine:
+#' Nadarajah, S., & Kotz, S. (2006).
+#' R Programs for Truncated Distributions. Journal of Statistical Software,
+#' Code Snippets, 16(2), 1–8. <https://doi.org/10.18637/jss.v016.c02>
+#'
+#' @seealso [create_prior()] for a richer explanation of the `ernest_prior` object.
 #' @rdname create_special_prior
+#' @aliases create_special_prior
 #' @export
-create_normal_prior <- function(n_dim, mean, sd, varnames = NULL, lower = -Inf, upper = Inf) {
+#' @examples
+#' prior <- create_normal_prior(3)
+#' prior$fn(c(0.25, 0.5, 0.75))
+#'
+#' bound_prior <- create_normal_prior(3, lower = -1, upper = 1)
+#' bound_prior$fn(c(0.25, 0.5, 0.75))
+#'
+#' # A prior for a simple linear regression model
+#' create_t_prior(
+#'  3,
+#'  df = 3,
+#'  varnames = c("beta0", "beta1", "sigma"),
+#'  lower = c(-Inf, -Inf, 0)
+#' )
+create_normal_prior <- function(n_dim, mean = 0, sd = 1, varnames = NULL, lower = -Inf, upper = Inf) {
   if (any(sd <= 0)) {
     stop_input_type(sd, "must be larger than zero")
   }
@@ -81,6 +166,7 @@ create_normal_prior <- function(n_dim, mean, sd, varnames = NULL, lower = -Inf, 
     quantile <- call_modify(quantile, p = expr(!!F_lwr + p * !!(F_upr - F_lwr)))
   }
 
+  p <- NULL
   prior <- new_function(
     exprs(p = ),
     expr({
@@ -101,8 +187,12 @@ create_normal_prior <- function(n_dim, mean, sd, varnames = NULL, lower = -Inf, 
   )
 }
 
-#' @param df,mu,sigma Vector of parameters for the Student-T distribution.
-#' @param ncp Optional vector of non-centrality parameters.
+#' @inheritParams distributional::dist_student_t
+#'
+#' @details
+#' `create_t_prior` differs from [stats::qt()] due to the inclusion of
+#' location and scale parameters. If `df` is \eqn{\nu}, then `create_t_prior`
+#' returns a prior that is equivalent to \deqn{T(\nu) * \sigma + \mu}
 #'
 #' @rdname create_special_prior
 #' @export
@@ -145,13 +235,12 @@ create_t_prior <- function(n_dim, df, mu = 0, sigma = 1, ncp = NULL, varnames = 
     quantile <- call_modify(quantile, p = expr(!!F_lwr + p * !!(F_upr - F_lwr)))
   }
 
+  p <- NULL
   prior <- new_function(
     exprs(p = ),
     expr({
       if (!is_double(p, n = !!n_dim)) {
-        cli::cli_abort(c(
-          "`p` must be a double vector of length {!!n_dim}.",
-        ))
+        cli::cli_abort("`p` must be a double vector of length {!!n_dim}.")
       }
       !!quantile * !!args$sigma + !!args$mu
     })
@@ -167,7 +256,7 @@ create_t_prior <- function(n_dim, df, mu = 0, sigma = 1, ncp = NULL, varnames = 
   )
 }
 
-#' @param location,scale Vector of parameters for the Cauchy distribution.
+#' @inheritParams stats::qcauchy
 #'
 #' @rdname create_special_prior
 #' @export
@@ -205,13 +294,12 @@ create_cauchy_prior <- function(n_dim, location = 0, scale = 1, varnames = NULL,
     quantile <- call_modify(quantile, p = expr(!!F_lwr + p * !!(F_upr - F_lwr)))
   }
 
+  p <- NULL
   prior <- new_function(
     exprs(p = ),
     expr({
       if (!is_double(p, n = !!n_dim)) {
-        cli::cli_abort(c(
-          "`p` must be a double vector of length {!!n_dim}.",
-        ))
+        cli::cli_abort("`p` must be a double vector of length {!!n_dim}.")
       }
       !!quantile
     })
@@ -247,6 +335,7 @@ create_uniform_prior <- function(lower = 0, upper = 1, n_dim, varnames = NULL) {
     stats::qunif(p = p, min = !!args$lower, max = !!args$upper)
   )
 
+  p <- NULL
   prior <- new_function(
     exprs(p = ),
     expr({
@@ -312,14 +401,14 @@ validate_prior <- function(prior, size = 1000L) {
     ))
   }
 
-  testmat <- matrix(runif(size * prior$n_dim), ncol = prior$n_dim)
+  testmat <- matrix(stats::runif(size * prior$n_dim), ncol = prior$n_dim)
   check <- t(apply(testmat, 1, prior$fn, simplify = TRUE))
   if (prior$n_dim == 1L) {
     dim(check) <- c(size, 1)
   }
 
   if (any(!is.finite(check))) {
-    indx <- which(!is.finite(check), arr.ind = TRUE)[1,]
+    indx <- which(!is.finite(check), arr.ind = TRUE)[1, ]
     cli::cli_abort(c(
       "Prior must return finite values for all inputs in [0, 1).",
       "i" = "Failed first on row: {testmat[indx]} = {check[indx]}"

@@ -17,22 +17,33 @@ will be simulated using \code{ndraws} samples from each volume's
 joint distribution.}
 }
 \value{
-A tibble, containing the following columns:
+A tibble, containing \code{run$n_iter + run$n_points} rows and the
+following columns:
 \itemize{
 \item \code{log_lik}: The log-likelihood of the model.
 \item \code{log_volume}: The log volume of the prior space.
 \item \code{log_weight}: The log weights of the live points.
 \item \code{log_evidence}: The log evidence of the model.
+\item \code{log_evidence.err}: The standard error of the log evidence (only available
+when \code{ndraws = 0}).
 }
 
-These are all returned as \code{posterior::rvar()} vectors, which allows one vector
-to store \code{ndraws} samples.
+The tibble has the additional class \code{ernest_estimates}, which has its own
+\link[=plot.ernest_estimates]{plot} method.
 
-Additionally, in the case of \code{ndraws = 0}, the following column is also provided:
-\itemize{
-\item \code{log_evidence.err}: The standard error of the log evidence.
-}
+Each column is returned as an \code{\link[posterior:rvar]{posterior::rvar()}} vector.
 }
 \description{
 Estimate Evidence using a Nested Sampling Run
+}
+\examples{
+# Load an example run
+data(ernest_run_example)
+
+# View results as a tibble with `ndraws = FALSE` (the default).
+calculate(ernest_run_example)
+
+# Generate 100 simulated log volume values for each iteration.
+calculate(ernest_run_example, ndraws = 100)
+
 }

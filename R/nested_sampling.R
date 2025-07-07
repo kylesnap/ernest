@@ -36,7 +36,7 @@ nested_sampling <- function(
 ) {
   loglik <- create_likelihood(log_lik)
   if (!inherits(prior, "ernest_prior")) {
-    stop_input_type(prior, "ernest_prior")
+    stop_input_type(prior, "an ernest_prior object")
   }
   ernest_sampler$new(
     loglik,

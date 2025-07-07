@@ -1,6 +1,5 @@
 gaussian_2 <- make_gaussian(2)
 
-
 test_that("ernest_lrps class initializes correctly", {
   lrps <- ernest_lrps$new(gaussian_2$log_lik, gaussian_2$prior$fn, 2L)
 

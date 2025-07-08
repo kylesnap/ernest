@@ -41,31 +41,31 @@ ernest_lrps <- R6Class(
     },
 
     clear = function() {
-      private$n_call <- 0L
-      private$n_iter <- 0L
-      private$hist_length <- 0L
-      private$hist_iter <- vctrs::list_of(.ptype = integer())
-      private$hist_call <- vctrs::list_of(.ptype = integer())
+      n_call <<- 0L
+      n_iter <<- 0L
+      hist_length <<- 0L
+      hist_iter <<- vctrs::list_of(.ptype = integer())
+      hist_call <<- vctrs::list_of(.ptype = integer())
       invisible(self)
     },
 
     update = function(...) {
-      private$n_call <- 0L
+      n_call <<- 0L
       return(self)
     },
 
     find_point = function(unit) {
-      point <- private$prior_fn(unit)
-      log_lik <- private$log_lik_fn(point)
+      point <- prior_fn(unit)
+      log_lik <- log_lik_fn(point)
       list("unit" = drop(unit), "point" = point, "log_lik" = log_lik)
     },
 
     propose_uniform = function(criteria) {
       res <- UniformCube(
         criteria,
-        private$unit_log_lik,
-        private$n_dim,
-        private$max_loop
+        unit_log_lik,
+        n_dim,
+        max_loop
       )
       res
     },
@@ -98,11 +98,11 @@ ernest_lrps <- R6Class(
 
     # Helpers
     increment = function(res) {
-      private$n_call <- private$n_call + res$n_call
-      private$n_iter <- private$n_iter + vctrs::vec_size(res$log_lik)
-      private$hist_length <- private$hist_length + 1L
-      private$hist_iter[[private$hist_length]] <- private$n_iter
-      private$hist_call[[private$hist_length]] <- private$n_call
+      n_call <<- n_call + res$n_call
+      n_iter <<- n_iter + vctrs::vec_size(res$log_lik)
+      hist_length <<- hist_length + 1L
+      hist_iter[[hist_length]] <<- n_iter
+      hist_call[[hist_length]] <<- n_call
       invisible(self)
     }
   ),
@@ -196,23 +196,19 @@ rwcube_lrps <- R6::R6Class(
     },
 
     clear = function() {
-      private$cur_epsilon <- 1.0
-      private$n_accept <- 0L
-      private$hist_accept <- vctrs::list_of(.ptype = integer())
-      private$hist_epsilon <- vctrs::list_of(.ptype = double())
+      cur_epsilon <<- 1.0
+      n_accept <<- 0L
+      hist_accept <<- vctrs::list_of(.ptype = integer())
+      hist_epsilon <<- vctrs::list_of(.ptype = double())
       super$clear()
     },
 
     update = function() {
-      acc_ratio <- private$n_accept / private$n_call
+      acc_ratio <- n_accept / private$n_call
       # Newton-Like Update to Target 0.5 Acceptance Ratio
-      private$cur_epsilon <- private$cur_epsilon *
-        exp(
-          (acc_ratio - private$target_acceptance) /
-            private$n_dim /
-            private$target_acceptance
-        )
-      private$n_accept <- 0L
+      cur_epsilon <<- cur_epsilon *
+        exp((acc_ratio - target_acceptance) / n_dim / target_acceptance)
+      n_accept <<- 0L
       super$update()
     },
 
@@ -242,7 +238,7 @@ rwcube_lrps <- R6::R6Class(
 
     as_string = function() {
       cli::cli_fmt({
-        cli::cli_text("Random-Walk in Ubit Cube with Adaptive Step Size")
+        cli::cli_text("Random-Walk in Unit Cube with Adaptive Step Size")
         cli::cli_dl(c(
           "No. Iter" = "{private$n_iter}",
           "No. Call" = "{private$n_call}",

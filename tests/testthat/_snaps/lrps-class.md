@@ -30,7 +30,7 @@
     Code
       new$as_string()
     Output
-      [1] "Random-Walk in Ubit Cube with Adaptive Step Size"
+      [1] "Random-Walk in Unit Cube with Adaptive Step Size"
       [2] "No. Iter: 0"                                     
       [3] "No. Call: 0"                                     
       [4] "No. Steps: 25"                                   

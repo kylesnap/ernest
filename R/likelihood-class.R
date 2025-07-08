@@ -94,7 +94,7 @@ new_ernest_likelihood <- function(fn) {
 
   structure(
     wrapped,
-    body = expr(!!fn),
+    body = fn,
     class = c("ernest_likelihood", "function")
   )
 }
@@ -102,9 +102,8 @@ new_ernest_likelihood <- function(fn) {
 #' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
-  check_dots_empty()
   cli::cli_format_method({
-    cli::cat_print(attr(x, "body"))
+    cli::cli_bullets(c("An {.cls ernest_likelihood} function"))
   })
 }
 
@@ -112,4 +111,5 @@ format.ernest_likelihood <- function(x, ...) {
 #' @export
 print.ernest_likelihood <- function(x, ...) {
   cat(format(x), sep = "\n")
+  invisible(x)
 }

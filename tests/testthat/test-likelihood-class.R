@@ -11,6 +11,8 @@ test_that("create_likelihood.function works with valid input", {
     create_likelihood(wrapped_fn),
     wrapped_fn
   )
+
+  expect_snapshot(create_likelihood(wrapped_fn))
 })
 
 test_that("create_likelihood.function throws errors when problematic", {

@@ -127,19 +127,12 @@ new_ernest_run <- function(res, n_live, n_dead, live_order) {
 
 #' @export
 format.ernest_run <- function(x, ...) {
-  log_z <- formatC(tail(x$log_evidence, 1), digits = 4, format = "fg")
-  log_z_sd <- formatC(
-    sqrt(tail(x$log_evidence_var, 1)),
-    digits = 4,
-    format = "fg"
-  )
+  smry <- summary(x)
   cli::cli_format_method({
-    cli::cli_h1("Ernest Nested Sampling Run")
-    cli::cli_dl(c(
-      "No. Live Points" = "{x$n_points}",
-      "No. Iterations" = "{x$n_iter}",
-      "No. Lik. Calls" = "{x$n_calls}",
-      "Log. Evidence (\U00B1 Err.)" = "{log_z} (\U00B1 {log_z_sd})"
+    cli::cli_div(theme = list(.val = list(digits = 3)))
+    cli::cli_bullets(c(
+      "An {.cls ernest_run}: {x$n_points} points x {x$n_iter} iter x {x$n_calls} lik. calls",
+      ">" = "Log. Evidence: {.val {smry$log_evidence}} \U00B1 {.val {smry$log_evidence_err}}"
     ))
   })
 }
@@ -147,6 +140,7 @@ format.ernest_run <- function(x, ...) {
 #' @export
 print.ernest_run <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
+  invisible(x)
 }
 
 #' Summarise a nested sampling run
@@ -198,7 +192,8 @@ summary.ernest_run <- function(object, ...) {
       "log_volume" = tail(sum_df$log_volume, 1),
       "log_evidence" = tail(sum_df$log_evidence, 1L),
       "log_evidence_err" = tail(sum_df$log_evidence_err, 1L),
-      "run" = sum_df
+      "run" = sum_df,
+      "draws" = as_draws(object)
     ),
     class = "summary.ernest_run"
   )
@@ -210,12 +205,17 @@ format.summary.ernest_run <- function(x, ...) {
   log_z_sd <- formatC(x$log_evidence_err, digits = 4, format = "fg")
 
   cli::cli_format_method({
-    cli::cli_h1("Ernest Nested Sampling Run Summary")
+    cli::cli_h1("Nested Sampling Results from {.cls ernest_run}")
     cli::cli_dl(c(
       "No. Points" = "{x$n_points}",
       "No. Iterations" = "{x$n_iter}",
       "No. Lik. Calls" = "{x$n_call}",
-      "Log. Evidence (\U00B1 Err.)" = "{log_z} (\U00B1 {log_z_sd})"
+      "Log. Evidence" = "{log_z} (\U00B1 {log_z_sd})"
+    ))
+    cli::cli_h3("Weighted Posterior Distribution")
+    cli::cat_print(posterior::summarise_draws(
+      posterior::resample_draws(x$draws),
+      posterior::default_summary_measures()
     ))
   })
 }
@@ -223,4 +223,5 @@ format.summary.ernest_run <- function(x, ...) {
 #' @export
 print.summary.ernest_run <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
+  invisible(x)
 }

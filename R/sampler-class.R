@@ -220,21 +220,15 @@ ernest_sampler <- R6Class(
     #'
     #' @return Itself, invisibly.
     print = function(...) {
-      cli::cli_h1("Ernest Nested Sampler")
-      if (is_empty(private$results)) {
-        cli::cli_dl(c(
-          "No. Points" = "{private$n_points}",
-          "No. Iterations" = "{self$niterations}",
-          "No. Calls" = "{self$ncalls}"
-        ))
-        cli::cli_inform(c(
-          "No results compiled yet.",
-          "(see {.fn generate.ernest_sampler})."
-        ))
+      log_z <- if (!is_empty(private$results)) {
+        summary(private$results)$log_evidence
       } else {
-        cli::cli_text("Previous Run Results:")
-        cli::cat_print(private$results)
+        NULL
       }
+      cli::cli_div(theme = list(.val = list(digits = 3)))
+      cli::cli_bullets(
+        "An {.cls ernest_sampler}: {private$n_points} points x {self$niterations} iter. x {self$ncalls} lik. calls"
+      )
       invisible(self)
     }
   ),

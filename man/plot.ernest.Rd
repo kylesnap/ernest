@@ -22,17 +22,25 @@ If \code{ndraws = 0}, plot the log. volume estimates generated during the run.}
 \code{x}, invisibly. A \code{ggplot2::ggplot()} object is printed as a
 side effect.
 
-If \code{x} is an \code{ernest_estimates} object, or if \code{ndraws} is greater than one,
-the plot show \code{ndraw} simulated log. volume values at each iteration. Else,
-the plot will use the log. volume estimates that were recorded during the
-run.
+The plot is faceted in three frames. The horizontal axis shows values of log.
+volume: If \code{x} is an \code{ernest_run} these estimates are derived from the run,
+if \code{x} is an \code{ernest_estimates} (or \code{ndraws != 0}), these values are simulated.
+The three \code{y} axes are as follows:
+\itemize{
+\item \strong{Evidence:} Estimate with a corresponding error ribbon drawn from either
+the estimated standard error (if \code{ernest_run}) or drawn from the high density
+credible interval (HDCI) (if \code{ernest_sampler});
+\item \strong{Normalized Likelihood:} The likelihood value of the criteria used
+to draw new points from the likelihood-restricted prior sampler, normalized
+by the maximum likelihood generated during the run, and;
+\item \strong{Posterior Weight}: The density of the posterior weights attributed to
+regions of volume within the prior. If using an \code{ernest_estimates} object,
+an error ribbon is drawn with the HDCI of this estimate.
+}
 }
 \description{
 Show the normalized likelihood, importance weights, and evidence as functions
 of log. volume.
-}
-\note{
-Plotting simulated results requires the \code{ggdist} package.
 }
 \examples{
 # Plot integration results from a run.

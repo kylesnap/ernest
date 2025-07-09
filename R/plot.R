@@ -11,12 +11,20 @@
 #' `x`, invisibly. A `ggplot2::ggplot()` object is printed as a
 #' side effect.
 #'
-#' If `x` is an `ernest_estimates` object, or if `ndraws` is greater than one,
-#' the plot show `ndraw` simulated log. volume values at each iteration. Else,
-#' the plot will use the log. volume estimates that were recorded during the
-#' run.
+#' The plot is faceted in three frames. The horizontal axis shows values of log.
+#' volume: If `x` is an `ernest_run` these estimates are derived from the run,
+#' if `x` is an `ernest_estimates` (or `ndraws != 0`), these values are simulated.
+#' The three `y` axes are as follows:
 #'
-#' @note Plotting simulated results requires the `ggdist` package.
+#' * **Evidence:** Estimate with a corresponding error ribbon drawn from either
+#' the estimated standard error (if `ernest_run`) or drawn from the high density
+#' credible interval (HDCI) (if `ernest_sampler`);
+#' * **Normalized Likelihood:** The likelihood value of the criteria used
+#' to draw new points from the likelihood-restricted prior sampler, normalized
+#' by the maximum likelihood generated during the run, and;
+#' * **Posterior Weight**: The density of the posterior weights attributed to
+#' regions of volume within the prior. If using an `ernest_estimates` object,
+#' an error ribbon is drawn with the HDCI of this estimate.
 #'
 #' @seealso [calculate()] for generating `ernest_estimates` objects; also, [visualize()] to
 #' plot the posterior distributions of the parameters from a run.
@@ -71,129 +79,143 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 #' @export
 autoplot.ernest_estimates <- function(object, ...) {
   check_dots_empty()
-  check_installed(
-    c("ggdist"),
-    reason = "For plotting `ernest_estimate` objects."
-  )
-  if (attr(object, "ndraws") == 0) {
-    cli::cli_abort("Unavailable for `ernest_estimate` objects with one draw.")
+  if (attr(object, "ndraws") <= 2) {
+    cli::cli_abort("`object` must have at least two draws.")
   }
 
-  log_z <- object$log_evidence[length(object$log_evidence)]
-  log_vol <- mean(object$log_volume)
-  weight <- exp(object$log_weight - log_z)
+  max_log_z <- tail(object$log_evidence, 1)
+  w <- exp(object$log_weight - max_log_z)
+  density_draws <- get_density(object$log_volume, w)
+  log_volume <- density_draws$log_volume
 
-  df_w <- ggdist::curve_interval(weight, .width = c(0.5, 0.8, 0.95))
-  df_w <- tibble::tibble(
-    log_vol = rep(log_vol, 3),
-    .var = df_w$.value,
-    .label = "Posterior Weight",
-    .lower = df_w$.lower,
-    .upper = df_w$.upper,
-    .width = df_w$.width
+  w_68 <- hdci(density_draws$density, width = 0.68)
+  w_95 <- hdci(density_draws$density, width = 0.95)
+  df_w <- vctrs::vec_rbind(w_68, w_95)
+  df_w$log_vol <- rep(log_volume, 2)
+  df_w$.label <- "Posterior Weight"
+
+  lst_z <- list()
+  draws_evid <- posterior::draws_rvars(
+    "log_volume" = object$log_volume,
+    "log_evidence" = object$log_evidence
   )
-  df_ll <- tibble::tibble(
-    log_vol = log_vol,
-    .var = stats::median(exp(object$log_lik - max(max(object$log_lik)))),
-    .label = "Normalized Likelihood",
-    .lower = NA,
-    .upper = NA,
-    .width = NA
-  )
-  df_z <- ggdist::curve_interval(
-    exp(object$log_evidence),
-    .width = c(0.5, 0.8, 0.95),
-  )
-  df_z <- tibble::tibble(
-    log_vol = rep(log_vol, 3),
-    .var = df_z$.value,
-    .label = "Evidence",
-    .lower = df_z$.lower,
-    .upper = df_z$.upper,
-    .width = df_z$.width
+  .draw <- NULL
+  log_evidence <- NULL
+  posterior::for_each_draw(draws_evid, {
+    lst_z[[.draw]] <<- stats::approx(
+      log_volume,
+      exp(log_evidence),
+      xout = !!log_volume,
+      rule = 2L
+    )$y
+  })
+  rvar_evid <- do.call(rbind, lst_z) |>
+    posterior::rvar()
+
+  z_68 <- hdci(rvar_evid, width = 0.68)
+  z_95 <- hdci(rvar_evid, width = 0.95)
+  df_z <- vctrs::vec_rbind(z_68, z_95)
+  df_z$log_vol <- rep(log_volume, 2)
+  df_z$.label <- "Evidence"
+
+  log_lik <- drop(posterior::draws_of(object$log_lik))
+  df_ll <- data.frame(
+    "log_vol" = mean(object$log_volume),
+    ".label" = "Normalized Likelihood",
+    ".var" = exp(log_lik - max(log_lik)),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
   )
   df <- vctrs::vec_c(df_w, df_ll, df_z)
 
-  ggplot(df, aes(x = .data[["log_vol"]], y = .data[[".var"]])) +
-    ggdist::geom_lineribbon(
-      data = ~ subset(., .label == "Evidence"),
-      aes(ymin = .data[[".lower"]], ymax = .data[[".upper"]])
-    ) +
-    geom_line(data = ~ subset(., .label == "Normalized Likelihood")) +
-    geom_col(
-      data = ~ subset(., .label == "Posterior Weight"),
-      position = "identity",
-      width = 0.1
-    ) +
-    scale_x_continuous("Log Volume") +
-    scale_y_continuous(NULL) +
-    scale_fill_viridis_d("Tukey Depth") +
-    facet_grid(rows = vars(.data[[".label"]]), scales = "free_y") +
-    ggdist::theme_ggdist()
+  autoplot_run_(df, "HDCI", c(0.95, 0.68), c("95%", "68%"))
 }
 
 #' @importFrom ggplot2 geom_ribbon
 #' @export
 autoplot.ernest_run <- function(object, ...) {
   check_dots_empty()
-  theme <- if (is_installed("ggdist")) {
-    ggdist::theme_ggdist()
-  } else {
-    ggplot2::theme_minimal()
-  }
 
-  log_z <- object$log_evidence[length(object$log_evidence)]
-  log_z_err <- sqrt(object$log_evidence_var)
-  df_w <- tibble::tibble(
-    log_vol = object$log_volume,
-    .var = exp(object$log_weight - log_z),
-    .lower = NA,
-    .upper = NA,
-    .width = NA,
-    .label = "Posterior Weight"
+  log_volume <- object$log_volume
+  df_z <- data.frame(
+    "log_vol" = rep(log_volume, 3),
+    ".label" = "Evidence",
+    ".var" = rep(object$log_evidence, 3),
+    ".width" = rep(c(1,2,3), each = length(log_volume)),
+    ".err" = rep(sqrt(object$log_evidence_var), 3)
   )
-  df_ll <- tibble::tibble(
-    log_vol = object$log_volume,
-    .var = exp(object$log_lik - max(object$log_lik)),
-    .lower = NA,
-    .upper = NA,
-    .width = NA,
-    .label = "Normalized Likelihood"
+  df_z[".lower"] <- exp(df_z$.var - (df_z$.width * df_z$.err))
+  df_z[".upper"] <- exp(df_z$.var + (df_z$.width * df_z$.err))
+  df_z$.var <- exp(df_z$.var)
+  df_z$.err <- NULL
+
+  max_log_z <- tail(object$log_evidence, 1)
+  df_w <- data.frame(
+    "log_vol" = object$log_volume,
+    ".label" = "Posterior Weight",
+    ".var" = exp(object$log_weight - max_log_z),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
   )
-  df_z <- tibble::tibble(
-    log_vol = rep(object$log_volume, 2),
-    .var = rep(exp(object$log_evidence), 2),
-    .lower = c(
-      exp(object$log_evidence - log_z_err),
-      exp(object$log_evidence - 2 * log_z_err)
-    ),
-    .upper = c(
-      exp(object$log_evidence + log_z_err),
-      exp(object$log_evidence + 2 * log_z_err)
-    ),
-    .width = rep(c("1", "2"), each = length(object$log_volume)),
-    .label = "Evidence"
+  df_ll <- data.frame(
+    "log_vol" = object$log_volume,
+    ".label" = "Normalized Likelihood",
+    ".var" = exp(object$log_lik - max(object$log_lik)),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
   )
   df <- vctrs::vec_c(df_w, df_ll, df_z)
 
+  autoplot_run_(
+    df,
+    expression(hat(sigma[Z])),
+    c(3, 2, 1),
+    c(expression(3*sigma), expression(2*sigma), expression(1*sigma))
+  )
+}
+
+autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {
+  df$.width <- factor(
+    as.character(df$.width),
+    levels = as.character(fill_limits)
+  )
+
+  weight_ribbon <- any(!is.na(df$.width) & df$.label == "Posterior Weight")
+  ribbon_df <- if (weight_ribbon) {
+    subset(df, df$.label != "Normalized Likelihood")
+  } else {
+    subset(df, df$.label == "Evidence")
+  }
+
   ggplot(df, aes(x = .data[["log_vol"]], y = .data[[".var"]])) +
-    geom_line(
-      data = ~ subset(., .label == "Evidence")
-    ) +
     geom_ribbon(
-      data = ~ subset(., .label == "Evidence"),
-      aes(ymin = .data[[".lower"]], ymax = .data[[".upper"]], fill = .data[[".width"]]),
-      alpha = 0.5
+      data = ribbon_df,
+      aes(
+        ymin = .data[[".lower"]],
+        ymax = .data[[".upper"]],
+        fill = .data[[".width"]]
+      ),
+      alpha = 0.7
     ) +
-    geom_line(data = ~ subset(., .label == "Normalized Likelihood")) +
-    geom_col(
-      data = ~ subset(., .label == "Posterior Weight"),
-      position = "identity",
-      width = 0.1
+    geom_line(
+      data = ~ subset(., df$.label == "Evidence")
+    ) +
+    geom_line(data = ~ subset(., df$.label == "Normalized Likelihood")) +
+    geom_line(
+      data = ~ subset(., df$.label == "Posterior Weight"),
+      position = "identity"
     ) +
     scale_x_continuous("Log Volume") +
     scale_y_continuous(NULL) +
-    scale_fill_viridis_d(expression(sigma[log(z)])) +
+    scale_fill_viridis_d(
+      fill_name,
+      limits = factor(fill_limits),
+      labels = fill_labels,
+      direction = 1
+    ) +
     facet_grid(rows = vars(.data[[".label"]]), scales = "free_y") +
-    theme
+    ggplot2::theme_classic()
 }

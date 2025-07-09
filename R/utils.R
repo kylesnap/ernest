@@ -1,5 +1,3 @@
-# Helpers for validating user input -----
-
 #' Round a number to an integer after scaling by a multiplicand.
 #'
 #' @param x A numeric value to round.
@@ -28,6 +26,70 @@ style_vec <- function(vec) {
       "vec-trunc" = 3
     )
   )
+}
+
+#' Calculate the HDI of an rvar
+#' @noRd
+#' @author Based on implementation from https://github.com/mikemeredith/HDInterval
+hdci <- function(object, width = 0.95, ...) {
+  if (!inherits(object, "rvar")) {
+    stop("Input must be of class 'rvar'.")
+  }
+  # Compute HDI for each element
+  hdis <- t(sapply(object, function(x) {
+    draws <- as.numeric(posterior::draws_of(x))
+    if (!is.numeric(draws)) return(c(NA, NA))
+    x_sorted <- sort.int(draws, method = "quick")
+    n <- length(x_sorted)
+    if (n < 3) return(vctrs::vec_recycle(x, size = 2L))
+    exclude <- n - floor(n * width)
+    lowest <- x_sorted[1:exclude]
+    largest <- x_sorted[(n - exclude + 1):n]
+    best <- which.min(largest - lowest)
+    if (length(best)) {
+      c(lowest[best], largest[best])
+    } else {
+      c(NA, NA)
+    }
+  }))
+  colnames(hdis) <- c(".lower", ".upper")
+  data.frame(
+    ".var" = stats::median(object),
+    hdis,
+    ".width" = width
+  )
+}
+
+#' Estimate the density of the posterior weights across the log volumes
+#' @param log_volume,weight Both rvar!
+#' @returns A data.frame containing 128 values of log volume and an rvar of
+#' densities
+#' @noRd
+get_density <- function(log_volume, weight) {
+  draws <- posterior::draws_rvars(
+    "log_vol" = log_volume,
+    "weight" = weight
+  )
+  min_vol <- min(mean(log_volume))
+  dens_list <- list()
+  log_vol <- NULL
+  .draw <- NULL
+  density <- posterior::for_each_draw(draws, {
+    dens <- stats::density(
+      log_vol,
+      weights = weight,
+      warnWbw = FALSE,
+      from = min_vol,
+      to = 0,
+      n = 128
+    )
+    dens_list[[.draw]] <<- data.frame("log_vol" = dens$x, "weights" = dens$y)
+  })
+  density <- vctrs::vec_rbind(!!!dens_list)
+  density_rvar <- matrix(density$weights, nrow = 128) |>
+    t() |>
+    posterior::rvar()
+  data.frame("log_volume" = unique(density$log_vol), "density" = density_rvar)
 }
 
 # Helpers for generating and validating the live points -----

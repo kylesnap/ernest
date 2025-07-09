@@ -42,6 +42,11 @@ an error ribbon is drawn with the HDCI of this estimate.
 Show the normalized likelihood, importance weights, and evidence as functions
 of log. volume.
 }
+\note{
+For \code{ernest_estimates}, \code{ndraws} must be sufficiently large to calculate
+HDI. If HDI calculation fails, the user will be warned and an \code{ernest_run} plot
+will be generated instead.
+}
 \examples{
 # Plot integration results from a run.
 data(ernest_run_example)

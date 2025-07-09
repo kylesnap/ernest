@@ -26,6 +26,10 @@
 #' regions of volume within the prior. If using an `ernest_estimates` object,
 #' an error ribbon is drawn with the HDCI of this estimate.
 #'
+#' @note For `ernest_estimates`, `ndraws` must be sufficiently large to calculate
+#' HDI. If HDI calculation fails, the user will be warned and an `ernest_run` plot
+#' will be generated instead.
+#'
 #' @seealso [calculate()] for generating `ernest_estimates` objects; also, [visualize()] to
 #' plot the posterior distributions of the parameters from a run.
 #'
@@ -59,12 +63,8 @@ plot.ernest_estimates <- function(x, ...) {
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
+  check_number_whole(ndraws, min = 0)
   if (ndraws != 0) {
-    if (ndraws < 2L) {
-      cli::cli_abort(
-        "`ndraws` must be greater than 1 to plot an `ernest_estimate` object."
-      )
-    }
     x <- calculate(x, ndraws = ndraws)
   }
   print(autoplot(x, ...))
@@ -79,55 +79,69 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 #' @export
 autoplot.ernest_estimates <- function(object, ...) {
   check_dots_empty()
-  if (attr(object, "ndraws") <= 2) {
-    cli::cli_abort("`object` must have at least two draws.")
-  }
 
-  max_log_z <- tail(object$log_evidence, 1)
-  w <- exp(object$log_weight - max_log_z)
-  density_draws <- get_density(object$log_volume, w)
-  log_volume <- density_draws$log_volume
+  df <- try_fetch({
+    max_log_z <- tail(object$log_evidence, 1)
+    w <- exp(object$log_weight - max_log_z)
+    density_draws <- get_density(object$log_volume, w)
+    log_volume <- density_draws$log_volume
 
-  w_68 <- hdci(density_draws$density, width = 0.68)
-  w_95 <- hdci(density_draws$density, width = 0.95)
-  df_w <- vctrs::vec_rbind(w_68, w_95)
-  df_w$log_vol <- rep(log_volume, 2)
-  df_w$.label <- "Posterior Weight"
+    w_68 <- hdci(density_draws$density, width = 0.68)
+    w_95 <- hdci(density_draws$density, width = 0.95)
+    df_w <- vctrs::vec_rbind(w_68, w_95)
+    df_w$log_vol <- rep(log_volume, 2)
+    df_w$.label <- "Posterior Weight"
 
-  lst_z <- list()
-  draws_evid <- posterior::draws_rvars(
-    "log_volume" = object$log_volume,
-    "log_evidence" = object$log_evidence
-  )
-  .draw <- NULL
-  log_evidence <- NULL
-  posterior::for_each_draw(draws_evid, {
-    lst_z[[.draw]] <<- stats::approx(
-      log_volume,
-      exp(log_evidence),
-      xout = !!log_volume,
-      rule = 2L
-    )$y
+    lst_z <- list()
+    draws_evid <- posterior::draws_rvars(
+      "log_volume" = object$log_volume,
+      "log_evidence" = object$log_evidence
+    )
+    .draw <- NULL
+    log_evidence <- NULL
+    posterior::for_each_draw(draws_evid, {
+      lst_z[[.draw]] <<- stats::approx(
+        log_volume,
+        exp(log_evidence),
+        xout = !!log_volume,
+        rule = 2L
+      )$y
+    })
+    rvar_evid <- do.call(rbind, lst_z) |>
+      posterior::rvar()
+
+    z_68 <- hdci(rvar_evid, width = 0.68)
+    z_95 <- hdci(rvar_evid, width = 0.95)
+    df_z <- vctrs::vec_rbind(z_68, z_95)
+    df_z$log_vol <- rep(log_volume, 2)
+    df_z$.label <- "Evidence"
+
+    log_lik <- drop(posterior::draws_of(object$log_lik))
+    df_ll <- data.frame(
+      "log_vol" = mean(object$log_volume),
+      ".label" = "Normalized Likelihood",
+      ".var" = exp(log_lik - max(log_lik)),
+      ".lower" = NA,
+      ".upper" = NA,
+      ".width" = NA
+    )
+    vctrs::vec_c(df_w, df_ll, df_z)
+  },
+  error = function(cnd) {
+    cli::cli_warn(
+      c(
+        "Can't plot the provided {.cls ernest_estimates}; plotting an {.cls ernest_run} instead.",
+        "i" = "Is `ndraws` large enough to calculate HDIs?"
+      )
+    )
+    make_plot_df(
+      log_volume = mean(object$log_volume),
+      log_evidence = mean(object$log_evidence),
+      log_evidence_var = posterior::sd(object$log_evidence) %|% 0.0,
+      log_weight = mean(object$log_weight),
+      log_lik = mean(object$log_lik)
+    )
   })
-  rvar_evid <- do.call(rbind, lst_z) |>
-    posterior::rvar()
-
-  z_68 <- hdci(rvar_evid, width = 0.68)
-  z_95 <- hdci(rvar_evid, width = 0.95)
-  df_z <- vctrs::vec_rbind(z_68, z_95)
-  df_z$log_vol <- rep(log_volume, 2)
-  df_z$.label <- "Evidence"
-
-  log_lik <- drop(posterior::draws_of(object$log_lik))
-  df_ll <- data.frame(
-    "log_vol" = mean(object$log_volume),
-    ".label" = "Normalized Likelihood",
-    ".var" = exp(log_lik - max(log_lik)),
-    ".lower" = NA,
-    ".upper" = NA,
-    ".width" = NA
-  )
-  df <- vctrs::vec_c(df_w, df_ll, df_z)
 
   autoplot_run_(df, "HDCI", c(0.95, 0.68), c("95%", "68%"))
 }
@@ -137,37 +151,13 @@ autoplot.ernest_estimates <- function(object, ...) {
 autoplot.ernest_run <- function(object, ...) {
   check_dots_empty()
 
-  log_volume <- object$log_volume
-  df_z <- data.frame(
-    "log_vol" = rep(log_volume, 3),
-    ".label" = "Evidence",
-    ".var" = rep(object$log_evidence, 3),
-    ".width" = rep(c(1,2,3), each = length(log_volume)),
-    ".err" = rep(sqrt(object$log_evidence_var), 3)
+  df <- make_plot_df(
+    log_volume = object$log_volume,
+    log_evidence = object$log_evidence,
+    log_evidence_var = object$log_evidence_var,
+    log_weight = object$log_weight,
+    log_lik = object$log_lik
   )
-  df_z[".lower"] <- exp(df_z$.var - (df_z$.width * df_z$.err))
-  df_z[".upper"] <- exp(df_z$.var + (df_z$.width * df_z$.err))
-  df_z$.var <- exp(df_z$.var)
-  df_z$.err <- NULL
-
-  max_log_z <- tail(object$log_evidence, 1)
-  df_w <- data.frame(
-    "log_vol" = object$log_volume,
-    ".label" = "Posterior Weight",
-    ".var" = exp(object$log_weight - max_log_z),
-    ".lower" = NA,
-    ".upper" = NA,
-    ".width" = NA
-  )
-  df_ll <- data.frame(
-    "log_vol" = object$log_volume,
-    ".label" = "Normalized Likelihood",
-    ".var" = exp(object$log_lik - max(object$log_lik)),
-    ".lower" = NA,
-    ".upper" = NA,
-    ".width" = NA
-  )
-  df <- vctrs::vec_c(df_w, df_ll, df_z)
 
   autoplot_run_(
     df,
@@ -175,6 +165,41 @@ autoplot.ernest_run <- function(object, ...) {
     c(3, 2, 1),
     c(expression(3*sigma), expression(2*sigma), expression(1*sigma))
   )
+}
+
+#' Create a data.frame for plotting the results of a run
+#' @noRd
+make_plot_df <- function(log_volume, log_evidence, log_evidence_var, log_weight, log_lik) {
+  df_z <- data.frame(
+    "log_vol" = rep(log_volume, 3),
+    ".label" = "Evidence",
+    ".var" = rep(log_evidence, 3),
+    ".width" = rep(c(1,2,3), each = length(log_volume)),
+    ".err" = rep(sqrt(log_evidence_var), 3)
+  )
+  df_z[".lower"] <- exp(df_z$.var - (df_z$.width * df_z$.err))
+  df_z[".upper"] <- exp(df_z$.var + (df_z$.width * df_z$.err))
+  df_z$.var <- exp(df_z$.var)
+  df_z$.err <- NULL
+
+  max_log_z <- tail(log_evidence, 1)
+  df_w <- data.frame(
+    "log_vol" = log_volume,
+    ".label" = "Posterior Weight",
+    ".var" = exp(log_weight - max_log_z),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
+  )
+  df_ll <- data.frame(
+    "log_vol" = log_volume,
+    ".label" = "Normalized Likelihood",
+    ".var" = exp(log_lik - max(log_lik)),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
+  )
+  vctrs::vec_c(df_w, df_ll, df_z)
 }
 
 autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {

@@ -2,32 +2,48 @@
 % Please edit documentation in R/compile.R
 \name{compile.ernest_sampler}
 \alias{compile.ernest_sampler}
-\title{Compile an \code{ernest_sampler} object.}
+\title{Prepare an \code{ernest_sampler} object for nested sampling}
 \usage{
-\method{compile}{ernest_sampler}(object, refresh = FALSE, ...)
+\method{compile}{ernest_sampler}(object, ..., clear = FALSE)
 }
 \arguments{
-\item{object}{An \code{ernest_sampler} object.}
+\item{object}{An object of class \code{ernest_sampler}.}
 
-\item{refresh}{Whether to clear existing points from \code{object} and generating new ones.
-If \code{TRUE}, the function will clear both the live points and dead points gathered
-from previous runs.}
+\item{...}{These dots are for future extensions and must be empty.}
 
-\item{...}{Ignored.}
+\item{clear}{A logical value indicating whether to reload \code{object} before
+creating new live points. If \code{TRUE}, former results from the sampler are
+removed from the object. If \code{FALSE}, the sampler will not drop prior results,
+and continue using live points from the last sampling iteration performed.}
 }
 \value{
 \code{object}, invisibly.
 }
 \description{
-Prepare the \code{ernest_sampler} for generating nested samples by validating
-the set of live points within the object, creating live points if none
-exist yet.
+Create a new set of live points/particles for a new nested sampling run, or
+check the current state of the live points before continuing a previous run.
 }
 \details{
-Usually, a user will not need to call this method directly, as it is
-called automatically by \code{\link[=generate]{generate()}}. \code{compile()} is kept as a distinct step
-from \code{\link[=generate]{generate()}} so users can understand and troubleshoot errors with
-their log-likelihood and prior transformation functions before a run begins.
-It also catches errors that were generated during a run: These are more indicative
-of a problem with ernest itself, and such errors are labelled appropriately.
+\code{compile} checks whether the live points within a nested sampler are
+of the expected structure (e.g., the matrix contains the proper dimensions,
+every live point is described with finite values, and likelihood values are
+either finite or \code{-Inf}). If these checks fail, or if \code{clear = TRUE}, the
+sampler is reset and a new set of live points is generated.
+}
+\examples{
+prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+ll_fn <- function(x) -sum(x^2)
+sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+
+# Add live points to the sampler
+compile(sampler)
+head(sampler$live_points$unit)
+
+# Check the status of the sampler with `clear = FALSE`
+compile(sampler, clear = FALSE)
+head(sampler$live_points$unit)
+
+# Reset the sampler with new live points with `clear = TRUE`
+compile(sampler, clear = TRUE)
+head(sampler$live_points$unit)
 }

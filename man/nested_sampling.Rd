@@ -2,59 +2,49 @@
 % Please edit documentation in R/nested_sampling.R
 \name{nested_sampling}
 \alias{nested_sampling}
-\alias{nested_sampling.default}
-\alias{nested_sampling.function}
-\title{Build a Nested Sampler}
+\title{Prepare a nested sampler to evaluate Bayesian evidence}
 \usage{
-nested_sampling(x, ...)
-
-\method{nested_sampling}{default}(x, ...)
-
-\method{nested_sampling}{`function`}(
-  x,
-  prior_transform,
-  ptype,
+nested_sampling(
+  log_lik,
+  prior,
   sampler = rwmh_cube(),
   n_points = 500,
-  update_interval = 1.5,
-  verbose = getOption("verbose"),
-  ...
+  first_update = 2.5,
+  update_interval = 1.5
 )
 }
 \arguments{
-\item{x}{Function returning the log-likelihood given a \code{n_dim}-length
-vector of parameters.}
+\item{log_lik}{Either an \code{ernest_likelihood} or a function that takes in a vector
+of parameters and returns the corresponding log. likelihood. This parameter is
+sent to \code{\link[=create_likelihood]{create_likelihood()}}.}
 
-\item{...}{If \code{x} is a function, then these must be empty.}
+\item{prior}{An \code{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
+its \link[=create_special_prior]{specializations}.}
 
-\item{prior_transform}{Function translating a point in the unit cube to the
-prior parameter space. This function should accept a \code{n_dim}-length vector
-of points where each value is in the range \eqn{[0, 1]} and return a
-same-length vector where each point represents a parameter.}
+\item{sampler}{An \link{ernest_sampling} object, declaring which likelihood-restricted
+prior sampler to use.}
 
-\item{ptype}{Either a single integer, a vector of character strings giving
-variable names, or a zero-row \code{\link[tibble:tibble]{tibble::tibble()}} that defines the name of
-each variable and the dimensionality of the prior space.}
+\item{n_points}{The number of live points to use in the nested sampling run.}
 
-\item{sampler}{An \code{ernest_lrps} object, which is a list specifying a given
-likelihood-restricted prior sampler.}
+\item{first_update}{The number of calls to the likelihood function
+before the first update to the behaviour of \code{sampler}. If left as a double,
+\code{first_update} is set to \code{first_update * n_points}.}
 
-\item{n_points}{Number of live points to use during the nested sampling run.
-Defaults to \code{500L}.}
-
-\item{update_interval}{Number of likelihood calls that are performed between
-updates to the \code{sampler}. Either an integer or a double, in which case the
-parameter is cast to an integer by \code{first_update * n_points}.}
-
-\item{verbose}{Whether to print progress messages to the console. Defaults to
-the value of \code{getOption("verbose")}.}
+\item{update_interval}{The number of calls to the likelihood function
+between updates to \code{sampler} after \code{first_update} has been reached. If left
+as a double, \code{update_interval} is set to \code{update_interval * n_points}.}
 }
 \value{
-An \code{ernest_sampler} object.
+An \link{ernest_sampler} object.
 }
 \description{
-The top-level function constructs an instance of an \code{ErnestSampler},
-containing the necessary information for nested sampling. Currently,
-\code{nested_sampling} relies on the user to specify \code{R} functions for both
-the log-likelihood and prior transform.
+Initialize a \link{ernest_sampler} object to perform nested sampling with a given
+log-likelihood function, prior distribution, and likelihood-restricted prior
+specification.
+}
+\examples{
+prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+ll_fn <- function(x) -sum(x^2)
+sampler <- nested_sampling(ll_fn, prior, n_points = 100)
+sampler
 }

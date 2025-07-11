@@ -7,3 +7,6 @@ ernest.Rproj
 /.vscode
 inst/doc
 docs
+.lintr
+/doc/
+/Meta/

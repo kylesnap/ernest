@@ -1,21 +1,13 @@
 test_that("validate_integer_parameter works correctly", {
-  expect_equal(validate_integer_parameter(5L, 10), 5L)
-  expect_equal(validate_integer_parameter(5.5, 10), 55L)
+  expect_equal(round_to_integer(5L, 10), 5L)
+  expect_equal(round_to_integer(5.5, 10), 55L)
 
-  expect_equal(validate_integer_parameter(0.5, 10), 5L)
-  expect_error(validate_integer_parameter("a", 10), "must be a number")
-  expect_error(
-    validate_integer_parameter(5.5, 10, min = 60),
-    "larger than or equal to 60"
-  )
+  expect_equal(round_to_integer(0.5, 10), 5L)
+  expect_error(round_to_integer("a", 10), "must be numeric")
 })
 
-test_that("compute_integral delivers expected results", {
-  expected <- readRDS(test_path("./compute_integral_test.rds"))
-  observed <- compute_integral(expected$log_lik, expected$log_vol)
-
-  expect_equal(expected$log_wt, observed$log_weight)
-  expect_equal(expected$log_z, observed$log_z)
-  expect_equal(expected$log_z_var, observed$log_z_var)
-  expect_equal(expected$h, observed$information)
+test_that("which_minn works correctly", {
+  x <- c(10, 20, 5, 15)
+  expect_equal(which_minn(x, 1), 3)
+  expect_equal(which_minn(x, 2), c(3, 1))
 })

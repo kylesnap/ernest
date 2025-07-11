@@ -2,39 +2,59 @@
 % Please edit documentation in R/generate.R
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
-\title{Generate Samples from Nested Sampling}
+\title{Perform nested sampling}
 \usage{
 \method{generate}{ernest_sampler}(
   x,
+  ...,
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
-  refresh = FALSE,
-  ...
+  verbose = FALSE
 )
 }
 \arguments{
 \item{x}{An object of class \code{ernest_sampler}.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{max_iterations}{The maximum number of iterations to perform. If set to
-Inf, this stopping criterion is ignored.}
+\code{Inf}, this stopping criterion is ignored.}
 
 \item{max_calls}{The maximum number of calls to the likelihood function.
-If set to Inf, this stopping criterion is ignored.}
+If set to \code{Inf}, this stopping criterion is ignored.}
 
 \item{min_logz}{The minimum log-evidence value to achieve. Must be a number
-strictly larger than zero.}
+equal to or larger than zero.}
 
-\item{refresh}{Whether to clear existing points from the sampler, starting
-a run from scratch.}
-
-\item{...}{Must be empty.}
+\item{verbose}{Whether to print updates on the sampler's progress.}
 }
 \value{
-\code{x}, invisibly.
+An object of class \linkS4class{ernest_run}, containing the results of the
+nested sampling run.
 }
 \description{
-Use this function to perform nested sampling until a given criterion is met.
-Calling \code{\link[=generate]{generate()}} implicitly calls \code{\link[=compile]{compile()}} to ensure the sampler
-object is valid before running samples.
+Execute the nested sampling loop. Iteratively replaces the worst live point
+in a set with a point drawn from a likelihood-restricted prior sampler,
+until a provided stopping criterion is met.
+}
+\details{
+Before starting the sampling loop, \code{generate} calls \code{\link[=compile]{compile()}} to
+check the internal state of the sampler.
+}
+\examples{
+prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+ll_fn <- function(x) -sum(x^2)
+sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+sampler
+
+# Stop sampling after a set number of iterations or calls to the lik. func.
+generate(sampler, max_iterations = 100)
+
+# The final number of calls may be larger than `max_calls`, as `generate`
+# only checks the number of calls when removing a live point.
+generate(sampler, max_calls = 2600)
+
+# Use the default stopping criteria
+\dontrun{ generate(sampler) }
 }

@@ -1,142 +1,161 @@
-# Helper Functions -----
-validate_integer_parameter <- function(x, multiplicand, min = NULL) {
-  x <- if (is.integer(x)) {
-    x
-  } else {
-    check_number_decimal(x, allow_infinite = FALSE)
-    as.integer(x * multiplicand)
-  }
-  check_number_whole(x, min = min, allow_infinite = FALSE)
-  as.integer(x)
-}
-
-#' Check ptype dispatches over character vectors, integers, and data.frame
+#' Round a number to an integer after scaling by a multiplicand.
 #'
+#' @param x A numeric value to round.
+#' @param multiplicand A scaling factor to apply before rounding.
+#' @return An integer value after rounding.
 #' @noRd
-make_ptype <- function(x, ...) {
-  UseMethod("make_ptype")
+round_to_integer <- function(x, multiplicand = 1) {
+  if (is.integer(x)) {
+    x
+  } else if (is.numeric(x)) {
+    as.integer(round(x * multiplicand))
+  } else {
+    stop_input_type(x, "numeric")
+  }
 }
 
-#' If x is a character vector, return an empty tibble with colnames set to x
+#' Style a potentially long vector of doubles
 #' @noRd
-#' @export
-make_ptype.character <- function(x, ...) {
-  x <- vctrs::vec_as_names(x, repair = "universal_quiet")
-  if (length(x) < 1) {
-    cli::cli_abort("{.arg ptype} must have at least one element.")
-  }
-  if (length(x) == 1) {
-    cli::cli_warn("{.arg ptype} only has one element, specifiying a uni-dimensional prior space.")
-  }
-  tibble::as_tibble(
-    matrix(numeric(), nrow = 0, ncol = length(x), dimnames = list(NULL, x))
-  )
-}
-
-#' If x is a scalar double, return a x-column tibble with cols index after X
-#' @noRd
-#' @export
-make_ptype.numeric <- function(x, ...) {
-  check_number_whole(x, min = 1, allow_infinite = FALSE)
-  names <- vctrs::vec_as_names(rep("X", x), repair = "universal_quiet")
-  tibble::as_tibble(
-    matrix(numeric(), nrow = 0, ncol = x, dimnames = list(NULL, names))
-  )
-}
-
-#' If x is a data.frame, validate its size (based on a hardhat function)
-#' @noRd
-#' @export
-make_ptype.data.frame <- function(x, ...) {
-  if (tibble::is_tibble(x) && nrow(x) == 0L) {
-    return(x)
-  }
-
-  if (!tibble::is_tibble(x)) {
-    stop_input_type(
-      x = x,
-      what = "a tibble",
-      arg = "ptype"
+style_vec <- function(vec) {
+  vec <- cli::cli_vec(
+    prettyNum(vec),
+    style = list(
+      "vec-sep" = ", ",
+      "vec-sep2" = ", ",
+      "vec-last" = ", ",
+      "vec-trunc" = 3
     )
+  )
+}
+
+#' Calculate the HDI of an rvar
+#' @noRd
+#' @author Based on implementation from https://github.com/mikemeredith/HDInterval
+hdci <- function(object, width = 0.95, ...) {
+  if (!inherits(object, "rvar")) {
+    stop("Input must be of class 'rvar'.")
   }
-
-  size <- nrow(x)
-  cli::cli_abort("ptype must be size 0, not size {size}.")
+  # Compute HDI for each element
+  hdis <- t(sapply(object, function(x) {
+    draws <- as.numeric(posterior::draws_of(x))
+    if (!is.numeric(draws)) return(c(NA, NA))
+    x_sorted <- sort.int(draws, method = "quick")
+    n <- length(x_sorted)
+    if (n < 3) return(vctrs::vec_recycle(x, size = 2L))
+    exclude <- n - floor(n * width)
+    lowest <- x_sorted[1:exclude]
+    largest <- x_sorted[(n - exclude + 1):n]
+    best <- which.min(largest - lowest)
+    if (length(best)) {
+      c(lowest[best], largest[best])
+    } else {
+      c(NA, NA)
+    }
+  }))
+  colnames(hdis) <- c(".lower", ".upper")
+  data.frame(
+    ".var" = stats::median(object),
+    hdis,
+    ".width" = width
+  )
 }
 
-#' Push dead points into a common list
+#' Estimate the density of the posterior weights across the log volumes
+#' @param log_volume,weight Both rvar!
+#' @returns A data.frame containing 128 values of log volume and an rvar of
+#' densities
 #' @noRd
-push_dead_points <- function(dead, units, points, log_lik) {
-  new_dead <- list(
-    units = do.call(rbind, units),
-    points = do.call(rbind, points),
-    log_lik = list_c(log_lik)
+get_density <- function(log_volume, weight) {
+  draws <- posterior::draws_rvars(
+    "log_vol" = log_volume,
+    "weight" = weight
   )
-  vctrs::df_list(
-    units = rbind(dead$units, new_dead$units),
-    points = rbind(dead$points, new_dead$points),
-    log_lik = c(dead$log_lik, new_dead$log_lik)
-  )
+  min_vol <- min(mean(log_volume))
+  dens_list <- list()
+  log_vol <- NULL
+  .draw <- NULL
+  density <- posterior::for_each_draw(draws, {
+    dens <- stats::density(
+      log_vol,
+      weights = weight,
+      warnWbw = FALSE,
+      from = min_vol,
+      to = 0,
+      n = 128
+    )
+    dens_list[[.draw]] <<- data.frame("log_vol" = dens$x, "weights" = dens$y)
+  })
+  density <- vctrs::vec_rbind(!!!dens_list)
+  density_rvar <- matrix(density$weights, nrow = 128) |>
+    t() |>
+    posterior::rvar()
+  data.frame("log_volume" = unique(density$log_vol), "density" = density_rvar)
 }
 
-#' Push progress vectors into a list
+# Helpers for generating and validating the live points -----
+
+# Helpers for running nested sampling ---
+
+#' Find the indices of the smallest `n` values in a vector.
+#'
+#' @param x A numeric vector to search.
+#' @param n The number of smallest values to find.
+#' @return An integer vector of indices corresponding to the smallest values.
 #' @noRd
-push_progress <- function(progress, saved_progress) {
-  new_progress <- list(
-    ".calls" = unlist(lapply(saved_progress, `[[`, ".calls")),
-    ".id" = unlist(lapply(saved_progress, `[[`, ".id")),
-    ".sampler" = unlist(lapply(saved_progress, `[[`, "sampler"))
-  )
-  vctrs::df_list(
-    ".calls" = c(progress$.calls, new_progress$.calls),
-    ".id" = c(progress$.id, new_progress$.id),
-    ".sampler" = c(progress$sampler, new_progress$sampler)
-  )
+which_minn <- function(x, n = 1L) {
+  if (n == 1L) {
+    which.min(x)
+  } else {
+    order(x)[seq_len(min(n, length(x)))]
+  }
 }
 
-#' Compute the nested sampling integral
+# Helpers for computing and reporting results -----
+
+#' Compute the nested sampling integral and related statistics.
 #'
 #' @param log_lik A vector of log-likelihoods in descending order.
-#' @param log_vol A vector of log-volumes in ascending order.
-#' @param n_iter The number of iterations used to compute the integral.
+#' @param log_volume A vector of log-volumes in ascending order.
 #'
-#' @return A list with the following components:
-#' log_z: Log. evidence
-#' log_z_var: Variance of the log. evidence
-#' h: Information
-#' dh: Differential information
-#'
+#' @return A list of calculations.
 #' @noRd
-compute_integral <- function(log_lik, log_vol) {
-  pad_log_lik <- c(-1e300, log_lik)
-  d_log_vol <- diff(c(0, log_vol))
-  log_d_vol <- log_vol - d_log_vol + log(-expm1(d_log_vol))
-  log_d_vol2 <- log_d_vol - log(2)
-  d_log_vol <- -diff(c(0, log_vol))
+compute_integral <- function(log_lik, log_volume) {
+  if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
+    return(list(
+      log_lik = double(0),
+      log_volume = double(0),
+      log_weight = double(0),
+      log_evidence = double(0),
+      log_evidence_var = double(0),
+      information = double(0)
+    ))
+  }
+  log_weight <- get_logweight(log_lik, log_volume)
+  log_evidence <- get_logevid(log_weight)
+  information <- get_information(log_lik, log_volume, log_evidence)
 
-  log_wt <- mapply(
-    \(lik1, lik2, ldv) logaddexp(lik1, lik2) + ldv,
-    tail(pad_log_lik, -1),
-    head(pad_log_lik, -1),
-    log_d_vol2
-  )
+  # Estimate the error around logz
+  dh <- c(information[1], diff(information))
+  log_evidence_var <- abs(cumsum(dh * -diff(c(0, log_volume))))
 
-  log_z <- accumulate(log_wt, \(cur, nxt) logaddexp(cur, nxt))
-  log_z_max <- tail(log_z, 1)
-  h_term <- cumsum(
-    exp(tail(pad_log_lik, -1) - log_z_max + log_d_vol2) * tail(pad_log_lik, -1) +
-      exp(head(pad_log_lik, -1) - log_z_max + log_d_vol2) * head(pad_log_lik, -1)
+  vctrs::vec_cast_common(
+    log_lik = log_lik,
+    log_volume = log_volume,
+    log_weight = log_weight,
+    log_evidence = log_evidence,
+    log_evidence_var = log_evidence_var,
+    information = information,
+    .to = double()
   )
-  h <- h_term - log_z_max * exp(log_z - log_z_max)
-  dh <- diff(c(0, h))
-  log_z_var <- abs(cumsum(dh * d_log_vol))
+}
 
-  tibble::tibble(
-    "log_lik" = log_lik,
-    "log_vol" = log_vol,
-    "log_weight" = log_wt,
-    "log_z" = log_z,
-    "log_z_var" = log_z_var,
-    "information" = h
-  )
+#' Estimate log vol for the live points
+#'
+#' @param dead_log_vol A vector of log volumes for dead points.
+#' @param n_points The number of live points to estimate log volume for.
+#' @return A vector of log volumes for the live points.
+#' @noRd
+get_live_vol <- function(dead_log_vol, n_points) {
+  last_vol <- dead_log_vol[[vctrs::vec_size(dead_log_vol)]]
+  last_vol + log1p((-1 - n_points)^(-1) * seq_len(n_points))
 }

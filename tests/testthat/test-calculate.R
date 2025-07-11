@@ -1,113 +1,113 @@
-lrps <- new_rwmh_cube(
-  log_lik = gaussian_2$log_lik,
-  prior_transform = gaussian_2$prior_transform,
-  n_dim = 2,
-  update_interval = 100,
-  num_steps = 20,
-  target_acceptance = 0.25,
-  init_epsilon <- 1
-)
-integral <- readRDS(test_path("./compute_integral_test.rds"))
+test_that("sim_volume can draw with ndraws = 1", {
+  mat <- sim_volume(500, 5000, ndraws = 1)
+  expect_equal(dim(mat), c(1, 5500))
+  expect_true(all(mat < 0))
+})
 
-test_that("calculate works correctly", {
-  sampler <- ernest_sampler$new(lrps, 3, n_points = 100, verbose = FALSE)
+test_that("sim_volume can draw expected values", {
+  mat <- sim_volume(500, 4000, ndraws = 4000)
+  expect_equal(dim(mat), c(4000, 4500))
 
-  # Mocking private fields
-  set.seed(500)
-  dead_units <- matrix(runif(900 * 3), ncol = 3)
-  dead_points <- matrix(runif(900 * 3), ncol = 3)
-  sampler$.__enclos_env__$private$.dead <- list(
-    unit = dead_units,
-    point = dead_points,
-    log_lik = integral$log_lik[1:900]
-  )
-  live_units <- matrix(runif(100 * 3), ncol = 3)
-  live_points <- matrix(runif(100 * 3), ncol = 3)
-  sampler$.__enclos_env__$private$.live <- list(
-    unit = live_units,
-    point = live_points,
-    log_lik = integral$log_lik[901:1000]
-  )
-  sampler$.__enclos_env__$private$.log_vol <- integral$log_vol[1:900]
-  sampler$.__enclos_env__$private$.progress <- vctrs::df_list(
-    ".calls" = seq.int(0, by = 20, length.out = 900),
-    ".id" = rep(1:500, length.out = 900),
-    ".sampler" = rep(1, length.out = 900)
+  mean_vols <- colMeans(mat)
+  sd_vols <- apply(mat, 2, sd)
+
+  expected_means <- c(
+    # For dead points: E(Vol[i]) = Sum of log of kth-Uniform order stat.
+    # or: E(ln Vol[i]) = E(Beta(K, 1))
+    -seq(4000)/500,
+    # For live: E(Vol[i]) = Uniform order statistics from 1 -> K,
+    # relative to the last volume.
+    # Or: E(Beta(K, 1)) - E(Beta(K + 1, n + 1 - i))
+    -(4000/500) - (digamma(501) - digamma(501 - seq(500)))
   )
 
-  result <- sampler$calculate()
-  expect_s3_class(result, "tbl_df")
-  expect_mapequal(
-    result, # Object
-    tibble( # Expected
-      ".iter" = 1:1000,
-      log_lik = integral$log_lik,
-      log_vol = integral$log_vol,
-      log_z = integral$log_z,
-      log_z_var = integral$log_z_var,
-      log_weight = integral$log_wt,
-      information = integral$h
-    )
-  )
+  expect_true(all(is.finite(sd_vols)))
+  expect_true(all(abs(mean_vols - expected_means) < sd_vols))
+  expect_equal(mean_vols, expected_means, tolerance = 0.1)
+})
 
-  expect_equal(
-    sampler$calculate(add_progress = TRUE)$.calls,
-    c(seq.int(0, by = 20, length.out = 900), rep(NA, 100))
-  )
-  expect_equal(
-    sampler$calculate(add_progress = TRUE)$.id,
-    c(rep(1:500, length.out = 900), 1:100)
-  )
-  expect_equal(
-    sampler$calculate(add_progress = TRUE)$.sampler,
-    c(rep(1, length.out = 900), rep(NA, 100))
-  )
+test_that("get_logweight calculates correctly", {
+  expected <- readRDS(test_path("./sample_run.rds"))
+  log_w <- get_logweight(expected$log_lik, expected$log_volume)
+  expected_w <- as.numeric(expected$log_weight)
+  expect_equal(log_w, expected_w)
 
+  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
+  mat_expected <- matrix(rep(expected_w, 50), byrow = TRUE, nrow = 50)
   expect_equal(
-    sampler$calculate(add_points = "unit") |> names(),
-    c(".iter", "unit_X...1", "unit_X...2", "unit_X...3", "log_lik", "log_vol",
-      "log_weight", "log_z", "log_z_var", "information")
-  )
-  expect_equal(
-    sampler$calculate(add_points = "original") |> names(),
-    c(".iter", "X...1", "X...2", "X...3", "log_lik", "log_vol",
-      "log_weight", "log_z", "log_z_var", "information")
+    mat_expected,
+    get_logweight(expected$log_lik, mat_vol)
   )
 })
 
-test_that("calculate handles no iterations", {
-  sampler <- ernest_sampler$new(lrps, 3, n_points = 100, verbose = FALSE)
-  expect_message(sampler$calculate(), "No iterations have been performed")
-})
+test_that("get_logevid calculates correctly", {
+  expected <- readRDS(test_path("./sample_run.rds"))
+  log_w <- get_logweight(expected$log_lik, expected$log_volume)
+  expected_evid <- as.double(expected$log_evidence)
+  log_z <- get_logevid(log_w)
+  expect_equal(log_z, expected_evid)
 
-test_that("calculate handles unsorted log_lik", {
-  sampler <- ernest_sampler$new(lrps, ptype = 3, n_points = 10, verbose = FALSE)
-
-  sampler$.__enclos_env__$private$.dead <- list(log_lik = runif(10))
-  sampler$.__enclos_env__$private$.log_vol <- runif(10)
-  sampler$.__enclos_env__$private$.live <- list(log_lik = sort(runif(10), decreasing = TRUE))
-  sampler$.__enclos_env__$private$.n_points <- 10
-
-  expect_snapshot_warning(
-    res <- sampler$calculate()
-  )
+  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
+  mat_expected_evid <- matrix(rep(expected_evid, 50), byrow = TRUE, nrow = 50)
   expect_equal(
-    names(res),
-    c(".iter", "log_lik", "log_vol")
+    get_logevid(get_logweight(expected$log_lik, mat_vol)),
+    mat_expected_evid
   )
 })
 
-test_that("calculate handles unsorted log_vol", {
-  sampler <- ernest_sampler$new(lrps, ptype = 3, n_points = 10, verbose = FALSE)
+test_that("get_information calculates correctly", {
+  expected <- readRDS(test_path("./sample_run.rds"))
+  log_w <- get_logweight(expected$log_lik, expected$log_volume)
+  log_z <- get_logevid(log_w)
+  h <- get_information(expected$log_lik, expected$log_volume, log_z)
+  expected_info <- as.double(expected$information)
+  expect_equal(h, expected_info)
+})
 
-  sampler$.__enclos_env__$private$.dead <- list(log_lik = runif(10))
-  sampler$.__enclos_env__$private$.log_vol <- sort(runif(10), decreasing = TRUE)
-  sampler$.__enclos_env__$private$.live <- list(log_lik = integral$log_lik[1:10])
-  sampler$.__enclos_env__$private$.n_points <- 10
+test_that("calculate works when ndraws = 0", {
+  run <- readRDS(test_path("./example_run.rds"))
+  calc <- calculate(run, ndraws = 0)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
+  expect_equal(drop(posterior::draws_of(calc$log_volume)), run$log_volume)
+  expect_equal(drop(posterior::draws_of(calc$log_weight)), run$log_weight)
+  expect_equal(drop(posterior::draws_of(calc$log_evidence)), run$log_evidence)
+  expect_equal(drop(posterior::draws_of(calc$log_evidence.err)), sqrt(run$log_evidence_var))
+})
 
-  expect_snapshot_warning(res <- sampler$calculate())
+test_that("calculate works when ndraws = 1", {
+  run <- readRDS(test_path("./example_run.rds"))
+  n_samp <- run$n_iter + run$n_points
+
+  calc <- calculate(run, ndraws = 1)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
+  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
+})
+
+test_that("calculate works when ndraws = BIG", {
+  run <- readRDS(test_path("./example_run.rds"))
+  n_samp <- run$n_iter + run$n_points
+
+  calc <- calculate(run, ndraws = 1000)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
+  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1000, n_samp))
+
   expect_equal(
-    names(res),
-    c(".iter", "log_lik", "log_vol")
+    (mean(calc$log_volume) - run$log_volume) <
+     .Machine$double.eps + 2 * posterior::sd(calc$log_volume),
+    rep(TRUE, n_samp)
+  )
+  expect_equal(
+    (mean(calc$log_weight) - run$log_weight) <
+     .Machine$double.eps + 2 * posterior::sd(calc$log_weight),
+    rep(TRUE, n_samp)
+  )
+  expect_equal(
+    (mean(calc$log_evidence) - run$log_evidence) <
+     .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
+    rep(TRUE, n_samp)
   )
 })

@@ -9,6 +9,7 @@ Description: A complete implementation of the nested sampling algorithm
     statistical model.
 License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
+BugReports: https://github.com/kylesnap/ernest/issues/
 Imports: 
     cli,
     generics,

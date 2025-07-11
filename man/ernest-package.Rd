@@ -12,6 +12,7 @@ A complete implementation of the nested sampling algorithm for R, allowing users
 Useful links:
 \itemize{
   \item \url{https://kylesnap.github.io/ernest/}
+  \item Report bugs at \url{https://github.com/kylesnap/ernest/issues/}
 }
 
 }

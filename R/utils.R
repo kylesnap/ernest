@@ -36,22 +36,26 @@ hdci <- function(object, width = 0.95, ...) {
     stop("Input must be of class 'rvar'.")
   }
   # Compute HDI for each element
-  hdis <- t(sapply(object, function(x) {
-    draws <- as.numeric(posterior::draws_of(x))
-    if (!is.numeric(draws)) return(c(NA, NA))
-    x_sorted <- sort.int(draws, method = "quick")
-    n <- length(x_sorted)
-    if (n < 3) return(vctrs::vec_recycle(x, size = 2L))
-    exclude <- n - floor(n * width)
-    lowest <- x_sorted[1:exclude]
-    largest <- x_sorted[(n - exclude + 1):n]
-    best <- which.min(largest - lowest)
-    if (length(best)) {
-      c(lowest[best], largest[best])
-    } else {
-      c(NA, NA)
-    }
-  }))
+  hdis <- t(vapply(
+    object,
+    function(x) {
+      draws <- as.numeric(posterior::draws_of(x))
+      if (!is.numeric(draws)) return(c(NA, NA))
+      x_sorted <- sort.int(draws, method = "quick")
+      n <- length(x_sorted)
+      if (n < 3) return(vctrs::vec_recycle(x, size = 2L))
+      exclude <- n - floor(n * width)
+      lowest <- x_sorted[1:exclude]
+      largest <- x_sorted[(n - exclude + 1):n]
+      best <- which.min(largest - lowest)
+      if (length(best)) {
+        c(lowest[best], largest[best])
+      } else {
+        c(NA, NA)
+      }
+    },
+    numeric(2L)
+  ))
   colnames(hdis) <- c(".lower", ".upper")
   data.frame(
     ".var" = stats::median(object),

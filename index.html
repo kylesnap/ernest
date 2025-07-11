@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>The Nested Sampling Toolkit • ernest</title>
+<title>The R Nested Sampling Toolkit • ernest</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="The Nested Sampling Toolkit">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="The R Nested Sampling Toolkit">
 <meta name="description" content="A complete implementation of the nested sampling algorithm for R, allowing users to estimate the evidence and posterior of a statistical model.">
 <meta property="og:description" content="A complete implementation of the nested sampling algorithm for R, allowing users to estimate the evidence and posterior of a statistical model.">
 </head>
@@ -69,82 +69,6 @@
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kylesnap/ernest"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
-</h2>
-<p>To perform nested sampling, R requires two R functions: (1) A log-likelihood function, describing the likelihood of each point within the prior space, and a prior transformation function, which can use points in the (0-1)-unit cube to represent points in the prior space. As a simple example, we can use a 3D, highly correlated normal distribution, with a uniform prior in the range of -5 to 5.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span>
-<span><span class="va">n_dim</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
-<span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">n_dim</span><span class="op">)</span> <span class="co"># Covariance matrix</span></span>
-<span><span class="va">sigma</span><span class="op">[</span><span class="va">sigma</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.4</span> </span>
-<span><span class="va">inv_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span> <span class="co"># Precision matrix</span></span>
-<span><span class="va">det_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">det</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span> <span class="co"># The determinant of the covariance matrix</span></span>
-<span><span class="va">l_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">n_dim</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">det_sigma</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Log-likelihood of the multivariate normal distribution</span></span>
-<span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">inv_sigma</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">l_norm</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Prior transformation function: (0, 1) -&gt; (-5, 5)</span></span>
-<span><span class="va">prior_transform</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">u</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fl">5.</span> <span class="op">*</span> <span class="op">(</span><span class="fl">2.</span> <span class="op">*</span> <span class="va">u</span> <span class="op">-</span> <span class="fl">1.</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>With these functions, we call [nested_sampling()] to build an <code>ernest_sampler</code> object. This object contains several <code>S3</code> methods, including:</p>
-<ul>
-<li>
-<code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code>: Perform the nested sampling algorithm until a given criteria is met.</li>
-<li>
-<code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code>: Prepare a table of iterative model evidence estimates, along with point-wise log-likelihoods and posterior importance weights.</li>
-</ul>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span></span>
-<span>  <span class="va">log_lik</span>,</span>
-<span>  <span class="va">prior_transform</span>,</span>
-<span>  ptype <span class="op">=</span> <span class="va">n_dim</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, min_logz <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
-<span><span class="va">run</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Nested Sampling Run from ernest ─────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; No. Live Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 4451</span></span>
-<span><span class="co">#&gt; No. Calls: 111275</span></span>
-<span><span class="co">#&gt; Log Evidence: -6.83435374840042</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 4,951 × 7</span></span>
-<span><span class="co">#&gt;    .iter log_lik  log_vol log_weight log_z log_z_var information</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1     1   -52.9 -0.00200      -59.8 -59.8  9.23e-25   -4.62e-22</span></span>
-<span><span class="co">#&gt;  2     2   -51.2 -0.00400      -58.0 -57.8  6.45e-24   -3.23e-21</span></span>
-<span><span class="co">#&gt;  3     3   -47.6 -0.00599      -54.5 -54.4  1.76e-22   -8.82e-20</span></span>
-<span><span class="co">#&gt;  4     4   -47.3 -0.00799      -53.7 -53.3  5.45e-22   -2.73e-19</span></span>
-<span><span class="co">#&gt;  5     5   -46.9 -0.00999      -53.3 -52.6  1.06e-21   -5.28e-19</span></span>
-<span><span class="co">#&gt;  6     6   -45.7 -0.0120       -52.4 -51.8  2.35e-21   -1.18e-18</span></span>
-<span><span class="co">#&gt;  7     7   -44.7 -0.0140       -51.3 -50.8  6.01e-21   -3.01e-18</span></span>
-<span><span class="co">#&gt;  8     8   -44.1 -0.0160       -50.6 -50.0  1.35e-20   -6.77e-18</span></span>
-<span><span class="co">#&gt;  9     9   -43.6 -0.0180       -50.1 -49.3  2.60e-20   -1.30e-17</span></span>
-<span><span class="co">#&gt; 10    10   -41.7 -0.0200       -48.5 -48.2  8.13e-20   -4.07e-17</span></span>
-<span><span class="co">#&gt; # ℹ 4,941 more rows</span></span></code></pre></div>
-<p>We can also use the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method to visualize the iterative estimations performed during the run, and use the posterior package to resample from and summarize the posterior distribution.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-3-1.png" width="100%"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarize_draws</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 3 × 10</span></span>
-<span><span class="co">#&gt;   variable      mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 X...1    -0.0479   -0.0501 1.04  1.06  -1.76  1.67  1.18    1315.     13.0</span></span>
-<span><span class="co">#&gt; 2 X...2    -0.00846  -0.0304 1.00  0.975 -1.65  1.59  1.19    1016.     13.8</span></span>
-<span><span class="co">#&gt; 3 X...3    -0.000163  0.0197 0.992 0.992 -1.63  1.65  1.17    1300.     14.2</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
 </h2>
 <p><code>ernest</code> is still quite experimental, and additional features are intended to be added in the future. While we hope to avoid them, this does mean that certain components of ernest may be subject to breaking changes.</p>
@@ -193,7 +117,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Kyle Dewsnap <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2132-8083" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Kyle Dewsnap <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2132-8083" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -208,7 +132,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

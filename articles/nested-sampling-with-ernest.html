@@ -64,236 +64,105 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://mvtnorm.R-forge.R-project.org" class="external-link">mvtnorm</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tibble.tidyverse.org/" class="external-link">tibble</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
-<p>Nested sampling (NS) is a Bayesian statistical method designed to
-address the problems of parameter estimation and model selection. At its
-most general, (NS) is a method for estimating a solution to a integral
-over a high-dimensional space; in practice, this integral is usually the
-marginal likelihood of a given model given some data, over a specified
-prior parameter space. The method, originally introduced by John
-Skilling, has since been applied to a wide range of problems in
-astrophysics, cosmology, and other fields.</p>
-<p>The Easy R Nested Sampling Toolkit (or <code>ernest</code>) provides
-a collection of tools for performing nested sampling within
-<code>R</code>. Given a user-provided log-likelihood function contains
-functions for starting, continuing, and reviewing the results of a
-nested sampling run. The package is designed to be flexible and easy to
-use, and is intended to be a useful tool for researchers who wish to
-apply nested sampling to their own problems. This document glosses over
-the mathematical details that allow for nested sampling, instead
-focussing on providing an overview of <code>ernest</code>’s
-construction, and with providing an example of how it can be applied
-within a statistical analysis.</p>
-<div class="section level2">
-<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
-</h2>
-<p>In addition to specifying the dimensionality of their problem (i.e.,
-how many parameters are in their model of interest, or
-<code>n_dim</code>), <code>ernest</code> requires the user to provide
-two functions that describe the model’s log-likelihood and a prior space
-transformation.</p>
-<div class="section level3">
-<h3 id="log-likelihood-function-log_lik">Log-Likelihood Function: <code>log_lik</code><a class="anchor" aria-label="anchor" href="#log-likelihood-function-log_lik"></a>
-</h3>
-<p>This function must take in a vector of parameters equal in length to
-<code>n_dim</code>. For each input, the function should return the
-scalar-valued log-likelihood of the model. In cases where the this value
-is not finite, the function should return <code>-Inf</code>.</p>
-<div class="section level4">
-<h4 id="example-a-two-dimensional-multivariate-gaussian-distribution">Example: A Two-Dimensional Multivariate Gaussian Distribution<a class="anchor" aria-label="anchor" href="#example-a-two-dimensional-multivariate-gaussian-distribution"></a>
-</h4>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span></code></pre></div>
+<p>The Easy R Nested Sampling Toolkit (ernest) provides a collection of
+tools for performing nested sampling within <code>R</code>. To begin
+sampling, ernest requires the user to specify two objects:</p>
+<ol style="list-style-type: decimal">
+<li>A log-likelihood function,</li>
+<li>A prior distribution, provided in the form of an
+<code>ernest_prior</code> object.</li>
+</ol>
+<p>The log-likelihood function must take in a single argument consisting
+of a vector of parameters, and must return either a finite scalar
+numeric value or the value <code>-Inf</code>. As an example, we can
+define the log-likelihood of a 3D Gaussian distribution.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">num_dim</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">num_dim</span><span class="op">)</span></span>
-<span><span class="va">sigma</span><span class="op">[</span><span class="va">sigma</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.95</span></span>
+<code class="sourceCode R"><span><span class="va">n_dim</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">0.95</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">det_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">determinant</a></span><span class="op">(</span><span class="va">sigma</span>, logarithm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">modulus</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">det_sigma</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<span><span class="va">prec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
+<span><span class="va">log_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">n_dim</span> <span class="op">+</span> <span class="va">det_sigma</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">log_lik</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">dmvnorm</a></span><span class="op">(</span><span class="va">x</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co"># Log-likelihood of a MVN(0, Sigma)</span></span>
+<span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">theta</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">prec</span>, <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">log_norm</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] -2.679876</span></span></code></pre></div>
+<p>The prior is provided through an <code>ernest_prior</code> object,
+which contains information about the parameter space of interest. Ernest
+conducts its sampling within the unit cube, and uses the
+<code>ernest_prior</code> to transform these unit cube samples into the
+space of the original prior. The user can choose to build their own
+prior by offering a transformation function explicitly: For every
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>-length
+vector in the [0,1)-unit cube, this function should output a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>-length
+vector of parameters. In the case of independently-distributed
+parameters, this is identical to applying the inverse cumulative
+distribution function (CDF) of the prior distribution to each element of
+the input vector.</p>
+<p>This function, along with the number of dimensions within the prior
+space, is then given to <code><a href="../reference/create_prior.html">create_prior()</a></code>. This prior
+specifies a 3D prior space with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mi>n</mi><mi>i</mi><mi>f</mi><mi>o</mi><mi>r</mi><mi>m</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>−</mo><mn>10</mn><mo>,</mo><mn>10</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">Uniform[-10, 10]</annotation></semantics></math>
+marginals.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">transformation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">*</span> <span class="fl">20</span> <span class="op">-</span> <span class="fl">10</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
-<span>    <span class="st">"x"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">10</span>, length.out <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>, </span>
-<span>    <span class="st">"y"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span>, <span class="fl">10</span>, length.out <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  <span class="st">"ll"</span> <span class="op">=</span> <span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, fill <span class="op">=</span> <span class="va">ll</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="fu">italic</span><span class="op">(</span><span class="va">LL</span><span class="op">)</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-2-1.png" width="700">
-## Prior Space Transformation: <code>prior_transform</code></p>
-<p>Like other implementations of nested sampling, <code>ernest</code>
-generates possible parameter vectors by performing likelihood-restricted
-prior sampling within the (0-1)-unit hypercube. The
-<code>prior_transform</code> function is responsible for taking these
-vectors and transforming it to the original parameter space specified by
-a given prior distribution.</p>
-<p>This function must take in a vector of parameters equal in length to
-<code>n_dim</code> whose components are guaranteed to be in the range
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0, 1]</annotation></semantics></math>.
-For each input, the function must return an <code>n_dim</code>-length
-vector of parameters in the original parameter space. Each component of
-this vector should be a finite value.</p>
-</div>
-<div class="section level4">
-<h4 id="example-a-uniform-prior-in-2d-space">Example: A Uniform Prior in 2D-Space<a class="anchor" aria-label="anchor" href="#example-a-uniform-prior-in-2d-space"></a>
-</h4>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">prior_t</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">u</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">qunif</a></span><span class="op">(</span><span class="va">u</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, max <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="example-a-uniform-prior-in-2d-space-heterogenous-scales">Example: A Uniform Prior in 2D-Space (Heterogenous Scales)<a class="anchor" aria-label="anchor" href="#example-a-uniform-prior-in-2d-space-heterogenous-scales"></a>
-</h4>
+<span><span class="va">user_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_prior.html">create_prior</a></span><span class="op">(</span></span>
+<span>  fn <span class="op">=</span> <span class="va">transformation</span>,</span>
+<span>  n_dim <span class="op">=</span> <span class="va">n_dim</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>For several priors, ernest provides convenience functions with fast
+implementations of the required transformation. One such function exists
+for the uniform distribution:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">prior_t2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">u</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">qunif</a></span><span class="op">(</span><span class="va">u</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, max <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">qunif</a></span><span class="op">(</span><span class="va">u</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>, max <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level3">
-<h3 id="choosing-a-likelihood-restricted-prior-sampler">Choosing a Likelihood-Restricted Prior Sampler<a class="anchor" aria-label="anchor" href="#choosing-a-likelihood-restricted-prior-sampler"></a>
-</h3>
-<p>Nested samplers require a method for generating proposed parameter
-vectors by taking independent samples from the prior distribution,
-conditional on some minimum likelihood constraint. Currently,
-<code>ernest</code> offers two samplers that can be chosen using the
-<code>sampler</code> argument on <code><a href="../reference/nested_sampling.html">nested_sampling()</a></code>, but
-more sophisticated options are scheduled for development.</p>
-<div class="section level4">
-<h4 id="uniform-sampling-uniform_cube">Uniform Sampling: <code>uniform_cube()</code><a class="anchor" aria-label="anchor" href="#uniform-sampling-uniform_cube"></a>
-</h4>
-<p>The <code>uniform_cube()</code> is the most basic implementation of a
-region-based sampler, where points are proposed by sampling uniformly
-within the unit hypercube until a point exceeds the likelihood
-constraint. This method is helpful for verifying the correctness of a
-nested sampling run by performing it with limited iterations, but its
-inefficiency renders it largely unhelpful for practical use.</p>
-<p>Calling <code><a href="../reference/lrps.html">unif_cube()</a></code> also provides the user an
-opportunity to set the <code>ernest.max_loop</code> option in their
-environment. This is intend to serve as a safety check, killing a run if
-a sampler exceeds a reasonable number of iterations in attempting to
-proposal a point under the likelihood contraint. As such, it generally
-should be set to a very high number, with <code>1e6L</code> being the
-default.</p>
-</div>
-<div class="section level4">
-<h4 id="random-walk-in-the-unit-hypercube-rwmh_cube">Random Walk in the Unit Hypercube: <code>rwmh_cube()</code><a class="anchor" aria-label="anchor" href="#random-walk-in-the-unit-hypercube-rwmh_cube"></a>
-</h4>
-<p>The <code>rwmh_cube</code> is a basic implementation of a MCMC-based
-sampler, where points are generated by performing a random walk within
-the unit hypercube, accepting proposed points that exceed the likelihood
-constraint. This method closely resembles the original proposed LRPS
-detailed in Skilling, and is reasonably effective for low- to
-middle-dimensional problems (i.e., between 1-to-20).</p>
-<p>The user can set the number of steps, the initial step size, and the
-target acceptance ratio of the sampler. Unlike Skilling’s original LRPS,
-<code>ernest</code> applies a Newton-Raphson optimization to adjust the
-step size throughout the run to target the desired acceptance ratio. The
-number of calls to the likelihood function between each update can be
-set with the <code>update_interval</code> argument in
-<code><a href="../reference/nested_sampling.html">nested_sampling()</a></code>.</p>
-</div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="running-nested-sampling-with-ernest">Running Nested Sampling with <code>Ernest</code><a class="anchor" aria-label="anchor" href="#running-nested-sampling-with-ernest"></a>
-</h2>
-<p>Using the 2D-Gaussian likelihood example provided earlier, along with
-the uniform gaussian prior, we can perform a nested sampling run with
-the <code><a href="../reference/lrps.html">rwmh_cube()</a></code> sampler. First,
-<code><a href="../reference/nested_sampling.html">nested_sampling()</a></code> takes in the user provided functions, a
-<code>ptype</code> defining the number of variables or a vector of
-character names (should one want prettier output), and other user-set
-parameters. Importantly, the user can set the <code>verbose</code>
-parameter to <code>TRUE</code> to receive updates on the progress of the
-run.</p>
+<code class="sourceCode R"><span><span class="va">unif_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_special_prior.html">create_uniform_prior</a></span><span class="op">(</span><span class="va">n_dim</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+<p>Both objects are forwarded to <code><a href="../reference/nested_sampling.html">nested_sampling()</a></code> to
+prepare a nested sampling run. This function also sets a number of
+additional parameters to control the sampling process. The most
+important of these is <code>n_live</code>, which specifies the number of
+live points to use during the sampling process.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span></span>
-<span>  <span class="va">log_lik</span>,</span>
-<span>  prior_transform <span class="op">=</span> <span class="va">prior_t</span>,</span>
-<span>  ptype <span class="op">=</span> <span class="fl">2L</span>,</span>
-<span>  n_points <span class="op">=</span> <span class="fl">500L</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="fu"><a href="../reference/lrps.html">rwmh_cube</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span><span class="va">log_lik</span>, <span class="va">unif_prior</span>, n_points <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="va">sampler</span></span>
-<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">0</span> Samples Generated.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Estimate log. evidence with `generate()`.</span></span></code></pre></div>
-<p>This produces an <code>R6</code> object with the class
-<code>ernest_sampler</code>. This object is responsible for dispatching
-across the various functions that <code>ernest</code> provides for
-generating and reviewing the results of a nested sampling run.</p>
-<p>To begin nested sampling, the <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> method is
-called on <code>sampler</code>. This accepts a number of parameters that
-indicate at which point to stop nested sampling. For example, one can
-run the sampling until 1000 iterations are performed.</p>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 1000 points x 0 iter. x 0 lik. calls</span></span></code></pre></div>
+<p>The result is an <code>ernest_sampler</code> object, which is an
+<code>R6</code> class. This allows ernest to start or continue nested
+sampling runs using previous results. The nested sampling loop is
+started by calling the <code>generate</code> method for
+<code>ernest_sampler</code>, which will perform sampling until some
+stopping criteria is met. By default, this criterion is the estimated
+untraversed prior volume falling below 0.05.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
-<span><span class="va">run1</span></span>
-<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">1000</span> Samples Generated.</span></span>
-<span><span class="co">#&gt; Estimated Log. Evidence: -6.2767</span></span></code></pre></div>
-<p>To improve the evidence estimate from this model, the user can
-continue a run by calling <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> on a
-previously-generated <code>ErnestSampler</code>. By setting the
-<code>dlogz</code> option, nested sampling will be stopped once the
-log-ratio between the current estimated evidence and the remaining
-evidence falls below some criterion.</p>
+<code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span>
+<span><span class="va">sampler</span><span class="op">$</span><span class="va">run</span></span>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 1000 points x 9268 iter x 231700 lik. calls</span></span>
+<span><span class="co">#&gt; → Log. Evidence: <span style="color: #0000BB;">-8.932</span> ± <span style="color: #0000BB;">0.082</span></span></span></code></pre></div>
+<p>Results are stored in <code>ernest_run</code> objects, which
+themselves have several methods. This includes <code>summary</code>,
+which provides the estimate evidence estimates as a <code>tibble</code>,
+and <code>plot</code>, which visualizes how the evidence estimates and
+related quantities changed throughout a run.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, min_logz <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
-<span><span class="va">run2</span></span>
-<span><span class="co">#&gt; <span style="font-style: italic;">Nested Sampling Run from </span><span style="color: #0000BB; font-style: italic;">ernest</span></span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">500</span> Live Points, <span style="color: #0000BB;">4237</span> Samples Generated.</span></span>
-<span><span class="co">#&gt; Estimated Log. Evidence: -6.1186</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
-</h2>
-<p>A nested sampling run’s results can be viewed by calling different
-arguments over the <code>ErnestSampler</code> object. For example, by
-calling <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> on <code>run2</code>, one receives a
-<code>tibble</code> containing the results of the iterative evidence
-estimates.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">integral</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">integral</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span><span class="op">$</span><span class="va">run</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 7</span></span></span>
-<span><span class="co">#&gt;   .iter log_lik log_vol log_weight log_z log_z_var information</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">4</span>732  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">12.9</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.010<span style="text-decoration: underline;">8</span>        4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>  <span style="text-decoration: underline;">4</span>733  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">13.1</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.010<span style="text-decoration: underline;">9</span>        4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>  <span style="text-decoration: underline;">4</span>734  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">13.3</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.011<span style="text-decoration: underline;">0</span>        4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>  <span style="text-decoration: underline;">4</span>735  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">13.6</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.011<span style="text-decoration: underline;">2</span>        4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>  <span style="text-decoration: underline;">4</span>736  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">14.0</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.011<span style="text-decoration: underline;">4</span>        4.50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>  <span style="text-decoration: underline;">4</span>737  -<span style="color: #BB0000;">0.674</span>   -<span style="color: #BB0000;">14.7</span>      -<span style="color: #BB0000;">15.4</span> -<span style="color: #BB0000;">6.12</span>    0.011<span style="text-decoration: underline;">7</span>        4.50</span></span></code></pre></div>
-<p>The change in the evidence estimate over the course of the run can be
-visualized by calling <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> on the
-<code>ErnestSampler</code> object.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-9-1.png" width="700">
-We can also produce trace plots of the distributions of the points
-across the run by calling <code>visualize(which = "trace")</code> on the
-<code>ErnestSampler</code> object.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_df.html" class="external-link">as_draws_df</a></span><span class="op">(</span><span class="va">run2</span>, unit <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">draws</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">`.draw`</span>, y <span class="op">=</span> <span class="va">`X...1`</span>, colour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">`.log_weight`</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_colour_viridis_c</a></span><span class="op">(</span><span class="st">"Post. Weight"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">draws</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">`.draw`</span>, y <span class="op">=</span> <span class="va">`X...2`</span>, colour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">`.log_weight`</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_colour_viridis_c</a></span><span class="op">(</span><span class="st">"Post. Weight"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-10-2.png" width="700"></p>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
+<span><span class="co">#&gt;    call log_lik log_volume log_weight log_evidence log_evidence_err information</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>    25   -<span style="color: #BB0000;">148.</span>     -<span style="color: #BB0000;">0.001</span>      -<span style="color: #BB0000;">147.</span>        -<span style="color: #BB0000;">156.</span>         4.46<span style="color: #949494;">e</span><span style="color: #BB0000;">-33</span>   -<span style="color: #BB0000;">1.99</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-62</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>    50   -<span style="color: #BB0000;">140.</span>     -<span style="color: #BB0000;">0.002</span>      -<span style="color: #BB0000;">138.</span>        -<span style="color: #BB0000;">147.</span>         3.32<span style="color: #949494;">e</span><span style="color: #BB0000;">-31</span>   -<span style="color: #BB0000;">1.10</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-58</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>    75   -<span style="color: #BB0000;">137.</span>     -<span style="color: #BB0000;">0.003</span>      -<span style="color: #BB0000;">135.</span>        -<span style="color: #BB0000;">144.</span>         1.50<span style="color: #949494;">e</span><span style="color: #BB0000;">-30</span>   -<span style="color: #BB0000;">2.25</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-57</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>   100   -<span style="color: #BB0000;">125.</span>     -<span style="color: #BB0000;">0.004</span>      -<span style="color: #BB0000;">123.</span>        -<span style="color: #BB0000;">132.</span>         5.30<span style="color: #949494;">e</span><span style="color: #BB0000;">-28</span>   -<span style="color: #BB0000;">2.81</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-52</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>   125   -<span style="color: #BB0000;">121.</span>     -<span style="color: #BB0000;">0.005</span>      -<span style="color: #BB0000;">120.</span>        -<span style="color: #BB0000;">128.</span>         3.70<span style="color: #949494;">e</span><span style="color: #BB0000;">-27</span>   -<span style="color: #BB0000;">1.37</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-50</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>   150   -<span style="color: #BB0000;">120.</span>     -<span style="color: #BB0000;">0.006</span>      -<span style="color: #BB0000;">118.</span>        -<span style="color: #BB0000;">127.</span>         7.34<span style="color: #949494;">e</span><span style="color: #BB0000;">-27</span>   -<span style="color: #BB0000;">5.38</span><span style="color: #949494;">e</span><span style="color: #BB0000;">-50</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span></code></pre></div>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+  </main>
 </div>
 
 
@@ -303,7 +172,7 @@ across the run by calling <code>visualize(which = "trace")</code> on the
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

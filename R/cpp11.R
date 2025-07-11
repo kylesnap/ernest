@@ -12,10 +12,6 @@ logaddexp <- function(x, y) {
   .Call(`_ernest_logaddexp`, x, y)
 }
 
-logaddexp_vec <- function(x, y) {
-  .Call(`_ernest_logaddexp_vec`, x, y)
-}
-
 logcumsumexp <- function(x) {
   .Call(`_ernest_logcumsumexp`, x)
 }

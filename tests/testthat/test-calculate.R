@@ -1,29 +1,58 @@
-test_that("sim_volume returns expected", {
-  sim_volume(500, 4000)
-  mean_vol <- rowMeans(replicate(1000, sim_volume(500, 4000)))
-  expect_equal(
-    mean_vol,
-    c(-seq(4000)/500, -(4000/500) - (digamma(501) - digamma(501 - seq(500)))),
-    tolerance = 0.01
+test_that("sim_volume can draw with ndraws = 1", {
+  mat <- sim_volume(500, 5000, ndraws = 1)
+  expect_equal(dim(mat), c(1, 5500))
+  expect_true(all(mat < 0))
+})
+
+test_that("sim_volume can draw expected values", {
+  mat <- sim_volume(500, 4000, ndraws = 4000)
+  expect_equal(dim(mat), c(4000, 4500))
+
+  mean_vols <- colMeans(mat)
+  sd_vols <- apply(mat, 2, sd)
+
+  expected_means <- c(
+    # For dead points: E(Vol[i]) = Sum of log of kth-Uniform order stat.
+    # or: E(ln Vol[i]) = E(Beta(K, 1))
+    -seq(4000)/500,
+    # For live: E(Vol[i]) = Uniform order statistics from 1 -> K,
+    # relative to the last volume.
+    # Or: E(Beta(K, 1)) - E(Beta(K + 1, n + 1 - i))
+    -(4000/500) - (digamma(501) - digamma(501 - seq(500)))
   )
-  expect_equal(
-    sum(!is.finite(mean_vol)),
-    0
-  )
+
+  expect_true(all(is.finite(sd_vols)))
+  expect_true(all(abs(mean_vols - expected_means) < sd_vols))
+  expect_equal(mean_vols, expected_means, tolerance = 0.1)
 })
 
 test_that("get_logweight calculates correctly", {
   expected <- readRDS(test_path("./sample_run.rds"))
   log_w <- get_logweight(expected$log_lik, expected$log_volume)
-  expect_equal(log_w, expected$log_weight, tolerance = 1e-6)
+  expected_w <- as.numeric(expected$log_weight)
+  expect_equal(log_w, expected_w)
+
+  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
+  mat_expected <- matrix(rep(expected_w, 50), byrow = TRUE, nrow = 50)
+  expect_equal(
+    mat_expected,
+    get_logweight(expected$log_lik, mat_vol)
+  )
 })
 
 test_that("get_logevid calculates correctly", {
   expected <- readRDS(test_path("./sample_run.rds"))
   log_w <- get_logweight(expected$log_lik, expected$log_volume)
+  expected_evid <- as.double(expected$log_evidence)
   log_z <- get_logevid(log_w)
-  log_evid <- as.double(expected$log_evidence)
-  expect_equal(log_z, log_evid)
+  expect_equal(log_z, expected_evid)
+
+  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
+  mat_expected_evid <- matrix(rep(expected_evid, 50), byrow = TRUE, nrow = 50)
+  expect_equal(
+    get_logevid(get_logweight(expected$log_lik, mat_vol)),
+    mat_expected_evid
+  )
 })
 
 test_that("get_information calculates correctly", {
@@ -82,5 +111,3 @@ test_that("calculate works when ndraws = BIG", {
     rep(TRUE, n_samp)
   )
 })
-
-

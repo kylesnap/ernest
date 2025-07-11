@@ -80,6 +80,7 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 autoplot.ernest_estimates <- function(object, ...) {
   check_dots_empty()
 
+  fallback <- FALSE
   df <- try_fetch({
     max_log_z <- tail(object$log_evidence, 1)
     w <- exp(object$log_weight - max_log_z)
@@ -134,6 +135,7 @@ autoplot.ernest_estimates <- function(object, ...) {
         "i" = "Is `ndraws` large enough to calculate HDIs?"
       )
     )
+    fallback <<- TRUE
     make_plot_df(
       log_volume = mean(object$log_volume),
       log_evidence = mean(object$log_evidence),
@@ -143,7 +145,16 @@ autoplot.ernest_estimates <- function(object, ...) {
     )
   })
 
-  autoplot_run_(df, "HDCI", c(0.95, 0.68), c("95%", "68%"))
+  autoplot_run_(
+    df,
+    if (fallback) expression(hat(sigma[Z])) else "HDCI",
+    if (fallback) c(3, 2, 1) else c(0.95, 0.68),
+    if (fallback) {
+      c(expression(3*sigma), expression(2*sigma), expression(1*sigma))
+    } else {
+      c("95%", "68%")
+    }
+  )
 }
 
 #' @importFrom ggplot2 geom_ribbon
@@ -209,15 +220,26 @@ autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {
   )
 
   weight_ribbon <- any(!is.na(df$.width) & df$.label == "Posterior Weight")
-  ribbon_df <- if (weight_ribbon) {
-    subset(df, df$.label != "Normalized Likelihood")
+  weight_geom <- if (weight_ribbon) {
+    geom_ribbon(
+      data = subset(df, df$.label == "Posterior Weight"),
+      aes(
+        ymin = .data[[".lower"]],
+        ymax = .data[[".upper"]],
+        fill = .data[[".width"]]
+      ),
+      alpha = 0.7
+    )
   } else {
-    subset(df, df$.label == "Evidence")
+    geom_line(
+      data = ~ subset(., df$.label == "Posterior Weight"),
+      position = "identity"
+    )
   }
 
   ggplot(df, aes(x = .data[["log_vol"]], y = .data[[".var"]])) +
     geom_ribbon(
-      data = ribbon_df,
+      data = ~ subset(., df$.label == "Evidence"),
       aes(
         ymin = .data[[".lower"]],
         ymax = .data[[".upper"]],
@@ -233,6 +255,7 @@ autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {
       data = ~ subset(., df$.label == "Posterior Weight"),
       position = "identity"
     ) +
+    weight_geom +
     scale_x_continuous("Log Volume") +
     scale_y_continuous(NULL) +
     scale_fill_viridis_d(

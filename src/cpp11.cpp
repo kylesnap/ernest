@@ -27,13 +27,6 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
   END_CPP11
 }
 // utils.cpp
-cpp11::doubles logaddexp_vec(cpp11::doubles x, cpp11::doubles y);
-extern "C" SEXP _ernest_logaddexp_vec(SEXP x, SEXP y) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(logaddexp_vec(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(x), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(y)));
-  END_CPP11
-}
-// utils.cpp
 cpp11::doubles logcumsumexp(cpp11::doubles x);
 extern "C" SEXP _ernest_logcumsumexp(SEXP x) {
   BEGIN_CPP11
@@ -49,7 +42,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_RandomWalkMetropolis", (DL_FUNC) &_ernest_RandomWalkMetropolis, 6},
     {"_ernest_UniformCube",          (DL_FUNC) &_ernest_UniformCube,          4},
     {"_ernest_logaddexp",            (DL_FUNC) &_ernest_logaddexp,            2},
-    {"_ernest_logaddexp_vec",        (DL_FUNC) &_ernest_logaddexp_vec,        2},
     {"_ernest_logcumsumexp",         (DL_FUNC) &_ernest_logcumsumexp,         1},
     {"run_testthat_tests",           (DL_FUNC) &run_testthat_tests,           1},
     {NULL, NULL, 0}

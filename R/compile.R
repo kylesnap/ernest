@@ -99,34 +99,44 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
   idx <- intersect(which(!is.finite(log_lik)), which(log_lik != -Inf))
   if (length(idx) > 0L) {
     len <- length(idx)
-    cli::cli_abort(c(
-      "Couldn't avoid calculating non-finite log-likelihood values.",
-      "i" = "Log-likelihood values can only be finite or `-Inf`.",
-      "x" = "There {?is/are} {len} non-finite, non-`-Inf` value{?s}."
-    ), call = call)
+    cli::cli_abort(
+      c(
+        "Couldn't avoid calculating non-finite log-likelihood values.",
+        "i" = "Log-likelihood values can only be finite or `-Inf`.",
+        "x" = "There {?is/are} {len} non-finite, non-`-Inf` value{?s}."
+      ),
+      call = call
+    )
   }
   idx <- which(log_lik == -Inf)
   if (length(idx) > 0L) {
     len <- length(idx)
     cli::cli_warn(
-      "Found {len} log-likelihood value{?s} equal to `-Inf`.", call = call
+      "Found {len} log-likelihood value{?s} equal to `-Inf`.",
+      call = call
     )
   }
   unique_logl <- unique(log_lik)
   if (length(unique_logl) == 1) {
-    cli::cli_abort(c(
-      "Couldn't generate unique log-likelihood values for each point.",
-      "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
-      "i" = "This generally indicates an error within a log. lik. function."
-    ), call = call)
+    cli::cli_abort(
+      c(
+        "Couldn't generate unique log-likelihood values for each point.",
+        "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
+        "i" = "This generally indicates an error within a log. lik. function."
+      ),
+      call = call
+    )
   }
   if (length(unique_logl) < length(log_lik) * 0.25) {
     perc <- prettyNum(length(unique_logl) / length(log_lik))
-    cli::cli_warn(c(
-      "Suspected flatness in the log-likelihood surface.",
-      "x" = "Only {perc}% of the live points have unique log-lik. values.",
-      "i" = "Consider reviewing your model or adjusting your prior."
-    ), call = call)
+    cli::cli_warn(
+      c(
+        "Suspected flatness in the log-likelihood surface.",
+        "x" = "Only {perc}% of the live points have unique log-lik. values.",
+        "i" = "Consider reviewing your model or adjusting your prior."
+      ),
+      call = call
+    )
   }
   NULL
 }

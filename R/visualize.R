@@ -36,7 +36,13 @@
 #' )
 #' @method visualize ernest_run
 #' @export
-visualize.ernest_run <- function(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE) {
+visualize.ernest_run <- function(
+  x,
+  ...,
+  type = c("density", "trace"),
+  vars = NULL,
+  plot = TRUE
+) {
   check_dots_used()
   if (plot) {
     check_installed("ggdist", reason = "Plot posterior distributions.")
@@ -63,7 +69,9 @@ visualize_density_ <- function(draws, cols, plot) {
     ".dist" = list_c(resamp[cols])
   )
 
-  if (!plot) return(df)
+  if (!plot) {
+    return(df)
+  }
 
   df |>
     ggplot() +
@@ -82,7 +90,9 @@ visualize_trace_ <- function(draws, cols, log_vol, plot) {
     ".log_volume" = rep(log_vol, length(cols)),
     ".weight" = rep(stats::weights(draws), length(cols))
   )
-  if (!plot) return(df)
+  if (!plot) {
+    return(df)
+  }
 
   df |>
     ggplot(aes(

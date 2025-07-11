@@ -79,7 +79,13 @@
 #'   lower = c(-Inf, -Inf, -1)
 #' ))
 #' @export
-create_prior <- function(fn, n_dim, varnames = NULL, lower = NULL, upper = NULL) {
+create_prior <- function(
+  fn,
+  n_dim,
+  varnames = NULL,
+  lower = NULL,
+  upper = NULL
+) {
   p <- NULL
   quantile <- call2(fn, expr(p))
   prior_fn <- new_function(
@@ -135,7 +141,14 @@ create_prior <- function(fn, n_dim, varnames = NULL, lower = NULL, upper = NULL)
 #'  varnames = c("beta0", "beta1", "sigma"),
 #'  lower = c(-Inf, -Inf, 0)
 #' )
-create_normal_prior <- function(n_dim, mean = 0, sd = 1, varnames = NULL, lower = -Inf, upper = Inf) {
+create_normal_prior <- function(
+  n_dim,
+  mean = 0,
+  sd = 1,
+  varnames = NULL,
+  lower = -Inf,
+  upper = Inf
+) {
   if (any(sd <= 0)) {
     stop_input_type(sd, "must be larger than zero")
   }
@@ -196,7 +209,16 @@ create_normal_prior <- function(n_dim, mean = 0, sd = 1, varnames = NULL, lower 
 #'
 #' @rdname create_special_prior
 #' @export
-create_t_prior <- function(n_dim, df, mu = 0, sigma = 1, ncp = NULL, varnames = NULL, lower = -Inf, upper = Inf) {
+create_t_prior <- function(
+  n_dim,
+  df,
+  mu = 0,
+  sigma = 1,
+  ncp = NULL,
+  varnames = NULL,
+  lower = -Inf,
+  upper = Inf
+) {
   if (any(df <= 0)) {
     stop_input_type(df, "must be larger than zero")
   }
@@ -260,7 +282,14 @@ create_t_prior <- function(n_dim, df, mu = 0, sigma = 1, ncp = NULL, varnames = 
 #'
 #' @rdname create_special_prior
 #' @export
-create_cauchy_prior <- function(n_dim, location = 0, scale = 1, varnames = NULL, lower = -Inf, upper = Inf) {
+create_cauchy_prior <- function(
+  n_dim,
+  location = 0,
+  scale = 1,
+  varnames = NULL,
+  lower = -Inf,
+  upper = Inf
+) {
   if (any(scale <= 0)) {
     stop_input_type(scale, "must be larger than zero")
   }
@@ -328,7 +357,11 @@ create_uniform_prior <- function(lower = 0, upper = 1, n_dim, varnames = NULL) {
     .size = n_dim
   )
   if (is.null(varnames)) {
-    varnames <- sprintf("Uniform(%s, %s)", round(args$lower, 3), round(args$upper, 3))
+    varnames <- sprintf(
+      "Uniform(%s, %s)",
+      round(args$lower, 3),
+      round(args$upper, 3)
+    )
   }
 
   quantile <- expr(
@@ -363,7 +396,15 @@ create_uniform_prior <- function(lower = 0, upper = 1, n_dim, varnames = NULL) {
 #' Form a prior distribution object for ernest.
 #'
 #' @noRd
-new_ernest_prior <- function(prior_fn, n_dim, varnames = NULL, lower = NULL, upper = NULL, class = NULL, call = caller_env()) {
+new_ernest_prior <- function(
+  prior_fn,
+  n_dim,
+  varnames = NULL,
+  lower = NULL,
+  upper = NULL,
+  class = NULL,
+  call = caller_env()
+) {
   check_function(prior_fn)
   check_number_whole(n_dim, min = 1)
 
@@ -404,10 +445,14 @@ validate_prior <- function(prior, size = 1000L, call = caller_env()) {
     {
       for (i in nrow(check)) {
         if (!is_double(check[i, ], n = prior$n_dim)) {
-          cli::cli_abort("`fn` must always return a double vector of length {prior$n_dim}.")
+          cli::cli_abort(
+            "`fn` must always return a double vector of length {prior$n_dim}."
+          )
         }
         if (any(!is.finite(check[i, ]))) {
-          cli::cli_abort("`fn` must always return finite values for every vector in [0, 1).")
+          cli::cli_abort(
+            "`fn` must always return finite values for every vector in [0, 1)."
+          )
         }
         if (!is_empty(prior$lower) && any(check[i, ] < prior$lower)) {
           cli::cli_abort(c(

@@ -1,6 +1,5 @@
 gaussian_2 <- make_gaussian(2)
 test_that("create_live generates live points correctly", {
-
   lrps <- rwcube_lrps$new(
     log_lik_fn = gaussian_2$log_lik,
     prior_fn = gaussian_2$prior$fn,

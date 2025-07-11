@@ -103,7 +103,7 @@ compile_results <- function(
 }
 
 new_ernest_run <- function(res, n_live, n_dead, live_order) {
-  log_vol <- cumsum(-1 * (res$points ** -1))
+  log_vol <- cumsum(-1 * (res$points**-1))
   integration <- compute_integral(res$log_lik, log_vol)
   live_loc <- live_order + n_dead
 

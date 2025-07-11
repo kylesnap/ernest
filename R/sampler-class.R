@@ -160,8 +160,12 @@ ernest_sampler <- R6Class(
         ))
       }
 
-      if (max_iterations == Inf) max_iterations <- .Machine$integer.max
-      if (max_calls == Inf) max_calls <- .Machine$integer.max
+      if (max_iterations == Inf) {
+        max_iterations <- .Machine$integer.max
+      }
+      if (max_calls == Inf) {
+        max_calls <- .Machine$integer.max
+      }
       check_number_whole(max_iterations, min = 1)
       check_number_whole(max_calls, min = 1)
       check_number_decimal(min_logz, min = 0)

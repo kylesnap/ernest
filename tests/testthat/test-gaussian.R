@@ -12,7 +12,12 @@ logl_norm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
 log_l <- function(x) {
   -0.5 * crossprod(x - mean, crossprod(inv_cov, x - mean)) + logl_norm
 }
-prior <- create_uniform_prior(n_dim, lower = -10, upper = 10, varnames = c("x1", "x2", "x3"))
+prior <- create_uniform_prior(
+  n_dim,
+  lower = -10,
+  upper = 10,
+  varnames = c("x1", "x2", "x3")
+)
 
 test_that("Gaussian case works with prior function", {
   skip_on_cran()

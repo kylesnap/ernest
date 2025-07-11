@@ -48,21 +48,36 @@
 #' @rdname as_draws.ernest
 #' @method as_draws ernest_run
 #' @export
-as_draws.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   as_draws_matrix.ernest_run(x, ..., units = units, radial = radial)
 }
 
 #' @rdname as_draws.ernest
 #' @method as_draws_matrix ernest_run
 #' @export
-as_draws_matrix.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws_matrix.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   as_draws_matrix_(x, ..., units = units, radial = radial)
 }
 
 #' @rdname as_draws.ernest
 #' @method as_draws_rvars ernest_run
 #' @export
-as_draws_rvars.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws_rvars.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   posterior::as_draws_rvars(
     as_draws_matrix(x, ..., units = units, radial = radial)
   )

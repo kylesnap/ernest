@@ -14,11 +14,11 @@ test_that("sim_volume can draw expected values", {
   expected_means <- c(
     # For dead points: E(Vol[i]) = Sum of log of kth-Uniform order stat.
     # or: E(ln Vol[i]) = E(Beta(K, 1))
-    -seq(4000)/500,
+    -seq(4000) / 500,
     # For live: E(Vol[i]) = Uniform order statistics from 1 -> K,
     # relative to the last volume.
     # Or: E(Beta(K, 1)) - E(Beta(K + 1, n + 1 - i))
-    -(4000/500) - (digamma(501) - digamma(501 - seq(500)))
+    -(4000 / 500) - (digamma(501) - digamma(501 - seq(500)))
   )
 
   expect_true(all(is.finite(sd_vols)))
@@ -71,7 +71,10 @@ test_that("calculate works when ndraws = 0", {
   expect_equal(drop(posterior::draws_of(calc$log_volume)), run$log_volume)
   expect_equal(drop(posterior::draws_of(calc$log_weight)), run$log_weight)
   expect_equal(drop(posterior::draws_of(calc$log_evidence)), run$log_evidence)
-  expect_equal(drop(posterior::draws_of(calc$log_evidence.err)), sqrt(run$log_evidence_var))
+  expect_equal(
+    drop(posterior::draws_of(calc$log_evidence.err)),
+    sqrt(run$log_evidence_var)
+  )
 })
 
 test_that("calculate works when ndraws = 1", {
@@ -97,17 +100,17 @@ test_that("calculate works when ndraws = BIG", {
 
   expect_equal(
     (mean(calc$log_volume) - run$log_volume) <
-     .Machine$double.eps + 2 * posterior::sd(calc$log_volume),
+      .Machine$double.eps + 2 * posterior::sd(calc$log_volume),
     rep(TRUE, n_samp)
   )
   expect_equal(
     (mean(calc$log_weight) - run$log_weight) <
-     .Machine$double.eps + 2 * posterior::sd(calc$log_weight),
+      .Machine$double.eps + 2 * posterior::sd(calc$log_weight),
     rep(TRUE, n_samp)
   )
   expect_equal(
     (mean(calc$log_evidence) - run$log_evidence) <
-     .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
+      .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
     rep(TRUE, n_samp)
   )
 })

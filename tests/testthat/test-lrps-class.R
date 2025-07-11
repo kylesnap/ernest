@@ -214,7 +214,9 @@ test_that("rwcube can clear", {
 })
 
 test_that("rwcube can handle plateau", {
-  log_l <- function(x) { -1 }
+  log_l <- function(x) {
+    -1
+  }
   prior <- create_uniform_prior(3, lower = -10, upper = 10)
 
   rwcube <- rwcube_lrps$new(log_l, prior$fn, 3L)

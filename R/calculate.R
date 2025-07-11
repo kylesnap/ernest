@@ -34,7 +34,9 @@
 #' @export
 calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   check_dots_empty()
-  if (is.logical(ndraws)) ndraws <- as.integer(ndraws)
+  if (is.logical(ndraws)) {
+    ndraws <- as.integer(ndraws)
+  }
   check_number_whole(ndraws, min = 0)
 
   if (ndraws == 0) {
@@ -129,7 +131,8 @@ get_logweight <- function(log_lik, log_volume) {
   lik_term <- matrixStats::rowLogSumExps(
     c(log_lik[idx], log_lik[idx - 1]),
     dim. = c(n, 2)
-  ) + log(0.5)
+  ) +
+    log(0.5)
 
   vol_term <- sweep(vol_term, 2, lik_term, FUN = "+")
   if (!is_matrix) {
@@ -165,6 +168,8 @@ get_information <- function(log_lik, log_volume, log_evidence) {
 
   exp1 <- exp(loglstar_pad[-1] - max_logz + logdvol2)
   exp2 <- exp(loglstar_pad[-length(loglstar_pad)] - max_logz + logdvol2)
-  h_part1 <- cumsum(exp1 * loglstar_pad[-1] + exp2 * loglstar_pad[-length(loglstar_pad)])
+  h_part1 <- cumsum(
+    exp1 * loglstar_pad[-1] + exp2 * loglstar_pad[-length(loglstar_pad)]
+  )
   h_part1 - max_logz * exp(log_evidence - max_logz)
 }

@@ -23,7 +23,7 @@ test_that("ernest_run units", {
   n_iter <- run$n_iter + run$n_points
 
   expect_equal(dim(mat), c(n_iter, 3L))
-  expect_true(all(mat[,1:2] > 0 & mat[,1:2] < 1))
+  expect_true(all(mat[, 1:2] > 0 & mat[, 1:2] < 1))
 })
 
 test_that("ernest_run radial coordinates", {
@@ -33,9 +33,9 @@ test_that("ernest_run radial coordinates", {
   n_iter <- run$n_iter + run$n_points
 
   expect_equal(dim(mat), c(n_iter, 4L))
-  observed <- drop(mat[,".radial"])
+  observed <- drop(mat[, ".radial"])
   attributes(observed) <- NULL
-  expected <- sqrt(rowSums(mat[,c(1:2)]^2))
+  expected <- sqrt(rowSums(mat[, c(1:2)]^2))
   attributes(expected) <- NULL
   expect_equal(
     unclass(observed),
@@ -54,6 +54,12 @@ test_that("ernest_run to non-exported draws formats", {
   run <- readRDS(test_path("./example_run.rds"))
 
   expect_s3_class(as_draws(run), c("draws_matrix", "draws", "matrix"))
-  expect_s3_class(posterior::as_draws_array(run), c("draws_array", "draws", "array"))
-  expect_s3_class(posterior::as_draws_df(run), c("draws_df", "draws", "data.frame"))
+  expect_s3_class(
+    posterior::as_draws_array(run),
+    c("draws_array", "draws", "array")
+  )
+  expect_s3_class(
+    posterior::as_draws_df(run),
+    c("draws_df", "draws", "data.frame")
+  )
 })

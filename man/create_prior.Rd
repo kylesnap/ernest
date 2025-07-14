@@ -4,76 +4,92 @@
 \alias{create_prior}
 \title{Specify a prior distribution for nested sampling}
 \usage{
-create_prior(fn, n_dim, varnames = NULL, lower = NULL, upper = NULL)
+create_prior(
+  fn,
+  n_dim,
+  varnames = "X",
+  lower = NULL,
+  upper = NULL,
+  auto_batch = TRUE
+)
 }
 \arguments{
-\item{fn}{A function that takes a vector of probabilities \code{p} and returns
-a vector of quantiles.}
+\item{fn}{A function that translates coodinates in a unit hypercube into
+points within the prior parameter space. See details for more information.}
 
-\item{n_dim}{The number of dimensions for the prior distribution.}
+\item{n_dim}{A whole number, representing the number of dimensions within the
+prior distribution. Must be larger than or equal to 1.}
 
-\item{varnames}{Optional names for the variables in the prior distribution.}
+\item{varnames}{A character vector of names for the variables in the
+prior distribution.}
 
-\item{lower}{Optional lower bounds for the prior distribution.}
+\item{lower, upper}{A numeric vector of lower bounds for the prior
+distribution. Set to \code{-Inf} and \code{Inf}, respectively, by default.}
 
-\item{upper}{Optional upper bounds for the prior distribution.}
+\item{auto_batch}{Whether the \code{fn} should be wrapped to allow for matrix
+inputs. If \code{FALSE}, it is assumed that \code{fn} can already handle
+transforming both vectors and matrices of unit cube coordinates. See details
+for more information.}
 }
 \value{
-An object of type \code{ernest_prior} that represents the prior
-distribution, including:
+A named list with class\code{ernest_prior}. The list contains the
+following:
 \itemize{
-\item \code{fn}: The function that performs the transformation from unit cube
-coordinates to coordinates in the prior space.
+\item \code{fn}: The prior transformation function.
 \item \code{n_dim}: The number of dimensions in the prior space.
-\item \code{varnames}: Names for the variables in the prior distribution.
-\item \code{lower}: Lower bounds for the prior distribution.
-\item \code{upper}: Upper bounds for the prior distribution.
+\item \code{varnames}: Names for the variables in the prior distribution, recycled to
+length \code{n_dim} and transformed by \code{make.unique()}.
+\item \code{lower} and \code{upper}: Bounds for the prior distribution, recycled to length
+\code{n_dim}.
 }
 }
 \description{
-Create a prior specification for ernest using an R function that transforms
-coordinates from the unit cube space into coordinates in the prior
-distribution (see Details).
+Use an R function to specify the prior distribution of parameters for a
+nested sampling run.
 }
 \details{
-Nested sampling with ernest requires a prior transformation function that
-takes in a vector of values between 0 and 1, and returns a same-length vector
-of parameters expressed in the scale of the model's prior distribution. When
-calling \code{create_prior}, ernest will test \code{fn} by presenting it with 1000
-\code{n_dim}-length vectors generated from \code{\link[=runif]{runif()}}. These checks are passed if:
+The unit hypercube transformation encodes points within the parameter space
+as independent and identically distributed points within a unit hypercube.
+Implementations of nested sampling, including ernest, use this transformation
+to simplify likelihood-restricted prior sampling, avoiding uncessary
+rejection steps.
+
+In ernest, the \code{create_prior} function allows you to specify your own
+prior distribution. This requires you to provide your own transformation
+function. In many cases, when the prior can be factorized, this function
+can simply be transforming a vector of values in (0, 1) and transforming
+them elementwise with inverse cumulative distribution function (CDF) of
+each parameter. In more complex cases, you can specify a hierarchical or
+conditionally-dependent prior (see Examples).
+
+ernest will perform several regularity checks on \code{fn} when the prior is
+created. These checks are passed if:
 \itemize{
-\item Every input returns a vector of \code{n_dim} finite values.
-\item Every input returns a vector that respects the \code{lower} and \code{upper} bounds,
-if provided.
+\item \code{fn} is a function;
+\item \code{fn(rep(0.5, n_dim))} returns a finite double vector of length \code{n_dim};
+\item \code{fn}, when given a matrix of random unit cube coordinates, returns a
+finite double matrix with the same dimensions that all respect the specified
+bounds.
 }
 
-Users are encouraged to run additional checks on the behaviour of the prior
-through calling the \code{fn} object bound to the produced \code{ernest_prior}.
+If \code{auto_batch = TRUE}, \code{fn} is wrapped with \code{\link[base:apply]{base::apply()}} to allow for
+matrix inputs. If auto_batch = FALSE, it is assumed that \code{fn} can already
+handle transforming both vectors and matrices of unit cube coordinates,
+avoiding unecessary overhead. Failing the checks on \code{fn} with
+\code{auto_batch = FALSE} will remind the user of this setting.
 }
 \examples{
 # 3D uniform prior in the range [-10, 10]
-unif <- \(x) { -10 + x * 20 }
-prior <- create_prior(unif, n_dim = 3, lower = -10, upper = 10)
-
-# `ernest_prior` wraps `fn` in guards to prevent unexpected behaviour.
-prior$fn(c(0.25, 0.5, 0.75)) # OK
-try(prior$fn(c(0.33, 0.67))) # Input length is only length 3.
-
-# A prior for a simple linear regression model
-lm_f <- function(theta) {
-  beta_0 <- qnorm(theta[1], mean = 0, sd = 10) # (Beta0, Beta1) ~ N(0, 10)
-  beta_1 <- qnorm(theta[1], mean = 0, sd = 10) # Sigma ~ Exp(1)
-  sigma <- qexp(theta[1], rate = 1)
-  c(beta_0, beta_1, sigma)
+unif <- function(x) {
+   -10 + x * 20
 }
-create_prior(
-  lm_f,
-  n_dim = 3,
-  varnames = c("beta_0", "beta_1", "sigma"),
-  lower = c(-Inf, -Inf, 0)
-)
 
-# A normal prior with hyperprior parameters
+prior <- create_prior(unif, n_dim = 3, lower = -10, upper = 10)
+prior$fn(c(0.25, 0.5, 0.75))
+mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
+prior$fn(mat)
+
+# A normal prior, with a parameterized mean and standard deviation
 hier_f <- function(theta) {
   mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
   sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
@@ -88,11 +104,19 @@ create_prior(
   lower = c(-Inf, 0, -Inf)
 )
 
-# ernest will catch mistakes when provided with bounds
-try(create_prior(
-  hier_f,
-  n_dim = 3,
-  varnames = c("mu", "sigma", "x"),
-  lower = c(-Inf, -Inf, -1)
-))
+# Setting `auto_batch = FALSE` should be done with care
+bb_p <- function(x) {
+  beta <- stats::qbeta(x[1], 5, 5)
+  bern <- stats::qbinom(x[2], size = 1, beta)
+  c(beta, bern)
+}
+try(
+ create_prior(
+  bb_p,
+  n_dim = 2,
+  varnames = c("beta", "bern"),
+  auto_batch = FALSE
+ )
+)
+create_prior(bb_p, n_dim = 2, varnames = c("beta", "bern"))
 }

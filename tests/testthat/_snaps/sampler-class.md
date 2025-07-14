@@ -29,12 +29,12 @@
       No. Points: 500
       No. Iterations: 99
       No. Lik. Calls: 2475
-      Log. Evidence: -4.774 (± 0.542)
+      Log. Evidence: -4.621 (± 0.5152)
       
       -- Weighted Posterior Distribution 
       # A tibble: 2 x 7
         variable          mean median    sd   mad     q5   q95
         <chr>            <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl>
-      1 Uniform(-5, 5)   -1.09  -1.13 0.960 0.879 -2.87  0.456
-      2 Uniform(-5, 5).1  1.08   1.02 1.04  1.14  -0.738 2.80 
+      1 Uniform(-5, 5)   -1.05 -0.903 0.912 0.926 -2.46  0.325
+      2 Uniform(-5, 5).1  1.01  1.02  0.897 0.780 -0.157 2.68 
 

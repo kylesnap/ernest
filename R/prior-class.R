@@ -48,16 +48,20 @@
 #' finite double matrix with the same dimensions that all respect the specified
 #' bounds.
 #'
-#' If `auto_batch = TRUE`, `fn` is wrapped with [base::apply()] to allow for
-#' matrix inputs. If auto_batch = FALSE, it is assumed that `fn` can already
-#' handle transforming both vectors and matrices of unit cube coordinates,
-#' avoiding unecessary overhead. Failing the checks on `fn` with
-#' `auto_batch = FALSE` will remind the user of this setting.
+#' As default, `auto_batch` expects that `fn` is incapable of handling matrices
+#' of unit cube values. It resolves this by wrapping `fn` in a call to
+#' [base::apply()]. Should you have a more efficient implementation of your
+#' likelihood function, then consider setting `auto_batch == FALSE`.
+#' Failing the checks on `fn` with `auto_batch = FALSE` will remind the user
+#' of this setting.
 #'
 #' @srrstats {BS2.2, BS2.3} This function validates the boundary parameters
 #' placed on a user-provided prior, and tests the user's input to ensure
 #' the prior accepts and returns vectors and matrices of the expected dimensions
 #' as a distinct step before nested sampling.
+#'
+#' @srrstats {BS1.2, BS1.2c} Describes how to create prior functions for nested
+#' sampling.
 #'
 #' @examples
 #' # 3D uniform prior in the range [-10, 10]

@@ -2,25 +2,75 @@
 % Please edit documentation in R/likelihood-class.R
 \name{create_likelihood}
 \alias{create_likelihood}
+\alias{create_likelihood.ernest_likelihood}
+\alias{create_likelihood.function}
 \title{Prepare a likelihood function for nested sampling}
 \usage{
 create_likelihood(fn, ...)
+
+\method{create_likelihood}{ernest_likelihood}(
+  fn,
+  error_action = c("abort", "warn"),
+  nonfinite_action = c("warn", "pass", "abort"),
+  auto_batch = TRUE,
+  ...
+)
+
+\method{create_likelihood}{`function`}(
+  fn,
+  error_action = c("abort", "warn"),
+  nonfinite_action = c("warn", "pass", "abort"),
+  auto_batch = TRUE,
+  ...
+)
 }
 \arguments{
-\item{fn}{A function or an object of class \code{ernest_likelihood}. If a function,
-it should take a single numeric vector of parameters and
-return either a finite log likelihood value or \code{-Inf}.}
+\item{fn}{The log-likelihood function, see Details.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{error_action}{What action to take should \code{fn} throw an error. \code{warn}
+prints a warning message and returns \code{-Inf}. \code{abort} throws an error,
+stopping the nested sampling run.}
+
+\item{nonfinite_action}{What action to take should \code{fn} return a value that is
+not a double or an \code{-Inf} value (e.g., see \code{\link[=is.finite]{is.finite()}}). \code{warn} prints a
+warning message and replaces the value with \code{-Inf}, \code{pass} silently replaces
+the value with \code{-Inf}, and \code{abort} throws an error, stopping the nested
+sampling run.}
+
+\item{auto_batch}{Whether to prepare \code{fn} so that it may be called with a
+matrix of parameter values. If \code{FALSE}, its assumed that \code{fn} can already
+produce a vector of likelihood values for a matrix with rows of parameter
+vectors.}
 }
 \value{
-A function with additional class \code{ernest_likelihood}. On a success, this function
-is guaranteed to return a finite value or \code{-Inf}. Non-finite, non-\code{-Inf} values
-are coerced to \code{-Inf} with a warning. Non-numeric returns are reported as errors.
+A function with additional class \code{ernest_likelihood}. This function
+will accept vectors of parameters, and matrices of parameters, where
+each row represents a single parameter vector. \code{ernest_likelihood} will
+always produce either scalar or vector doubles containing finite values
+or \code{-Inf}; values outside this range are either replaced by \code{-Inf} or
+cause errors.
 }
 \description{
 Creates a modified version of a log. likelihood function that always returns
 either a finite value or \code{-Inf} for each vector of parameters that is provided.
+}
+\details{
+Model likelihoods should be provided as a log density function. It is expected
+that \code{fn} should take in exactly one argument; likelihood functions that
+take in multiple non-default arguments should be entered as anonymous
+functions (see \code{\link[rlang:as_function]{rlang::as_function()}}).
+
+It is expected that \code{fn} returns a scalar finite values or \code{-Inf} for each
+parameter vector. Use \code{error_action} and \code{nonfinite_action} to decide on
+how \code{ernest_likelihood} handles errors, non-finite, and non-numeric return
+values from \code{fn}.
+
+As default, \code{auto_batch} expects that \code{fn} is incapable of handling matrices
+of parameter values. It resolves this by wrapping \code{fn} in a call to
+\code{\link[base:apply]{base::apply()}}. Should you have a more efficient implementation of your
+likelihood function, then consider setting \code{auto_batch == FALSE}.
 }
 \examples{
 # A 3D Gaussian likelihood function
@@ -31,18 +81,16 @@ attributes(det_sigma) <- NULL
 prec <- solve(sigma)
 log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
 
-log_lik <- function(theta) {
+fn <- function(theta) {
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }
+log_lik <- create_likelihood(fn)
 log_lik(c(0, 0, 0))
 
-# ernest catches and warns the user about non-finite, non-`-Inf` values
+# As default, `log_lik` will loudly replace non-finite, non-`-Inf` values.
 try(log_lik(c(Inf, 0, 0)))
 
-# ernest will quit when receiving unexpected values from the likelihood function
-log_lik_2 <- function(theta) {
- if (theta[1] < 1) "Odd value." else log_lik(theta)
-}
-log_lik_2(c(1, 0, 0))
-try(log_lik_2(c(0, 0, 0)))
+# Silence warnings with `nonfinite_action = "pass"`
+quiet_lik <- create_likelihood(log_lik, nonfinite_action = "pass")
+quiet_lik(c(Inf, 0, 0))
 }

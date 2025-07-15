@@ -19,7 +19,7 @@
 # Early exits are repaired
 
     Can't calculate the log. likelihood.
-    x Couldn't calculate the log-lik. of (-2.788164, -5.323966). Caused by error in `fn()`: ! Early exit
+    x Can't calculate the likelihood without an error. Caused by error in `fn()`: ! Early exit
 
 ---
 
@@ -29,7 +29,7 @@
 ---
 
     Can't calculate the log. likelihood.
-    x Couldn't calculate the log-lik. of (6.793867, 2.474925). Caused by error in `fn()`: ! Early exit
+    x Can't calculate the likelihood without an error. Caused by error in `fn()`: ! Early exit
 
 ---
 

@@ -1,7 +1,11 @@
-# create_likelihood.function works with valid input
+# create_likelihood with auto_batch
 
     Code
-      create_likelihood(wrapped_fn)
+      ll
     Output
       An <ernest_likelihood> function
+      > Error Behaviour: abort
+      > Nonfinite Behaviour: warn
+      function (x) 
+      -sum((x - 1)^2)
 

@@ -72,11 +72,12 @@ finite double matrix with the same dimensions that all respect the specified
 bounds.
 }
 
-If \code{auto_batch = TRUE}, \code{fn} is wrapped with \code{\link[base:apply]{base::apply()}} to allow for
-matrix inputs. If auto_batch = FALSE, it is assumed that \code{fn} can already
-handle transforming both vectors and matrices of unit cube coordinates,
-avoiding unecessary overhead. Failing the checks on \code{fn} with
-\code{auto_batch = FALSE} will remind the user of this setting.
+As default, \code{auto_batch} expects that \code{fn} is incapable of handling matrices
+of unit cube values. It resolves this by wrapping \code{fn} in a call to
+\code{\link[base:apply]{base::apply()}}. Should you have a more efficient implementation of your
+likelihood function, then consider setting \code{auto_batch == FALSE}.
+Failing the checks on \code{fn} with \code{auto_batch = FALSE} will remind the user
+of this setting.
 }
 \examples{
 # 3D uniform prior in the range [-10, 10]

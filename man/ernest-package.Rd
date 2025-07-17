@@ -6,7 +6,7 @@
 \alias{ernest-package}
 \title{ernest: The R Nested Sampling Toolkit}
 \description{
-A complete implementation of the nested sampling algorithm for R, allowing users to estimate the evidence and posterior of a statistical model.
+TODO.
 }
 \seealso{
 Useful links:

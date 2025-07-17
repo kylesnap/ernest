@@ -32,7 +32,7 @@ transforming both vectors and matrices of unit cube coordinates. See details
 for more information.}
 }
 \value{
-A named list with class\code{ernest_prior}. The list contains the
+A named list with class \code{ernest_prior}. The list contains the
 following:
 \itemize{
 \item \code{fn}: The prior transformation function.

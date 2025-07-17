@@ -1,8 +1,8 @@
 ---
-title: "Nested Sampling with Ernest"
+title: "A Nested Sampling Crash Course with Ernest"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Nested Sampling with Ernest}
+  %\VignetteIndexEntry{Nested Sampling Crash Course with Ernest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,70 +16,234 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ernest)
+set.seed(42L)
+```
+# A Nested Sampling Crash Course using ernest
+
+The goal of this vignette is to teach you the basics of nested sampling by interfacing with the ernest package. After working through this vignette, you should be able to:
+- Explain how model evidence is relevant to Bayesian inference, and why it is hard to directly calculate;
+- Recognize how the nested sampling algorithm approximates a solution to the evidence integral; 
+- Identify the components of a nested sampler;
+- Construct and use prior distributions with ernest's functions;
+- Initialize and run a nested sampler with a provided likelihood function, and;
+- Interpret and visualize nested sampling results to evaluate a model's evidence and posterior distribution.
+
+## Reviewing Model Evidence
+```{r, include = FALSE, echo = FALSE}
+#' SRR STATS BLOCK
+#'
+#' @srrstats {G1.3} Exhaustively defines the key statistical terms for NS.
 ```
 
-The Easy R Nested Sampling Toolkit (ernest) provides a collection of tools for performing nested sampling within `R`. To begin sampling, ernest requires the user to specify two objects:
+Consider a statistical model, called $M$, that has a set of unknown parameters $\theta$. In Bayesian statistics, we can numerically express how observed data, $D$, will update our knowledge about the distribution of $\theta$ as a probability. This is calculated through Bayes' theorem:
+$$
+  \Pr(\theta|D,M) &= \frac{\Pr(D|\theta, M)\Pr(\theta|M)}{\Pr(D|M)}
+$$
+where $\Pr(\theta|D,M) = P(\theta)$ is the posterior distribution of the parameters given the data and model assumptions, $\Pr(D|\theta,M) = L(\theta)$ is the likelihood of the data given the model and its parameters, and $\Pr(\theta|M)=\pi(\theta)$ is the prior distribution of the parameters. The denominator $\Pr(D|M) = \mathcal{Z}$ is the model's evidence or marginal likelihood.
 
-1. A log-likelihood function,
-2. A prior distribution, provided in the form of an `ernest_prior` object.
+In isolation, $\mathcal{Z}$ is the normalization constant for $P(\theta)$, allowing the area under the posterior to integrate to one. However, if we calculate the posterior odds ratios between two models $M_1$ and $M_2$ of the same $D$ and simplify, we find that
+$$
+\frac{\Pr(\theta|D,M_1)}{\Pr(\theta|D,M_2)} = \frac{\Pr(\theta|M_1)}{\Pr(\theta|M_2)}
+$$
+The ratio of evidences $\mathcal{Z}_1 / \mathcal{Z}_2$ is the factor by which the prior odds are updated after observing $D$. This is the Bayes factor, or $K$, and provides a method for us to express our belief in $M_1$ relative to $M_2$ given $D$. Calculating and comparing Bayes factors forms the basis of Bayesian model selection procedures. 
 
-The log-likelihood function must take in a single argument consisting of a vector of parameters, and must return either a finite scalar numeric value or the value `-Inf`. As an example, we can define the log-likelihood of a 3D Gaussian distribution.
+We can calculate $\mathcal{Z}$ through integrating the likelihood function over the model's parameter space $\theta \in \Theta$
+$$
+\mathcal{Z} = \int_{\theta \in \Theta} L(\theta)\pi(\theta)d\theta
+$$
+Unfortunately, the dimensionality and shape of $\Theta$ for most statistical models makes it impossible to evaluate $\mathcal{Z}$ through analytic means. In practice, we instead estimate $\mathcal{Z}$ through a statistical procedure.
 
+## The Nested Sampling Algorithm
+
+Nested sampling (NS), developed by John Skilling, is a powerful computational technique for simulatenously estimating a model's evidence and posterior distribution. NS works by systematically exploring the entire parameter space defined by a prior distribution, dividing the space into a series of small volumes or shells. Each shell is drawn such that they contain regions of the parameter space that all satisfy some likelihood criteria, called $L^*$. The volume $V$ of the shell defined by $L^*$ is
+$$
+V(L^*) = \int_{L(\theta) \geq L^*} \pi(\theta)d\theta
+$$
+where $V \in [0, 1]$.
+
+If we divide $\pi(theta)$ into enough shells with small volumes, we can make the assumption that $L^*$ is constant within each shell; formally, we claim that $L(V)$ exists for each value of $L$, such that $L(V(L^*)) = L^*$. If we have some estimate of $V^*$ for each volume, we can simplify the original multidimensional integral over $\Theta$ into a unidimensional integral over $V$:
+$$
+\mathcal{Z} = \int_{0}^{1} L(V) dV
+$$
+This can be easily solved using numerical methods.
+
+Nested sampling enacts this transformation in a series of steps:
+
+1. Let $N$ be a large number. Draw $N$ samples from $\pi(\theta)$ and sort them based on their likelihood values. These are the live points.
+2. Remove the point with the worst likelihood value from the live points, denoted $L^*$. Place this point in the set of dead points.
+3. Shrink the prior volume. Assuming that each point represents $1/N$ of the prior volume, we estimate that removing $L^*$ changes the volume occupied by the live points by $\delta V \approx -1/N$.
+4. Add a new live point, using likelihood restricted prior sampling. Each sample is assumed to be independently and identically distributed, and are restricted such that the new point must have likelihood greater than $L^*$. This ensures that the volume of the live points will continue to shrink between iterations.
+5. Perform steps 1 through 4 many times.
+4. Update the evidence estimate using some numerical integration technique. Ernest uses the trapezoidal rule, such that $\mathcal{Z} \approx \sum(i \in [1, j]) w_i$ for each iteration $i$ out of $j$. The unormalized posterior weights $w_i$ = (V_{i - 1} - V_i) (L(V_i) + L(V_{i_1}))/2$ are also used to later estimate the posterior sample.
+6. Terminate the run. After $j$ iterations, the remaining volume to contribute to $\mathcal{Z}$ will become exponentially small, concentrating the live points over a small range of likelihood values. At this point, the contributions of each point to the evidence estimate are considered negligible, and the run can be stopped.
+
+The final estimate $\hat{\mathcal{Z}}$ are available immediately after terminating the run. The dead and live points can also be resampled using their normalized posterior weights $w_i / \hat{\mathcal{Z}}$, generating a posterior sample.
+
+## Priors in Nested Sampling
+```{r include = FALSE, echo = FALSE}
+#' @srrstats {BS1.2b} Describes how to specify a prior in the vignette.
+```
+
+To perform nested sampling, ernest requires a likelihood function and a specification of the prior space. The prior space is defined through an `ernest_prior` object, which can be defined using either the more general `create_prior()` or one of ernest's specialized prior functions.
+
+Nested sampling operates by drawing samples from the prior distribution. For computational efficiency, ernest draws points from the unit hypercube: a $d$-dimensional space where each coordinate lies in $[0, 1)$. The transformation from the unit hypercube to the actual parameter space is called the "hypercube transformation." This approach allows the sampler to avoid inefficient rejection sampling and ensures that all points remain valid under the prior.
+
+The hypercube transformation is typically constructed by applying the inverse cumulative distribution function (CDF) of each marginal prior to the corresponding coordinate in the unit cube. For independent priors, this is straightforward: each parameter's prior is mapped independently. For more complex or hierarchical priors, users can provide a custom transformation function that encodes dependencies or non-standard mappings.
+
+In the most simple of cases, priors can be specified through using one of several specialized prior constructors for common distributions, such as `create_uniform_prior()`, `create_normal_prior()`, and others. These functions automatically set up the appropriate hypercube transformation for the chosen distribution.
 ```{r}
-n_dim <- 3
-sigma <- diag(0.95, nrow = 3)
-det_sigma <- determinant(sigma, logarithm = TRUE)$modulus
-attributes(det_sigma) <- NULL
-prec <- solve(sigma)
-log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
-
-# Log-likelihood of a MVN(0, Sigma)
-log_lik <- function(theta) {
-  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
-}
-log_lik(c(0, 0, 0))
+# Three Dimensional Uniform
+prior <- create_uniform_prior(
+  3,
+  lower = -10, 
+  upper = 10, 
+  varnames = c("X", "Y", "Z")
+)
+prior
 ```
-The prior is provided through an `ernest_prior` object, which contains information about the parameter space of interest. Ernest conducts its sampling within the unit cube, and uses the `ernest_prior` to transform these unit cube samples into the space of the original prior. The user can choose to build their own prior by offering a transformation function explicitly: For every $d$-length vector in the [0,1)-unit cube, this function should output a $d$-length vector of parameters. In the case of independently-distributed parameters, this is identical to applying the inverse cumulative distribution function (CDF) of the prior distribution to each element of the input vector.
 
-This function, along with the number of dimensions within the prior space, is then given to `create_prior()`. This prior specifies a 3D prior space with $Uniform[-10, 10]$ marginals.
+Should you require a more complicated prior, you can create your own hypercube transformation function and submit it to `create_prior()`. This function should accept a vector of unit cube coordinates and return the corresponding vector of parameter values. ernest will validate your function to ensure it produces finite, correctly-shaped outputs within the specified bounds.
 
+For example, to specify a the same 3-dimensional $U[-10, 10]$ prior, you can perform the following:
 ```{r}
 transformation <- function(x) {
   x * 20 - 10
 }
-
 user_prior <- create_prior(
   fn = transformation,
-  n_dim = n_dim
+  n_dim = 3,
+  lower = -10,
+  upper = 10
+)
+user_prior
+```
+
+If your prior involves dependencies between parameters, you can encode these in your transformation function. For example, a hierarchical prior might look like:
+
+```{r}
+hierarchical <- function(theta) {
+  mu <- qnorm(theta[1], mean = 5, sd = 1)
+  sigma <- 10 ^ qunif(theta[2], min = -1, max = 1)
+  x <- qnorm(theta[3], mean = mu, sd = sigma)
+  c(mu, sigma, x)
+}
+custom_prior <- create_prior(
+  fn = hierarchical,
+  n_dim = 3,
+  varnames = c("mu", "sigma", "x"),
+  lower = c(-Inf, 0, -Inf)
 )
 ```
 
-For several priors, ernest provides convenience functions with fast implementations of the required transformation. One such function exists for the uniform distribution:
+By specifying the prior in this way, you ensure that nested sampling explores the correct region of parameter space, respecting any constraints or dependencies your model requires.
+
+## Running Nested Sampling in Ernest
+
+In addition to the prior specification, you also need to provide ernest with a log likelihood function. This function should accept a numeric vector of parameter values (as produced by the prior's transformation) and return a single numeric value representing the parameter's corresponding log likelihood. If there are areas of the prior space where the likelihood should not exist, the function should instead return `-Inf`. `create_likelihood()` wraps this function, ensuring that missing and nonfinite (e.g, `Inf`, `NaN`) values are handled gracefully during a nested sampling run. This ensures compatibility with ernest's sampling routines and robust evidence estimation.
+
+Defining likelihood functions for every possible model is outside the scope of this vignette. For the sake of exploration, we will consider the following likelihood of a 3D correlated Gaussian distribution.
 
 ```{r}
-unif_prior <- create_uniform_prior(n_dim, lower = -10, upper = 10)
+n_dim <- 3
+sigma <- diag(0.95, nrow = 3) # Covariance matrix
+det_sigma <- log(det(sigma))
+prec <- solve(sigma) # Precision matrix (Sigma^-1)
+log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+
+# Log-likelihood of MVG(0, Sigma)
+log_lik <- function(theta) {
+  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
+}
 ```
-Both objects are forwarded to `nested_sampling()` to prepare a nested sampling run. This function also sets a number of additional parameters to control the sampling process. The most important of these is `n_live`, which specifies the number of live points to use during the sampling process.
+
+Once you have specified your prior and likelihood, you are ready to set up a nested sampling run using the `nested_sampling()` function. This function prepares an `ernest_sampler` object, which manages the live points and the sampling process.
+
+The `sampler` argument in `nested_sampling()` determines how new live points are generated under the likelihood constraint. At present, ernest provides two built-in samplers:
+
+- `unif_cube()`: Uniformly samples points from the unit hypercube, rejecting those that do not meet the likelihood constraint. This is simple but inefficient in high dimensions.
+- `rwmh_cube(steps = 25L, target_acceptance = 0.5)`: Uses a random walk Metropolis-Hastings algorithm to propose new points, which is more efficient for moderate to high dimensions.
+
+For most practical problems, `rwmh_cube()` is recommended and set as the default choice. You can adjust its `steps` and `target_acceptance` parameters to further tune its behavior.
 
 ```{r}
-sampler <- nested_sampling(log_lik, unif_prior, n_points = 1000)
+# Set up a sampler using rwmh_cube
+sampler <- nested_sampling(
+  log_lik = log_lik,
+  prior = prior,
+  n_points = 500
+)
 sampler
 ```
 
-The result is an `ernest_sampler` object, which is an `R6` class. This allows ernest to start or continue nested sampling runs using previous results. The nested sampling loop is started by calling the `generate` method for `ernest_sampler`, which will perform sampling until some stopping criteria is met. By default, this criterion is the estimated untraversed prior volume falling below 0.05.
+After initializing the sampler, you can start the nested sampling run using `generate()`. This first calls `compile()`, which constructs and validates the live points within a nested sampler, with additional checks that both the likelihood and prior are well-specified. Once compilation is complete, `generate()` enters the nested sampling loop, which iteratively explores the parameter space, updating live points and accumulating evidence estimates. This loop terminates once one of the following termination criteria are met:
+
+- The maximum number of iterations (`max_iterations`) is reached.
+- The maximum number of likelihood function calls (`max_calls`) is reached.
+- The estimated remaining contribution of the live points to the evidence estimate falls below a specified threshold (`min_logz`).
+
+For example, you can perform 1000 iterations of nested sampling using `sampler`.
 
 ```{r}
-run <- generate(sampler)
-sampler$run
+run_1k <- generate(sampler, max_iterations = 1000)
+run_1k
 ```
 
-Results are stored in `ernest_run` objects, which themselves have several methods. This includes `summary`, which provides the estimate evidence estimates as a `tibble`, and `plot`, which visualizes how the evidence estimates and related quantities changed throughout a run.
+You can build more accurate estimates of evidence by continuing this run until `min_logz` falls below 0.05. This allows `sampler` to resume sampling while retaining the previously collected dead points.
 
 ```{r}
-summary(run)$run |> head()
-plot(run)
+run_dlogz <- generate(sampler)
+run_dlogz
 ```
-```{r include=FALSE}
-# ernest_run_example <- run
-# usethis::use_data(ernest_run_example, overwrite = TRUE)
+
+## Reviewing Nested Sampling Runs
+```{r echo = FALSE, include FALSE}
+#' SRR Block
+#' 
+#' @srrstatsTODO {BS4.1} Demonstrates the compatibility between ernest and posterior, a key advantage of
 ```
+
+Calls to `generate()` return an `ernest_run` object, which has methods for several generics to help you inspect and analyze the results from nested sampling. Unlike non-native NS implementations, ernest is designed to integrate neatly with popular R packages like `ggplot2` and `posterior`.
+
+For example, the `summary()` method provides a concise overview of the run, including the number of iterations, live points, and final evidence estimates. It also returns a tibble containing diagnostic quantities for each iteration.
+
+```{r}
+smry <- summary(run_dlogz)
+smry
+```
+
+To show how the evidence estimates change over the course of the run, you can use the `plot()` function to construct a facetted `ggplot`.
+
+```{r}
+plot(run_dlogz)
+```
+
+To capture how uncertainty impacts the evidence estimates, `calculate()` allows you to simulate a nested sampling run under a series of randomly drawn log volume estimates. This function calls the `posterior` package to efficently store the simulations and their related quantities.
+
+```{r}
+# Simulate uncertainty with 1000 draws
+library(posterior)
+calc_sim <- calculate(run_dlogz, ndraws = 1000)
+
+calc_sim$log_evidence |> tail(1) |> summarise_draws()
+
+plot(calc_sim)
+```
+
+Finally, the `visualize()` function provides plots of the parameter values themselves.
+
+```{r}
+# Density plot of posterior marginals
+visualize(run_dlogz, type = "density")
+
+# Trace plot of the radial coordinate in unit-cube space
+visualize(run_dlogz, type = "trace", vars = ".radial", units = "unit_cube", radial = TRUE)
+```
+
+These tools allow you to thoroughly review and interpret the results of your nested sampling analysis.
+
+## Additional Reading
+
+- Buchner, J. (2023). Nested Sampling Methods. Statistics Surveys, 17, 169–215. <https://doi.org/10.1214/23-SS144>
+- Skilling, J. (2004). Nested Sampling. _AIP Conference Proceedings_, 735(1), 395–405. <https://doi.org/10.1063/1.1835238>
+- Skilling, J. (2006). Nested Sampling for General Bayesian Computation. _Bayesian Analysis_, 1(4), 833–859. <https://doi.org/10.1214/06-BA127>
+- Speagle, J. (2020). DYNESTY: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences. _Monthly Notices of the Royal Astronomical Society_, 493(3), 3132–3158. <https://doi.org/10.1093/mnras/staa278>.

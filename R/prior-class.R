@@ -16,7 +16,7 @@
 #' transforming both vectors and matrices of unit cube coordinates. See details
 #' for more information.
 #'
-#' @returns A named list with class`ernest_prior`. The list contains the
+#' @returns A named list with class `ernest_prior`. The list contains the
 #' following:
 #' * `fn`: The prior transformation function.
 #' * `n_dim`: The number of dimensions in the prior space.
@@ -254,7 +254,7 @@ check_prior_fn <- function(
   if (1000 %/% n_dim < 1L) {
     cli_warn("Skipping matrix testing, as `n_dim` > 1000.")
   }
-  test <- matrix(runif(1000 %/% n_dim), nrow = n_dim)
+  test <- matrix(runif(1000 %/% n_dim), ncol = n_dim)
   try_fetch(
     {
       result <- fn(test)

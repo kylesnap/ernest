@@ -3,7 +3,7 @@
 #' Show the normalized likelihood, importance weights, and evidence as functions
 #' of log. volume.
 #'
-#' @param x Either an `ernest_estimates` (from [calculate()]) or an
+#' @param x Either an `ernest_estimate` (from [calculate()]) or an
 #' `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
 #'
@@ -13,7 +13,7 @@
 #'
 #' The plot is faceted in three frames. The horizontal axis shows values of log.
 #' volume: If `x` is an `ernest_run` these estimates are derived from the run,
-#' if `x` is an `ernest_estimates` (or `ndraws != 0`), these values are simulated.
+#' if `x` is an `ernest_estimate` (or `ndraws != 0`), these values are simulated.
 #' The three `y` axes are as follows:
 #'
 #' * **Evidence:** Estimate with a corresponding error ribbon drawn from either
@@ -23,14 +23,14 @@
 #' to draw new points from the likelihood-restricted prior sampler, normalized
 #' by the maximum likelihood generated during the run, and;
 #' * **Posterior Weight**: The density of the posterior weights attributed to
-#' regions of volume within the prior. If using an `ernest_estimates` object,
+#' regions of volume within the prior. If using an `ernest_estimate` object,
 #' an error ribbon is drawn with the HDCI of this estimate.
 #'
-#' @note For `ernest_estimates`, `ndraws` must be sufficiently large to calculate
+#' @note For `ernest_estimate`, `ndraws` must be sufficiently large to calculate
 #' HDI. If HDI calculation fails, the user will be warned and an `ernest_run` plot
 #' will be generated instead.
 #'
-#' @seealso [calculate()] for generating `ernest_estimates` objects; also, [visualize()] to
+#' @seealso [calculate()] for generating `ernest_estimate` objects; also, [visualize()] to
 #' plot the posterior distributions of the parameters from a run.
 #'
 #' @rdname plot.ernest
@@ -44,7 +44,7 @@
 #' library(ggdist)
 #' data(ernest_run_example)
 #' plot(ernest_run_example, ndraws = 50)
-plot.ernest_estimates <- function(x, ...) {
+plot.ernest_estimate <- function(x, ...) {
   check_dots_empty()
   print(autoplot(x, ...))
 }
@@ -77,7 +77,7 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 #' @importFrom ggplot2 scale_fill_viridis_d facet_grid
 #' @noRd
 #' @export
-autoplot.ernest_estimates <- function(object, ...) {
+autoplot.ernest_estimate <- function(object, ...) {
   check_dots_empty()
 
   fallback <- FALSE
@@ -132,7 +132,7 @@ autoplot.ernest_estimates <- function(object, ...) {
     error = function(cnd) {
       cli::cli_warn(
         c(
-          "Can't plot the provided {.cls ernest_estimates}; plotting an {.cls ernest_run} instead.",
+          "Can't plot the provided {.cls ernest_estimate}; plotting an {.cls ernest_run} instead.",
           "i" = "Is `ndraws` large enough to calculate HDIs?"
         )
       )

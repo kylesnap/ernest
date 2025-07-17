@@ -224,7 +224,7 @@ To capture how uncertainty impacts the evidence estimates, `calculate()` allows 
 library(posterior)
 calc_sim <- calculate(run_dlogz, ndraws = 1000)
 
-calc_sim$log_evidence |> tail(1) |> summarise_draws()
+summary(calc_sim)
 
 plot(calc_sim)
 ```

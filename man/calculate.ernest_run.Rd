@@ -24,17 +24,35 @@ following columns:
 \item \code{log_volume}: The log volume of the prior space.
 \item \code{log_weight}: The log weights of the live points.
 \item \code{log_evidence}: The log evidence of the model.
-\item \code{log_evidence.err}: The standard error of the log evidence (only available
+\item \code{log_evidence_err}: The standard error of the log evidence (only available
 when \code{ndraws = 0}).
 }
 
-The tibble has the additional class \code{ernest_estimates}, which has its own
-\link[=plot.ernest_estimates]{plot} method.
+The tibble has the additional class \code{ernest_estimate}, which has its own
+\link[=plot.ernest_estimate]{plot} method.
 
 Each column is returned as an \code{\link[posterior:rvar]{posterior::rvar()}} vector.
 }
 \description{
 Estimate Evidence using a Nested Sampling Run
+}
+\details{
+Use \code{calculate()} to simulate the estimation error nested sampling runs caused
+by approximating the change in log volume between iterations. Given the
+use of ordered log likelihood restricted prior sampling, these volumes can be
+modelled as the order statistics of a uniform random variable. Ernest uses the
+following distributions to perform this simulation:
+\itemize{
+\item Constant number of live points: At each iteration, the point with the
+lowest likelihood is replaced by a new sample constrained to a higher
+likelihood region. Under this setup, the shrinkage in prior volume at
+iteration \code{i} can be shown to follow the Beta distribution.
+\item Decreasing number of live points: At the end of the sampling run, the
+remaining live points are added to the dead point set. This introduces a discrete
+stepwise behavior in volume shrinkage. Ernest uses a transformation of variables
+drawn from the exponential distribution to simulate the corresponding changes
+in volume.
+}
 }
 \examples{
 # Load an example run
@@ -46,4 +64,7 @@ calculate(ernest_run_example)
 # Generate 100 simulated log volume values for each iteration.
 calculate(ernest_run_example, ndraws = 100)
 
+}
+\references{
+See Appendix A6 of Speagle, J. (2020).
 }

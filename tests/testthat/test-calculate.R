@@ -1,3 +1,5 @@
+set.seed(42L)
+
 test_that("sim_volume can draw with ndraws = 1", {
   mat <- sim_volume(500, 5000, ndraws = 1)
   expect_equal(dim(mat), c(1, 5500))
@@ -72,20 +74,39 @@ test_that("calculate works when ndraws = 0", {
   expect_equal(drop(posterior::draws_of(calc$log_weight)), run$log_weight)
   expect_equal(drop(posterior::draws_of(calc$log_evidence)), run$log_evidence)
   expect_equal(
-    drop(posterior::draws_of(calc$log_evidence.err)),
+    drop(posterior::draws_of(calc$log_evidence_err)),
     sqrt(run$log_evidence_var)
   )
+
+  smry <- summary(calc)
+  expect_equal(smry$n_draws, 0)
+  expect_equal(smry$log_evidence, run$log_evidence[length(run$log_evidence)])
+  expect_equal(
+    smry$log_evidence_err,
+    sqrt(run$log_evidence_var[length(run$log_evidence_var)])
+  )
+  expect_true(inherits(smry, "summary.ernest_estimate"))
+
+  expect_snapshot(calc)
+  expect_snapshot(smry)
 })
 
 test_that("calculate works when ndraws = 1", {
   run <- readRDS(test_path("./example_run.rds"))
   n_samp <- run$n_iter + run$n_points
-
   calc <- calculate(run, ndraws = 1)
   expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
+
+  smry <- summary(calc)
+  expect_equal(smry$n_draws, 1)
+  expect_equal(smry$log_evidence_err, Inf)
+  expect_true(inherits(smry, "summary.ernest_estimate"))
+
+  expect_snapshot(calc)
+  expect_snapshot(smry)
 })
 
 test_that("calculate works when ndraws = BIG", {
@@ -113,4 +134,16 @@ test_that("calculate works when ndraws = BIG", {
       .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
     rep(TRUE, n_samp)
   )
+
+  smry <- summary(calc)
+  expect_equal(smry$n_draws, 1000L)
+  expect_true(
+    abs(smry$log_evidence - run$log_evidence[length(run$log_evidence)]) <
+      2 * smry$log_evidence_err
+  )
+  expect_true(smry$log_evidence_err > 0)
+  expect_true(inherits(smry, "summary.ernest_estimate"))
+
+  expect_snapshot(calc)
+  expect_snapshot(smry)
 })

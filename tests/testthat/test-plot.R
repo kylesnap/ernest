@@ -22,7 +22,7 @@ test_that("ernest_run can be calculated, then plotted", {
   )
 })
 
-test_that("ernest_estimates can be plotted", {
+test_that("ernest_estimate can be plotted", {
   run <- readRDS(test_path("./example_run.rds"))
   set.seed(42)
   calculate <- calculate(run, ndraws = 100)

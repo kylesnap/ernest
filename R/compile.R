@@ -70,14 +70,6 @@ create_live <- function(lrps, n_points, call = caller_env()) {
   rlang::try_fetch(
     lrps$propose_uniform(criteria = rep(-1e300, n_points)),
     error = function(cnd) {
-      fun <- eval(cnd$call[[1]], envir = lrps)
-      cnd$call[[1]] <- if (identical(fun, lrps$private$prior_fn)) {
-        expr(prior$fn)
-      } else if ((identical(fun, lrps$private$log_lik_fn))) {
-        expr(log_lik)
-      } else {
-        cnd$call[[1]]
-      }
       cli::cli_abort(
         "Can't create live points.",
         parent = cnd
@@ -154,31 +146,24 @@ check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
     )
   }
 
-  uniq_ll <- vctrs::vec_unique(log_lik)
-  n_unique <- length(uniq_ll)
+  n_unique <- vctrs::vec_unique_count(log_lik)
   if (n_unique == 1L) {
     cli::cli_abort(
       c(
         "Log likelihoods of the live points must not be a plateau.",
-        "x" = "Log likelihood of all {n_points} points = {uniq_ll}."
+        "x" = "Log likelihood of all {n_points} points = {log_lik[1]}."
       ),
       call = call
     )
   }
-  if (n_unique < n_points) {
-    rep_ll <- vctrs::vec_unrep(log_lik)
-    names <- as.character(rep_ll$key)[rep_ll$times != 1]
-    vals <- paste0(
-      as.character(rep_ll$times[rep_ll$times != 1]),
-      " times"
-    )
-    names(vals) <- names
+  if (n_unique < (n_points * 0.75)) {
     cli::cli_warn(
-      "{n_unique} of {n_points} likelihood values in the live set are unique.",
+      c(
+        "Potential likelihood plateau; proceed with caution.",
+        "!" = "{n_unique} unique likelihoods across {n_points} live points."
+      ),
       call = call
     )
-    cli::cli_alert_warning("Duplicated Values:")
-    cli::cli_dl(vals)
   }
 
   NULL

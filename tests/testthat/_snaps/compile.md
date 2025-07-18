@@ -1,13 +1,13 @@
 # Informative error when prior or log. lik. fails completely.
 
     Can't create live points.
-    Caused by error in `log_lik()`:
+    Caused by error in `private$log_lik_fn()`:
     ! Bad Likelihood Job!
 
 ---
 
     Can't create live points.
-    Caused by error in `prior$fn()`:
+    Caused by error in `private$prior_fn()`:
     ! Bad prior job!
 
 # check_live validates live points correctly
@@ -43,14 +43,6 @@
 
 ---
 
-    Code
-      check_live(unit, log_lik_repeats, n_points = 5, n_var = 4)
-    Condition
-      Warning:
-      4 of 5 likelihood values in the live set are unique.
-    Message
-      ! Duplicated Values:
-      -5: 2 times
-    Output
-      NULL
+    Potential likelihood plateau; proceed with caution.
+    ! 3 unique likelihoods across 5 live points.
 

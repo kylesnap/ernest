@@ -92,10 +92,14 @@ nested_sampling_impl <- function(
     available_idx <- setdiff(seq_len(private$n_points), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
 
-    new_unit <- private$lrps$propose_live(
-      private$live_unit[copy, ],
-      private$live_log_lik[worst_idx]
-    )
+    new_unit <- if (call <= private$first_update) {
+      private$lrps$propose_uniform(private$live_log_lik[worst_idx])
+    } else {
+      private$lrps$propose_live(
+        private$live_unit[copy, ],
+        private$live_log_lik[worst_idx]
+      )
+    }
     private$live_log_lik[worst_idx] <- new_unit$log_lik
     private$live_unit[worst_idx, ] <- new_unit$unit
     private$live_birth[worst_idx] <- i + iter

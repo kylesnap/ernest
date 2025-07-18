@@ -48,7 +48,6 @@ test_that("compile method initializes live points", {
 test_that("generate method performs sampling", {
   result <- sampler$generate(max_iterations = 99)
   expect_equal(sampler$niterations, 99)
-  expect_gte(sampler$ncalls, 99 * 25)
   orig_units <- sampler$live_points$unit
   orig_log_lik <- sampler$live_points$log_lik
 

@@ -16,9 +16,9 @@ extract_dead <- function(run, dead_it) {
     "birth" = run$birth[dead_it]
   )
 }
-set.seed(42L)
 
 test_that("Runs can be completed and resume", {
+  set.seed(42L)
   sampler <- nested_sampling(ll_fn, prior, n_point = 100)
 
   run1 <- generate(sampler, max_iterations = 100)
@@ -37,6 +37,7 @@ test_that("Runs can be completed and resume", {
 })
 
 test_that("Throws errors when stop criteria are already passed", {
+  set.seed(42L)
   sampler <- nested_sampling(ll_fn, prior, n_point = 100)
   generate(sampler, max_iterations = 100)
   expect_snapshot_error(generate(sampler, max_iterations = 50))

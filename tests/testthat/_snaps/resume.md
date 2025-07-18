@@ -8,7 +8,7 @@
 
     `max_calls` must be greater than the current number of calls.
     i Can't set `max_calls` to 500.
-    i Already performed 1025 calls.
+    i Already performed 1002 calls.
 
 ---
 

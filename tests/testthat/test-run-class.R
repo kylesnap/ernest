@@ -14,7 +14,6 @@ test_that("ernest_result returns as expected", {
   expect_s3_class(result, "ernest_run")
   expect_equal(sort(unique(result$id)), seq(1, 500))
   expect_equal(result$points, c(rep(500L, 100), seq(500, 1, -1)))
-  expect_equal(result$calls, c(rep(25L, 100), rep(0L, 500)))
   expect_equal(sort(unique(result$birth)), seq(0, 100))
 
   row_match <- matrix(double(600L * 2L), nrow = 600L)

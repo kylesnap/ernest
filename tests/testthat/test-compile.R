@@ -80,8 +80,8 @@ test_that("check_live validates live points correctly", {
   )
 
   # Warning: log_lik has repeated values but not all identical
-  log_lik_repeats <- c(-10, -5, -5, -1, -0.5)
-  expect_snapshot(
+  log_lik_repeats <- c(-10, -5, -5, -5, -0.5)
+  expect_snapshot_warning(
     check_live(unit, log_lik_repeats, n_points = 5, n_var = 4)
   )
 })

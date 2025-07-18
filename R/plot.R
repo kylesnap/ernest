@@ -80,8 +80,7 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 autoplot.ernest_estimate <- function(object, ...) {
   check_dots_empty()
 
-  fallback <- FALSE
-  df <- try_fetch(
+  try_fetch(
     {
       max_log_z <- tail(object$log_evidence, 1)
       w <- exp(object$log_weight - max_log_z)
@@ -94,23 +93,11 @@ autoplot.ernest_estimate <- function(object, ...) {
       df_w$log_vol <- rep(log_volume, 2)
       df_w$.label <- "Posterior Weight"
 
-      lst_z <- list()
-      draws_evid <- posterior::draws_rvars(
-        "log_volume" = object$log_volume,
-        "log_evidence" = object$log_evidence
+      rvar_evid <- interpolate_evidence(
+        object$log_volume,
+        object$log_evidence,
+        log_volume
       )
-      .draw <- NULL
-      log_evidence <- NULL
-      posterior::for_each_draw(draws_evid, {
-        lst_z[[.draw]] <<- stats::approx(
-          log_volume,
-          exp(log_evidence),
-          xout = !!log_volume,
-          rule = 2L
-        )$y
-      })
-      rvar_evid <- do.call(rbind, lst_z) |>
-        posterior::rvar()
 
       z_68 <- hdci(rvar_evid, width = 0.68)
       z_95 <- hdci(rvar_evid, width = 0.95)
@@ -127,16 +114,22 @@ autoplot.ernest_estimate <- function(object, ...) {
         ".upper" = NA,
         ".width" = NA
       )
-      vctrs::vec_c(df_w, df_ll, df_z)
+      autoplot_run_(
+        vctrs::vec_c(df_w, df_ll, df_z), 
+        "HDCI",
+        c(0.95, 0.68),
+        c("95%", "68%")
+      )
     },
     error = function(cnd) {
       cli::cli_warn(
         c(
-          "Can't plot the provided {.cls ernest_estimate}; plotting an {.cls ernest_run} instead.",
+          "Plotting {.cls ernest_run} instead after a failure.",
           "i" = "Is `ndraws` large enough to calculate HDIs?"
-        )
+        ),
+        parent = cnd
       )
-      fallback <<- TRUE
+
       make_plot_df(
         log_volume = mean(object$log_volume),
         log_evidence = mean(object$log_evidence),
@@ -146,36 +139,18 @@ autoplot.ernest_estimate <- function(object, ...) {
       )
     }
   )
-
-  autoplot_run_(
-    df,
-    if (fallback) expression(hat(sigma[Z])) else "HDCI",
-    if (fallback) c(3, 2, 1) else c(0.95, 0.68),
-    if (fallback) {
-      c(expression(3 * sigma), expression(2 * sigma), expression(1 * sigma))
-    } else {
-      c("95%", "68%")
-    }
-  )
 }
 
 #' @export
 autoplot.ernest_run <- function(object, ...) {
   check_dots_empty()
 
-  df <- make_plot_df(
+  make_plot_df(
     log_volume = object$log_volume,
     log_evidence = object$log_evidence,
     log_evidence_var = object$log_evidence_var,
     log_weight = object$log_weight,
     log_lik = object$log_lik
-  )
-
-  autoplot_run_(
-    df,
-    expression(hat(sigma[Z])),
-    c(3, 2, 1),
-    c(expression(3 * sigma), expression(2 * sigma), expression(1 * sigma))
   )
 }
 
@@ -217,7 +192,13 @@ make_plot_df <- function(
     ".upper" = NA,
     ".width" = NA
   )
-  vctrs::vec_c(df_w, df_ll, df_z)
+  df <- vctrs::vec_c(df_w, df_ll, df_z)
+  autoplot_run_(
+    df,
+    expression(hat(sigma[Z])),
+    c(3, 2, 1),
+    c(expression(3 * sigma), expression(2 * sigma), expression(1 * sigma))
+  )
 }
 
 #' Autoplot for Ernest Run Objects

@@ -59,8 +59,9 @@ check_double <- function(
 }
 
 #' Calculate the HDI of an rvar
-#' @noRd
-#' @author Based on implementation from https://github.com/mikemeredith/HDInterval
+#'
+#' @author Based on implementation from
+#' https://github.com/mikemeredith/HDInterval
 hdci <- function(object, width = 0.95, ...) {
   if (!inherits(object, "rvar")) {
     stop("Input must be of class 'rvar'.")
@@ -104,30 +105,56 @@ hdci <- function(object, width = 0.95, ...) {
 #' densities
 #' @noRd
 get_density <- function(log_volume, weight) {
-  draws <- posterior::draws_rvars(
-    "log_vol" = log_volume,
-    "weight" = weight
-  )
+
   min_vol <- min(mean(log_volume))
-  dens_list <- list()
-  log_vol <- NULL
-  .draw <- NULL
-  density <- posterior::for_each_draw(draws, {
-    dens <- stats::density(
-      log_vol,
-      weights = weight,
-      warnWbw = FALSE,
-      from = min_vol,
-      to = 0,
-      n = 128
-    )
-    dens_list[[.draw]] <<- data.frame("log_vol" = dens$x, "weights" = dens$y)
-  })
-  density <- vctrs::vec_rbind(!!!dens_list)
-  density_rvar <- matrix(density$weights, nrow = 128) |>
-    t() |>
-    posterior::rvar()
-  data.frame("log_volume" = unique(density$log_vol), "density" = density_rvar)
+  log_vol_draws <- posterior::draws_of(log_volume)
+  w_draws <- posterior::draws_of(weight)
+
+  log_vol_spaced <- stats::density(
+    log_vol_draws[1, ],
+    weight = w_draws[1, ],
+    warnWbw = FALSE,
+    from = min_vol,
+    to = 0,
+    n = 128L
+  )$x
+
+  density <- vapply(
+    seq_len(nrow(w_draws)),
+    \(i) {
+      stats::density(
+        log_vol_draws[i, ],
+        weight = w_draws[i, ],
+        warnWbw = FALSE,
+        from = min_vol,
+        to = 0,
+        n = 128L
+      )$y
+    },
+    double(128L)
+  )
+  density_rvar <- posterior::rvar(t(density))
+  data.frame("log_volume" = log_vol_spaced, "density" = density_rvar)
+}
+
+#' Interpolate evidence across a range of log volumes
+interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
+  log_vol_draws <- posterior::draws_of(log_volume)
+  log_evid_draws <- posterior::draws_of(exp(log_evidence))
+
+  interp <- vapply(
+    seq_len(nrow(log_evid_draws)),
+    \(i) {
+      stats::approx(
+        x = log_vol_draws[i, ],
+        y = log_evid_draws[i, ],
+        xout = log_volume_out,
+        rule = 2L
+      )$y
+    },
+    double(128L)
+  )
+  posterior::rvar(t(interp))
 }
 
 # Helpers for generating and validating the live points -----

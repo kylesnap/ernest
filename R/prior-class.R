@@ -63,6 +63,8 @@
 #' @srrstats {BS1.2, BS1.2c} Describes how to create prior functions for nested
 #' sampling.
 #'
+#' @aliases ernest_prior
+#'
 #' @examples
 #' # 3D uniform prior in the range [-10, 10]
 #' unif <- function(x) {
@@ -170,7 +172,7 @@ check_prior_params <- function(
   upper = NULL,
   call = caller_env()
 ) {
-  check_number_whole(n_dim, min = 1, call = call)
+  n_dim <- check_integer(n_dim, min = 1, call = call)
 
   varnames <- vctrs::vec_recycle(
     vctrs::vec_cast(varnames, to = character(), call = call),
@@ -254,14 +256,14 @@ check_prior_fn <- function(
   if (1000 %/% n_dim < 1L) {
     cli_warn("Skipping matrix testing, as `n_dim` > 1000.")
   }
-  test <- matrix(runif(1000 %/% n_dim), ncol = n_dim)
+  test <- matrix(stats::runif(1000 %/% n_dim), ncol = n_dim)
   try_fetch(
     {
       result <- fn(test)
       if (!is.matrix(test) || !is.double(test)) {
         cli_abort(c(
           "`fn` must return a double matrix.",
-          "x" = "`fn` instead returned a {obj_type_friendly(result)}",
+          "x" = "`fn` instead returned a {obj_type_friendly(result)}"
         ))
       }
       if (!identical(dim(test), dim(result))) {

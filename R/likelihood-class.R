@@ -4,14 +4,17 @@
 #' either a finite value or `-Inf` for each vector of parameters that is provided.
 #'
 #' @param fn The log-likelihood function, see Details.
-#' @param error_action What action to take should `fn` throw an error. `warn`
-#' prints a warning message and returns `-Inf`. `abort` throws an error,
-#' stopping the nested sampling run.
-#' @param nonfinite_action What action to take should `fn` return a value that is
-#' not a double or an `-Inf` value (e.g., see [is.finite()]). `warn` prints a
-#' warning message and replaces the value with `-Inf`, `pass` silently replaces
-#' the value with `-Inf`, and `abort` throws an error, stopping the nested
-#' sampling run.
+#' @param error_action Character string specifying how to handle errors in `fn`.
+#'  One of `"abort"` or `"warn"`, case sens
+#'  - `"abort"`: Stop execution and signal an error.
+#'  - `"warn"`: Issue a warning and replace output with `-Inf`.
+#' @param nonfinite_action Character string specifying how to handle nonfinite or
+#' missing outputs from `fn`. One of `"warn"`, `"pass"`, or `"abort"`, case
+#' sensitve.
+#'  - `"warn"`: Issue a warning and replace nonfinite values with `-Inf`.
+#'  - `"pass"`: Silently replace nonfinite values with `-Inf`.
+#'  - `"abort"`: Stop execution and signal an error if nonfinite values are
+#' encountered.
 #' @param auto_batch Whether to prepare `fn` so that it may be called with a
 #' matrix of parameter values. If `FALSE`, its assumed that `fn` can already
 #' produce a vector of likelihood values for a matrix with rows of parameter
@@ -40,10 +43,16 @@
 #' As default, `auto_batch` expects that `fn` is incapable of handling matrices
 #' of parameter values. It resolves this by wrapping `fn` in a call to
 #' [base::apply()]. Should you have a more efficient implementation of your
-#' likelihood function, then consider setting `auto_batch == FALSE`.
+#' likelihood function, then consider setting `auto_batch` to `FALSE`.
 #'
 #' @srrstats {BS2.14, BS2.15} create_likelihood controls the behaviour for
 #' handling errors and warnings in the calculation of a nested sampling run.
+#' @srrstats {G2.3, G2.3a} create_likelihood uses `arg_match` to validate
+#' character input.
+#' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15} create_likelihood catches
+#' missing values produced during a run and acts upon them based on user-desired
+#' behaviour.
+#' @srrstats {G2.16} Value handling is also performed for other undefined values.
 #'
 #' @examples
 #' # A 3D Gaussian likelihood function
@@ -104,16 +113,17 @@ create_likelihood.function <- function(
   new_ernest_likelihood(fn, error_action, nonfinite_action, auto_batch)
 }
 
-#' Create a new `ernest_likelihood` object
+#' Construct an internal ernest likelihood function with error and nonfinite
+#' value handling.
 #'
-#' @param fn Incoming function.
-#' @param call The call that created the likelihood function. Either the
-#' user-inputted function, or the call component of the model.
+#' @param fn A function that computes likelihood values.
+#' @param error_action Character string, one of `"abort"` or `"warn"`.
+#' @param nonfinite_action Character string, one of `"warn"`, `"pass"`, or
+#' `"abort"`.
+#' @param auto_batch Logical, whether to apply `fn` row-wise to matrix inputs.
+#' @param call Calling environment for error reporting.
 #'
-#' @return A new `ernest_likelihood` object, which is a function that takes in
-#' a single argument and returns the log-likelihood value for that argument or
-#' an error.
-#'
+#' @return A function of class `"ernest_likelihood"` and `"function"`.
 #' @noRd
 new_ernest_likelihood <- function(
   fn,

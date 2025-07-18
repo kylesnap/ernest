@@ -9,33 +9,36 @@ nested_sampling(
   prior,
   sampler = rwmh_cube(),
   n_points = 500,
-  first_update = 2.5,
-  update_interval = 1.5
+  first_update = NULL,
+  update_interval = NULL,
+  ...
 )
 }
 \arguments{
-\item{log_lik}{Either an \code{ernest_likelihood} or a function that takes in a vector
-of parameters and returns the corresponding log. likelihood. This parameter is
-sent to \code{\link[=create_likelihood]{create_likelihood()}}.}
+\item{log_lik}{Function, defining the log-likelihood of the model given
+a vector of parameters. Passed to \code{\link[=create_likelihood]{create_likelihood()}}.}
 
-\item{prior}{An \code{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
-its \link[=create_special_prior]{specializations}.}
+\item{prior}{An \link{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
+its specializations.}
 
-\item{sampler}{An \link{ernest_sampling} object, declaring which likelihood-restricted
-prior sampler to use.}
+\item{sampler}{An \link{ernest_sampling} object, declaring which
+likelihood-restricted prior sampler (LRPS) to use. One of \code{\link[=rwmh_cube]{rwmh_cube()}}
+(recommended) or \code{\link[=unif_cube]{unif_cube()}}.}
 
-\item{n_points}{The number of live points to use in the nested sampling run.}
+\item{n_points}{Integer. The number of live points to use in the nested
+sampling run.}
 
-\item{first_update}{The number of calls to the likelihood function
-before the first update to the behaviour of \code{sampler}. If left as a double,
-\code{first_update} is set to \code{first_update * n_points}.}
+\item{first_update}{Integer or \code{NULL}. The number of likelihood calls before
+the first update of the LRPS. If \code{NULL}, this is set to \code{n_points * 2.5}.}
 
-\item{update_interval}{The number of calls to the likelihood function
-between updates to \code{sampler} after \code{first_update} has been reached. If left
-as a double, \code{update_interval} is set to \code{update_interval * n_points}.}
+\item{update_interval}{Integer or \code{NULL}. The number of likelihood calls
+between subsequent updates of the LRPS. If \code{NULL}, this is set to
+\code{n_points * 1.5}.}
+
+\item{...}{Additional arguments passed to \code{\link[=create_likelihood]{create_likelihood()}}.}
 }
 \value{
-An \link{ernest_sampler} object.
+An \link{ernest_sampler} object, prepared for nested sampling.
 }
 \description{
 Initialize a \link{ernest_sampler} object to perform nested sampling with a given

@@ -63,7 +63,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
-  check_number_whole(ndraws, min = 0)
+  ndraws <- check_integer(ndraws, min = 0)
   if (ndraws != 0) {
     x <- calculate(x, ndraws = ndraws)
   }
@@ -159,7 +159,6 @@ autoplot.ernest_estimate <- function(object, ...) {
   )
 }
 
-#' @importFrom ggplot2 geom_ribbon
 #' @export
 autoplot.ernest_run <- function(object, ...) {
   check_dots_empty()
@@ -221,6 +220,18 @@ make_plot_df <- function(
   vctrs::vec_c(df_w, df_ll, df_z)
 }
 
+#' Autoplot for Ernest Run Objects
+#'
+#' @param object a data.frame from make_plot_df
+#' @param fill_name Name of the fill aesthetic in the plot.
+#' @param fill_limits Limits for the fill aesthetic.
+#' @param fill_labels Labels for the fill aesthetic.
+#'
+#' @srrstats {G2.4c} Explicit cast of `fill_limits` to character.
+#'
+#' @return A ggplot object representing the diagnostic plots.
+#' @importFrom ggplot2 geom_ribbon
+#' @noRd
 autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {
   df$.width <- factor(
     as.character(df$.width),

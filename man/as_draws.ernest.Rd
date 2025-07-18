@@ -17,9 +17,13 @@
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{units}{Which units to express the sampled points. If \code{"original"},
-points are expressed on the scale of the prior space. If \code{"unit_cube"},
-points are expressed on the scale of the (0-1)-unit hypercube.}
+\item{units}{Character string specifying the scale of the returned points.
+One of \code{"original"} or \code{"unit_cube"}, case sensitive.
+\itemize{
+\item \code{"original"}: Points are expressed on the scale of the prior space.
+\item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
+hypercube.
+}}
 
 \item{radial}{Whether to return an additional column \code{.radial}, containing
 the radial coordinate (i.e., the squared sum of squares) for each sampled

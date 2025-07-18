@@ -2,6 +2,7 @@
 % Please edit documentation in R/prior-class.R
 \name{create_prior}
 \alias{create_prior}
+\alias{ernest_prior}
 \title{Specify a prior distribution for nested sampling}
 \usage{
 create_prior(

@@ -57,7 +57,7 @@ calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
   if (is.logical(ndraws)) {
     ndraws <- as.integer(ndraws)
   }
-  check_number_whole(ndraws, min = 0)
+  ndraws <- check_integer(ndraws, min = 0)
 
   if (ndraws == 0) {
     return(tibble::new_tibble(

@@ -11,11 +11,13 @@
 
 \item{...}{Arguments passed to \code{\link[=as_draws_rvars]{as_draws_rvars()}}.}
 
-\item{type}{The type of plot to create. Either \code{"density"}, which shows
-the posterior density of each distribution, or \code{"trace"}, which shows the
-distribution of points along estimates of the log prior volume.}
+\item{type}{Character string specifying the type of plot to create.
+One of \code{"density"} or \code{"trace"}, case sensitive.
+-\code{"density"}: Shows the posterior density of each distribution.
+-\code{"trace"}: Shows the distribution of points along estimates of the log
+prior volume.}
 
-\item{vars}{A character vector of variable names to plot.}
+\item{vars}{A character vector of variable names to plot. Case sensitive.}
 
 \item{plot}{Logical, whether to return a \code{ggplot} of the visualization, or
 a \code{tibble} of the data used to create the plot.}

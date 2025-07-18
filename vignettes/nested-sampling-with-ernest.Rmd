@@ -196,7 +196,7 @@ run_dlogz
 ```
 
 ## Reviewing Nested Sampling Runs
-```{r echo = FALSE, include FALSE}
+```{r echo = FALSE, include = FALSE}
 #' SRR Block
 #' 
 #' @srrstatsTODO {BS4.1} Demonstrates the compatibility between ernest and posterior, a key advantage of

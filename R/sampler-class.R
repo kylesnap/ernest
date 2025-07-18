@@ -56,11 +56,9 @@ ernest_sampler <- R6Class(
       if (!inherits(sampling, "ernest_sampling")) {
         stop_input_type(sampling, "ernest_sampling")
       }
-      check_number_whole(n_points, min = 1)
-      first_update <- round_to_integer(first_update, n_points)
-      check_number_whole(first_update, min = 0)
-      update_interval <- round_to_integer(update_interval, n_points)
-      check_number_whole(update_interval, min = 0)
+      n_points <- check_integer(n_points, min = 1)
+      first_update <- check_integer(first_update, min = 0)
+      update_interval <- check_integer(update_interval, min = 0)
 
       private$log_lik <- log_lik_fn
       private$prior <- prior
@@ -166,9 +164,9 @@ ernest_sampler <- R6Class(
       if (max_calls == Inf) {
         max_calls <- .Machine$integer.max
       }
-      check_number_whole(max_iterations, min = 1)
-      check_number_whole(max_calls, min = 1)
-      check_number_decimal(min_logz, min = 0)
+      max_iterations <- check_integer(max_iterations, min = 1)
+      max_calls <- check_integer(max_calls, min = 1)
+      min_logz <- check_double(min_logz, min = 0)
 
       if (self$niterations != 0 && max_iterations <= self$niterations) {
         cli::cli_abort(c(

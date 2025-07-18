@@ -29,15 +29,22 @@ create_likelihood(fn, ...)
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{error_action}{What action to take should \code{fn} throw an error. \code{warn}
-prints a warning message and returns \code{-Inf}. \code{abort} throws an error,
-stopping the nested sampling run.}
+\item{error_action}{Character string specifying how to handle errors in \code{fn}.
+One of \code{"abort"} or \code{"warn"}, case sens
+\itemize{
+\item \code{"abort"}: Stop execution and signal an error.
+\item \code{"warn"}: Issue a warning and replace output with \code{-Inf}.
+}}
 
-\item{nonfinite_action}{What action to take should \code{fn} return a value that is
-not a double or an \code{-Inf} value (e.g., see \code{\link[=is.finite]{is.finite()}}). \code{warn} prints a
-warning message and replaces the value with \code{-Inf}, \code{pass} silently replaces
-the value with \code{-Inf}, and \code{abort} throws an error, stopping the nested
-sampling run.}
+\item{nonfinite_action}{Character string specifying how to handle nonfinite or
+missing outputs from \code{fn}. One of \code{"warn"}, \code{"pass"}, or \code{"abort"}, case
+sensitve.
+\itemize{
+\item \code{"warn"}: Issue a warning and replace nonfinite values with \code{-Inf}.
+\item \code{"pass"}: Silently replace nonfinite values with \code{-Inf}.
+\item \code{"abort"}: Stop execution and signal an error if nonfinite values are
+encountered.
+}}
 
 \item{auto_batch}{Whether to prepare \code{fn} so that it may be called with a
 matrix of parameter values. If \code{FALSE}, its assumed that \code{fn} can already
@@ -70,7 +77,7 @@ values from \code{fn}.
 As default, \code{auto_batch} expects that \code{fn} is incapable of handling matrices
 of parameter values. It resolves this by wrapping \code{fn} in a call to
 \code{\link[base:apply]{base::apply()}}. Should you have a more efficient implementation of your
-likelihood function, then consider setting \code{auto_batch == FALSE}.
+likelihood function, then consider setting \code{auto_batch} to \code{FALSE}.
 }
 \examples{
 # A 3D Gaussian likelihood function

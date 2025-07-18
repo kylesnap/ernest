@@ -43,10 +43,10 @@ truncated.
 }
 \details{
 The parameters used to specify this prior are for the location-scale
-t-distribution with location $\mu$, scale $\sigma$, and degrees of freedom
-$\nu$. If the random variable $X$ is Student-T distributed, then
-$X \sym \mu + \sigma T$, where $T$ follows the Student-T distribution
-with $\nu$ degrees of freedom.
+t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of freedom
+\eqn{\nu}. If the random variable \eqn{X} is Student-T distributed, then
+\deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T distribution
+with \eqn{\nu} degrees of freedom.
 }
 \examples{
 prior <- create_t_prior(3, df = c(1,2,5), mu = c(0,1,2), sigma = c(1,2,3))

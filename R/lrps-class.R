@@ -17,7 +17,7 @@ ernest_lrps <- R6Class(
     initialize = function(log_lik_fn, prior_fn, n_dim) {
       check_function(log_lik_fn)
       check_function(prior_fn)
-      check_number_whole(n_dim, min = 1, allow_null = FALSE)
+      n_dim <- check_integer(n_dim, min = 1)
       private$log_lik_fn <- log_lik_fn
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
@@ -47,16 +47,16 @@ ernest_lrps <- R6Class(
     },
 
     clear = function() {
-      n_call <<- 0L
-      n_iter <<- 0L
-      hist_length <<- 0L
-      hist_iter <<- vctrs::list_of(.ptype = integer())
-      hist_call <<- vctrs::list_of(.ptype = integer())
+      private$n_call <- 0L
+      private$n_iter <- 0L
+      private$hist_length <- 0L
+      private$hist_iter <- vctrs::list_of(.ptype = integer())
+      private$hist_call <- vctrs::list_of(.ptype = integer())
       invisible(self)
     },
 
     update = function(...) {
-      n_call <<- 0L
+      private$n_call <- 0L
       return(self)
     },
 
@@ -104,11 +104,11 @@ ernest_lrps <- R6Class(
 
     # Helpers
     increment = function(res) {
-      n_call <<- n_call + res$n_call
-      n_iter <<- n_iter + vctrs::vec_size(res$log_lik)
-      hist_length <<- hist_length + 1L
-      hist_iter[[hist_length]] <<- n_iter
-      hist_call[[hist_length]] <<- n_call
+      private$n_call <- private$n_call + res$n_call
+      private$n_iter <- private$n_iter + vctrs::vec_size(res$log_lik)
+      private$hist_length <- private$hist_length + 1L
+      private$hist_iter[[private$hist_length]] <- private$n_iter
+      private$hist_call[[private$hist_length]] <- private$n_call
       invisible(self)
     }
   ),
@@ -192,8 +192,8 @@ rwcube_lrps <- R6::R6Class(
       target_acceptance = 0.5
     ) {
       super$initialize(log_lik_fn, prior_fn, n_dim)
-      check_number_whole(steps, min = 2)
-      check_number_decimal(target_acceptance, max = 1)
+      steps <- check_integer(steps, min = 2)
+      target_acceptance <- check_double(target_acceptance, max = 1)
       if (target_acceptance < 1 / steps) {
         cli::cli_abort("Target acceptance must be at least 1/{steps}.")
       }
@@ -202,19 +202,19 @@ rwcube_lrps <- R6::R6Class(
     },
 
     clear = function() {
-      cur_epsilon <<- 1.0
-      n_accept <<- 0L
-      hist_accept <<- vctrs::list_of(.ptype = integer())
-      hist_epsilon <<- vctrs::list_of(.ptype = double())
+      private$cur_epsilon <- 1.0
+      private$n_accept <- 0L
+      private$hist_accept <- vctrs::list_of(.ptype = integer())
+      private$hist_epsilon <- vctrs::list_of(.ptype = double())
       super$clear()
     },
 
     update = function() {
-      acc_ratio <- n_accept / private$n_call
+      acc_ratio <- private$n_accept / private$n_call
       # Newton-Like Update to Target 0.5 Acceptance Ratio
-      cur_epsilon <<- cur_epsilon *
-        exp((acc_ratio - target_acceptance) / n_dim / target_acceptance)
-      n_accept <<- 0L
+      private$cur_epsilon <- private$cur_epsilon *
+        exp((acc_ratio - private$target_acceptance) / private$n_dim / private$target_acceptance)
+      private$n_accept <- 0L
       super$update()
     },
 

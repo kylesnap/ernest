@@ -1,31 +1,61 @@
-#' Round a number to an integer after scaling by a multiplicand.
+#' Cast a number to an integer after boundary checking
 #'
-#' @param x A numeric value to round.
-#' @param multiplicand A scaling factor to apply before rounding.
-#' @return An integer value after rounding.
+#' @param x The number to cast to integer.
+#' @param min,max The minimum and maximum values for the rounded number.
+#' @param arg The name of the argument being checked, for error messages.
+#' @param call The calling environment for error messages.
+#'
+#' @return An integer value.
+#' @srrstats {G2.1, G2.2, G2.4, G2.4a} `check_integer()` validates unidimensional integer input.
 #' @noRd
-round_to_integer <- function(x, multiplicand = 1) {
-  if (is.integer(x)) {
-    x
-  } else if (is.numeric(x)) {
-    as.integer(round(x * multiplicand))
-  } else {
-    stop_input_type(x, "numeric")
-  }
+check_integer <- function(
+  x,
+  min = NULL,
+  max = NULL,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  check_number_whole(
+    x,
+    min = min,
+    max = max,
+    allow_infinite = FALSE,
+    allow_na = FALSE,
+    allow_null = FALSE,
+    arg = arg,
+    call = call
+  )
+  as.integer(x)
 }
 
-#' Style a potentially long vector of doubles
+#' Cast a number to a double after boundary checking
+#'
+#' @param x The number to cast to double.
+#' @param min,max The minimum and maximum values for the number.
+#' @param arg The name of the argument being checked, for error messages.
+#' @param call The calling environment for error messages.
+#'
+#' @return A double value.
+#' @srrstats {G2.1, G2.2, G2.4, G2.4b} `check_double()` validates unidimensional double input.
 #' @noRd
-style_vec <- function(vec) {
-  vec <- cli::cli_vec(
-    prettyNum(vec),
-    style = list(
-      "vec-sep" = ", ",
-      "vec-sep2" = ", ",
-      "vec-last" = ", ",
-      "vec-trunc" = 3
-    )
+check_double <- function(
+  x,
+  min = NULL,
+  max = NULL,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  check_number_decimal(
+    x,
+    min = min,
+    max = max,
+    allow_infinite = FALSE,
+    allow_na = FALSE,
+    allow_null = FALSE,
+    arg = arg,
+    call = call
   )
+  as.double(x)
 }
 
 #' Calculate the HDI of an rvar

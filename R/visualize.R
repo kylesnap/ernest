@@ -6,10 +6,12 @@
 #'
 #' @param x An [ernest_run] object.
 #' @param ... Arguments passed to [as_draws_rvars()].
-#' @param type The type of plot to create. Either `"density"`, which shows
-#' the posterior density of each distribution, or `"trace"`, which shows the
-#' distribution of points along estimates of the log prior volume.
-#' @param vars A character vector of variable names to plot.
+#' @param type Character string specifying the type of plot to create.
+#' One of `"density"` or `"trace"`, case sensitive.
+#' -`"density"`: Shows the posterior density of each distribution.
+#' -`"trace"`: Shows the distribution of points along estimates of the log
+#' prior volume.
+#' @param vars A character vector of variable names to plot. Case sensitive.
 #' @param plot Logical, whether to return a `ggplot` of the visualization, or
 #' a `tibble` of the data used to create the plot.
 #'
@@ -17,7 +19,8 @@
 #'
 #' @note This method requires the `ggdist` package for plotting the posterior.
 #' @seealso [plot()] for visualizing the evidence estimates from an `ernest_run`.
-#'
+#' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input.
+#' @srrstats {G2.3b} Explicitly mentions that `vars` is case sensitive.
 #' @examples
 #' # Load example run
 #' library(ggdist)

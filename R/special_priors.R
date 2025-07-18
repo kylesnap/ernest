@@ -70,7 +70,7 @@ create_normal_prior <- function(
   p <- NULL
   fn <- new_function(
     exprs(p = ),
-    expr(qnorm(p = !!exp_p, mean = !!dparams$mean, sd = !!dparams$sd))
+    expr(stats::qnorm(p = !!exp_p, mean = !!dparams$mean, sd = !!dparams$sd))
   )
   batched_fn <- \(x) {
     if (is.matrix(x)) {
@@ -104,10 +104,10 @@ create_normal_prior <- function(
 #'
 #' @details
 #' The parameters used to specify this prior are for the location-scale
-#' t-distribution with location $\mu$, scale $\sigma$, and degrees of freedom
-#' $\nu$. If the random variable $X$ is Student-T distributed, then
-#' $X \sym \mu + \sigma T$, where $T$ follows the Student-T distribution
-#' with $\nu$ degrees of freedom.
+#' t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of freedom
+#' \eqn{\nu}. If the random variable \eqn{X} is Student-T distributed, then
+#' \deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T distribution
+#' with \eqn{\nu} degrees of freedom.
 #'
 #' @inherit create_normal_prior seealso references
 #'

@@ -87,6 +87,7 @@ ernest_sampler <- R6Class(
       private$live_birth <- double(0L)
       private$results <- NULL
       private$status <- "UNINITIALIZED"
+      private$seed <- NULL
       invisible(self)
     },
 
@@ -94,25 +95,40 @@ ernest_sampler <- R6Class(
     #' (Internal) Generates a sample of live points from the prior and
     #' validates them.
     #'
+    #' @param seed An optional integer seed for reproducibility, `NULL` to
+    #' reset the seed, and `NA` to use the current random seed.
     #' @param clear A logical value indicating whether to clear existing points.
     #'
     #' @return Itself, invisibly.
-    compile = function(clear = FALSE) {
+    compile = function(seed = NA, clear = FALSE) {
       check_bool(clear)
+      private$seed <- set_random_seed(seed, private$results)
+
       if (clear) {
         self$clear()
       }
-      if (any(map_lgl(self$live_points, is_null))) {
+      if (identical(private$live_unit, matrix(double(0L)))) {
         live <- create_live(private$lrps, private$n_points)
         private$live_unit <- live$unit
         private$live_log_lik <- live$log_lik
         private$live_birth <- rep(0, private$n_points)
       }
-      check_live(
-        private$live_unit,
-        private$live_log_lik,
-        private$n_points,
-        private$prior$n_dim
+      try_fetch(
+        check_live(
+          private$live_unit,
+          private$live_log_lik,
+          private$n_points,
+          private$prior$n_dim
+        ),
+        error = function(cnd) {
+          cli::cli_abort(
+            c(
+              "Live points validation failed.",
+              "i" = "Should the sampler be reset with `clear`?"
+            ),
+            call = cnd
+          )
+        }
       )
       invisible(self)
     },
@@ -242,6 +258,7 @@ ernest_sampler <- R6Class(
     first_update = NULL,
     update_interval = NULL,
     status = "UNINITIALIZED",
+    seed = NULL,
 
     live_unit = matrix(double(0L)),
     live_log_lik = double(0L),

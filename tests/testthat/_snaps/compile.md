@@ -1,46 +1,56 @@
 # Informative error when prior or log. lik. fails completely.
 
     Can't create live points.
-    Caused by error:
-    ! Can't calculate the log. likelihood.
-    x Bad Likelihood Job!
+    Caused by error in `log_lik()`:
+    ! Bad Likelihood Job!
 
 ---
 
     Can't create live points.
-    Caused by error:
-    ! Can't calculate the prior transformation.
-    x Bad prior job!
+    Caused by error in `prior$fn()`:
+    ! Bad prior job!
 
 # check_live validates live points correctly
 
-    Unit points must be stored as a matrix with dim. `c(5, 4)`.
+    `unit` must be a numeric matrix, not a double vector.
 
 ---
 
-    Unit points must be stored as a matrix.
+    Live points matrix must have dim. 5 x 4.
+    x Points are currently 3 x 5.
 
 ---
 
-    Unit points must be stored as a matrix with dim. `c(5, 4)`.
+    Live points matrix must only contain finite values.
 
 ---
 
-    Unit points must contain only finite values.
+    Live points matrix must only contain values between 0 and 1.
 
 ---
 
-    Unit points must contain values within [0, 1].
+    `log_lik` must be a double vector of length 5
+    ! You provided a double vector.
 
 ---
 
-    Couldn't avoid calculating non-finite log-likelihood values.
-    i Log-likelihood values can only be finite or `-Inf`.
-    x There is 1 non-finite, non-`-Inf` value.
+    missing value where TRUE/FALSE needed
 
 ---
 
-    Couldn't generate unique log-likelihood values for each point.
-    x Every point had a calculated log-lik. value of -10.
-    i This generally indicates an error within a log. lik. function.
+    Log likelihoods of the live points must not be a plateau.
+    x Log likelihood of all 5 points = -10.
+
+---
+
+    Code
+      check_live(unit, log_lik_repeats, n_points = 5, n_var = 4)
+    Condition
+      Warning:
+      4 of 5 likelihood values in the live set are unique.
+    Message
+      ! Duplicated Values:
+      -5: 2 times
+    Output
+      NULL
 

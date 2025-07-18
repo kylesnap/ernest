@@ -114,12 +114,15 @@ Itself, invisibly.
 (Internal) Generates a sample of live points from the prior and
 validates them.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$compile(clear = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$compile(seed = NA, clear = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{seed}}{An optional integer seed for reproducibility, \code{NULL} to
+reset the seed, and \code{NA} to use the current random seed.}
+
 \item{\code{clear}}{A logical value indicating whether to clear existing points.}
 }
 \if{html}{\out{</div>}}

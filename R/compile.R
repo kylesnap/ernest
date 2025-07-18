@@ -5,17 +5,35 @@
 #'
 #' @param object An object of class `ernest_sampler`.
 #' @inheritParams rlang::args_dots_empty
+#' @param seed Either a single value, interpretted as an integer, or `NA` or
+#' `NULL`.
+#' * If an integer or NULL, `seed` is passed to [set.seed()] to set the state
+#' of the random number generator. `NULL` reinitializes the generator as if
+#' no seed has yet been set.
+#' * If `NA`, the random number generator is set with the seed stored in the
+#' `ernest_run` object bound to `object`. If this object does not exist (i.e.,
+#' if not prior runs have been performed), the current state of the generator
+#' is recorded and stored for future objects.
 #' @param clear A logical value indicating whether to reload `object` before
 #' creating new live points. If `TRUE`, former results from the sampler are
 #' removed from the object. If `FALSE`, the sampler will not drop prior results,
 #' and continue using live points from the last sampling iteration performed.
 #'
 #' @details
-#' `compile` checks whether the live points within a nested sampler are
-#' of the expected structure (e.g., the matrix contains the proper dimensions,
-#' every live point is described with finite values, and likelihood values are
-#' either finite or `-Inf`). If these checks fail, or if `clear = TRUE`, the
-#' sampler is reset and a new set of live points is generated.
+#' The `compile` function prepares an `ernest_sampler` object for nested
+#' sampling by ensuring that its set of live points is valid and ready for use.
+#' In addition to constructing the live point set for new runs, the live points
+#' are validated for a number of conditions:
+#'
+#' * Ensures that the points are each represented within the unit hypercube.
+#' * Ensures that the wrapped likelihood function `ernest_likelihood` has a
+#' valid return value for each point (finite double or `-Inf`).
+#' * Ensures that the likelihood isn't at a plateau, warning you if there are
+#' duplicate likelihood values.
+#'
+#' If `compile` fails these validation steps, the function will fail and the
+#' set of live points will be removed from `object` with an informative error
+#' message encouraging you to run the sampler from scratch with `clear = TRUE`.
 #'
 #' @returns `object`, invisibly.
 #' @examples
@@ -36,9 +54,9 @@
 #' head(sampler$live_points$unit)
 #' @method compile ernest_sampler
 #' @export
-compile.ernest_sampler <- function(object, ..., clear = FALSE) {
+compile.ernest_sampler <- function(object, ..., seed = NA, clear = FALSE) {
   check_dots_empty()
-  object$compile(clear)
+  object$compile(seed = seed, clear = clear)
 }
 
 #' Create a live sample with `n` live points.
@@ -52,6 +70,14 @@ create_live <- function(lrps, n_points, call = caller_env()) {
   rlang::try_fetch(
     lrps$propose_uniform(criteria = rep(-1e300, n_points)),
     error = function(cnd) {
+      fun <- eval(cnd$call[[1]], envir = lrps)
+      cnd$call[[1]] <- if (identical(fun, lrps$private$prior_fn)) {
+        expr(prior$fn)
+      } else if ((identical(fun, lrps$private$log_lik_fn))) {
+        expr(log_lik)
+      } else {
+        cnd$call[[1]]
+      }
       cli::cli_abort(
         "Can't create live points.",
         parent = cnd
@@ -62,81 +88,98 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 
 #' Validate an existing nested sample for correctness.
 #'
-#' @param live A list containing live points (`unit`, `point`, `log_lik`).
-#' @param n_points The expected number of live points.
-#' @param n_var The expected number of dimensions for each point.
-#' @param call The calling environment for error handling.
+#' @param unit A numeric matrix of live points in the unit hypercube, with shape
+#' (n_points, n_var).
+#' @param log_lik A numeric vector of log-likelihood values, one for each live
+#' point (length n_points).
+#' @param n_points Integer. The expected number of live points (rows in `unit`,
+#' length of `log_lik`).
+#' @param n_var Integer. The expected number of dimensions for each point
+#' (columns in `unit`).
+#' @param call The calling environment for error handling (for advanced use).
+#'
+#' @srrstats {G2.13, G2.14, BS3.0} Before running, compile checks for uncaught
+#' NA, NaN, or Inf values produced by the user inputs `log_lik` and `prior`.
+#' @srrstats {G2.0, BS2.1, BS2.2, BS2.4} Compile checks that `prior`
+#' creates parameters that are valid inputs to `log_lik`. Also warns when the
+#' log-likelihood points surface contains flatness.
 #'
 #' @return Throws an error or warning if validation fails; otherwise, returns
 #' NULL.
 #' @noRd
 check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
-  tmplate <- matrix(nrow = n_points, ncol = n_var)
-  # unit: Must be a matrix of points with dim [n_points, n_var],
-  # all points must be finite and within [0, 1]
-  if (!is.matrix(unit)) {
-    abort(
-      "Unit points must be stored as a matrix.",
-      call = call
-    )
+  # Check live point matrix.
+  if (!is.numeric(unit) || !is.matrix(unit)) {
+    stop_input_type(unit, "a numeric matrix", call = call)
   }
-  if (!identical(dim(unit), dim(tmplate))) {
-    cli::cli_abort(
-      "Unit points must be stored as a matrix with dim. `c({n_points}, {n_var})`.",
-      call = call
-    )
-  }
-  if (any(!is.finite(unit))) {
-    abort("Unit points must contain only finite values.", call = call)
-  }
-  if (any(unit < 0) || any(unit > 1)) {
-    abort("Unit points must contain values within [0, 1].", call = call)
-  }
-  # loglik: Must be numeric vector of length n_points. Must contain only values
-  # that are either finite or -Inf. Abort if log_lik contains no
-  # unique values, warn if 10% of the values are duplicates.
-  vctrs::vec_check_size(log_lik, size = n_points, call = caller_env)
-  idx <- intersect(which(!is.finite(log_lik)), which(log_lik != -Inf))
-  if (length(idx) > 0L) {
-    len <- length(idx)
+  if (ncol(unit) != n_var || nrow(unit) != n_points) {
     cli::cli_abort(
       c(
-        "Couldn't avoid calculating non-finite log-likelihood values.",
-        "i" = "Log-likelihood values can only be finite or `-Inf`.",
-        "x" = "There {?is/are} {len} non-finite, non-`-Inf` value{?s}."
+        "Live points matrix must have dim. {n_points} x {n_var}.",
+        "x" = "Points are currently {nrow(unit)} x {ncol(unit)}."
       ),
       call = call
     )
   }
-  idx <- which(log_lik == -Inf)
-  if (length(idx) > 0L) {
-    len <- length(idx)
+  if (!all(is.finite(unit))) {
+    cli::cli_abort(
+      "Live points matrix must only contain finite values.",
+      call = call
+    )
+  }
+  if (any(unit < 0 | unit > 1)) {
+    cli::cli_abort(
+      "Live points matrix must only contain values between 0 and 1.",
+      call = call
+    )
+  }
+
+  if (!is_double(log_lik, n = n_points)) {
+    cli::cli_abort(
+      c(
+        "`log_lik` must be a double vector of length {n_points}",
+        "!" = "You provided {obj_type_friendly(log_lik)}."
+      ),
+      call = call
+    )
+  }
+  if (any(!is.finite(log_lik) & log_lik != -Inf)) {
+    n_nonfinite <- sum(!is.finite(log_lik) & log_lik != -Inf)
+    cli::cli_abort(
+      c(
+        "Live points' log-likelihoods must be finite or -Inf.",
+        "x" = "Found {n_nonfinite} non-finite values."
+      ),
+      call = call
+    )
+  }
+
+  uniq_ll <- vctrs::vec_unique(log_lik)
+  n_unique <- length(uniq_ll)
+  if (n_unique == 1L) {
+    cli::cli_abort(
+      c(
+        "Log likelihoods of the live points must not be a plateau.",
+        "x" = "Log likelihood of all {n_points} points = {uniq_ll}."
+      ),
+      call = call
+    )
+  }
+  if (n_unique < n_points) {
+    rep_ll <- vctrs::vec_unrep(log_lik)
+    names <- as.character(rep_ll$key)[rep_ll$times != 1]
+    vals <- paste0(
+      as.character(rep_ll$times[rep_ll$times != 1]),
+      " times"
+    )
+    names(vals) <- names
     cli::cli_warn(
-      "Found {len} log-likelihood value{?s} equal to `-Inf`.",
+      "{n_unique} of {n_points} likelihood values in the live set are unique.",
       call = call
     )
+    cli::cli_alert_warning("Duplicated Values:")
+    cli::cli_dl(vals)
   }
-  unique_logl <- unique(log_lik)
-  if (length(unique_logl) == 1) {
-    cli::cli_abort(
-      c(
-        "Couldn't generate unique log-likelihood values for each point.",
-        "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
-        "i" = "This generally indicates an error within a log. lik. function."
-      ),
-      call = call
-    )
-  }
-  if (length(unique_logl) < length(log_lik) * 0.25) {
-    perc <- prettyNum(length(unique_logl) / length(log_lik))
-    cli::cli_warn(
-      c(
-        "Suspected flatness in the log-likelihood surface.",
-        "x" = "Only {perc}% of the live points have unique log-lik. values.",
-        "i" = "Consider reviewing your model or adjusting your prior."
-      ),
-      call = call
-    )
-  }
+
   NULL
 }

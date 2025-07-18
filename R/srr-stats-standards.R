@@ -13,7 +13,6 @@
 #' @srrstats {G1.4} Software uses `roxygen2`.
 #' @srrstatsTODO {G1.4a} *All internal (non-exported) functions should also be documented in standard [`roxygen2`](https://roxygen2.r-lib.org/) format, along with a final `@noRd` tag to suppress automatic generation of `.Rd` files or [`@keywords internal`](https://roxygen2.r-lib.org/reference/tags-index-crossref.html?q=keywords%20internal#null) if documentation is still desired.*
 #' @srrstatsTODO {G1.5} Vignette? *Software should include all code necessary to reproduce results which form the basis of performance claims made in associated publications.*
-#' @srrstatsTODO {G2.0} *Implement assertions on lengths of inputs, particularly through asserting that inputs expected to be single- or multi-valued are indeed so.*
 #' @srrstatsTODO {G2.0a} Provide explicit secondary documentation of any expectations on lengths of inputs
 #' @srrstatsTODO {G2.1a} *Provide explicit secondary documentation of expectations on data types of all vector inputs.*
 #' @srrstatsTODO {G2.6} *Software which accepts one-dimensional input should ensure values are appropriately pre-processed regardless of class structures.*
@@ -52,16 +51,13 @@
 #' @srrstatsTODO {BS1.3b} *Where applicable, Bayesian software should document, both in text and examples, how to use different sampling algorithms for a given model.*
 #' @srrstatsTODO {BS1.4} *For Bayesian Software which implements or otherwise enables convergence checkers, documentation should explicitly describe and provide examples of use with and without convergence checkers.*
 #' @srrstatsTODO {BS1.5} *For Bayesian Software which implements or otherwise enables multiple convergence checkers, differences between these should be explicitly tested.*
-#' @srrstatsTODO {BS2.1} *Bayesian Software should implement pre-processing routines to ensure all input data is dimensionally commensurate, for example by ensuring commensurate lengths of vectors or numbers of rows of tabular inputs.*
 #' @srrstatsTODO {BS2.1a} *The effects of such routines should be tested.*
-#' @srrstatsTODO {BS2.4} *Ensure that lengths of vectors of distributional parameters are commensurate with expected model input (see example immediately below)*
 #' @srrstatsTODO {BS2.6} *Check that values for computational parameters lie within plausible ranges.*
 #' @srrstatsTODO {BS2.7} *Enable starting values to be explicitly controlled via one or more input parameters, including multiple values for software which implements or enables multiple computational "chains."*
 #' @srrstatsTODO {BS2.8} *Enable results of previous runs to be used as starting points for subsequent runs.*
 #' @srrstatsTODO {BS2.11} *Software which accepts starting values as a vector should provide the parameter with a plural name: for example, "starting_values" and not "starting_value".*
 #' @srrstatsTODO {BS2.12} *Bayesian Software should implement at least one parameter controlling the verbosity of output, defaulting to verbose output of all appropriate messages, warnings, errors, and progress indicators.*
 #' @srrstatsTODO {BS2.13} *Bayesian Software should enable suppression of messages and progress indicators, while retaining verbosity of warnings and errors. This should be tested.*
-#' @srrstatsTODO {BS3.0} *Explicitly document assumptions made in regard to missing values; for example that data is assumed to contain no missing (`NA`, `Inf`) values, and that such values, or entire rows including any such values, will be automatically removed from input data.*
 #' @srrstatsTODO {BS3.1} *Implement pre-processing routines to diagnose perfect collinearity, and provide appropriate diagnostic messages or warnings*
 #' @srrstatsTODO {BS3.2} *Provide distinct routines for processing perfectly collinear data, potentially bypassing sampling algorithms*
 #' @srrstatsTODO {BS4.0} *Packages should document sampling algorithms (generally via literary citation, or reference to other software)*
@@ -70,7 +66,6 @@
 #' @srrstatsTODO {BS4.5} *Ensure that appropriate mechanisms are provided for models which do not converge.*
 #' @srrstatsTODO {BS4.6} *Implement tests to confirm that results with convergence checker are statistically equivalent to results from equivalent fixed number of samples without convergence checking.*
 #' @srrstatsTODO {BS4.7} *Where convergence checkers are themselves parametrised, the effects of such parameters should also be tested. For threshold parameters, for example, lower values should result in longer sequence lengths.*
-#' @srrstatsTODO {BS5.0} *Return values should include starting value(s) or seed(s), including values for each sequence where multiple sequences are included*
 #' @srrstatsTODO {BS5.1} *Return values should include appropriate metadata on types (or classes) and dimensions of input data*
 #' @srrstatsTODO {BS5.2} *Bayesian Software should either return the input function or prior distributional specification in the return object; or enable direct access to such via additional functions which accept the return object as single argument.*
 #' @srrstatsTODO {BS5.3} *Bayesian Software should return convergence statistics or equivalent*
@@ -96,7 +91,7 @@ NULL
 #' @srrstatsNA {G1.6} ernest does not make performance claims against other R packages, mostly due to a lack of true R-based implementations.
 #' @srrstatsNA {G2.4d, G2.4e, G2.5} Ernest does not allow for factor inputs; users provide model information through likelihood functions.
 #' @srrstatsNA {BS2.9, BS2.10} Software does not use parallel chains.
-#' @srrstatsNA {G2.7, G2.8, G2.9, G2.10, G2.11, G2.12, G2.13} Ernest does not allow for tabular input, working instead from user-inputted likelihood functions.
+#' @srrstatsNA {G2.7, G2.8, G2.9, G2.10, G2.11, G2.12} Ernest does not allow for tabular input, working instead from user-inputted likelihood functions.
 #' @srrstatsNA {G3.1, G3.1a} Ernest doesn't presently call a covariance algorithm.
 #' @srrstatsNA {G4.0} Ernest does not write to the user's storage.
 #'

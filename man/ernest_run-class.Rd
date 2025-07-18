@@ -48,8 +48,8 @@ between the prior and posterior distributions.}
 \item{\code{calls}}{The number of likelihood calls made when generating a replacement
 live point.}
 
-\item{\code{birth}}{The iteration at which the point was created and added to the live
-set.}
+\item{\code{birth}}{The iteration at which the point was created and added to the
+live set.}
 
 \item{\code{samples}}{A matrix of the sampled points, expressed in the units of the
 prior space.}

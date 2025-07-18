@@ -18,8 +18,9 @@
 
 # Early exits are repaired
 
-    Can't calculate the log. likelihood.
-    x Can't calculate the likelihood without an error. Caused by error in `fn()`: ! Early exit
+    Can't calculate the likelihood without an error.
+    Caused by error in `fn()`:
+    ! Early exit
 
 ---
 
@@ -28,8 +29,9 @@
 
 ---
 
-    Can't calculate the log. likelihood.
-    x Can't calculate the likelihood without an error. Caused by error in `fn()`: ! Early exit
+    Can't calculate the likelihood without an error.
+    Caused by error in `fn()`:
+    ! Early exit
 
 ---
 

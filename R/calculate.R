@@ -213,7 +213,6 @@ print.summary.ernest_estimate <- function(x, ...) {
   invisible(x)
 }
 
-
 # HELPERS FOR CALCULATING EVIDENCE ------
 
 #' Simulate log volumes for nested sampling

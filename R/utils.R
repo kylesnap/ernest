@@ -58,10 +58,39 @@ check_double <- function(
   as.double(x)
 }
 
+#' Set the random seed for reproducibility.
+#'
+#' @param seed Either a single value, interpretted as an integer, or `NA` or
+#' `NULL`.
+#' @param results The results object that contains the last seed.
+#' @param call The calling environment for error messages.
+#'
+#' @return The set seed value (.Random.seed).
+#' @noRd
+set_random_seed <- function(
+  seed,
+  results = NULL,
+  call = caller_env()
+) {
+  if (!is.na(seed)) {
+    check_number_whole(seed, allow_null = TRUE, call = call)
+    set.seed(seed)
+  } else {
+    if (!is.null(attr(results, "seed"))) {
+      .Random.seed <- attr(results, "seed")
+    }
+  }
+  if (!exists(".Random.seed")) {
+    set.seed(NULL)
+  }
+  .Random.seed
+}
+
 #' Calculate the HDI of an rvar
 #'
-#' @author Based on implementation from
-#' https://github.com/mikemeredith/HDInterval
+#' @author Based on implementation from https://github.com/mikemeredith/HDInterval
+#'
+#' @noRd
 hdci <- function(object, width = 0.95, ...) {
   if (!inherits(object, "rvar")) {
     stop("Input must be of class 'rvar'.")
@@ -100,12 +129,13 @@ hdci <- function(object, width = 0.95, ...) {
 }
 
 #' Estimate the density of the posterior weights across the log volumes
-#' @param log_volume,weight Both rvar!
+#' @param log_volume,weight rvars of log_volume draws and corresponding
+#' normalized posterior weights.
+#'
 #' @returns A data.frame containing 128 values of log volume and an rvar of
 #' densities
 #' @noRd
 get_density <- function(log_volume, weight) {
-
   min_vol <- min(mean(log_volume))
   log_vol_draws <- posterior::draws_of(log_volume)
   w_draws <- posterior::draws_of(weight)
@@ -138,6 +168,13 @@ get_density <- function(log_volume, weight) {
 }
 
 #' Interpolate evidence across a range of log volumes
+#' @param log_volume,weight rvars of log_volume draws and corresponding
+#' normalized posterior weights.
+#' @param The breaks of log_volume at which to interpolate the evidence estimates.
+#'
+#' @returns An rvar with the same ndraws as `log_volume` and length of
+#' `log_volume_out`.
+#' @noRd
 interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
   log_vol_draws <- posterior::draws_of(log_volume)
   log_evid_draws <- posterior::draws_of(exp(log_evidence))

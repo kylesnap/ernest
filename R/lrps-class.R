@@ -22,27 +22,8 @@ ernest_lrps <- R6Class(
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
       private$unit_log_lik <- function(unit) {
-        point <- try_fetch(private$prior_fn(unit), error = function(cnd) {
-          cli::cli_abort(
-            c(
-              "Can't calculate the prior transformation.",
-              "x" = cnd_message(cnd)
-            ),
-            parent = NA
-          )
-        })
-        try_fetch(
-          private$log_lik_fn(point),
-          error = function(cnd) {
-            cli::cli_abort(
-              c(
-                "Can't calculate the log. likelihood.",
-                "x" = cnd_message(cnd)
-              ),
-              parent = NA
-            )
-          }
-        )
+        point <- private$prior_fn(unit)
+        private$log_lik_fn(point)
       }
     },
 
@@ -213,7 +194,11 @@ rwcube_lrps <- R6::R6Class(
       acc_ratio <- private$n_accept / private$n_call
       # Newton-Like Update to Target 0.5 Acceptance Ratio
       private$cur_epsilon <- private$cur_epsilon *
-        exp((acc_ratio - private$target_acceptance) / private$n_dim / private$target_acceptance)
+        exp(
+          (acc_ratio - private$target_acceptance) /
+            private$n_dim /
+            private$target_acceptance
+        )
       private$n_accept <- 0L
       super$update()
     },

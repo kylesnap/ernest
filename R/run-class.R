@@ -26,12 +26,15 @@
 #' @slot points The number of live points associated with each point's removal.
 #' @slot calls The number of likelihood calls made when generating a replacement
 #' live point.
-#' @slot birth The iteration at which the point was created and added to the live
-#' set.
+#' @slot birth The iteration at which the point was created and added to the
+#' live set.
 #' @slot samples A matrix of the sampled points, expressed in the units of the
 #' prior space.
 #' @slot samples_unit Identical to `samples`, but expressed in the units of the
 #' 0-1 hypercube.
+#'
+#' @srrstats {BS5.0} Return values should include starting value(s) or seed(s),
+#' including values for each sequence where multiple sequences are included.
 #'
 #' @details
 #' The `ernest_run` object is returned by running a nested sampling procedure
@@ -99,10 +102,10 @@ compile_results <- function(
     "birth" = birth
   )
 
-  new_ernest_run(res, n_live, n_dead, live_order)
+  new_ernest_run(res, n_live, n_dead, live_order, private$seed)
 }
 
-new_ernest_run <- function(res, n_live, n_dead, live_order) {
+new_ernest_run <- function(res, n_live, n_dead, live_order, seed) {
   log_vol <- cumsum(-1 * (res$points**-1))
   integration <- compute_integral(res$log_lik, log_vol)
   live_loc <- live_order + n_dead
@@ -121,6 +124,7 @@ new_ernest_run <- function(res, n_live, n_dead, live_order) {
       "samples_unit" = res$samples_unit
     ),
     "live_loc" = live_loc,
+    "seed" = seed,
     class = "ernest_run"
   )
 }

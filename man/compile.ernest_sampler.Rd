@@ -4,12 +4,24 @@
 \alias{compile.ernest_sampler}
 \title{Prepare an \code{ernest_sampler} object for nested sampling}
 \usage{
-\method{compile}{ernest_sampler}(object, ..., clear = FALSE)
+\method{compile}{ernest_sampler}(object, ..., seed = NA, clear = FALSE)
 }
 \arguments{
 \item{object}{An object of class \code{ernest_sampler}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{seed}{Either a single value, interpretted as an integer, or \code{NA} or
+\code{NULL}.
+\itemize{
+\item If an integer or NULL, \code{seed} is passed to \code{\link[=set.seed]{set.seed()}} to set the state
+of the random number generator. \code{NULL} reinitializes the generator as if
+no seed has yet been set.
+\item If \code{NA}, the random number generator is set with the seed stored in the
+\code{ernest_run} object bound to \code{object}. If this object does not exist (i.e.,
+if not prior runs have been performed), the current state of the generator
+is recorded and stored for future objects.
+}}
 
 \item{clear}{A logical value indicating whether to reload \code{object} before
 creating new live points. If \code{TRUE}, former results from the sampler are
@@ -24,11 +36,21 @@ Create a new set of live points/particles for a new nested sampling run, or
 check the current state of the live points before continuing a previous run.
 }
 \details{
-\code{compile} checks whether the live points within a nested sampler are
-of the expected structure (e.g., the matrix contains the proper dimensions,
-every live point is described with finite values, and likelihood values are
-either finite or \code{-Inf}). If these checks fail, or if \code{clear = TRUE}, the
-sampler is reset and a new set of live points is generated.
+The \code{compile} function prepares an \code{ernest_sampler} object for nested
+sampling by ensuring that its set of live points is valid and ready for use.
+In addition to constructing the live point set for new runs, the live points
+are validated for a number of conditions:
+\itemize{
+\item Ensures that the points are each represented within the unit hypercube.
+\item Ensures that the wrapped likelihood function \code{ernest_likelihood} has a
+valid return value for each point (finite double or \code{-Inf}).
+\item Ensures that the likelihood isn't at a plateau, warning you if there are
+duplicate likelihood values.
+}
+
+If \code{compile} fails these validation steps, the function will fail and the
+set of live points will be removed from \code{object} with an informative error
+message encouraging you to run the sampler from scratch with \code{clear = TRUE}.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

@@ -31,45 +31,57 @@ test_that("Informative error when prior or log. lik. fails completely.", {
 })
 
 test_that("check_live validates live points correctly", {
-  # Test case: Valid live points
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
+  # Valid case: correct matrix and log_lik
+  unit <- matrix(runif(20), nrow = 5, ncol = 4)
+  log_lik <- seq(-10, -2, length.out = 5)
   expect_silent(check_live(unit, log_lik, n_points = 5, n_var = 4))
 
-  # Test case: Empty live points
-  unit <- matrix(numeric(0))
-  log_lik <- numeric(0)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
-
-  # Test case: live$unit is not a matrix
-  unit <- runif(20)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
-
-  # Test case: live$unit dimensions do not match
-  unit <- matrix(runif(15, 0, 1), nrow = 3, ncol = 5)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
-
-  # Test case: live$unit contains non-finite values
-  unit <- matrix(c(runif(19, 0, 1), Inf), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
-
-  # Test case: live$unit contains values outside [0, 1]
-  unit <- matrix(c(runif(19, 0, 1), 1.5), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
-
-  # Test case: live$log_lik contains non-finite values
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, Inf)
+  # Error: unit is not a matrix
   expect_snapshot_error(
-    check_live(unit, log_lik, n_points = 5, n_var = 4)
+    check_live(runif(20), log_lik, n_points = 5, n_var = 4)
   )
 
-  # Test case: live$log_lik contains only one unique value
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- rep(-10, 5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  # Error: unit has wrong dimensions
+  unit_bad_dim <- matrix(runif(15), nrow = 3, ncol = 5)
+  expect_snapshot_error(
+    check_live(unit_bad_dim, log_lik, n_points = 5, n_var = 4)
+  )
+
+  # Error: unit contains non-finite values
+  unit_nonfinite <- matrix(runif(20), nrow = 5, ncol = 4)
+  unit_nonfinite[1, 1] <- NA
+  expect_snapshot_error(
+    check_live(unit_nonfinite, log_lik, n_points = 5, n_var = 4)
+  )
+
+  # Error: unit contains values outside [0, 1]
+  unit_outside <- matrix(runif(20), nrow = 5, ncol = 4)
+  unit_outside[2, 2] <- 1.5
+  expect_snapshot_error(
+    check_live(unit_outside, log_lik, n_points = 5, n_var = 4),
+  )
+
+  # Error: log_lik is not double of length n_points
+  log_lik_short <- c(-10, -5, -3)
+  expect_snapshot_error(
+    check_live(unit, log_lik_short, n_points = 5, n_var = 4)
+  )
+
+  # Error: log_lik contains non-finite values (not -Inf)
+  log_lik_nonfinite <- c(-10, -5, -3, -1, NaN)
+  expect_snapshot_error(
+    check_live(unit, log_lik_nonfinite, n_points = 5, n_var = 4)
+  )
+
+  # Error: log_lik is a plateau (all values identical)
+  log_lik_plateau <- rep(-10, 5)
+  expect_snapshot_error(
+    check_live(unit, log_lik_plateau, n_points = 5, n_var = 4)
+  )
+
+  # Warning: log_lik has repeated values but not all identical
+  log_lik_repeats <- c(-10, -5, -5, -1, -0.5)
+  expect_snapshot(
+    check_live(unit, log_lik_repeats, n_points = 5, n_var = 4)
+  )
 })

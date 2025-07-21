@@ -126,7 +126,7 @@ ernest_sampler <- R6Class(
               "Live points validation failed.",
               "i" = "Should the sampler be reset with `clear`?"
             ),
-            call = cnd
+            parent = cnd
           )
         }
       )
@@ -136,16 +136,14 @@ ernest_sampler <- R6Class(
     #' @description
     #' (Internal) Performs nested sampling until a stopping criterion is met.
     #'
-    #' @param max_iterations The maximum number of iterations to perform.
-    #' @param max_calls The maximum number of calls to the likelihood function.
-    #' @param min_logz The minimum log-evidence value to achieve.
-    #' @param verbose Whether to print updates on the sampler's progress.
+    #' @param max_iterations,max_calls,min_logz,seed,verbose See [generate.ernest_sampler()].
     #'
     #' @return Itself, invisibly.
     generate = function(
       max_iterations = Inf,
       max_calls = Inf,
       min_logz = 0.05,
+      seed = NA,
       verbose = FALSE
     ) {
       if (private$status == "RUNNING") {
@@ -212,9 +210,9 @@ ernest_sampler <- R6Class(
       }
 
       if (private$status == "UNINITIALIZED") {
-        self$compile(clear = TRUE)
+        self$compile(seed = seed, clear = TRUE)
       } else {
-        self$compile(clear = FALSE)
+        self$compile(seed = seed, clear = FALSE)
       }
       result <- nested_sampling_impl(
         self,

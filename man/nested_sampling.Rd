@@ -11,6 +11,7 @@ nested_sampling(
   n_points = 500,
   first_update = NULL,
   update_interval = NULL,
+  on_warning = c("abort", "warn"),
   ...
 )
 }
@@ -34,6 +35,14 @@ the first update of the LRPS. If \code{NULL}, this is set to \code{n_points * 2.
 \item{update_interval}{Integer or \code{NULL}. The number of likelihood calls
 between subsequent updates of the LRPS. If \code{NULL}, this is set to
 \code{n_points * 1.5}.}
+
+\item{on_warning}{Character string specifying how to handle a warning during
+the sanity checks (see Details). One of \code{"abort"} or \code{"warn"}, case
+sensitive.
+\itemize{
+\item \code{"abort"}: Throw an error and stop generating the sampler.
+\item \code{"warn"}: Issue a warning, but continue generating the sampler.
+}}
 
 \item{...}{Additional arguments passed to \code{\link[=create_likelihood]{create_likelihood()}}.}
 }

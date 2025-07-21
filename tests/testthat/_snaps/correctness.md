@@ -12,10 +12,10 @@
       
       -- Weighted Posterior Distribution 
       # A tibble: 2 x 7
-        variable           mean median    sd   mad    q5   q95
-        <chr>             <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl>
-      1 Uniform(-6, 6)   1.63    1.65   2.30  2.78 -1.94  5.36
-      2 Uniform(-6, 6).1 0.0830  0.195  1.42  2.03 -1.98  1.97
+        variable   mean median    sd   mad    q5   q95
+        <chr>     <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl>
+      1 x        1.63    1.65   2.30  2.78 -1.94  5.36
+      2 y        0.0830  0.195  1.42  2.03 -1.98  1.97
 
 # Gaussian shells: 5D
 

@@ -231,7 +231,7 @@ check_prior_fn <- function(
       if (!rlang::is_double(result)) {
         cli_abort(c(
           "`fn` must return a double vector.",
-          "x" = "`fn` instead returned a {obj_type_friendly(result)}"
+          "x" = "`fn` instead returned {obj_type_friendly(result)}"
         ))
       }
       if (length(result) != n_dim) {
@@ -260,19 +260,19 @@ check_prior_fn <- function(
   try_fetch(
     {
       result <- fn(test)
-      if (!is.matrix(test) || !is.double(test)) {
+      if (!is.matrix(result) || !is.double(result)) {
         cli_abort(c(
           "`fn` must return a double matrix.",
-          "x" = "`fn` instead returned a {obj_type_friendly(result)}"
+          "x" = "`fn` instead returned {obj_type_friendly(result)}"
         ))
       }
-      if (!identical(dim(test), dim(result))) {
+      if (!identical(dim(result), dim(test))) {
         cli_abort(c(
           "`fn` must preserve the dimensions of an input matrix.",
           "x" = "`fn` returned a matrix of dimensionality {dim(result)}"
         ))
       }
-      if (any(!is.finite(test))) {
+      if (any(!is.finite(result))) {
         cli_abort("`fn` must always return finite values.")
       }
       if (any(sweep(result, 2, lower, `<`))) {

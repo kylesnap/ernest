@@ -141,6 +141,7 @@ Itself, invisibly.
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
+  seed = NA,
   verbose = FALSE
 )}\if{html}{\out{</div>}}
 }
@@ -148,13 +149,7 @@ Itself, invisibly.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{max_iterations}}{The maximum number of iterations to perform.}
-
-\item{\code{max_calls}}{The maximum number of calls to the likelihood function.}
-
-\item{\code{min_logz}}{The minimum log-evidence value to achieve.}
-
-\item{\code{verbose}}{Whether to print updates on the sampler's progress.}
+\item{\code{max_iterations, max_calls, min_logz, seed, verbose}}{See \code{\link[=generate.ernest_sampler]{generate.ernest_sampler()}}.}
 }
 \if{html}{\out{</div>}}
 }

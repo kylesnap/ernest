@@ -12,6 +12,7 @@
 #' If set to `Inf`, this stopping criterion is ignored.
 #' @param min_logz The minimum log-evidence value to achieve. Must be a number
 #' equal to or larger than zero.
+#' @inheritParams compile.ernest_sampler
 #' @param verbose Whether to print updates on the sampler's progress.
 #'
 #' @details Before starting the sampling loop, `generate` calls [compile()] to
@@ -43,8 +44,9 @@ generate.ernest_sampler <- function(
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
+  seed = NA,
   verbose = FALSE
 ) {
   check_dots_empty()
-  x$generate(max_iterations, max_calls, min_logz, verbose)
+  x$generate(max_iterations, max_calls, min_logz, seed, verbose)
 }

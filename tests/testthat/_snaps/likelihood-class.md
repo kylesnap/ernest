@@ -3,9 +3,10 @@
     Code
       ll
     Output
-      An <ernest_likelihood> function
-      > Error Behaviour: abort
-      > Nonfinite Behaviour: warn
+      An <ernest_likelihood> function:
+      > `error_action` = "abort"
+      > `nonfinite_action` = "warn"
+      
       function (x) 
       -sum((x - 1)^2)
 

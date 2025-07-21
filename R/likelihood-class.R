@@ -178,13 +178,13 @@ new_ernest_likelihood <- function(
       )
       cli_warn(c(
         "`fn` must return finite numeric values or `-Inf`.",
-        "!" = "Replacing {poor_values} with `-Inf`."
+        "!" = "Replacing `{poor_values}` with `-Inf`."
       ))
       y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)] <- -Inf
     }),
-    "pass" = expr(
+    "pass" = expr({
       y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)] <- -Inf
-    ),
+    }),
     "abort" = expr({
       poor_values <- unique(
         head(y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)])
@@ -199,7 +199,7 @@ new_ernest_likelihood <- function(
   x <- NULL
   catching_likelihood <- rlang::new_function(
     exprs(x = ),
-    expr(
+    expr({
       rlang::try_fetch(
         {
           y <- fn(x)
@@ -212,7 +212,7 @@ new_ernest_likelihood <- function(
           !!error_fn
         }
       )
-    )
+    })
   )
 
   batch_expr <- if (auto_batch) expr(drop(apply(x, 1, fn))) else expr(fn(x))
@@ -224,7 +224,7 @@ new_ernest_likelihood <- function(
         if (any(y == Inf | is.nan(y) | is.na(y) | !is.numeric(y))) {
           !!nonfinite_fn
         }
-        as.double(y)
+        y
       },
       error = function(cnd) {
         !!error_fn
@@ -251,15 +251,17 @@ new_ernest_likelihood <- function(
   )
 }
 
+
 #' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_bullets(c(
-      "An {.cls ernest_likelihood} function",
-      ">" = "Error Behaviour: {attr(x, 'error_action')}",
-      ">" = "Nonfinite Behaviour: {attr(x, 'nonfinite_action')}"
+      "An {.cls ernest_likelihood} function:",
+      ">" = "{.arg error_action} = {.val {attr(x, 'error_action')}}",
+      ">" = "{.arg nonfinite_action} = {.val {attr(x, 'nonfinite_action')}}"
     ))
+    cli::cat_line()
     cli::cli_code(format(attr(x, 'body')))
   })
 }

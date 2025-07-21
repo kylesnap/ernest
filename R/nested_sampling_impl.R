@@ -13,6 +13,9 @@
 #' @param min_logz Numeric. The minimum change in the log evidence (log Z) to
 #' continue sampling.
 #'
+#' @srrstats {G3.0} Safely compares max and min log likelihood values for
+#' plateau detection.
+#'
 #' @return The updated `self` object with the new state of the nested sampler.
 #' @keywords internal
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
@@ -53,7 +56,8 @@ nested_sampling_impl <- function(
       private$status <- "MAX_CALLS"
       break
     }
-    d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
+    max_lik <- max(private$live_log_lik)
+    d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
       private$status <- "MIN_LOGZ"
       break
@@ -64,13 +68,18 @@ nested_sampling_impl <- function(
 
     # 2. Identify and log the worst points in the sampler
     worst_idx <- which_minn(private$live_log_lik)
+    new_criterion <- private$live_log_lik[worst_idx[1]]
+    if (isTRUE(all.equal(new_criterion, max_lik))) {
+      cli_warn("Stopping run due to a likelihood plateau at {max_lik}.")
+      private$status <- "PLATEAU"
+      break
+    }
     dead_unit[[i]] <- private$live_unit[worst_idx[1], ]
     dead_log_lik[[i]] <- private$live_log_lik[worst_idx[1]]
     dead_birth[[i]] <- private$live_birth[worst_idx[1]]
     dead_id[[i]] <- worst_idx[1]
 
     # 3. Update the integration
-    new_criterion <- private$live_log_lik[worst_idx[1]]
     log_vol <- log_vol - d_log_vol
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
     log_wt <- logaddexp(new_criterion, last_criterion) + log_d_vol

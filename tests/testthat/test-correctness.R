@@ -2,12 +2,19 @@
 #'
 #' @srrstats {G5.4, G5.4b, G5.4c} These tests compare ernest against results
 #' published in the Dynesty package.
+#' @srrstats {BS7.4, BS7.4a} Also explicitly tests that output draws matrix
+#' conforms to the scale of the prior.
 NULL
 
 test_that("Gaussian shells: 2D", {
   set.seed(42L)
   log_lik <- gaussian_shell(2)
-  prior <- create_uniform_prior(n_dim = 2, lower = -6, upper = 6)
+  prior <- create_uniform_prior(
+    n_dim = 2,
+    lower = -6,
+    upper = 6,
+    varnames = c("x", "y")
+  )
 
   sampler <- nested_sampling(log_lik, prior)
   run <- generate(sampler)
@@ -19,6 +26,12 @@ test_that("Gaussian shells: 2D", {
     smry$log_evidence - analytic_log_evidence,
     4 * smry$log_evidence_err
   )
+
+  draws <- as_draws(run)
+  expect_lte(-6, min(posterior::extract_variable(draws, "x")))
+  expect_lte(max(posterior::extract_variable(draws, "x")), 6)
+  expect_lte(-6, min(posterior::extract_variable(draws, "y")))
+  expect_lte(max(posterior::extract_variable(draws, "y")), 6)
 
   calc <- calculate(run, ndraws = 1000)
   sim_log_evidence <- tail(calc$log_evidence, 1)

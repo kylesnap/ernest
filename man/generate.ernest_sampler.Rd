@@ -10,6 +10,7 @@
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
+  seed = NA,
   verbose = FALSE
 )
 }
@@ -26,6 +27,18 @@ If set to \code{Inf}, this stopping criterion is ignored.}
 
 \item{min_logz}{The minimum log-evidence value to achieve. Must be a number
 equal to or larger than zero.}
+
+\item{seed}{Either a single value, interpretted as an integer, or \code{NA} or
+\code{NULL}.
+\itemize{
+\item If an integer or NULL, \code{seed} is passed to \code{\link[=set.seed]{set.seed()}} to set the state
+of the random number generator. \code{NULL} reinitializes the generator as if
+no seed has yet been set.
+\item If \code{NA}, the random number generator is set with the seed stored in the
+\code{ernest_run} object bound to \code{object}. If this object does not exist (i.e.,
+if not prior runs have been performed), the current state of the generator
+is recorded and stored for future objects.
+}}
 
 \item{verbose}{Whether to print updates on the sampler's progress.}
 }

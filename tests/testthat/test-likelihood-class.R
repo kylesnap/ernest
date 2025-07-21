@@ -88,7 +88,7 @@ test_that("non_finite action options", {
   expect_equal(warn_ll(c(1, 2, 3)), -5)
   expect_warning(
     warn_ll(c(0, 1, 2)),
-    "Replacing NaN with `-Inf`."
+    "Replacing `NaN` with `-Inf`."
   )
   expect_equal(
     warn_ll(matrix(seq(1:9), byrow = TRUE, nrow = 3)),
@@ -100,7 +100,7 @@ test_that("non_finite action options", {
       byrow = TRUE,
       nrow = 3
     )),
-    "Replacing NaN with `-Inf`."
+    "Replacing `NaN` with `-Inf`."
   )
   expect_equal(res, c(-Inf, -5, -50))
 
@@ -226,7 +226,7 @@ test_that("nonfinite_action options with auto_batch = FALSE", {
   expect_equal(warn_ll(c(1, 2, 3)), -5)
   expect_warning(
     warn_ll(c(0, 1, 2)),
-    "Replacing Inf with `-Inf`."
+    "Replacing `Inf` with `-Inf`."
   )
   expect_equal(
     warn_ll(matrix(seq(1:9), byrow = TRUE, nrow = 3)),
@@ -238,7 +238,7 @@ test_that("nonfinite_action options with auto_batch = FALSE", {
       byrow = TRUE,
       nrow = 3
     )),
-    "Replacing Inf with `-Inf`."
+    "Replacing `Inf` with `-Inf`."
   )
   expect_equal(res, c(-Inf, -5, -50))
 

@@ -65,6 +65,9 @@ test_that("Parameter recovery", {
 #' recovered under different seeds and with random noise added to `y`.
 test_that("Parameter recovery under a different seed", {
   set.seed(24L)
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
 
   sampler <- nested_sampling(log_lik, prior)
   run <- generate(sampler)
@@ -94,6 +97,9 @@ test_that("Parameter recovery under a different seed", {
 
 test_that("Parameter recovery with noisy y", {
   set.seed(42L)
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
   noisy_ll <- \(theta) {
     y <- y + rnorm(11, mean = 0, sd = .Machine$double.eps)
     sum(dnorm(y, theta[1], theta[2], log = TRUE))

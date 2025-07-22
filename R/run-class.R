@@ -132,11 +132,18 @@ new_ernest_run <- function(res, n_live, n_dead, live_order, seed) {
 #' @export
 format.ernest_run <- function(x, ...) {
   smry <- summary(x)
+  log_z <- smry$log_evidence
+  log_z_sd <- smry$log_evidence_err
   cli::cli_format_method({
     cli::cli_div(theme = list(.val = list(digits = 3)))
+    first_line <- sprintf(
+      "%s %s",
+      "An {.cls ernest_run}:",
+      "{x$n_points} points x {x$n_iter} iter x {x$n_calls} lik. calls"
+    )
     cli::cli_bullets(c(
-      "An {.cls ernest_run}: {x$n_points} points x {x$n_iter} iter x {x$n_calls} lik. calls",
-      ">" = "Log. Evidence: {.val {smry$log_evidence}} \U00B1 {.val {smry$log_evidence_err}}"
+      first_line,
+      ">" = "Log. Evidence: {.val {log_z}} \U00B1 {.val {log_z_sd}}"
     ))
   })
 }
@@ -157,8 +164,8 @@ print.ernest_run <- function(x, ...) {
 #' @return An object of class `summary.ernest_run`, a list with:
 #' * `n_iter`: Number of iterations (number of dead points).
 #' * `n_points`: Number of live points at the end of the run.
-#' * `log_volume`, `log_evidence`, `log_evidence_err`: The final estimates of the
-#' quantities performed by the run that generated `object`.
+#' * `log_volume`, `log_evidence`, `log_evidence_err`: The final estimates of
+#' the quantities performed by the run that generated `object`.
 #' * `run`, A tibble with `n_iter + n_points` rows, containing the vectors
 #'  `call`, `log_lik`, `log_volume`, `log_weight`, `log_evidence`,
 #'  `log_evidence_err`, and `information`.

@@ -1,20 +1,17 @@
 # Throws errors when stop criteria are already passed
 
-    `max_iterations` must be greater than the current number of iterations.
-    i Can't set `max_iterations` to 50.
-    i Already performed 100 iterations.
+    Invalid stopping criteria.
+    i The sampler already has 100 iterations and 851 likelihood calls.
 
 ---
 
-    `max_calls` must be greater than the current number of calls.
-    i Can't set `max_calls` to 500.
-    i Already performed 1003 calls.
+    Invalid stopping criteria.
+    i The sampler already has 105 iterations and 1003 likelihood calls.
 
 ---
 
-    `min_logz` must be less than the estimated contribution of the remaining prior volume to the evidence.
-    i Can't set `min_logz` to 1.
-    i Current est. remaining contribution log volume is 0.049.
+    `min_logz` must be less than the estimated remaining evidence.
+    ! Remaining log evidence is 0.049.
 
 # Early exits are repaired
 

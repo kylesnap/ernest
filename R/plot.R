@@ -14,7 +14,9 @@
 #'
 #' The plot is faceted in three frames. The horizontal axis shows values of log.
 #' volume: If `x` is an `ernest_run` these estimates are derived from the run,
-#' if `x` is an `ernest_estimate` (or `ndraws != 0`), these values are simulated.
+#' if `x` is an `ernest_estimate` (or `ndraws != 0`), these values are
+#' simulated.
+#' 
 #' The three `y` axes are as follows:
 #'
 #' * **Evidence:** Estimate with a corresponding error ribbon drawn from either
@@ -28,11 +30,12 @@
 #' an error ribbon is drawn with the HDCI of this estimate.
 #'
 #' @note For `ernest_estimate`, `ndraws` must be sufficiently large to calculate
-#' HDI. If HDI calculation fails, the user will be warned and an `ernest_run` plot
-#' will be generated instead.
+#' HDI. If HDI calculation fails, the user will be warned and an `ernest_run`
+#' plot will be generated instead.
 #'
-#' @seealso [calculate()] for generating `ernest_estimate` objects; also, [visualize()] to
-#' plot the posterior distributions of the parameters from a run.
+#' @seealso [calculate()] for generating `ernest_estimate` objects; also,
+#' [visualize()] to plot the posterior distributions of the parameters from a
+#' run.
 #'
 #' @rdname plot.ernest
 #' @export

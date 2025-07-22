@@ -22,7 +22,8 @@ NULL
 #' R Programs for Truncated Distributions. Journal of Statistical Software,
 #' Code Snippets, 16(2), 1–8. <https://doi.org/10.18637/jss.v016.c02>
 #'
-#' @seealso [create_prior()] for a richer explanation of the `ernest_prior` object.
+#' @seealso [create_prior()] for a richer explanation of the `ernest_prior`
+#' object.
 #' @family special priors
 #' @importFrom vctrs vec_cast
 #' @export
@@ -93,8 +94,8 @@ create_normal_prior <- function(
 #' Specify a prior with Student's t-distributed marginals
 #'
 #' A specialization of [create_prior()], where the parameter space is
-#' described by independently distributed Student's t marginals that are possibly
-#' truncated.
+#' described by independently distributed Student's t marginals that are
+#' possibly truncated.
 #'
 #' @inheritParams create_normal_prior
 #' @inheritParams distributional::dist_student_t
@@ -104,14 +105,13 @@ create_normal_prior <- function(
 #'
 #' @details
 #' The parameters used to specify this prior are for the location-scale
-#' t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of freedom
-#' \eqn{\nu}. If the random variable \eqn{X} is Student-T distributed, then
-#' \deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T distribution
-#' with \eqn{\nu} degrees of freedom.
+#' t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of
+#' freedom \eqn{\nu}. If the random variable \eqn{X} is Student-T distributed,
+#' then \deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T
+#' distribution with \eqn{\nu} degrees of freedom.
 #'
 #' @inherit create_normal_prior seealso references
 #'
-#' @seealso [create_prior()] for a richer explanation of the `ernest_prior` object.
 #' @family special priors
 #' @export
 #' @examples

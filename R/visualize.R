@@ -18,7 +18,8 @@
 #' @returns Either a `ggplot` object if `plot = TRUE`, or a `tibble`.
 #'
 #' @note This method requires the `ggdist` and `tidyselect` optional packages.
-#' @seealso [plot()] for visualizing the evidence estimates from an `ernest_run`.
+#' @seealso [plot()] for visualizing the evidence estimates from an
+#' `ernest_run`.
 #' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input.
 #' @srrstats {G2.3b} Explicitly mentions that `vars` is case sensitive.
 #' @examples

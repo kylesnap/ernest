@@ -101,7 +101,7 @@ as_scalar_double <- function(
     null.ok = allow_null
   )
   if (isTRUE(msg)) {
-    storage.mode <- "double"
+    storage.mode <- "double" # nolint
     if (!is.null(x) && is.na(x)) {
       x <- NA_real_
     }
@@ -231,7 +231,7 @@ set_random_seed <- function(
     set.seed(seed)
   } else {
     if (!is.null(attr(results, "seed"))) {
-      .Random.seed <- attr(results, "seed")
+      .Random.seed <- attr(results, "seed") # nolint
     }
   }
   if (!exists(".Random.seed")) {
@@ -242,8 +242,12 @@ set_random_seed <- function(
 
 #' Calculate the HDI of an rvar
 #'
-#' @author Based on implementation from https://github.com/mikemeredith/HDInterval
+#' @param object An rvar object containing draws.
+#' @param width The width of the HDI to compute (default is 0.
+#' @returns A data.frame with the median, lower and upper bounds of the HDI,
 #'
+#' @author Based on implementation from
+#' https://github.com/mikemeredith/HDInterval
 #' @noRd
 hdci <- function(object, width = 0.95, ...) {
   if (!inherits(object, "rvar")) {
@@ -324,7 +328,8 @@ get_density <- function(log_volume, weight) {
 #' Interpolate evidence across a range of log volumes
 #' @param log_volume,weight rvars of log_volume draws and corresponding
 #' normalized posterior weights.
-#' @param The breaks of log_volume at which to interpolate the evidence estimates.
+#' @param The breaks of log_volume at which to interpolate the evidence
+#' estimates.
 #'
 #' @returns An rvar with the same ndraws as `log_volume` and length of
 #' `log_volume_out`.

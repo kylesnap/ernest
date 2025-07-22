@@ -5,12 +5,12 @@
 #' nested sampling run.
 #'
 #' @details
-#' This class is primarily intended for internal use within the `ernest` package.
-#' Users should interact with nested sampling samplers via the provided S3 generics,
-#' rather than calling R6 methods directly.
+#' This class is primarily intended for internal use within the `ernest`
+#' package. Users should interact with nested sampling samplers via the
+#' provided S3 generics rather than calling R6 methods directly.
 #'
-#' The R6 interface is documented here for developers and advanced users who
-#' want to extend or debug ernest.
+#' The object is documented for developers and advanced users who want to
+#' extend or debug ernest.
 #'
 #' @section Usage:
 #'
@@ -165,33 +165,39 @@ ernest_sampler <- R6Class(
       if (max_calls == Inf) {
         max_calls <- .Machine$integer.max
       }
-      max_iterations <- as_scalar_count(max_iterations)
-      max_calls <- as_scalar_count(max_calls)
+
+      try_fetch(
+        {
+          max_iterations <- as_scalar_integer(
+            max_iterations,
+            min = self$niterations
+          )
+          max_calls <- as_scalar_integer(max_calls, min = self$ncalls)
+        },
+        error = function(cnd) {
+          if (self$niterations > 0) {
+            msg <- sprintf(
+              "%s %s",
+              "The sampler already has {self$niterations} iterations",
+              "and {self$ncalls} likelihood calls."
+            )
+            cli::cli_abort(c("Invalid stopping criteria.", "i" = msg))
+          } else {
+            cli::cli_abort("Invalid stopping criteria.")
+          }
+        }
+      )
       min_logz <- as_scalar_double(min_logz, min = 0)
 
-      if (self$niterations != 0 && max_iterations <= self$niterations) {
-        cli::cli_abort(c(
-          "`max_iterations` must be greater than the current number of iterations.",
-          "i" = "Can't set `max_iterations` to {max_iterations}.",
-          "i" = "Already performed {self$niterations} iterations."
-        ))
-      }
-      if (self$ncalls != 0 && max_calls <= self$ncalls) {
-        cli::cli_abort(c(
-          "`max_calls` must be greater than the current number of calls.",
-          "i" = "Can't set `max_calls` to {max_calls}.",
-          "i" = "Already performed {self$ncalls} calls."
-        ))
-      }
       if (!is_empty(private$results)) {
         log_vol <- private$results$log_vol[private$results$n_iter]
         log_z <- private$results$log_evidence[private$results$n_iter]
         d_log_z <- logaddexp(0, max(private$live_log_lik) + log_vol - log_z)
         if (d_log_z <= min_logz) {
+          cur_log_z <- round(d_log_z, 3)
           cli::cli_abort(c(
-            "`min_logz` must be less than the estimated contribution of the remaining prior volume to the evidence.",
-            "i" = "Can't set `min_logz` to {min_logz}.",
-            "i" = "Current est. remaining contribution log volume is {round(d_log_z, 3)}."
+            "`min_logz` must be less than the estimated remaining evidence.",
+            "!" = "Remaining log evidence is {cur_log_z}."
           ))
         }
       }
@@ -219,7 +225,7 @@ ernest_sampler <- R6Class(
     #' @description
     #' Prints a brief description of the sampler.
     #'
-    #' @param ... Ignored.
+    #' @param ... Ignored.volume
     #'
     #' @return Itself, invisibly.
     print = function(...) {
@@ -229,9 +235,13 @@ ernest_sampler <- R6Class(
         NULL
       }
       cli::cli_div(theme = list(.val = list(digits = 3)))
-      cli::cli_bullets(
-        "An {.cls ernest_sampler}: {private$n_points} points x {self$niterations} iter. x {self$ncalls} lik. calls"
+      line <- sprintf(
+        "%s %s %s",
+        "An {.cls ernest_sampler}:",
+        "{private$n_points} points x {self$niterations} iter.",
+        "x {self$ncalls} lik. calls"
       )
+      cli::cli_bullets(c(line))
       invisible(self)
     }
   ),

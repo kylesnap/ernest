@@ -1,7 +1,8 @@
 #' Prepare a likelihood function for nested sampling
 #'
 #' Creates a modified version of a log. likelihood function that always returns
-#' either a finite value or `-Inf` for each vector of parameters that is provided.
+#' either a finite value or `-Inf` for each vector of parameters that is
+#' provided.
 #'
 #' @param fn (uni-variate function) The log-likelihood function (see Details).
 #' @param error_action (case-sensitive string) Action to perform once `fn`
@@ -28,9 +29,9 @@
 #' cause errors.
 #'
 #' @details
-#' Model likelihoods should be provided as a log density function. It is expected
-#' that `fn` should take in exactly one argument; likelihood functions that
-#' take in multiple non-default arguments should be entered as anonymous
+#' Model likelihoods should be provided as a log density function. It is
+#' expected that `fn` should take in exactly one argument; likelihood functions
+#' that take in multiple non-default arguments should be entered as anonymous
 #' functions (see [rlang::as_function()]).
 #'
 #' It is expected that `fn` returns a scalar finite values or `-Inf` for each
@@ -50,7 +51,8 @@
 #' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15} create_likelihood catches
 #' missing values produced during a run and acts upon them based on user-desired
 #' behaviour.
-#' @srrstats {G2.16} Value handling is also performed for other undefined values.
+#' @srrstats {G2.16} Value handling is also performed for other undefined
+#' values.
 #'
 #' @examples
 #' # A 3D Gaussian likelihood function
@@ -264,7 +266,7 @@ format.ernest_likelihood <- function(x, ...) {
       ">" = "{.arg nonfinite_action} = {.val {attr(x, 'nonfinite_action')}}"
     ))
     cli::cat_line()
-    cli::cli_code(format(attr(x, 'body')))
+    cli::cli_code(format(attr(x, "body")))
   })
 }
 

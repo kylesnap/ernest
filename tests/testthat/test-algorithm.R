@@ -15,6 +15,9 @@ run_500 <- generate(sampler)
 smry_500 <- summary(run_500)
 
 test_that("Increasing N increases the iterations needed for convergence", {
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
   sampler <- nested_sampling(log_lik, prior, n_points = 1000)
   run_1000 <- generate(sampler, seed = 42)
   smry_1k <- summary(run_1000)
@@ -31,6 +34,9 @@ test_that("Increasing N increases the iterations needed for convergence", {
 })
 
 test_that("Increasing the volume of the prior increases iterations", {
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
   wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
 
   sampler <- nested_sampling(log_lik, wide_prior, n_points = 500)

@@ -38,7 +38,7 @@ ernest_lrps <- R6Class(
 
     update = function(...) {
       private$n_call <- 0L
-      return(self)
+      self
     },
 
     find_point = function(unit) {
@@ -109,7 +109,8 @@ ernest_lrps <- R6Class(
 
 #' Uniform LRPS Sampler (Internal)
 #'
-#' Internal R6 subclass for uniform sampling in the unit cube under a likelihood constraint.
+#' Internal R6 subclass for uniform sampling in the unit cube under a likelihood
+#' constraint.
 #'
 #' @keywords internal
 #' @noRd
@@ -152,7 +153,8 @@ uniform_lrps <- R6Class(
 
 #' Random Walk LRPS Sampler (Internal)
 #'
-#' Internal R6 subclass for random walk sampling in the unit cube with adaptive step size.
+#' Internal R6 subclass for random walk sampling in the unit cube with adaptive
+#' step size.
 #'
 #' @param steps Number of random walk steps.
 #' @param epsilon Initial step size.

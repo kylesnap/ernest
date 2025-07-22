@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/kylesnap/ernest/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/test-coverage.yaml)
 <!-- badges: end -->
 
 The best place to start learning about NS would be this paper, surveying

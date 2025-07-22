@@ -27,6 +27,21 @@
 #'
 #' @return An [ernest_sampler] object, prepared for nested sampling.
 #'
+#' @details
+#' This function prepares an `ernest_sampler` object for performing nested
+#' sampling, given a log-likelihood function, prior, and sampler specification.
+#' It checks that the provided log-likelihood and prior are compatible by
+#' performing a basic sanity check by evaluating the log-likelihood at the
+#' center of the prior space. This check ensures that the log-likelihood
+#' returns a finite value or `-Inf` for typical parameter values.
+#'
+#' The sanity check may fail even if `log_lik` is well-specified, for example
+#' if the prior's support does not include the test point
+#' (the center of the prior hypercube), or if the log-likelihood is only
+#' defined for a subset of the parameter space. In such cases, silencing the
+#' warning from `nested_sampling`` may require you to adjust the prior or
+#' adjust the `on_warning` argument.
+#'
 #' @export
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

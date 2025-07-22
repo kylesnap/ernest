@@ -67,7 +67,7 @@ test_that("error_action options", {
 })
 
 test_that("non_finite action options", {
-  fn <- function(x) if (all(x >= 1)) -sum((x - 1)^2) else return(NaN)
+  fn <- function(x) if (all(x >= 1)) -sum((x - 1)^2) else NaN
 
   fail_ll <- create_likelihood(fn, nonfinite_action = "abort")
   expect_equal(fail_ll(c(1, 2, 3)), -5)
@@ -191,10 +191,10 @@ test_that("error_action options with auto_batch = FALSE", {
 test_that("nonfinite_action options with auto_batch = FALSE", {
   fn <- function(x) {
     if (is.vector(x)) {
-      if (all(x >= 1)) -sum((x - 1)^2) else return(Inf)
+      if (all(x >= 1)) -sum((x - 1)^2) else Inf
     } else {
       apply(x, 1, function(row) {
-        if (all(row >= 1)) -sum((row - 1)^2) else return(Inf)
+        if (all(row >= 1)) -sum((row - 1)^2) else Inf
       })
     }
   }

@@ -40,7 +40,11 @@
 #'  summarize_draws()
 #'
 #' # View the radial coordinate in the unit-space over the run
-#' dm_rad <- as_draws_rvars(ernest_run_example, units = "unit_cube", radial = TRUE)
+#' dm_rad <- as_draws_rvars(
+#'  ernest_run_example,
+#'  units = "unit_cube",
+#'  radial = TRUE
+#' )
 #' plot(
 #'   x = ernest_run_example$log_volume,
 #'   y = draws_of(dm_rad$.radial),

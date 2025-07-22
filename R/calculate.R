@@ -1,5 +1,9 @@
 #' Estimate Evidence using a Nested Sampling Run
 #'
+#' Computes evidence and related quantities from a nested
+#' sampling run, optionally by simulating the volumes of each nested
+#' likelihood shell.
+#'
 #' @param x (ernest_run) An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
 #' @param ndraws (positive integer or zero, optional) The number of log volume
@@ -22,21 +26,21 @@
 #' Each column is returned as an [posterior::rvar()] vector.
 #'
 #' @details
-#' Use `calculate()` to simulate the estimation error nested sampling runs caused
-#' by approximating the change in log volume between iterations. Given the
-#' use of ordered log likelihood restricted prior sampling, these volumes can be
-#' modelled as the order statistics of a uniform random variable. Ernest uses the
-#' following distributions to perform this simulation:
+#' Use `calculate()` to simulate the estimation error nested sampling runs
+#' caused by approximating the change in log volume between iterations. Given
+#' the use of ordered log likelihood restricted prior sampling, these volumes
+#' can be modelled as the order statistics of a uniform random variable.
+#' Ernest uses the following distributions to perform this simulation:
 #'
 #' * Constant number of live points: At each iteration, the point with the
 #' lowest likelihood is replaced by a new sample constrained to a higher
 #' likelihood region. Under this setup, the shrinkage in prior volume at
 #' iteration `i` can be shown to follow the Beta distribution.
 #' * Decreasing number of live points: At the end of the sampling run, the
-#' remaining live points are added to the dead point set. This introduces a discrete
-#' stepwise behavior in volume shrinkage. Ernest uses a transformation of variables
-#' drawn from the exponential distribution to simulate the corresponding changes
-#' in volume.
+#' remaining live points are added to the dead point set. This introduces a
+#' discrete stepwise behavior in volume shrinkage. Ernest uses a transformation
+#' of variables drawn from the exponential distribution to simulate the
+#' corresponding changes in volume.
 #'
 #' @references See Appendix A6 of Speagle, J. (2020).
 #
@@ -158,9 +162,11 @@ summary.ernest_estimate <- function(object, ...) {
 format.ernest_estimate <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_div(theme = list(.val = list(digits = 3)))
-    cli::cli_bullets(
-      "An {.cls ernest_calculate}: {attr(x, 'ndraws')} draws x {length(x$log_lik)} iterations"
-    )
+    ndraws <- attr(x, "ndraws")
+    iter <- length(x$log_lik)
+    cli::cli_bullets(c(
+      "An {.cls ernest_calculate}: {ndraws} draws x {iter} iterations"
+    ))
   })
 }
 

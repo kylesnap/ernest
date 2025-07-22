@@ -109,15 +109,15 @@ test_that("calculate works when ndraws = 1", {
   expect_snapshot(smry)
 })
 
-test_that("calculate works when ndraws = BIG", {
+test_that("calculate works when ndraws = 4000 (default)", {
   run <- readRDS(test_path("./example_run.rds"))
   n_samp <- run$n_iter + run$n_points
 
-  calc <- calculate(run, ndraws = 1000)
+  calc <- calculate(run)
   expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
-  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(4000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(4000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(4000, n_samp))
 
   expect_equal(
     (mean(calc$log_volume) - run$log_volume) <
@@ -136,7 +136,7 @@ test_that("calculate works when ndraws = BIG", {
   )
 
   smry <- summary(calc)
-  expect_equal(smry$n_draws, 1000L)
+  expect_equal(smry$n_draws, 4000L)
   expect_true(
     abs(smry$log_evidence - run$log_evidence[length(run$log_evidence)]) <
       2 * smry$log_evidence_err

@@ -1,11 +1,11 @@
 #' Estimate Evidence using a Nested Sampling Run
 #'
-#' @param x An `ernest_run` object.
+#' @param x (ernest_run) An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
-#' @param ndraws A positive integer or a boolean. If `FALSE`, the log volumes
-#' will be derived from their expected values. If not `FALSE`, the log volumes
-#' will be simulated using `ndraws` samples from each volume's
-#' joint distribution.
+#' @param ndraws (positive integer or zero, optional) The number of log volume
+#' sequences to simulate. If equal to zero, no simulations will be made, and a
+#' one draw vector of log volumes are produced from the estimates contained in
+#' `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used (default 4000).
 #'
 #' @returns A tibble, containing `run$n_iter + run$n_points` rows and the
 #' following columns:
@@ -52,12 +52,12 @@
 #'
 #' @method calculate ernest_run
 #' @export
-calculate.ernest_run <- function(x, ..., ndraws = FALSE) {
+calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   check_dots_empty()
-  if (is.logical(ndraws)) {
-    ndraws <- as.integer(ndraws)
-  }
-  ndraws <- check_integer(ndraws, min = 0)
+  ndraws <- as_scalar_count(
+    ndraws %||% getOption("posterior.rvar_ndraws", 4000L),
+    positive = FALSE
+  )
 
   if (ndraws == 0) {
     return(tibble::new_tibble(

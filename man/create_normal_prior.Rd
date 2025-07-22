@@ -14,18 +14,17 @@ create_normal_prior(
 )
 }
 \arguments{
-\item{n_dim}{A whole number, representing the number of dimensions within the
-prior distribution. Must be larger than or equal to 1.}
+\item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
 
 \item{mean}{vector of means.}
 
 \item{sd}{vector of standard deviations.}
 
-\item{varnames}{A character vector of names for the variables in the
-prior distribution.}
+\item{varnames}{(optional character vector) A character vector of names for
+the variables in the prior distribution.}
 
-\item{lower, upper}{Numeric vectors, representing the values to retain from
-each distribution. Changing these from default will truncate the distribution.}
+\item{lower, upper}{(optional numeric vector) The values to retain from a
+truncated distribution.}
 }
 \value{
 A \code{normal_prior}, which is a subclass of \code{ernest_prior} with

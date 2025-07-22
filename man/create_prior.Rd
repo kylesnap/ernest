@@ -15,22 +15,21 @@ create_prior(
 )
 }
 \arguments{
-\item{fn}{A function that translates coodinates in a unit hypercube into
-points within the prior parameter space. See details for more information.}
+\item{fn}{(function) The unit hypercube transformation (see Details).}
 
-\item{n_dim}{A whole number, representing the number of dimensions within the
-prior distribution. Must be larger than or equal to 1.}
+\item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
 
-\item{varnames}{A character vector of names for the variables in the
-prior distribution.}
+\item{varnames}{(optional character vector) A character vector of names for
+the variables in the prior distribution.}
 
-\item{lower, upper}{A numeric vector of lower bounds for the prior
-distribution. Set to \code{-Inf} and \code{Inf}, respectively, by default.}
+\item{lower, upper}{(optional numeric vector) The expected bounds for the
+parameter vectors after hypercube transformation. Set to \code{-Inf} and \code{Inf}
+by default.}
 
-\item{auto_batch}{Whether the \code{fn} should be wrapped to allow for matrix
-inputs. If \code{FALSE}, it is assumed that \code{fn} can already handle
-transforming both vectors and matrices of unit cube coordinates. See details
-for more information.}
+\item{auto_batch}{(logical) Whether to prepare \code{fn} so that it may be called
+with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
+can already produce a vector of likelihood values for a matrix with rows of
+parameter vectors.}
 }
 \value{
 A named list with class \code{ernest_prior}. The list contains the

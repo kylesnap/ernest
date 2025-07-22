@@ -1,3 +1,10 @@
+test_that("Fails gracefully with poor input", {
+  run <- readRDS(test_path("./example_run.rds"))
+  expect_error(as_draws(run, units = "unitcube"))
+  expect_error(as_draws(run, radial = 3L))
+  expect_error(as_draws(run, unit_cube = TRUE))
+})
+
 test_that("ernest_run as_draws_matrix", {
   run <- readRDS(test_path("./example_run.rds"))
   mat <- as_draws_matrix(run)

@@ -11,8 +11,8 @@ NULL
 #'
 #' @inheritParams create_prior
 #' @inheritParams stats::qnorm
-#' @param lower,upper Numeric vectors, representing the values to retain from
-#' each distribution. Changing these from default will truncate the distribution.
+#' @param lower,upper (optional numeric vector) The values to retain from a
+#' truncated distribution.
 #'
 #' @returns A `normal_prior`, which is a subclass of `ernest_prior` with
 #' an efficient implementation of the unit hypercube transformation.
@@ -285,7 +285,7 @@ create_cauchy_prior <- function(
 #' described by independently distributed uniform marginals.
 #'
 #' @inheritParams create_normal_prior
-#' @param lower,upper Vectors of limits of the distribution.
+#' @param lower,upper (Numeric vectors) The bounds of the distribution.
 #'
 #' @returns A `uniform_prior`, which is a subclass of `ernest_prior` with
 #' an efficient implementation of the unit hypercube transformation.

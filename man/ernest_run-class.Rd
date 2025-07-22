@@ -59,7 +59,7 @@ prior space.}
 }}
 
 \seealso{
-\link{ernest_run_example} for an example object, and \code{\link[=generate]{generate()}} for how to
-create a new \code{ernest_run} object. \code{\link[=plot]{plot()}} and \code{\link[=calculate]{calculate()}} on how to use
+\link{ernest_run_example} for an example object, and \code{\link[=generate]{generate()}} for how
+to create a new \code{ernest_run} object. \code{\link[=plot]{plot()}} and \code{\link[=calculate]{calculate()}} on how to use
 \code{ernest_run} objects to examine uncertainty in the log volume estimates.
 }

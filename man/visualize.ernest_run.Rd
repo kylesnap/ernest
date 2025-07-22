@@ -7,17 +7,32 @@
 \method{visualize}{ernest_run}(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE)
 }
 \arguments{
-\item{x}{An \link{ernest_run} object.}
+\item{x}{(ernest_run) An \link{ernest_run} object.}
 
-\item{...}{Arguments passed to \code{\link[=as_draws_rvars]{as_draws_rvars()}}.}
+\item{...}{
+  Arguments passed on to \code{\link[=as_draws_rvars.ernest_run]{as_draws_rvars.ernest_run}}
+  \describe{
+    \item{\code{units}}{(case-sensitive string) The scale in which to return the
+sampled points:
+\itemize{
+\item \code{"original"}: Points are expressed on the scale of the prior space.
+\item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
+hypercube.
+}}
+    \item{\code{radial}}{(logical) Whether to return an additional column \code{.radial},
+containing the radial coordinate (i.e., the squared sum of squares) for
+each sampled point.}
+  }}
 
-\item{type}{Character string specifying the type of plot to create.
-One of \code{"density"} or \code{"trace"}, case sensitive.
--\code{"density"}: Shows the posterior density of each distribution.
--\code{"trace"}: Shows the distribution of points along estimates of the log
-prior volume.}
+\item{type}{(case-sensitive string) The type of plot to create.
+\itemize{
+\item \code{"density"}: Shows the posterior density of each distribution.
+\item \code{"trace"}: Shows the distribution of points along estimates of the log
+prior volume.
+}}
 
-\item{vars}{A character vector of variable names to plot. Case sensitive.}
+\item{vars}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> The variables to
+plot from the run. If left \code{NULL}, every variable is plotted.}
 
 \item{plot}{Logical, whether to return a \code{ggplot} of the visualization, or
 a \code{tibble} of the data used to create the plot.}
@@ -31,7 +46,7 @@ or trace the evolution of the discarded live points along the log prior
 volume.
 }
 \note{
-This method requires the \code{ggdist} package for plotting the posterior.
+This method requires the \code{ggdist} and \code{tidyselect} optional packages.
 }
 \examples{
 # Load example run

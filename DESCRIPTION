@@ -9,6 +9,7 @@ License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 BugReports: https://github.com/kylesnap/ernest/issues/
 Imports: 
+    checkmate,
     cli,
     generics,
     ggplot2,
@@ -19,7 +20,6 @@ Imports:
     R6,
     rlang (>= 1.1.0),
     tibble,
-    tidyselect,
     utils,
     vctrs
 Suggests: 
@@ -27,6 +27,7 @@ Suggests:
     knitr,
     LaplacesDemon,
     rmarkdown,
+    tidyselect,
     testthat (>= 3.0.0),
     vdiffr,
     xml2

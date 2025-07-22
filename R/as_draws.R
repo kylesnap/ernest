@@ -3,16 +3,16 @@
 #' Try to transform an [ernest_run-class] to a format supported by the
 #' [posterior][posterior::posterior-package] package.
 #'
-#' @param x An `ernest_run` object.
-#' @inheritParams rlang::args_dots_empty
-#' @param units Character string specifying the scale of the returned points.
-#' One of `"original"` or `"unit_cube"`, case sensitive.
-#' - `"original"`: Points are expressed on the scale of the prior space.
-#' - `"unit_cube"`: Points are expressed on the scale of the (0-1)-unit
+#' @param x (ernest_run) An `ernest_run` object.
+#' @param units (case-sensitive string) The scale in which to return the
+#' sampled points:
+#' * `"original"`: Points are expressed on the scale of the prior space.
+#' * `"unit_cube"`: Points are expressed on the scale of the (0-1)-unit
 #' hypercube.
-#' @param radial Whether to return an additional column `.radial`, containing
-#' the radial coordinate (i.e., the squared sum of squares) for each sampled
-#' point.
+#' @param radial (logical) Whether to return an additional column `.radial`,
+#' containing the radial coordinate (i.e., the squared sum of squares) for
+#' each sampled point.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
 #' A [draws][posterior::as_draws()] object, containing the posterior samples
@@ -87,27 +87,21 @@ as_draws_rvars.ernest_run <- function(
 
 #' Convert samples to a weighted draws matrix
 #'
-#' @param x An object containing sample data, with `samples`, `samples_unit`,
-#'   `log_weight`, and `log_evidence` components.
-#' @param ... Currently unused. For future extensibility.
-#' @param units Character string specifying the units for conversion.
-#' Must be one of `"original"` or `"unit_cube"`.
-#' @param radial Logical. If `TRUE`, appends a `.radial` column with the 
-#' Euclidean norm of each sample.
+#' @inheritParams as_draws_matrix
 #' @param error_call Environment to use for error reporting.
-#' 
-#' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input. 
+#'
+#' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input.
 #'
 #' @return A weighted draws matrix of class `draws_matrix`.
 #' @noRd
-as_draws_matrix_ <- function(x, ..., units, radial, error_call = caller_env()) {
-  check_dots_empty(call = error_call)
+as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
+  check_dots_empty(call = call)
   units <- arg_match0(
     units,
     values = c("original", "unit_cube"),
-    error_call = error_call
+    error_call = call
   )
-  check_bool(radial, error_call = error_call)
+  radial <- as_scalar_logical(radial, call = call)
 
   points <- if (units == "original") x$samples else x$samples_unit
   if (radial) {

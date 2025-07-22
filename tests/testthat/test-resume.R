@@ -52,8 +52,8 @@ test_that("Throws errors when stop criteria are already passed", {
 })
 
 test_that("Early exits are repaired", {
-  test_env <- new_environment()
-  env_bind(test_env, "count" = -100, "max_count" = 100)
+  test_env <- rlang::new_environment()
+  rlang::env_bind(test_env, "count" = -100, "max_count" = 100)
   counting_ll <- function(x) {
     test_env$count <- test_env$count + 1L
     if (test_env$count > test_env$max_count) {

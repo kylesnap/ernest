@@ -10,37 +10,34 @@
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
-  seed = NA,
-  verbose = FALSE
+  seed = NA
 )
 }
 \arguments{
-\item{x}{An object of class \code{ernest_sampler}.}
+\item{x}{(ernest_sampler) An object of class \code{ernest_sampler}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{max_iterations}{The maximum number of iterations to perform. If set to
-\code{Inf}, this stopping criterion is ignored.}
+\item{max_iterations}{(positive integer) The maximum number of iterations to
+perform. If set to \code{Inf}, this stopping criterion is ignored.}
 
-\item{max_calls}{The maximum number of calls to the likelihood function.
-If set to \code{Inf}, this stopping criterion is ignored.}
+\item{max_calls}{(positive integer) The maximum number of calls to the
+likelihood function. If set to \code{Inf}, this stopping criterion is ignored.}
 
-\item{min_logz}{The minimum log-evidence value to achieve. Must be a number
-equal to or larger than zero.}
+\item{min_logz}{(positive double or zero) The minimum ratio between the
+current log evidence and remaining log evidence (see Details). If set to
+zero, this stopping criterion is ignored.}
 
-\item{seed}{Either a single value, interpretted as an integer, or \code{NA} or
-\code{NULL}.
+\item{seed}{(integer or NA, optional) Specification for the random number
+generator.
 \itemize{
-\item If an integer or NULL, \code{seed} is passed to \code{\link[=set.seed]{set.seed()}} to set the state
-of the random number generator. \code{NULL} reinitializes the generator as if
+\item integer: Passed to \code{\link[=set.seed]{set.seed()}}.
+\item \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}, which reinitializes the generator as if
 no seed has yet been set.
-\item If \code{NA}, the random number generator is set with the seed stored in the
-\code{ernest_run} object bound to \code{object}. If this object does not exist (i.e.,
-if not prior runs have been performed), the current state of the generator
-is recorded and stored for future objects.
+\item \code{NA}: Make no changes to the current seed if set. If \code{compile} has been
+called on \code{object} before, then \code{NA} will ensure that the seed remain
+identical between runs.
 }}
-
-\item{verbose}{Whether to print updates on the sampler's progress.}
 }
 \value{
 An object of class \linkS4class{ernest_run}, containing the results of the
@@ -52,8 +49,27 @@ in a set with a point drawn from a likelihood-restricted prior sampler,
 until a provided stopping criterion is met.
 }
 \details{
-Before starting the sampling loop, \code{generate} calls \code{\link[=compile]{compile()}} to
-check the internal state of the sampler.
+At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz}  must represent
+a non-ignored stopping criterion.
+
+At the iteration \eqn{i}, the remaining log evidence within the prior space
+bound by a minimum likelihood criterion can be estimated as
+\deqn{Z^*_i \approx L^{(max)}_i V_i} where \eqn{L^{(max)}_i}
+is the maximum likelihood of the current live points and \eqn{V_i} is the
+estimated remaining volume.
+
+This estimate can be used to define a relative stopping criterion based on
+the log-ratio of the current estimated evidence \eqn{\hat{Z_i}} to the
+remaining evidence, such that
+\deqn{\delta \log(Z) = \log(\hat{Z_i} - Z^*_i) - \log(\hat{Z_i})}
+By setting \code{min_logz}, you can vary the minimum log-ratio at which sampling
+stops. Once \eqn{\delta \log(Z)} falls below this value, you can assume that
+only a negligible fraction of the evidence remains unaccounted for in the
+final evidence estimates.
+
+If \code{x} already contains results from previous calls to \code{generate()}, then
+\code{generate()} will ensure that your stopping criterion have not already been
+surpassed during previous runs.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

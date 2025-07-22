@@ -12,34 +12,32 @@
 
 # check_live validates live points correctly
 
-    `unit` must be a numeric matrix, not a double vector.
+    `unit` must be of type 'matrix', not 'double'.
 
 ---
 
-    Live points matrix must have dim. 5 x 4.
-    x Points are currently 3 x 5.
+    `unit` must have exactly 5 rows, but has 3 rows.
 
 ---
 
-    Live points matrix must only contain finite values.
+    `unit` contains missing values (row 1, col 1).
 
 ---
 
-    Live points matrix must only contain values between 0 and 1.
+    `unit` element 7 is not <= 1.
 
 ---
 
-    `log_lik` must be a double vector of length 5
-    ! You provided a double vector.
+    `log_lik` must have length 5, but has length 3.
 
 ---
 
-    missing value where TRUE/FALSE needed
+    `log_lik` contains missing values (element 5).
 
 ---
 
     Log likelihoods of the live points must not be a plateau.
-    x Log likelihood of all 5 points = -10.
+    ! Log likelihood of all 5 points = -10.
 
 ---
 

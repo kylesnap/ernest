@@ -11,9 +11,11 @@ unif_cube()
 rwmh_cube(steps = 25L, target_acceptance = 0.5)
 }
 \arguments{
-\item{steps}{Number of steps to take when generating a proposal point.}
+\item{steps}{(positive integer) Number of steps to take when generating a
+proposal point.}
 
-\item{target_acceptance}{The target acceptance rate for the sampler.}
+\item{target_acceptance}{(double between 0 and 1) The target acceptance rate
+for the sampler.}
 }
 \value{
 An \code{ernest_sampling} object, used by \link{ernest_sampler}

@@ -1,4 +1,4 @@
 # nested_sampling errors with invalid prior
 
-    `prior` must be an ernest_prior object, not a function.
+    `prior` must inherit from class 'ernest_prior', but has class 'function'.
 

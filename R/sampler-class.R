@@ -29,16 +29,12 @@ ernest_sampler <- R6Class(
   "ernest_sampler",
   public = list(
     #' @description
-    #' (Internal) Creates a new `ernest_sampler`.
+    #' Create a new `ernest_sampler`.
     #'
-    #' @param log_lik_fn An `ernest_likelihood` object.
-    #' @param prior An `ernest_prior` object.
-    #' @param sampling An `ernest_sampling` object.
-    #' @param n_points The number of live points.
-    #' @param first_update The first update interval.
-    #' @param update_interval The subsequent update interval.
+    #' @param log_lik_fn,prior,sampling,n_points,first_update,update_interval
+    #' See [nested_sampling()].
     #'
-    #' @return Itself, invisibly.
+    #' @return The sampler, invisibly.
     initialize = function(
       log_lik_fn,
       prior,
@@ -47,18 +43,12 @@ ernest_sampler <- R6Class(
       first_update,
       update_interval
     ) {
-      if (!inherits(log_lik_fn, "ernest_likelihood")) {
-        stop_input_type(log_lik_fn, "ernest_likelihood")
-      }
-      if (!inherits(prior, "ernest_prior")) {
-        stop_input_type(prior, "ernest_prior")
-      }
-      if (!inherits(sampling, "ernest_sampling")) {
-        stop_input_type(sampling, "ernest_sampling")
-      }
-      n_points <- check_integer(n_points, min = 1)
-      first_update <- check_integer(first_update, min = 0)
-      update_interval <- check_integer(update_interval, min = 0)
+      is_class(log_lik_fn, "ernest_likelihood")
+      is_class(prior, "ernest_prior")
+      is_class(sampling, "ernest_sampling")
+      n_points <- as_scalar_count(n_points)
+      first_update <- as_scalar_count(n_points, positive = FALSE)
+      update_interval <- as_scalar_count(n_points, positive = TRUE)
 
       private$log_lik <- log_lik_fn
       private$prior <- prior
@@ -76,8 +66,8 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' (Internal) Clears the previous runs from the sampler, including the
-    #' sampler's live points.
+    #' Clears the previous runs from the sampler, including the sampler's
+    #' live points.
     #'
     #' @return Itself, invisibly.
     clear = function() {
@@ -92,16 +82,13 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' (Internal) Generates a sample of live points from the prior and
-    #' validates them.
+    #' Generates a sample of live points from the prior and validates them.
     #'
-    #' @param seed An optional integer seed for reproducibility, `NULL` to
-    #' reset the seed, and `NA` to use the current random seed.
-    #' @param clear A logical value indicating whether to clear existing points.
+    #' @param seed,clear See [compile.ernest_sampler()].
     #'
     #' @return Itself, invisibly.
     compile = function(seed = NA, clear = FALSE) {
-      check_bool(clear)
+      clear <- as_scalar_logical(clear)
       private$seed <- set_random_seed(seed, private$results)
 
       if (clear) {
@@ -134,17 +121,17 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' (Internal) Performs nested sampling until a stopping criterion is met.
+    #' Performs nested sampling until a stopping criterion is met.
     #'
-    #' @param max_iterations,max_calls,min_logz,seed,verbose See [generate.ernest_sampler()].
+    #' @param max_iterations,max_calls,min_logz,seed See
+    #' [generate.ernest_sampler()].
     #'
     #' @return Itself, invisibly.
     generate = function(
       max_iterations = Inf,
       max_calls = Inf,
       min_logz = 0.05,
-      seed = NA,
-      verbose = FALSE
+      seed = NA
     ) {
       if (private$status == "RUNNING") {
         cli::cli_warn(c(
@@ -178,9 +165,9 @@ ernest_sampler <- R6Class(
       if (max_calls == Inf) {
         max_calls <- .Machine$integer.max
       }
-      max_iterations <- check_integer(max_iterations, min = 1)
-      max_calls <- check_integer(max_calls, min = 1)
-      min_logz <- check_double(min_logz, min = 0)
+      max_iterations <- as_scalar_count(max_iterations)
+      max_calls <- as_scalar_count(max_calls)
+      min_logz <- as_scalar_double(min_logz, min = 0)
 
       if (self$niterations != 0 && max_iterations <= self$niterations) {
         cli::cli_abort(c(
@@ -220,7 +207,7 @@ ernest_sampler <- R6Class(
         as.integer(max_iterations),
         as.integer(max_calls),
         as.double(min_logz),
-        verbose
+        FALSE # verbose
       )
       private$results <- do.call(
         compile_results,
@@ -230,7 +217,7 @@ ernest_sampler <- R6Class(
     },
 
     #' @description
-    #' (Internal) Prints a brief summary of the sampler.
+    #' Prints a brief description of the sampler.
     #'
     #' @param ... Ignored.
     #'
@@ -275,8 +262,8 @@ ernest_sampler <- R6Class(
       private$results$n_call %||% 0L
     },
 
-    #' @field live_points A list, containing the matrix of live points currently
-    #' in the sampler in unit-cube units, and a vector of their associated
+    #' @field live_points A list, containing `unit`, the current matrix of live
+    #' points in the hypercube scale, and `log_lik` containing the corresponding
     #' log likelihood values.
     live_points = function() {
       if (vctrs::vec_size(private$live_unit) == 0L) {
@@ -293,7 +280,7 @@ ernest_sampler <- R6Class(
     },
 
     #' @field run The `ernest_run` object binding the results of the previous
-    #' sampling runs. Returns `NULL` if no runs have been performed.
+    #' sampling runs, or `NULL` if no results exist.
     run = function() {
       private$results
     }

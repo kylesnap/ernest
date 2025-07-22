@@ -7,13 +7,12 @@
 create_uniform_prior(n_dim, lower = 0, upper = 1, varnames = NULL)
 }
 \arguments{
-\item{n_dim}{A whole number, representing the number of dimensions within the
-prior distribution. Must be larger than or equal to 1.}
+\item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
 
-\item{lower, upper}{Vectors of limits of the distribution.}
+\item{lower, upper}{(Numeric vectors) The bounds of the distribution.}
 
-\item{varnames}{A character vector of names for the variables in the
-prior distribution.}
+\item{varnames}{(optional character vector) A character vector of names for
+the variables in the prior distribution.}
 }
 \value{
 A \code{uniform_prior}, which is a subclass of \code{ernest_prior} with

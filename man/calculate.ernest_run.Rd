@@ -4,17 +4,17 @@
 \alias{calculate.ernest_run}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
-\method{calculate}{ernest_run}(x, ..., ndraws = FALSE)
+\method{calculate}{ernest_run}(x, ..., ndraws = NULL)
 }
 \arguments{
-\item{x}{An \code{ernest_run} object.}
+\item{x}{(ernest_run) An \code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{A positive integer or a boolean. If \code{FALSE}, the log volumes
-will be derived from their expected values. If not \code{FALSE}, the log volumes
-will be simulated using \code{ndraws} samples from each volume's
-joint distribution.}
+\item{ndraws}{(positive integer or zero, optional) The number of log volume
+sequences to simulate. If equal to zero, no simulations will be made, and a
+one draw vector of log volumes are produced from the estimates contained in
+\code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
 }
 \value{
 A tibble, containing \code{run$n_iter + run$n_points} rows and the

@@ -25,31 +25,29 @@ create_likelihood(fn, ...)
 )
 }
 \arguments{
-\item{fn}{The log-likelihood function, see Details.}
+\item{fn}{(uni-variate function) The log-likelihood function (see Details).}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{error_action}{Character string specifying how to handle errors in \code{fn}.
-One of \code{"abort"} or \code{"warn"}, case sens
+\item{error_action}{(case-sensitive string) Action to perform once \code{fn}
+throws an error.
 \itemize{
 \item \code{"abort"}: Stop execution and signal an error.
 \item \code{"warn"}: Issue a warning and replace output with \code{-Inf}.
 }}
 
-\item{nonfinite_action}{Character string specifying how to handle nonfinite or
-missing outputs from \code{fn}. One of \code{"warn"}, \code{"pass"}, or \code{"abort"}, case
-sensitve.
+\item{nonfinite_action}{(case-sensitive string) Action to perform when \code{fn}
+passes a value that is not a finite double nor \code{-Inf}.
 \itemize{
-\item \code{"warn"}: Issue a warning and replace nonfinite values with \code{-Inf}.
-\item \code{"pass"}: Silently replace nonfinite values with \code{-Inf}.
-\item \code{"abort"}: Stop execution and signal an error if nonfinite values are
-encountered.
+\item \code{"warn"}: Issue a warning and replace values with \code{-Inf}.
+\item \code{"pass"}: Silently replace values with \code{-Inf}.
+\item \code{"abort"}: Stop execution and signal an error.
 }}
 
-\item{auto_batch}{Whether to prepare \code{fn} so that it may be called with a
-matrix of parameter values. If \code{FALSE}, its assumed that \code{fn} can already
-produce a vector of likelihood values for a matrix with rows of parameter
-vectors.}
+\item{auto_batch}{(logical) Whether to prepare \code{fn} so that it may be called
+with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
+can already produce a vector of likelihood values for a matrix with rows of
+parameter vectors.}
 }
 \value{
 A function with additional class \code{ernest_likelihood}. This function

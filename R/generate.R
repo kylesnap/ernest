@@ -4,19 +4,39 @@
 #' in a set with a point drawn from a likelihood-restricted prior sampler,
 #' until a provided stopping criterion is met.
 #'
-#' @param x An object of class `ernest_sampler`.
+#' @param x (ernest_sampler) An object of class `ernest_sampler`.
 #' @inheritParams rlang::args_dots_empty
-#' @param max_iterations The maximum number of iterations to perform. If set to
-#' `Inf`, this stopping criterion is ignored.
-#' @param max_calls The maximum number of calls to the likelihood function.
-#' If set to `Inf`, this stopping criterion is ignored.
-#' @param min_logz The minimum log-evidence value to achieve. Must be a number
-#' equal to or larger than zero.
+#' @param max_iterations (positive integer) The maximum number of iterations to
+#' perform. If set to `Inf`, this stopping criterion is ignored.
+#' @param max_calls (positive integer) The maximum number of calls to the
+#' likelihood function. If set to `Inf`, this stopping criterion is ignored.
+#' @param min_logz (positive double or zero) The minimum ratio between the
+#' current log evidence and remaining log evidence (see Details). If set to
+#' zero, this stopping criterion is ignored.
 #' @inheritParams compile.ernest_sampler
-#' @param verbose Whether to print updates on the sampler's progress.
 #'
-#' @details Before starting the sampling loop, `generate` calls [compile()] to
-#' check the internal state of the sampler.
+#' @details
+#' At least one of `max_iterations`, `max_calls`, or `min_logz`  must represent
+#' a non-ignored stopping criterion.
+#'
+#' At the iteration \eqn{i}, the remaining log evidence within the prior space
+#' bound by a minimum likelihood criterion can be estimated as
+#' \deqn{Z^*_i \approx L^{(max)}_i V_i} where \eqn{L^{(max)}_i}
+#' is the maximum likelihood of the current live points and \eqn{V_i} is the
+#' estimated remaining volume.
+#'
+#' This estimate can be used to define a relative stopping criterion based on
+#' the log-ratio of the current estimated evidence \eqn{\hat{Z_i}} to the
+#' remaining evidence, such that
+#' \deqn{\delta \log(Z) = \log(\hat{Z_i} - Z^*_i) - \log(\hat{Z_i})}
+#' By setting `min_logz`, you can vary the minimum log-ratio at which sampling
+#' stops. Once \eqn{\delta \log(Z)} falls below this value, you can assume that
+#' only a negligible fraction of the evidence remains unaccounted for in the
+#' final evidence estimates.
+#'
+#' If `x` already contains results from previous calls to `generate()`, then
+#' `generate()` will ensure that your stopping criterion have not already been
+#' surpassed during previous runs.
 #'
 #' @returns An object of class [ernest_run-class], containing the results of the
 #' nested sampling run.
@@ -44,9 +64,8 @@ generate.ernest_sampler <- function(
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
-  seed = NA,
-  verbose = FALSE
+  seed = NA
 ) {
   check_dots_empty()
-  x$generate(max_iterations, max_calls, min_logz, seed, verbose)
+  x$generate(max_iterations, max_calls, min_logz, seed)
 }

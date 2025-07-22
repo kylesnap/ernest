@@ -4,26 +4,26 @@
 #' log-likelihood function, prior distribution, and likelihood-restricted prior
 #' specification.
 #'
-#' @param log_lik Function, defining the log-likelihood of the model given
-#' a vector of parameters. Passed to [create_likelihood()].
-#' @param prior An [ernest_prior] object, created by [create_prior()] or
-#' its specializations.
-#' @param sampler An [ernest_sampling] object, declaring which
-#' likelihood-restricted prior sampler (LRPS) to use. One of [rwmh_cube()]
-#' (recommended) or [unif_cube()].
-#' @param n_points Integer. The number of live points to use in the nested
-#' sampling run.
-#' @param first_update Integer or `NULL`. The number of likelihood calls before
-#' the first update of the LRPS. If `NULL`, this is set to `n_points * 2.5`.
-#' @param update_interval Integer or `NULL`. The number of likelihood calls
-#' between subsequent updates of the LRPS. If `NULL`, this is set to
+#' @param log_lik (function) A function that takes a vector of parameters and
+#' returns the log-likelihood of the parameters. The function should return a
+#' finite value or `-Inf` for invalid parameters (see [create_likelihood()]).
+#' @param prior (ernest_prior) An object with class `ernest_prior`, created by
+#' [create_prior()] or its specializations.
+#' @param sampler (ernest_sampling) An [ernest_sampling] object, declaring which
+#' likelihood-restricted prior sampler (LRPS) to use.
+#' @param n_points (positive integer) The number of live points to use in the
+#' nested sampling run.
+#' @param first_update (optional positive integer) The number of likelihood
+#' calls before adopting LRPS behaviour. If `NULL`, this is set to
+#' `n_points * 2.5`.
+#' @param update_interval (optional positive integer) The number of likelihood
+#' calls between updates to the LRPS behaviour. If `NULL`, this is set to
 #' `n_points * 1.5`.
-#' @param on_warning Character string specifying how to handle a warning during
-#' the sanity checks (see Details). One of `"abort"` or `"warn"`, case
-#' sensitive.
-#' - `"abort"`: Throw an error and stop generating the sampler.
-#'  - `"warn"`: Issue a warning, but continue generating the sampler.
-#' @param ... Additional arguments passed to [create_likelihood()].
+#' @param on_warning (case-sensitive string) Action to perform when the sanity
+#' test throws a warning message (see Details).
+#' * `"abort"`: Throw an error.
+#' * `"warn"`: Issue a warning and initialize the sampler.
+#' @inheritDotParams create_likelihood.function -fn
 #'
 #' @return An [ernest_sampler] object, prepared for nested sampling.
 #'
@@ -44,31 +44,30 @@ nested_sampling <- function(
   ...
 ) {
   check_dots_used()
-  if (!inherits(prior, "ernest_prior")) {
-    stop_input_type(prior, "an ernest_prior object")
-  }
+  is_class(prior, "ernest_prior")
   log_lik <- create_likelihood(log_lik, ...)
 
   on_warning <- arg_match(on_warning)
   try_fetch(
     {
-      sanity_prior <- prior$fn(rep(0.5, prior$n_dim))
       sanity_val <- log_lik(prior$fn(rep(0.5, prior$n_dim)))
-      if (!is_scalar_double(sanity_val)) {
-        cli_abort(c(
-          "`log_lik(vec)` must return a scalar double for a vector input.",
-          "!" = "Returned {obj_type_friendly(sanity_val)}."
-        ))
+      msg <- checkmate::check_number(
+        sanity_val,
+        na.ok = FALSE,
+        null.ok = FALSE
+      )
+      if (!isTRUE(msg)) {
+        format_checkmate(msg, "log_lik", call = caller_env())
       }
       if (!is.finite(sanity_val) && sanity_val != -Inf) {
-        cli_abort(c(
-          "`log_lik(vec)` must return a finite double or `-Inf`.",
-          "!" = "Returned {obj_type_friendly(sanity_val)}."
-        ))
+        cli_abort(
+          "`log_lik` must return a finite value or `-Inf`, not {sanity_val}.",
+          call = caller_env()
+        )
       }
     },
     error = function(cnd) {
-      cli_abort("Failed sanity checks.", parent = cnd)
+      cli_abort("Failed sanity check.", parent = cnd)
     },
     warning = function(cnd) {
       if (on_warning == "abort") {

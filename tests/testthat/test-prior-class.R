@@ -1,11 +1,11 @@
 test_that("check_prior_params throws errors for improper inputs", {
   expect_error(
     check_prior_params(n_dim = -1L, varnames = "X"),
-    "whole number larger than or equal to 1"
+    "`n_dim` must be >= 1."
   )
   expect_error(
     check_prior_params(n_dim = c(1L, 2L), varnames = "X"),
-    "not an integer vector"
+    "`n_dim` must have length 1"
   )
   expect_error(
     check_prior_params(n_dim = 2, varnames = 1),
@@ -61,7 +61,7 @@ test_that("create_prior errors if prior function output length is wrong", {
   fn <- function(x) c(x[1], x[2], x[1] / x[2])
   expect_error(
     check_prior_fn(fn, n_dim = 2),
-    "`fn` must return a vector of length 2."
+    "must have length 2, but has length 3"
   )
 
   fn <- function(x) {
@@ -73,7 +73,7 @@ test_that("create_prior errors if prior function output length is wrong", {
   }
   expect_error(
     check_prior_fn(fn, n_dim = 2),
-    "`fn` must preserve the dimensions"
+    "must have exactly 250 rows, but has 4 rows"
   )
 })
 
@@ -81,7 +81,7 @@ test_that("create_prior errors if prior returns non-finite values", {
   fn <- function(x) rep(NaN, length(x))
   expect_error(
     check_prior_fn(fn, n_dim = 2),
-    "`fn` must always return finite values."
+    "contains missing values"
   )
 })
 

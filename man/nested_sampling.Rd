@@ -16,35 +16,55 @@ nested_sampling(
 )
 }
 \arguments{
-\item{log_lik}{Function, defining the log-likelihood of the model given
-a vector of parameters. Passed to \code{\link[=create_likelihood]{create_likelihood()}}.}
+\item{log_lik}{(function) A function that takes a vector of parameters and
+returns the log-likelihood of the parameters. The function should return a
+finite value or \code{-Inf} for invalid parameters (see \code{\link[=create_likelihood]{create_likelihood()}}).}
 
-\item{prior}{An \link{ernest_prior} object, created by \code{\link[=create_prior]{create_prior()}} or
-its specializations.}
+\item{prior}{(ernest_prior) An object with class \code{ernest_prior}, created by
+\code{\link[=create_prior]{create_prior()}} or its specializations.}
 
-\item{sampler}{An \link{ernest_sampling} object, declaring which
-likelihood-restricted prior sampler (LRPS) to use. One of \code{\link[=rwmh_cube]{rwmh_cube()}}
-(recommended) or \code{\link[=unif_cube]{unif_cube()}}.}
+\item{sampler}{(ernest_sampling) An \link{ernest_sampling} object, declaring which
+likelihood-restricted prior sampler (LRPS) to use.}
 
-\item{n_points}{Integer. The number of live points to use in the nested
-sampling run.}
+\item{n_points}{(positive integer) The number of live points to use in the
+nested sampling run.}
 
-\item{first_update}{Integer or \code{NULL}. The number of likelihood calls before
-the first update of the LRPS. If \code{NULL}, this is set to \code{n_points * 2.5}.}
+\item{first_update}{(optional positive integer) The number of likelihood
+calls before adopting LRPS behaviour. If \code{NULL}, this is set to
+\code{n_points * 2.5}.}
 
-\item{update_interval}{Integer or \code{NULL}. The number of likelihood calls
-between subsequent updates of the LRPS. If \code{NULL}, this is set to
+\item{update_interval}{(optional positive integer) The number of likelihood
+calls between updates to the LRPS behaviour. If \code{NULL}, this is set to
 \code{n_points * 1.5}.}
 
-\item{on_warning}{Character string specifying how to handle a warning during
-the sanity checks (see Details). One of \code{"abort"} or \code{"warn"}, case
-sensitive.
+\item{on_warning}{(case-sensitive string) Action to perform when the sanity
+test throws a warning message (see Details).
 \itemize{
-\item \code{"abort"}: Throw an error and stop generating the sampler.
-\item \code{"warn"}: Issue a warning, but continue generating the sampler.
+\item \code{"abort"}: Throw an error.
+\item \code{"warn"}: Issue a warning and initialize the sampler.
 }}
 
-\item{...}{Additional arguments passed to \code{\link[=create_likelihood]{create_likelihood()}}.}
+\item{...}{
+  Arguments passed on to \code{\link[=create_likelihood.function]{create_likelihood.function}}
+  \describe{
+    \item{\code{error_action}}{(case-sensitive string) Action to perform once \code{fn}
+throws an error.
+\itemize{
+\item \code{"abort"}: Stop execution and signal an error.
+\item \code{"warn"}: Issue a warning and replace output with \code{-Inf}.
+}}
+    \item{\code{nonfinite_action}}{(case-sensitive string) Action to perform when \code{fn}
+passes a value that is not a finite double nor \code{-Inf}.
+\itemize{
+\item \code{"warn"}: Issue a warning and replace values with \code{-Inf}.
+\item \code{"pass"}: Silently replace values with \code{-Inf}.
+\item \code{"abort"}: Stop execution and signal an error.
+}}
+    \item{\code{auto_batch}}{(logical) Whether to prepare \code{fn} so that it may be called
+with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
+can already produce a vector of likelihood values for a matrix with rows of
+parameter vectors.}
+  }}
 }
 \value{
 An \link{ernest_sampler} object, prepared for nested sampling.

@@ -3,8 +3,9 @@
 #' Show the normalized likelihood, importance weights, and evidence as functions
 #' of log. volume.
 #'
-#' @param x Either an `ernest_estimate` (from [calculate()]) or an
-#' `ernest_run` object.
+#' @param x (ernest_estimate or ernest_run) An object either of class
+#' `ernest_estimate` (containing uncertainty simulations) or of class
+#' `ernest_run` (containing a nested sampling run).
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
@@ -49,8 +50,7 @@ plot.ernest_estimate <- function(x, ...) {
   print(autoplot(x, ...))
 }
 
-#' @param ndraws Number of simulated log. volume values to generate before plotting.
-#' If `ndraws = 0`, plot the log. volume estimates generated during the run.
+#' @inheritParams calculate.ernest_run
 #'
 #' @rdname plot.ernest
 #' @export
@@ -63,7 +63,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
-  ndraws <- check_integer(ndraws, min = 0)
+  ndraws <- as_scalar_count(ndraws, positive = FALSE)
   if (ndraws != 0) {
     x <- calculate(x, ndraws = ndraws)
   }
@@ -115,7 +115,7 @@ autoplot.ernest_estimate <- function(object, ...) {
         ".width" = NA
       )
       autoplot_run_(
-        vctrs::vec_c(df_w, df_ll, df_z), 
+        vctrs::vec_c(df_w, df_ll, df_z),
         "HDCI",
         c(0.95, 0.68),
         c("95%", "68%")

@@ -3,22 +3,20 @@
 #' Creates a modified version of a log. likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters that is provided.
 #'
-#' @param fn The log-likelihood function, see Details.
-#' @param error_action Character string specifying how to handle errors in `fn`.
-#'  One of `"abort"` or `"warn"`, case sens
-#'  - `"abort"`: Stop execution and signal an error.
-#'  - `"warn"`: Issue a warning and replace output with `-Inf`.
-#' @param nonfinite_action Character string specifying how to handle nonfinite or
-#' missing outputs from `fn`. One of `"warn"`, `"pass"`, or `"abort"`, case
-#' sensitve.
-#'  - `"warn"`: Issue a warning and replace nonfinite values with `-Inf`.
-#'  - `"pass"`: Silently replace nonfinite values with `-Inf`.
-#'  - `"abort"`: Stop execution and signal an error if nonfinite values are
-#' encountered.
-#' @param auto_batch Whether to prepare `fn` so that it may be called with a
-#' matrix of parameter values. If `FALSE`, its assumed that `fn` can already
-#' produce a vector of likelihood values for a matrix with rows of parameter
-#' vectors.
+#' @param fn (uni-variate function) The log-likelihood function (see Details).
+#' @param error_action (case-sensitive string) Action to perform once `fn`
+#' throws an error.
+#' * `"abort"`: Stop execution and signal an error.
+#' * `"warn"`: Issue a warning and replace output with `-Inf`.
+#' @param nonfinite_action (case-sensitive string) Action to perform when `fn`
+#' passes a value that is not a finite double nor `-Inf`.
+#' * `"warn"`: Issue a warning and replace values with `-Inf`.
+#' * `"pass"`: Silently replace values with `-Inf`.
+#' * `"abort"`: Stop execution and signal an error.
+#' @param auto_batch (logical) Whether to prepare `fn` so that it may be called
+#' with a matrix of parameter values. If `FALSE`, its assumed that `fn`
+#' can already produce a vector of likelihood values for a matrix with rows of
+#' parameter vectors.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
@@ -109,7 +107,6 @@ create_likelihood.function <- function(
   ...
 ) {
   check_dots_empty()
-  fn <- as_function(fn, env = global_env())
   new_ernest_likelihood(fn, error_action, nonfinite_action, auto_batch)
 }
 
@@ -132,6 +129,7 @@ new_ernest_likelihood <- function(
   auto_batch,
   call = caller_env()
 ) {
+  fn <- as_univariate_function(fn, call = call)
   error_action <- arg_match0(
     error_action,
     values = c("abort", "warn"),
@@ -142,12 +140,13 @@ new_ernest_likelihood <- function(
     values = c("warn", "pass", "abort"),
     error_call = call
   )
-  check_bool(auto_batch, call = call)
+  auto_batch <- as_scalar_logical(auto_batch, call = call)
 
+  cnd <- NULL
   error_fn <- switch(
     error_action,
     "warn" = expr({
-      if (cnd_inherits(cnd, "nonfinite_nonnumeric")) {
+      if (rlang::cnd_inherits(cnd, "nonfinite_nonnumeric")) {
         cli_abort(
           "Can't calculate likelihood without an error.",
           parent = cnd
@@ -197,10 +196,10 @@ new_ernest_likelihood <- function(
   )
 
   x <- NULL
-  catching_likelihood <- rlang::new_function(
+  catching_likelihood <- new_function(
     exprs(x = ),
     expr({
-      rlang::try_fetch(
+      try_fetch(
         {
           y <- fn(x)
           if (any(y == Inf | is.nan(y) | is.na(y) | !is.numeric(y))) {
@@ -216,9 +215,9 @@ new_ernest_likelihood <- function(
   )
 
   batch_expr <- if (auto_batch) expr(drop(apply(x, 1, fn))) else expr(fn(x))
-  batched_likelihood <- rlang::new_function(
+  batched_likelihood <- new_function(
     exprs(x = ),
-    expr(rlang::try_fetch(
+    expr(try_fetch(
       {
         y <- !!batch_expr
         if (any(y == Inf | is.nan(y) | is.na(y) | !is.numeric(y))) {
@@ -238,7 +237,10 @@ new_ernest_likelihood <- function(
     } else if (is.double(x)) {
       catching_likelihood(x)
     } else {
-      stop_input_type(x, "a numeric vector or matrix")
+      cli_abort(
+        "Expected a numeric vector or matrix, got {.cls {class(x)[1]}}.",
+        call = call
+      )
     }
   }
 

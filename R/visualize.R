@@ -4,20 +4,20 @@
 #' or trace the evolution of the discarded live points along the log prior
 #' volume.
 #'
-#' @param x An [ernest_run] object.
-#' @param ... Arguments passed to [as_draws_rvars()].
-#' @param type Character string specifying the type of plot to create.
-#' One of `"density"` or `"trace"`, case sensitive.
-#' -`"density"`: Shows the posterior density of each distribution.
-#' -`"trace"`: Shows the distribution of points along estimates of the log
+#' @param x (ernest_run) An [ernest_run] object.
+#' @param type (case-sensitive string) The type of plot to create.
+#' * `"density"`: Shows the posterior density of each distribution.
+#' * `"trace"`: Shows the distribution of points along estimates of the log
 #' prior volume.
-#' @param vars A character vector of variable names to plot. Case sensitive.
+#' @param vars <[`tidy-select`][dplyr::dplyr_tidy_select]> The variables to
+#' plot from the run. If left `NULL`, every variable is plotted.
 #' @param plot Logical, whether to return a `ggplot` of the visualization, or
 #' a `tibble` of the data used to create the plot.
+#' @inheritDotParams as_draws_rvars.ernest_run units radial
 #'
 #' @returns Either a `ggplot` object if `plot = TRUE`, or a `tibble`.
 #'
-#' @note This method requires the `ggdist` package for plotting the posterior.
+#' @note This method requires the `ggdist` and `tidyselect` optional packages.
 #' @seealso [plot()] for visualizing the evidence estimates from an `ernest_run`.
 #' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input.
 #' @srrstats {G2.3b} Explicitly mentions that `vars` is case sensitive.
@@ -47,9 +47,7 @@ visualize.ernest_run <- function(
   plot = TRUE
 ) {
   check_dots_used()
-  if (plot) {
-    check_installed("ggdist", reason = "Plot posterior distributions.")
-  }
+  rlang::check_installed(c("ggdist", "tidyselect"))
   type <- arg_match(type)
 
   draws <- as_draws_rvars(x, ...)
@@ -85,7 +83,7 @@ visualize_density_ <- function(draws, cols, plot) {
 }
 
 visualize_trace_ <- function(draws, cols, log_vol, plot) {
-  points <- map(draws[cols], posterior::draws_of)
+  points <- lapply(draws[cols], posterior::draws_of)
 
   df <- tibble::tibble(
     ".var" = rep(names(cols), each = posterior::ndraws(draws)),

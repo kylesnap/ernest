@@ -19,11 +19,11 @@
 
 ---
 
-    `target_acceptance` must be a number smaller than or equal to 1, not the number 1.1.
+    `target_acceptance` is not <= 1.
 
 ---
 
-    `steps` must be a whole number larger than or equal to 2, not the number 1.
+    `steps` is not >= 2.
 
 ---
 

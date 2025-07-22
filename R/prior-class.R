@@ -3,18 +3,14 @@
 #' Use an R function to specify the prior distribution of parameters for a
 #' nested sampling run.
 #'
-#' @param fn A function that translates coodinates in a unit hypercube into
-#' points within the prior parameter space. See details for more information.
-#' @param n_dim A whole number, representing the number of dimensions within the
-#' prior distribution. Must be larger than or equal to 1.
-#' @param varnames A character vector of names for the variables in the
-#' prior distribution.
-#' @param lower,upper A numeric vector of lower bounds for the prior
-#' distribution. Set to `-Inf` and `Inf`, respectively, by default.
-#' @param auto_batch Whether the `fn` should be wrapped to allow for matrix
-#' inputs. If `FALSE`, it is assumed that `fn` can already handle
-#' transforming both vectors and matrices of unit cube coordinates. See details
-#' for more information.
+#' @param fn (function) The unit hypercube transformation (see Details).
+#' @param n_dim (positive integer) The dimensionality of the prior distribution.
+#' @param varnames (optional character vector) A character vector of names for
+#' the variables in the prior distribution.
+#' @param lower,upper (optional numeric vector) The expected bounds for the
+#' parameter vectors after hypercube transformation. Set to `-Inf` and `Inf`
+#' by default.
+#' @inheritParams create_likelihood.function
 #'
 #' @returns A named list with class `ernest_prior`. The list contains the
 #' following:
@@ -115,10 +111,10 @@ create_prior <- function(
   upper = NULL,
   auto_batch = TRUE
 ) {
-  check_bool(auto_batch)
+  fn <- as_univariate_function(fn)
+  auto_batch <- as_scalar_logical(auto_batch)
   params <- check_prior_params(n_dim, varnames, lower, upper)
 
-  fn <- rlang::as_function(fn, env = global_env())
   batched_fn <- if (auto_batch) {
     function(x) {
       if (is.matrix(x)) {
@@ -172,7 +168,7 @@ check_prior_params <- function(
   upper = NULL,
   call = caller_env()
 ) {
-  n_dim <- check_integer(n_dim, min = 1, call = call)
+  n_dim <- as_scalar_count(n_dim, positive = TRUE, call = call)
 
   varnames <- vctrs::vec_recycle(
     vctrs::vec_cast(varnames, to = character(), call = call),
@@ -212,7 +208,6 @@ check_prior_params <- function(
 #' @param call Environment for error reporting.
 #'
 #' @returns `NULL` if all checks pass, otherwise an error is raised.
-#' @importFrom rlang try_fetch is_double
 #' @importFrom cli cli_warn
 #' @noRd
 check_prior_fn <- function(
@@ -223,30 +218,23 @@ check_prior_fn <- function(
   auto_batch = TRUE,
   call = caller_env()
 ) {
-  check_function(fn, call = call)
-
   try_fetch(
     {
       result <- fn(rep(0.5, n_dim))
-      if (!rlang::is_double(result)) {
-        cli_abort(c(
-          "`fn` must return a double vector.",
-          "x" = "`fn` instead returned {obj_type_friendly(result)}"
-        ))
-      }
-      if (length(result) != n_dim) {
-        cli_abort(c(
-          "`fn` must return a vector of length {n_dim}.",
-          "x" = "`fn` instead returned a vector of length {length(result)}"
-        ))
-      }
-      if (any(!is.finite(result))) {
-        cli_abort("`fn` must always return finite values.")
+      msg <- checkmate::check_numeric(
+        result,
+        len = n_dim,
+        any.missing = FALSE,
+        finite = TRUE
+      )
+      if (!isTRUE(msg)) {
+        arg <- sprintf("fn(rep(0.5, %s))", n_dim)
+        format_checkmate(msg, arg, call = call)
       }
     },
     error = function(cnd) {
       cli_abort(
-        "Can't transform the point at `rep(0.5, {n_dim}).",
+        "Couldn't transform a test point.",
         parent = cnd,
         call = call
       )
@@ -260,18 +248,17 @@ check_prior_fn <- function(
   try_fetch(
     {
       result <- fn(test)
-      if (!is.matrix(result) || !is.double(result)) {
-        cli_abort(c(
-          "`fn` must return a double matrix.",
-          "x" = "`fn` instead returned {obj_type_friendly(result)}"
-        ))
+      msg <- checkmate::check_matrix(
+        result,
+        mode = "numeric",
+        nrows = nrow(test),
+        ncols = ncol(test),
+        any.missing = FALSE
+      )
+      if (!isTRUE(msg)) {
+        format_checkmate(msg, "fn(test_matrix)", call = call)
       }
-      if (!identical(dim(result), dim(test))) {
-        cli_abort(c(
-          "`fn` must preserve the dimensions of an input matrix.",
-          "x" = "`fn` returned a matrix of dimensionality {dim(result)}"
-        ))
-      }
+
       if (any(!is.finite(result))) {
         cli_abort("`fn` must always return finite values.")
       }
@@ -289,7 +276,7 @@ check_prior_fn <- function(
     error = function(cnd) {
       cli_abort(
         c(
-          "Can't transform a test matrix of dim. {dim(test)}.",
+          "Can't transform values in a test matrix.",
           "i" = if (!auto_batch) {
             "Can `fn` handle matrices without setting `auto_batch = TRUE`?"
           } else {

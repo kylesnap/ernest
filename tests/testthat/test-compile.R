@@ -1,4 +1,5 @@
 gaussian_2 <- make_gaussian(2)
+
 test_that("create_live generates live points correctly", {
   lrps <- rwcube_lrps$new(
     log_lik_fn = gaussian_2$log_lik,
@@ -84,4 +85,14 @@ test_that("check_live validates live points correctly", {
   expect_snapshot_warning(
     check_live(unit, log_lik_repeats, n_points = 5, n_var = 4)
   )
+})
+
+test_that("Compiling fails with bad user input", {
+  log_lik <- gaussian_shell(2)
+  prior <- create_uniform_prior(n_dim = 2, lower = -6, upper = 6)
+  sampler <- nested_sampling(log_lik, prior)
+
+  expect_error(compile(sampler, seed = "T"))
+  expect_error(compile(sampler, clear = 3))
+  expect_no_error(compile(sampler))
 })

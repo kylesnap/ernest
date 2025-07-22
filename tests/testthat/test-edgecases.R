@@ -14,7 +14,7 @@ test_that("Zero-length likelihood fails", {
 
   expect_error(
     nested_sampling(ll, prior),
-    "Returned an empty numeric vector."
+    "Failed sanity check."
   )
 })
 
@@ -23,12 +23,12 @@ test_that("Zero-length prior fails", {
 
   expect_error(
     create_prior(prior_fn, n_dim = 0),
-    "`n_dim` must be a whole number larger than or equal to 1"
+    "`n_dim` must be >= 1"
   )
 
   expect_error(
     create_prior(prior_fn, n_dim = 1),
-    "`fn` must return a vector of length 1."
+    "must have length 1, but has length 0."
   )
 })
 
@@ -41,7 +41,7 @@ test_that("Fails on character types", {
   prior_fn <- \(theta) c("A", "B")
   expect_error(
     create_prior(prior_fn, n_dim = 2),
-    "`fn` instead returned a character vector"
+    "must be of type 'numeric', not 'character'"
   )
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
@@ -59,7 +59,7 @@ test_that("Fails on complex types", {
   prior_fn <- \(theta) c(1i * theta) / 10
   expect_error(
     create_prior(prior_fn, n_dim = 2),
-    "`fn` instead returned a complex vector"
+    "must be of type 'numeric', not 'complex'."
   )
 
   ll <- \(theta) sum(c(1i * theta) / 10)
@@ -83,13 +83,13 @@ test_that("Missing values in the prior", {
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
   expect_error(
     create_prior(prior_fn, 2L),
-    "`fn` must always return finite values."
+    "contains missing values"
   )
 
   prior_fn <- function(theta) ifelse(theta < 0.5, NA, qunif(theta))
   expect_error(
     create_prior(prior_fn, 2L),
-    "`fn` must always return finite values."
+    "contains missing values"
   )
 })
 

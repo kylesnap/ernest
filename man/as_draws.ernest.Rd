@@ -13,21 +13,21 @@
 \method{as_draws_rvars}{ernest_run}(x, ..., units = c("original", "unit_cube"), radial = FALSE)
 }
 \arguments{
-\item{x}{An \code{ernest_run} object.}
+\item{x}{(ernest_run) An \code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{units}{Character string specifying the scale of the returned points.
-One of \code{"original"} or \code{"unit_cube"}, case sensitive.
+\item{units}{(case-sensitive string) The scale in which to return the
+sampled points:
 \itemize{
 \item \code{"original"}: Points are expressed on the scale of the prior space.
 \item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
 hypercube.
 }}
 
-\item{radial}{Whether to return an additional column \code{.radial}, containing
-the radial coordinate (i.e., the squared sum of squares) for each sampled
-point.}
+\item{radial}{(logical) Whether to return an additional column \code{.radial},
+containing the radial coordinate (i.e., the squared sum of squares) for
+each sampled point.}
 }
 \value{
 A \link[posterior:draws]{draws} object, containing the posterior samples

@@ -7,7 +7,7 @@
 \method{summary}{ernest_run}(object, ...)
 }
 \arguments{
-\item{object}{An \code{ernest_run} object.}
+\item{object}{(ernest_run) An object of class \code{ernest_run}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }

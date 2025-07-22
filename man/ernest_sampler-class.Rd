@@ -36,12 +36,12 @@ Instead, they use the following functions:
 
 \item{\code{ncalls}}{The total calls made to the likelihood function.}
 
-\item{\code{live_points}}{A list, containing the matrix of live points currently
-in the sampler in unit-cube units, and a vector of their associated
+\item{\code{live_points}}{A list, containing \code{unit}, the current matrix of live
+points in the hypercube scale, and \code{log_lik} containing the corresponding
 log likelihood values.}
 
 \item{\code{run}}{The \code{ernest_run} object binding the results of the previous
-sampling runs. Returns \code{NULL} if no runs have been performed.}
+sampling runs, or \code{NULL} if no results exist.}
 }
 \if{html}{\out{</div>}}
 }
@@ -60,7 +60,7 @@ sampling runs. Returns \code{NULL} if no runs have been performed.}
 \if{html}{\out{<a id="method-ernest_sampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-new}{}}}
 \subsection{Method \code{new()}}{
-(Internal) Creates a new \code{ernest_sampler}.
+Create a new \code{ernest_sampler}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$new(
   log_lik_fn,
@@ -75,30 +75,20 @@ sampling runs. Returns \code{NULL} if no runs have been performed.}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{log_lik_fn}}{An \code{ernest_likelihood} object.}
-
-\item{\code{prior}}{An \code{ernest_prior} object.}
-
-\item{\code{sampling}}{An \code{ernest_sampling} object.}
-
-\item{\code{n_points}}{The number of live points.}
-
-\item{\code{first_update}}{The first update interval.}
-
-\item{\code{update_interval}}{The subsequent update interval.}
+\item{\code{log_lik_fn, prior, sampling, n_points, first_update, update_interval}}{See \code{\link[=nested_sampling]{nested_sampling()}}.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Itself, invisibly.
+The sampler, invisibly.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ernest_sampler-clear"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-clear}{}}}
 \subsection{Method \code{clear()}}{
-(Internal) Clears the previous runs from the sampler, including the
-sampler's live points.
+Clears the previous runs from the sampler, including the sampler's
+live points.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$clear()}\if{html}{\out{</div>}}
 }
@@ -111,8 +101,7 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-compile"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-compile}{}}}
 \subsection{Method \code{compile()}}{
-(Internal) Generates a sample of live points from the prior and
-validates them.
+Generates a sample of live points from the prior and validates them.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$compile(seed = NA, clear = FALSE)}\if{html}{\out{</div>}}
 }
@@ -120,10 +109,7 @@ validates them.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{seed}}{An optional integer seed for reproducibility, \code{NULL} to
-reset the seed, and \code{NA} to use the current random seed.}
-
-\item{\code{clear}}{A logical value indicating whether to clear existing points.}
+\item{\code{seed, clear}}{See \code{\link[=compile.ernest_sampler]{compile.ernest_sampler()}}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -135,21 +121,21 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-generate}{}}}
 \subsection{Method \code{generate()}}{
-(Internal) Performs nested sampling until a stopping criterion is met.
+Performs nested sampling until a stopping criterion is met.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$generate(
   max_iterations = Inf,
   max_calls = Inf,
   min_logz = 0.05,
-  seed = NA,
-  verbose = FALSE
+  seed = NA
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{max_iterations, max_calls, min_logz, seed, verbose}}{See \code{\link[=generate.ernest_sampler]{generate.ernest_sampler()}}.}
+\item{\code{max_iterations, max_calls, min_logz, seed}}{See
+\code{\link[=generate.ernest_sampler]{generate.ernest_sampler()}}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -161,7 +147,7 @@ Itself, invisibly.
 \if{html}{\out{<a id="method-ernest_sampler-print"></a>}}
 \if{latex}{\out{\hypertarget{method-ernest_sampler-print}{}}}
 \subsection{Method \code{print()}}{
-(Internal) Prints a brief summary of the sampler.
+Prints a brief description of the sampler.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ernest_sampler$print(...)}\if{html}{\out{</div>}}
 }

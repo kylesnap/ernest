@@ -41,12 +41,12 @@
 #' in the `ernest` package. It can be used for posterior analysis, evidence
 #' estimation, and diagnostic plotting.
 #'
-#' @seealso [ernest_run_example] for an example object, and [generate()] for how to
-#' create a new `ernest_run` object. [plot()] and [calculate()] on how to use
+#' @seealso [ernest_run_example] for an example object, and [generate()] for how
+#' to create a new `ernest_run` object. [plot()] and [calculate()] on how to use
 #' `ernest_run` objects to examine uncertainty in the log volume estimates.
 NULL
 
-#' Internal method for cosntructing the ernest_run object using an ernest_sampler
+#' Internal method for constructing the ernest_run object
 #' @importFrom vctrs vec_c vec_size
 #' @noRd
 compile_results <- function(
@@ -151,7 +151,7 @@ print.ernest_run <- function(x, ...) {
 #'
 #' Provides a summary of an `ernest_run` object.
 #'
-#' @param object An `ernest_run` object.
+#' @param object (ernest_run) An object of class `ernest_run`.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @return An object of class `summary.ernest_run`, a list with:

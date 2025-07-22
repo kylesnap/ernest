@@ -15,9 +15,9 @@ ernest_lrps <- R6Class(
   lock_class = TRUE,
   public = list(
     initialize = function(log_lik_fn, prior_fn, n_dim) {
-      check_function(log_lik_fn)
-      check_function(prior_fn)
-      n_dim <- check_integer(n_dim, min = 1)
+      is_function(log_lik_fn)
+      is_function(prior_fn)
+      n_dim <- as_scalar_count(n_dim)
       private$log_lik_fn <- log_lik_fn
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
@@ -173,8 +173,8 @@ rwcube_lrps <- R6::R6Class(
       target_acceptance = 0.5
     ) {
       super$initialize(log_lik_fn, prior_fn, n_dim)
-      steps <- check_integer(steps, min = 2)
-      target_acceptance <- check_double(target_acceptance, max = 1)
+      steps <- as_scalar_integer(steps, min = 2)
+      target_acceptance <- as_scalar_double(target_acceptance, max = 1)
       if (target_acceptance < 1 / steps) {
         cli::cli_abort("Target acceptance must be at least 1/{steps}.")
       }

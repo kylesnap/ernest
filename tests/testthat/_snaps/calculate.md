@@ -32,12 +32,12 @@
       No. Draws: 1
       Log. Evidence: -4.545 (± Inf)
 
-# calculate works when ndraws = BIG
+# calculate works when ndraws = 4000 (default)
 
     Code
       calc
     Output
-      An <ernest_calculate>: 1000 draws x 3370 iterations
+      An <ernest_calculate>: 4000 draws x 3370 iterations
 
 ---
 
@@ -46,6 +46,6 @@
     Output
       
       -- Simulated Evidence Estimate from <ernest_estimate> --------------------------
-      No. Draws: 1000
-      Log. Evidence: -4.44 (± 0.07442)
+      No. Draws: 4000
+      Log. Evidence: -4.44 (± 0.07437)
 

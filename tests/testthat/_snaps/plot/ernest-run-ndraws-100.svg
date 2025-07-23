@@ -144,6 +144,6 @@
 <rect x='669.38' y='292.32' width='15.86' height='15.86' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #FDE725; fill-opacity: 0.70;' />
 <text x='691.43' y='286.00' style='font-size: 8.80px; font-family: sans;' textLength='17.61px' lengthAdjust='spacingAndGlyphs'>95%</text>
 <text x='691.43' y='303.28' style='font-size: 8.80px; font-family: sans;' textLength='17.61px' lengthAdjust='spacingAndGlyphs'>68%</text>
-<text x='32.43' y='14.56' style='font-size: 13.20px; font-family: sans;' textLength='79.64px' lengthAdjust='spacingAndGlyphs'>ndraws = 100</text>
+<text x='32.43' y='14.56' style='font-size: 13.20px; font-family: sans;' textLength='151.54px' lengthAdjust='spacingAndGlyphs'>ernest_run(ndraws = 100)</text>
 </g>
 </svg>

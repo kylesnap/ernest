@@ -69,7 +69,10 @@ NULL
 #' @srrstatsNA {G2.7, G2.8, G2.9, G2.10, G2.11, G2.12} Ernest does not allow for tabular input, working instead from user-inputted likelihood functions.
 #' @srrstatsNA {G3.1, G3.1a} Ernest doesn't presently call a covariance algorithm.
 #' @srrstatsNA {G4.0} Ernest does not write to the user's storage.
-#' @srrstatsNA {G5.10, G5.11, G5.11a, G5.12} Ernest does not use extended testing, running all tests when prompted or during CI.
+#' @srrstatsNA {G5.10, G5.11, G5.11a, G5.12} Ernest does not use extended
+#' testing tags. I have used "skip_if_*" tags to prevent the
+#' CI/CRAN checks from running over certain plotting tests (where vdiffr might
+#' fail) and from running all of the algorithmic tests.
 #' @srrstatsNA {BS7.0, BS7.1} Ernest always requires a log-likelihood function
 #' and a prior distribution to perform integration. Please advise if prior
 #' recovery tests are required and how they should be performed.

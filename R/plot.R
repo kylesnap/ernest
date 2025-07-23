@@ -16,7 +16,7 @@
 #' volume: If `x` is an `ernest_run` these estimates are derived from the run,
 #' if `x` is an `ernest_estimate` (or `ndraws != 0`), these values are
 #' simulated.
-#' 
+#'
 #' The three `y` axes are as follows:
 #'
 #' * **Evidence:** Estimate with a corresponding error ribbon drawn from either
@@ -75,14 +75,57 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 
 # AUTOPLOT METHODS -----
 
-#' @importFrom ggplot2 autoplot ggplot aes geom_line geom_col
-#' @importFrom ggplot2 scale_x_continuous scale_y_continuous vars
-#' @importFrom ggplot2 scale_fill_viridis_d facet_grid
+#' Autoplot for Ernest Estimates
+#'
+#' @param object An `ernest_estimate` object containing uncertainty simulations.
+#' @param ... Additional arguments passed to the method.
+#'
+#' @return A ggplot object.
 #' @noRd
 #' @export
 autoplot.ernest_estimate <- function(object, ...) {
   check_dots_empty()
+  plot_tbl <- calc_hdi_tbl(object)
+  autoplot_run_(
+    plot_tbl$df,
+    fill_name = plot_tbl$fill_name,
+    fill_limits = plot_tbl$fill_limits,
+    fill_labels = plot_tbl$fill_labels
+  )
+}
 
+#' Autoplot for Ernest Run Objects
+#'
+#' @param object An `ernest_run` object containing a nested sampling run.
+#' @param ... Additional arguments passed to the method.
+#' @return A ggplot object.
+#' @export
+autoplot.ernest_run <- function(object, ...) {
+  check_dots_empty()
+  plot_tbl <- calc_var_tbl(
+    log_volume = object$log_volume,
+    log_evidence = object$log_evidence,
+    log_evidence_var = object$log_evidence_var,
+    log_weight = object$log_weight,
+    log_lik = object$log_lik
+  )
+  autoplot_run_(
+    plot_tbl$df,
+    fill_name = plot_tbl$fill_name,
+    fill_limits = plot_tbl$fill_limits,
+    fill_labels = plot_tbl$fill_labels
+  )
+}
+
+#' Calculate a data.frame for plotting evidence simulations
+#'
+#' @param object An `ernest_estimate` object containing uncertainty simulations.
+#' @return A list containing a data.frame for plotting and additional metadata
+#' for the fill aesthetic.
+#' @note If HDI calculation fails, a warning is issued and a fallback
+#' data.frame with variance estimates is returned instead.
+#' @noRd
+calc_hdi_tbl <- function(object) {
   try_fetch(
     {
       max_log_z <- tail(object$log_evidence, 1)
@@ -117,23 +160,29 @@ autoplot.ernest_estimate <- function(object, ...) {
         ".upper" = NA,
         ".width" = NA
       )
-      autoplot_run_(
-        vctrs::vec_c(df_w, df_ll, df_z),
-        "HDCI",
-        c(0.95, 0.68),
-        c("95%", "68%")
+      list(
+        df = vctrs::vec_c(df_w, df_ll, df_z),
+        "fill_name" = "HDCI",
+        "fill_limits" = c(0.95, 0.68),
+        "fill_labels" = c("95%", "68%")
       )
     },
     error = function(cnd) {
+      ndraws <- attr(object, "ndraws")
       cli::cli_warn(
         c(
-          "Plotting {.cls ernest_run} instead after a failure.",
-          "i" = "Is `ndraws` large enough to calculate HDIs?"
+          "Could't calculate HDIs from `object`.",
+          "!" = "Returning a plot with evidence variance estimates instead.",
+          "i" = if (ndraws <= 100) {
+            "Is `ndraws` large enough to calculate HDIs?"
+          } else {
+            NULL
+          }
         ),
         parent = cnd
       )
 
-      make_plot_df(
+      calc_var_tbl(
         log_volume = mean(object$log_volume),
         log_evidence = mean(object$log_evidence),
         log_evidence_var = posterior::sd(object$log_evidence) %|% 0.0,
@@ -144,22 +193,16 @@ autoplot.ernest_estimate <- function(object, ...) {
   )
 }
 
-#' @export
-autoplot.ernest_run <- function(object, ...) {
-  check_dots_empty()
-
-  make_plot_df(
-    log_volume = object$log_volume,
-    log_evidence = object$log_evidence,
-    log_evidence_var = object$log_evidence_var,
-    log_weight = object$log_weight,
-    log_lik = object$log_lik
-  )
-}
-
-#' Create a data.frame for plotting the results of a run
+#' Calculate a data.frame for plotting evidence values from a run
+#' @param log_volume A numeric vector of log. volume values.
+#' @param log_evidence A numeric vector of log. evidence values.
+#' @param log_evidence_var A numeric vector of log. evidence variances.
+#' @param log_weight A numeric vector of log. weights.
+#' @param log_lik A numeric vector of log. likelihood values.
+#' @return A list containing a data.frame for plotting and additional metadata
+#' for the fill aesthetic.
 #' @noRd
-make_plot_df <- function(
+calc_var_tbl <- function(
   log_volume,
   log_evidence,
   log_evidence_var,
@@ -195,18 +238,21 @@ make_plot_df <- function(
     ".upper" = NA,
     ".width" = NA
   )
-  df <- vctrs::vec_c(df_w, df_ll, df_z)
-  autoplot_run_(
-    df,
-    expression(hat(sigma[Z])),
-    c(3, 2, 1),
-    c(expression(3 * sigma), expression(2 * sigma), expression(1 * sigma))
+  list(
+    "df" = vctrs::vec_c(df_w, df_ll, df_z),
+    "fill_name" = expression(hat(sigma[Z])),
+    "fill_limits" = c(3, 2, 1),
+    "fill_labels" = c(
+      expression(3 * sigma),
+      expression(2 * sigma),
+      expression(1 * sigma)
+    )
   )
 }
 
 #' Autoplot for Ernest Run Objects
 #'
-#' @param object a data.frame from make_plot_df
+#' @param object a data.frame containing the
 #' @param fill_name Name of the fill aesthetic in the plot.
 #' @param fill_limits Limits for the fill aesthetic.
 #' @param fill_labels Labels for the fill aesthetic.
@@ -215,6 +261,9 @@ make_plot_df <- function(
 #'
 #' @return A ggplot object representing the diagnostic plots.
 #' @importFrom ggplot2 geom_ribbon
+#' @importFrom ggplot2 autoplot ggplot aes geom_line geom_col
+#' @importFrom ggplot2 scale_x_continuous scale_y_continuous vars
+#' @importFrom ggplot2 scale_fill_viridis_d facet_grid
 #' @noRd
 autoplot_run_ <- function(df, fill_name, fill_limits, fill_labels) {
   df$.width <- factor(

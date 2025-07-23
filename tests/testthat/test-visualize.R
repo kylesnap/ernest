@@ -28,12 +28,12 @@ test_that("Density plot", {
   skip_on_cran()
   skip_on_covr()
 
+  set.seed(42)
   run <- readRDS(test_path("./example_run.rds"))
   vdiffr::expect_doppelganger(
     "visualize-basic",
     visualize(run)
   )
-
   vdiffr::expect_doppelganger(
     "visualize-radial",
     visualize(run, radial = TRUE, vars = c(".radial"))

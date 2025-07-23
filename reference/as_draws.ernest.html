@@ -20,10 +20,11 @@ posterior package."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Nested Sampling with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/kylesnap/ernest/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -33,7 +34,7 @@ posterior package."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Transform nested sampling runs to <code>draws</code> objects</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/ropensci_submission/R/as_draws.R" class="external-link"><code>R/as_draws.R</code></a></small>
       <div class="d-none name"><code>as_draws.ernest.Rd</code></div>
     </div>
 
@@ -59,7 +60,7 @@ posterior package."></head><body>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An <code>ernest_run</code> object.</p></dd>
+<dd><p>(ernest_run) An <code>ernest_run</code> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -67,15 +68,17 @@ posterior package."></head><body>
 
 
 <dt id="arg-units">units<a class="anchor" aria-label="anchor" href="#arg-units"></a></dt>
-<dd><p>Which units to express the sampled points. If <code>"original"</code>,
-points are expressed on the scale of the prior space. If <code>"unit_cube"</code>,
-points are expressed on the scale of the (0-1)-unit hypercube.</p></dd>
+<dd><p>(case-sensitive string) The scale in which to return the
+sampled points:</p><ul><li><p><code>"original"</code>: Points are expressed on the scale of the prior space.</p></li>
+<li><p><code>"unit_cube"</code>: Points are expressed on the scale of the (0-1)-unit
+hypercube.</p></li>
+</ul></dd>
 
 
 <dt id="arg-radial">radial<a class="anchor" aria-label="anchor" href="#arg-radial"></a></dt>
-<dd><p>Whether to return an additional column <code>.radial</code>, containing
-the radial coordinate (i.e., the squared sum of squares) for each sampled
-point.</p></dd>
+<dd><p>(logical) Whether to return an additional column <code>.radial</code>,
+containing the radial coordinate (i.e., the squared sum of squares) for
+each sampled point.</p></dd>
 
 </dl></div>
     <div class="section level2">

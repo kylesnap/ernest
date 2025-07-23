@@ -18,10 +18,11 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Nested Sampling with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/kylesnap/ernest/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -31,7 +32,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Estimate Evidence using a Nested Sampling Run</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/ropensci_submission/R/calculate.R" class="external-link"><code>R/calculate.R</code></a></small>
       <div class="d-none name"><code>calculate.ernest_run.Rd</code></div>
     </div>
 
@@ -42,7 +43,7 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'ernest_run'</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, ndraws <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, ndraws <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -50,7 +51,7 @@
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An <code>ernest_run</code> object.</p></dd>
+<dd><p>(ernest_run) An <code>ernest_run</code> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -58,10 +59,10 @@
 
 
 <dt id="arg-ndraws">ndraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
-<dd><p>A positive integer or a boolean. If <code>FALSE</code>, the log volumes
-will be derived from their expected values. If not <code>FALSE</code>, the log volumes
-will be simulated using <code>ndraws</code> samples from each volume's
-joint distribution.</p></dd>
+<dd><p>(positive integer or zero, optional) The number of log volume
+sequences to simulate. If equal to zero, no simulations will be made, and a
+one draw vector of log volumes are produced from the estimates contained in
+<code>x</code>. If <code>NULL</code>, <code>getOption("posterior.rvar_ndraws")</code> is used (default 4000).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -71,11 +72,31 @@ following columns:</p><ul><li><p><code>log_lik</code>: The log-likelihood of the
 <li><p><code>log_volume</code>: The log volume of the prior space.</p></li>
 <li><p><code>log_weight</code>: The log weights of the live points.</p></li>
 <li><p><code>log_evidence</code>: The log evidence of the model.</p></li>
-<li><p><code>log_evidence.err</code>: The standard error of the log evidence (only available
+<li><p><code>log_evidence_err</code>: The standard error of the log evidence (only available
 when <code>ndraws = 0</code>).</p></li>
-</ul><p>The tibble has the additional class <code>ernest_estimates</code>, which has its own
+</ul><p>The tibble has the additional class <code>ernest_estimate</code>, which has its own
 <a href="plot.ernest.html">plot</a> method.</p>
 <p>Each column is returned as an <code><a href="https://mc-stan.org/posterior/reference/rvar.html" class="external-link">posterior::rvar()</a></code> vector.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Use <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> to simulate the estimation error nested sampling runs caused
+by approximating the change in log volume between iterations. Given the
+use of ordered log likelihood restricted prior sampling, these volumes can be
+modelled as the order statistics of a uniform random variable. Ernest uses the
+following distributions to perform this simulation:</p><ul><li><p>Constant number of live points: At each iteration, the point with the
+lowest likelihood is replaced by a new sample constrained to a higher
+likelihood region. Under this setup, the shrinkage in prior volume at
+iteration <code>i</code> can be shown to follow the Beta distribution.</p></li>
+<li><p>Decreasing number of live points: At the end of the sampling run, the
+remaining live points are added to the dead point set. This introduces a discrete
+stepwise behavior in volume shrinkage. Ernest uses a transformation of variables
+drawn from the exponential distribution to simulate the corresponding changes
+in volume.</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>See Appendix A6 of Speagle, J. (2020).</p>
     </div>
 
     <div class="section level2">
@@ -85,37 +106,11 @@ when <code>ndraws = 0</code>).</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># View results as a tibble with `ndraws = FALSE` (the default).</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">ernest_run_example</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,315 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik   log_volume log_weight log_evidence log_evidence.err</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -149 <span style="color: #949494;">± NA</span>  -0.001 <span style="color: #949494;">± NA</span>  -157 <span style="color: #949494;">± NA</span>    -157 <span style="color: #949494;">± NA</span>     3.2e-33 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -146 <span style="color: #949494;">± NA</span>  -0.002 <span style="color: #949494;">± NA</span>  -154 <span style="color: #949494;">± NA</span>    -154 <span style="color: #949494;">± NA</span>     1.4e-32 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -141 <span style="color: #949494;">± NA</span>  -0.003 <span style="color: #949494;">± NA</span>  -149 <span style="color: #949494;">± NA</span>    -149 <span style="color: #949494;">± NA</span>     1.4e-31 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -140 <span style="color: #949494;">± NA</span>  -0.004 <span style="color: #949494;">± NA</span>  -148 <span style="color: #949494;">± NA</span>    -147 <span style="color: #949494;">± NA</span>     3.2e-31 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -138 <span style="color: #949494;">± NA</span>  -0.005 <span style="color: #949494;">± NA</span>  -145 <span style="color: #949494;">± NA</span>    -145 <span style="color: #949494;">± NA</span>     1.0e-30 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -133 <span style="color: #949494;">± NA</span>  -0.006 <span style="color: #949494;">± NA</span>  -140 <span style="color: #949494;">± NA</span>    -140 <span style="color: #949494;">± NA</span>     1.2e-29 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.007 <span style="color: #949494;">± NA</span>  -137 <span style="color: #949494;">± NA</span>    -137 <span style="color: #949494;">± NA</span>     5.1e-29 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.008 <span style="color: #949494;">± NA</span>  -136 <span style="color: #949494;">± NA</span>    -136 <span style="color: #949494;">± NA</span>     8.7e-29 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -127 <span style="color: #949494;">± NA</span>  -0.009 <span style="color: #949494;">± NA</span>  -134 <span style="color: #949494;">± NA</span>    -134 <span style="color: #949494;">± NA</span>     2.1e-28 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -127 <span style="color: #949494;">± NA</span>  -0.010 <span style="color: #949494;">± NA</span>  -134 <span style="color: #949494;">± NA</span>    -133 <span style="color: #949494;">± NA</span>     3.7e-28 <span style="color: #949494;">± NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,305 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_calculate&gt;</span>: 4000 draws x 10315 iterations</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate 100 simulated log volume values for each iteration.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">ernest_run_example</span>, ndraws <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,315 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik          log_volume  log_weight log_evidence</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -149 <span style="color: #949494;">± NA</span>  -0.00078 <span style="color: #949494;">± 0.00073</span>  -157 <span style="color: #949494;">± 1.1</span>  -157 <span style="color: #949494;">± 1.09</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -146 <span style="color: #949494;">± NA</span>  -0.00190 <span style="color: #949494;">± 0.00114</span>  -154 <span style="color: #949494;">± 1.1</span>  -154 <span style="color: #949494;">± 0.95</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -141 <span style="color: #949494;">± NA</span>  -0.00283 <span style="color: #949494;">± 0.00138</span>  -150 <span style="color: #949494;">± 1.1</span>  -150 <span style="color: #949494;">± 1.04</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -140 <span style="color: #949494;">± NA</span>  -0.00377 <span style="color: #949494;">± 0.00160</span>  -148 <span style="color: #949494;">± 1.1</span>  -148 <span style="color: #949494;">± 0.82</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -138 <span style="color: #949494;">± NA</span>  -0.00479 <span style="color: #949494;">± 0.00188</span>  -146 <span style="color: #949494;">± 1.4</span>  -145 <span style="color: #949494;">± 0.97</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -133 <span style="color: #949494;">± NA</span>  -0.00590 <span style="color: #949494;">± 0.00227</span>  -141 <span style="color: #949494;">± 1.2</span>  -141 <span style="color: #949494;">± 1.20</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.00684 <span style="color: #949494;">± 0.00241</span>  -138 <span style="color: #949494;">± 1.3</span>  -138 <span style="color: #949494;">± 1.15</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.00770 <span style="color: #949494;">± 0.00259</span>  -137 <span style="color: #949494;">± 1.4</span>  -137 <span style="color: #949494;">± 0.94</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -127 <span style="color: #949494;">± NA</span>  -0.00882 <span style="color: #949494;">± 0.00274</span>  -135 <span style="color: #949494;">± 1.3</span>  -135 <span style="color: #949494;">± 0.90</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -127 <span style="color: #949494;">± NA</span>  -0.00983 <span style="color: #949494;">± 0.00288</span>  -134 <span style="color: #949494;">± 1.2</span>  -133 <span style="color: #949494;">± 0.69</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,305 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_calculate&gt;</span>: 100 draws x 10315 iterations</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

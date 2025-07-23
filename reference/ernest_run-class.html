@@ -22,10 +22,11 @@ run's estimates."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Nested Sampling with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/kylesnap/ernest/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -35,7 +36,7 @@ run's estimates."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Results from nested sampling runs</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/ropensci_submission/R/run-class.R" class="external-link"><code>R/run-class.R</code></a></small>
       <div class="d-none name"><code>ernest_run-class.Rd</code></div>
     </div>
 
@@ -111,8 +112,8 @@ live point.</p></dd>
 
 
 <dt><code>birth</code></dt>
-<dd><p>The iteration at which the point was created and added to the live
-set.</p></dd>
+<dd><p>The iteration at which the point was created and added to the
+live set.</p></dd>
 
 
 <dt><code>samples</code></dt>
@@ -128,8 +129,8 @@ prior space.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><a href="ernest_run_example.html">ernest_run_example</a> for an example object, and <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> for how to
-create a new <code>ernest_run</code> object. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> on how to use
+    <div class="dont-index"><p><a href="ernest_run_example.html">ernest_run_example</a> for an example object, and <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> for how
+to create a new <code>ernest_run</code> object. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> on how to use
 <code>ernest_run</code> objects to examine uncertainty in the log volume estimates.</p></div>
     </div>
 

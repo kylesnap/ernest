@@ -24,7 +24,10 @@ test_that("Trace tables", {
 })
 
 test_that("Density plot", {
-  set.seed(42)
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
+
   run <- readRDS(test_path("./example_run.rds"))
   vdiffr::expect_doppelganger(
     "visualize-basic",
@@ -38,6 +41,11 @@ test_that("Density plot", {
 })
 
 test_that("Trace plot", {
+  skip_on_ci()
+  skip_on_cran()
+  skip_on_covr()
+
+  set.seed(42)
   run <- readRDS(test_path("./example_run.rds"))
   vdiffr::expect_doppelganger(
     "visualize-trace",

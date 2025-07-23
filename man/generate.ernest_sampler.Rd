@@ -70,6 +70,15 @@ final evidence estimates.
 If \code{x} already contains results from previous calls to \code{generate()}, then
 \code{generate()} will ensure that your stopping criterion have not already been
 surpassed during previous runs.
+
+Control the verbosity of \code{generate} as it runs with the
+\code{rlib_message_verbosity} option. This can be set with one of these three
+values:
+\itemize{
+\item \code{"default"}: Verbose unless the \code{.frequency} argument is supplied.
+\item \code{"verbose"}: Always verbose.
+\item \code{"quiet"}: Always quiet.
+}
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

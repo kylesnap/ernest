@@ -46,7 +46,8 @@ R Programs for Truncated Distributions. Journal of Statistical Software,
 Code Snippets, 16(2), 1–8. \url{https://doi.org/10.18637/jss.v016.c02}
 }
 \seealso{
-\code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior} object.
+\code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior}
+object.
 
 Other special priors: 
 \code{\link{create_cauchy_prior}()},

@@ -8,12 +8,12 @@ The \code{ernest_sampler} is an R6 class that implements the core logic for a
 nested sampling run.
 }
 \details{
-This class is primarily intended for internal use within the \code{ernest} package.
-Users should interact with nested sampling samplers via the provided S3 generics,
-rather than calling R6 methods directly.
+This class is primarily intended for internal use within the \code{ernest}
+package. Users should interact with nested sampling samplers via the
+provided S3 generics rather than calling R6 methods directly.
 
-The R6 interface is documented here for developers and advanced users who
-want to extend or debug ernest.
+The object is documented for developers and advanced users who want to
+extend or debug ernest.
 }
 \section{Usage}{
 
@@ -155,7 +155,7 @@ Prints a brief description of the sampler.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Ignored.}
+\item{\code{...}}{Ignored.volume}
 }
 \if{html}{\out{</div>}}
 }

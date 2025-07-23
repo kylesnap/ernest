@@ -51,7 +51,7 @@ This method requires the \code{ggdist} and \code{tidyselect} optional packages.
 \examples{
 # Load example run
 library(ggdist)
-data(ernest_run_example)
+ernest_run_example <- run_example()
 
 # Plot posterior distributions of the parameters
 visualize(ernest_run_example, type = "density")
@@ -66,5 +66,6 @@ visualize(
 )
 }
 \seealso{
-\code{\link[=plot]{plot()}} for visualizing the evidence estimates from an \code{ernest_run}.
+\code{\link[=plot]{plot()}} for visualizing the evidence estimates from an
+\code{ernest_run}.
 }

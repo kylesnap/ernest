@@ -13,25 +13,3 @@
     `min_logz` must be less than the estimated remaining evidence.
     ! Remaining log evidence is 0.049.
 
-# Early exits are repaired
-
-    Can't calculate the likelihood without an error.
-    Caused by error in `fn()`:
-    ! Early exit
-
----
-
-    Sampler can't contain a half-completed run.
-    i Rolling-back sampler to 0 iterations.
-
----
-
-    Can't calculate the likelihood without an error.
-    Caused by error in `fn()`:
-    ! Early exit
-
----
-
-    Sampler can't contain a half-completed run.
-    i Rolling-back sampler to 100 iterations.
-

@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
-[![test-coverage](https://github.com/kylesnap/ernest/actions/workflows/test-coverage.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/test-coverage.yaml)
+[![codecov](https://codecov.io/gh/kylesnap/ernest/branch/ropensci_submission/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
 <!-- badges: end -->
 
 The best place to start learning about NS would be this paper, surveying modern applications and implementations of the algorithm. Much of ernest was developed based on this paper's description of NS:

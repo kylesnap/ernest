@@ -56,10 +56,14 @@ prior space.}
 
 \item{\code{samples_unit}}{Identical to \code{samples}, but expressed in the units of the
 0-1 hypercube.}
+
+\item{\code{spec}}{A pairlist, describing the \code{log_lik}, \code{prior}, \code{sampler},
+\code{first_update}, \code{update_interval} used to produce this run, as well as
+the \code{min_logz} value the run was terminated on.}
 }}
 
 \seealso{
-\link{ernest_run_example} for an example object, and \code{\link[=generate]{generate()}} for how
+\code{\link[=generate]{generate()}} for how
 to create a new \code{ernest_run} object. \code{\link[=plot]{plot()}} and \code{\link[=calculate]{calculate()}} on how to use
 \code{ernest_run} objects to examine uncertainty in the log volume estimates.
 }

@@ -50,32 +50,3 @@ test_that("Throws errors when stop criteria are already passed", {
   generate(sampler)
   expect_snapshot_error(generate(sampler, min_logz = 1))
 })
-
-test_that("Early exits are repaired", {
-  test_env <- rlang::new_environment()
-  rlang::env_bind(test_env, "count" = -100, "max_count" = 100)
-  counting_ll <- function(x) {
-    test_env$count <- test_env$count + 1L
-    if (test_env$count > test_env$max_count) {
-      stop("Early exit")
-    }
-    ll_fn(x)
-  }
-
-  sampler <- nested_sampling(counting_ll, prior, n_point = 100)
-  expect_snapshot_error(generate(sampler, max_iterations = 200))
-
-  test_env$max_count <- .Machine$integer.max
-  expect_snapshot_warning(run <- generate(sampler, max_iterations = 100))
-  expect_equal(run$n_iter, 100)
-  dead_it <- seq(run$n_iter)
-  dead <- extract_dead(run, dead_it)
-
-  test_env$max_count <- run$n_iter + 100L
-  expect_snapshot_error(run <- generate(sampler))
-
-  test_env$max_count <- .Machine$integer.max
-  expect_snapshot_warning(run2 <- generate(sampler))
-  dead_2 <- extract_dead(run2, dead_it)
-  expect_mapequal(dead, dead_2)
-})

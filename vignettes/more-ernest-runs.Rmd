@@ -1,0 +1,173 @@
+---
+title: "More Ernest Runs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Classical Nested Sampling Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ernest)
+```
+
+```{r, include = FALSE, echo = FALSE}
+#' @srrstats {G1.5} These examples are based on classical test problems for nested sampling, including tests for the dynesty NS package. These problems are additionally used within ernest's test suite to validate its behaviour.
+#' @srrstats {G5.1} Tests and test data are made available here for users to interact with.
+#' @srrstats {BS1.1} Provides an example on how to enter data through an anonymous function.
+```
+
+This vignette demonstrates how to use the ernest package to solve several classical nested sampling problems. These examples are based on standard benchmarks from the literature and are also used in the package's test suite to validate correctness. You'll learn how to specify likelihoods and priors, run nested sampling, and interpret the results.
+
+# 1. Gaussian Shells
+The "Gaussian shells" problem is a standard test for nested sampling algorithms, as they illustrate the ability of nested sampling to deal with oddly-shaped distributions that can be difficult to traverse with traditional random-walk MCMC methods.
+
+We will solve the shells problem in 2 and 5 dimensions. To make this easier, we'll build a function factory to specify the log-likelihood of two Gaussian shells in $d$-dimensional space, with one shell offset in the first dimension by 3.5.
+
+```{r}
+gaussian_shell <- function(n_dim) {
+  c_1 <- numeric(n_dim) # Center of shell 1
+  c_2 <- numeric(n_dim) # Center of shell 2
+  c_1[1] <- 3.5 # 1D of the first shell is off-center
+
+  r <- 2 # Radius
+  w <- 0.1 # Shell width
+  const <- log(1 / sqrt(2 * pi * w^2))
+
+  # Single-shell log likelihood
+  log_lik_shell <- function(theta, c) {
+    d <- sqrt(sum((theta - c)^2))
+    const - (d - r)^2 / (2 * w^2)
+  }
+
+  # log-likelihood of two shells
+  function(theta) {
+    matrixStats::logSumExp(c(
+      log_lik_shell(theta, c_1),
+      log_lik_shell(theta, c_2)
+    ))
+  }
+}
+```
+
+## 1.1. Shells in 2D
+
+```{r}
+log_lik_2d <- gaussian_shell(2)
+prior_2d <- create_uniform_prior(
+  n_dim = 2,
+  lower = -6,
+  upper = 6,
+  varnames = c("x", "y")
+)
+
+sampler_2d <- nested_sampling(log_lik_2d, prior_2d)
+run_2d <- generate(sampler_2d)
+run_2d
+```
+
+We can review the results with more detail using `summary()`:
+
+```{r}
+summary(run_2d)
+```
+
+## 1.2. Shells in 5D
+
+```{r}
+log_lik_5d <- gaussian_shell(5)
+prior_5d <- create_uniform_prior(
+  n_dim = 5,
+  lower = -6,
+  upper = 6,
+  varnames = LETTERS[1:5]
+)
+
+sampler_5d <- nested_sampling(log_lik_5d, prior_5d)
+run_5d <- generate(sampler_5d)
+run_5d
+```
+
+If we wanted to ensure ourselves that our prior was behaving as expected, we can use the `posterior` package to examine our recorded samples.
+
+```{r}
+library(posterior)
+draws_5d <- as_draws(run_5d)
+range(extract_variable(draws_5d, "A"))
+range(extract_variable(draws_5d, "B"))
+```
+
+# 2. The Eggbox distribution
+The eggbox is a highly multimodal likelihood surface, used as another classical example in nested sampling.
+
+```{r}
+eggbox_loglik <- function(theta) {
+  (2 + cos(theta[1] / 2) * cos(theta[2] / 2))^5
+}
+prior_eggbox <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
+sampler_eggbox <- nested_sampling(eggbox_loglik, prior_eggbox)
+run_eggbox <- generate(sampler_eggbox)
+summary(run_eggbox)
+```
+
+We can plot the run to examine how our evidence estimates changed over time:
+
+```{r}
+plot(run_eggbox)
+```
+
+Additionally, we can use `calculate` to simulate uncertainty around our log volume estimates. As a shortcut, we can use `plot` with a non-zero `ndraws` argument.
+
+```{r}
+plot(run_eggbox, ndraws = 100)
+```
+
+# 3. Working with Data
+
+To use data within an ernest run, you'll have to incorporate it within your log-likelihood function. In many cases, this can be done through using an anonymous function: If `f` is a function that takes in parameters `theta` and data `y`, then you can pass data through to ernest by using the syntax `\(theta) f(theta, y)`.
+
+As a demonstration, consider how ernest performs posterior estimation for [this](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html) dataset from the National Institutte of Science and Technology.
+
+```{r}
+# NIST dataset
+data <- c(
+  100000000.2, 100000000.1, 100000000.3, 100000000.1, 100000000.3,
+  100000000.1, 100000000.3, 100000000.1, 100000000.3, 100000000.1, 100000000.3
+)
+
+log_lik_norm <- function(theta, y) {
+  sum(dnorm(y, theta[1], theta[2], log = TRUE))
+}
+
+prior_norm <- create_normal_prior(
+  n_dim = 2,
+  mean = c(100000000, 0.1),
+  sd = 10,
+  lower = c(-Inf, 0),
+  varnames = c("mean", "sd")
+)
+
+sampler_norm <- nested_sampling(
+  log_lik = \(theta) log_lik_norm(theta, y = data),
+  prior_norm
+)
+run_norm <- generate(sampler_norm)
+run_norm
+```
+
+To examine the posterior, we need to first call `posterior::resample_draws()` on the `draws` arugment produced from an `ernest_run`. This is because `ernest` binds the log-importance posterior weights to the `as_draws` object as a hidden variable.
+
+Once this is done, we can use the `posterior` package to examine the posterior distribution
+
+```{r}
+draws_norm <- as_draws(run_norm) |> resample_draws()
+
+summarize_draws(draws_norm)
+```

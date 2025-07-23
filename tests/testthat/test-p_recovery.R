@@ -1,7 +1,7 @@
 #' Paramter Recovery
 #'
-#' @srrstats {G5.6, G5.6a, BS7.2} Use the NIST dataset `mcmc01` to test ernest's
-#' ability to recover the parameters of a normal distribution. Uses the
+#' @srrstats {G5.0, G5.6, G5.6a, BS7.2} Use the NIST dataset `mcmc01` to test
+#' ernest's ability to recover the parameters of a normal distribution. Uses the
 #' certified 95% posterior quantile.
 NULL
 

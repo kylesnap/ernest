@@ -27,7 +27,9 @@ side effect.
 
 The plot is faceted in three frames. The horizontal axis shows values of log.
 volume: If \code{x} is an \code{ernest_run} these estimates are derived from the run,
-if \code{x} is an \code{ernest_estimate} (or \code{ndraws != 0}), these values are simulated.
+if \code{x} is an \code{ernest_estimate} (or \code{ndraws != 0}), these values are
+simulated.
+
 The three \code{y} axes are as follows:
 \itemize{
 \item \strong{Evidence:} Estimate with a corresponding error ribbon drawn from either
@@ -47,26 +49,22 @@ of log. volume.
 }
 \note{
 For \code{ernest_estimate}, \code{ndraws} must be sufficiently large to calculate
-HDI. If HDI calculation fails, the user will be warned and an \code{ernest_run} plot
-will be generated instead.
+HDI. If HDI calculation fails, the user will be warned and an \code{ernest_run}
+plot will be generated instead.
 }
 \examples{
 # Plot integration results from a run.
-data(ernest_run_example)
+ernest_run_example <- run_example()
 plot(ernest_run_example)
 
 # Simulate results before plotting.
-library(ggdist)
-data(ernest_run_example)
 plot(ernest_run_example, ndraws = 50)
 # Simulate results from a run, then plot simulated results.
-library(ggdist)
-data(ernest_run_example)
-
 sim <- calculate(ernest_run_example, ndraws = 50)
 plot(sim)
 }
 \seealso{
-\code{\link[=calculate]{calculate()}} for generating \code{ernest_estimate} objects; also, \code{\link[=visualize]{visualize()}} to
-plot the posterior distributions of the parameters from a run.
+\code{\link[=calculate]{calculate()}} for generating \code{ernest_estimate} objects; also,
+\code{\link[=visualize]{visualize()}} to plot the posterior distributions of the parameters from a
+run.
 }

@@ -4,6 +4,10 @@
 #' log-likelihood function, prior distribution, and likelihood-restricted prior
 #' specification.
 #'
+#' @srrstats {G2.6} The sanity check performed by nested_sampling catches
+#' catch incommensurability between the prior and likelihood functions.
+#' Additional testing is performed in `compile`.
+#'
 #' @param log_lik (function) A function that takes a vector of parameters and
 #' returns the log-likelihood of the parameters. The function should return a
 #' finite value or `-Inf` for invalid parameters (see [create_likelihood()]).

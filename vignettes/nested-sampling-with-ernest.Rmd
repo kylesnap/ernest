@@ -33,6 +33,10 @@ The goal of this vignette is to teach you the basics of nested sampling by inter
 #' SRR STATS BLOCK
 #'
 #' @srrstats {G1.3} Exhaustively defines the key statistical terms for NS.
+#' @srrstats {BS4.1} This vignette demonstrates how ernest is compatible with
+#' existing tools available to R users, unlike non-R-native nested sampling
+#' implementations. This is highlighted through both code demonstrations and
+#' discussion.
 ```
 
 Consider a statistical model, called $M$, that has a set of unknown parameters $\theta$. In Bayesian statistics, we can numerically express how observed data, $D$, will update our knowledge about the distribution of $\theta$ as a probability. This is calculated through Bayes' theorem:
@@ -109,13 +113,12 @@ For example, to specify a the same 3-dimensional $U[-10, 10]$ prior, you can per
 transformation <- function(x) {
   x * 20 - 10
 }
-user_prior <- create_prior(
+create_prior(
   fn = transformation,
   n_dim = 3,
   lower = -10,
   upper = 10
 )
-user_prior
 ```
 
 If your prior involves dependencies between parameters, you can encode these in your transformation function. For example, a hierarchical prior might look like:
@@ -127,7 +130,7 @@ hierarchical <- function(theta) {
   x <- qnorm(theta[3], mean = mu, sd = sigma)
   c(mu, sigma, x)
 }
-custom_prior <- create_prior(
+create_prior(
   fn = hierarchical,
   n_dim = 3,
   varnames = c("mu", "sigma", "x"),
@@ -196,10 +199,6 @@ run_dlogz
 ```
 
 ## Reviewing Nested Sampling Runs
-```{r echo = FALSE, include = FALSE}
-#' SRR Block
-#' 
-#' @srrstatsTODO {BS4.1} Demonstrates the compatibility between ernest and posterior, a key advantage of
 ```
 
 Calls to `generate()` return an `ernest_run` object, which has methods for several generics to help you inspect and analyze the results from nested sampling. Unlike non-native NS implementations, ernest is designed to integrate neatly with popular R packages like `ggplot2` and `posterior`.

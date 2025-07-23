@@ -20,9 +20,13 @@
 #' and a more sophisticated random walk Metropolis-Hastings sampler, which takes
 #' a random point from the live set and walks it through a number of steps.
 #'
-#' @references For more on different LRPS, Buchner, J. (2023). Nested Sampling
-#' Methods. Statistics Surveys, 17(none), 169–215.
-#' <https://doi.org/10.1214/23-SS144>
+#' @srrstats {BS1.3b} Documentation on the different sampling
+#' algorithms (but warns users away from the inefficient `unif_cube`) sampler.
+#' @srrstats {BS4.0} Cites original software implementation.
+#'
+#' @references `unif_cube` and `rw_walk` are based off of implementations found
+#' in the [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/quickstart.html#sampling-options)
+#' python package.
 NULL
 
 #' @rdname ernest_sampling

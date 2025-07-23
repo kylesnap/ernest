@@ -32,7 +32,8 @@
 #' Model likelihoods should be provided as a log density function. It is
 #' expected that `fn` should take in exactly one argument; likelihood functions
 #' that take in multiple non-default arguments should be entered as anonymous
-#' functions (see [rlang::as_function()]).
+#' functions (see [rlang::as_function()]). See vignettes for an example of
+#' entering data through an anonymous function.
 #'
 #' It is expected that `fn` returns a scalar finite values or `-Inf` for each
 #' parameter vector. Use `error_action` and `nonfinite_action` to decide on
@@ -52,7 +53,9 @@
 #' missing values produced during a run and acts upon them based on user-desired
 #' behaviour.
 #' @srrstats {G2.16} Value handling is also performed for other undefined
-#' values.
+#' values (Inf, NaN)
+#' @srrstats {BS1.1} Textual information on how to enter data into ernest
+#' through anonymous functions.
 #'
 #' @examples
 #' # A 3D Gaussian likelihood function

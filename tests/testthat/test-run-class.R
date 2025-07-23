@@ -57,6 +57,12 @@ test_that("Runs can continue after two calls", {
   expect_equal(result3$birth[first], result2$birth[first])
   expect_equal(result3$id[first], result2$id[first])
   expect_snapshot(result3)
+
+  spec <- result3$spec
+  expect_identical(spec$log_lik, gaussian_2$log_lik)
+  expect_identical(spec$prior, gaussian_2$prior)
+  expect_equal(spec$first_update, 500L)
+  expect_equal(spec$update_interval, 500L)
 })
 
 test_that("Summary method returns", {

@@ -37,16 +37,16 @@
 #' [visualize()] to plot the posterior distributions of the parameters from a
 #' run.
 #'
+#' @srrstats {BS6.1} Default plot method for ernest_run.
+#'
 #' @rdname plot.ernest
 #' @export
 #' @examples
 #' # Plot integration results from a run.
-#' data(ernest_run_example)
+#' ernest_run_example <- run_example()
 #' plot(ernest_run_example)
 #'
 #' # Simulate results before plotting.
-#' library(ggdist)
-#' data(ernest_run_example)
 #' plot(ernest_run_example, ndraws = 50)
 plot.ernest_estimate <- function(x, ...) {
   check_dots_empty()
@@ -59,9 +59,6 @@ plot.ernest_estimate <- function(x, ...) {
 #' @export
 #' @examples
 #' # Simulate results from a run, then plot simulated results.
-#' library(ggdist)
-#' data(ernest_run_example)
-#'
 #' sim <- calculate(ernest_run_example, ndraws = 50)
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {

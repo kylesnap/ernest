@@ -19,20 +19,22 @@
 #' @return The updated `self` object with the new state of the nested sampler.
 #' @keywords internal
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
+#' @importFrom cli cli_inform
 #' @noRd
 nested_sampling_impl <- function(
   self,
   private,
   max_it,
   max_c,
-  min_logz,
-  verbose
+  min_logz
 ) {
   prev <- private$results
   iter <- prev$n_iter %||% 0L
   call <- prev$n_call %||% 0L
   log_vol <- prev$log_vol[prev$n_iter] %||% 0.0
   log_z <- prev$log_evidence[prev$n_iter] %||% -1e300
+  max_lik <- max(private$live_log_lik)
+  d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
   last_criterion <- prev$log_lik[prev$n_iter] %||% -1e300
   d_log_vol <- log((private$n_points + 1) / private$n_points)
 
@@ -44,22 +46,25 @@ nested_sampling_impl <- function(
 
   progress <- paste0(
     "{cli::pb_spin} Generating nested samples | ",
-    "{cli::pb_current} points created [{cli::pb_rate}]"
+    "{cli::pb_current} iter. | {call} lik. calls |",
+    "{d_log_z} est. log. z remaining"
   )
+  verbose <- getOption("rlib_message_verbosity", "verbose") != "quiet"
   if (verbose) {
     cli_progress_bar(format = progress, clear = TRUE)
   }
-  private$status <- "RUNNING"
   for (i in seq(1, max_it - iter)) {
     # 1. Check stop conditions
     if (call > max_c) {
       private$status <- "MAX_CALLS"
+      cli_inform("`max_calls` surpassed ({call} > {max_c})")
       break
     }
     max_lik <- max(private$live_log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
       private$status <- "MIN_LOGZ"
+      cli_inform("`min_logz` reached ({d_log_z} < {min_logz})")
       break
     }
     if (verbose) {
@@ -70,7 +75,9 @@ nested_sampling_impl <- function(
     worst_idx <- which_minn(private$live_log_lik)
     new_criterion <- private$live_log_lik[worst_idx[1]]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
-      cli_warn("Stopping run due to a likelihood plateau at {max_lik}.")
+      cli_warn(
+        "Stopping run due to a likelihood plateau at {round(max_lik, 3)}."
+      )
       private$status <- "PLATEAU"
       break
     }
@@ -115,7 +122,10 @@ nested_sampling_impl <- function(
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
   }
-  private$status <- "MAX_IT"
+  if (!(private$status %in% c("PLATEAU", "MIN_LOGZ", "MAX_CALLS"))) {
+    private$status <- "MAX_ITER"
+    cli_inform("`max_iterations` reached ({max_it})")
+  }
   if (verbose) {
     cli_progress_done()
   }
@@ -125,6 +135,7 @@ nested_sampling_impl <- function(
     "dead_log_lik" = dead_log_lik,
     "dead_id" = dead_id,
     "dead_calls" = dead_calls,
-    "dead_birth" = dead_birth
+    "dead_birth" = dead_birth,
+    "remaining_logz" = d_log_z
   )
 }

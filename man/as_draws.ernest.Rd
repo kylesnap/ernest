@@ -49,7 +49,7 @@ Try to transform an \linkS4class{ernest_run} to a format supported by the
 \examples{
 # Load example run
 library(posterior)
-data(ernest_run_example)
+ernest_run_example <- run_example()
 
 # View importance weights
 dm <- as_draws(ernest_run_example)
@@ -61,7 +61,11 @@ dm |>
  summarize_draws()
 
 # View the radial coordinate in the unit-space over the run
-dm_rad <- as_draws_rvars(ernest_run_example, units = "unit_cube", radial = TRUE)
+dm_rad <- as_draws_rvars(
+ ernest_run_example,
+ units = "unit_cube",
+ radial = TRUE
+)
 plot(
   x = ernest_run_example$log_volume,
   y = draws_of(dm_rad$.radial),

@@ -126,6 +126,9 @@ ernest_sampler <- R6Class(
     #' @param max_iterations,max_calls,min_logz,seed See
     #' [generate.ernest_sampler()].
     #'
+    #' @srrstats {BS2.6} generate checks that the stopping criteria are
+    #' reasonable (e.g., if `x` has already been run, generate ensures that the
+    #' user isn't entering already invalid criteria).
     #' @return Itself, invisibly.
     generate = function(
       max_iterations = Inf,
@@ -165,6 +168,8 @@ ernest_sampler <- R6Class(
       if (max_calls == Inf) {
         max_calls <- .Machine$integer.max
       }
+      max_iterations <- as_scalar_integer(max_iterations)
+      max_calls <- as_scalar_count(max_calls)
 
       try_fetch(
         {
@@ -212,8 +217,7 @@ ernest_sampler <- R6Class(
         private,
         as.integer(max_iterations),
         as.integer(max_calls),
-        as.double(min_logz),
-        FALSE # verbose
+        as.double(min_logz)
       )
       private$results <- do.call(
         compile_results,

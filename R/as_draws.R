@@ -28,7 +28,7 @@
 #' @examples
 #' # Load example run
 #' library(posterior)
-#' data(ernest_run_example)
+#' ernest_run_example <- run_example()
 #'
 #' # View importance weights
 #' dm <- as_draws(ernest_run_example)

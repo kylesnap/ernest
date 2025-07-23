@@ -16,8 +16,8 @@ An object of class \code{summary.ernest_run}, a list with:
 \itemize{
 \item \code{n_iter}: Number of iterations (number of dead points).
 \item \code{n_points}: Number of live points at the end of the run.
-\item \code{log_volume}, \code{log_evidence}, \code{log_evidence_err}: The final estimates of the
-quantities performed by the run that generated \code{object}.
+\item \code{log_volume}, \code{log_evidence}, \code{log_evidence_err}: The final estimates of
+the quantities performed by the run that generated \code{object}.
 \item \code{run}, A tibble with \code{n_iter + n_points} rows, containing the vectors
 \code{call}, \code{log_lik}, \code{log_volume}, \code{log_weight}, \code{log_evidence},
 \code{log_evidence_err}, and \code{information}.
@@ -28,7 +28,7 @@ Provides a summary of an \code{ernest_run} object.
 }
 \examples{
 # Load an example run
-data(ernest_run_example)
+ernest_run_example <- run_example()
 
 # Summarise the run and view a tibble of its results.
 run_sm <- summary(ernest_run_example)

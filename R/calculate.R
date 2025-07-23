@@ -46,7 +46,7 @@
 #
 #' @examples
 #' # Load an example run
-#' data(ernest_run_example)
+#' ernest_run_example <- run_example()
 #'
 #' # View results as a tibble with `ndraws = FALSE` (the default).
 #' calculate(ernest_run_example)

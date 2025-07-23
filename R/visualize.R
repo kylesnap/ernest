@@ -22,10 +22,12 @@
 #' `ernest_run`.
 #' @srrstats {G2.3, G2.3a} Using `arg_match` to validate character input.
 #' @srrstats {G2.3b} Explicitly mentions that `vars` is case sensitive.
+#' @srrstats{BS6.2, BS6.3} Produces trace plots and distributional plots
+#' from ernest_run objects.
 #' @examples
 #' # Load example run
 #' library(ggdist)
-#' data(ernest_run_example)
+#' ernest_run_example <- run_example()
 #'
 #' # Plot posterior distributions of the parameters
 #' visualize(ernest_run_example, type = "density")

@@ -31,6 +31,11 @@ test_that("Informative error when prior or log. lik. fails completely.", {
   expect_snapshot_error(create_live(bad_prior, 10))
 })
 
+
+#' @srrstats {BS2.1a} Tests for check_live(), which ensures the log lik and
+#' prior specifications are commensurate before a run begins.
+NULL
+
 test_that("check_live validates live points correctly", {
   # Valid case: correct matrix and log_lik
   unit <- matrix(runif(20), nrow = 5, ncol = 4)

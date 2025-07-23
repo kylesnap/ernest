@@ -59,13 +59,15 @@ cause errors.
 }
 \description{
 Creates a modified version of a log. likelihood function that always returns
-either a finite value or \code{-Inf} for each vector of parameters that is provided.
+either a finite value or \code{-Inf} for each vector of parameters that is
+provided.
 }
 \details{
-Model likelihoods should be provided as a log density function. It is expected
-that \code{fn} should take in exactly one argument; likelihood functions that
-take in multiple non-default arguments should be entered as anonymous
-functions (see \code{\link[rlang:as_function]{rlang::as_function()}}).
+Model likelihoods should be provided as a log density function. It is
+expected that \code{fn} should take in exactly one argument; likelihood functions
+that take in multiple non-default arguments should be entered as anonymous
+functions (see \code{\link[rlang:as_function]{rlang::as_function()}}). See vignettes for an example of
+entering data through an anonymous function.
 
 It is expected that \code{fn} returns a scalar finite values or \code{-Inf} for each
 parameter vector. Use \code{error_action} and \code{nonfinite_action} to decide on

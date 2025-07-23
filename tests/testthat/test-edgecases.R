@@ -93,6 +93,11 @@ test_that("Missing values in the prior", {
   )
 })
 
+#' @srrstats {G5.3} Here, we test to make sure no NA values sneak into
+#' the final log-likelihood vector.
+#'
+NULL
+
 test_that("Missing values in the log-likelihood", {
   ll_fn <- gaussian_shell(2L)
   ll_fn_missing <- \(theta) {
@@ -118,8 +123,9 @@ test_that("Missing values in the log-likelihood", {
       on_warning = "warn",
       nonfinite_action = "pass"
     )
-    generate(sampler, max_iterations = 3000)
+    run <- generate(sampler, max_iterations = 3000)
   })
+  expect_false(any(is.na(run$log_lik)))
 })
 
 #' Special tests: Perfectly flat and nearly flat likelihoods

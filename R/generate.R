@@ -38,6 +38,18 @@
 #' `generate()` will ensure that your stopping criterion have not already been
 #' surpassed during previous runs.
 #'
+#' Control the verbosity of `generate` as it runs with the
+#' `rlib_message_verbosity` option. This can be set with one of these three
+#' values:
+#' - `"default"`: Verbose unless the `.frequency` argument is supplied.
+#' - `"verbose"`: Always verbose.
+#' - `"quiet"`: Always quiet.
+#'
+#' @srrstats {BS2.12, BS2.13} Documentation of the `rlang` verbosity parameter.
+#' @srrstats {BS4.3, BS4.4, BS4.5} Ernest defaults to using `min_logz` to
+#' halt the nested sampling loop when the remaining evidence in the unexplored
+#' parameter space is sufficiently small. `max_iterations` is used to prevent
+#' infinite loops when `min_logz` cannot be reached.
 #' @returns An object of class [ernest_run-class], containing the results of the
 #' nested sampling run.
 #'
@@ -56,6 +68,9 @@
 #'
 #' # Use the default stopping criteria
 #' \dontrun{ generate(sampler) }
+#' @srrstats {BS1.3, BS1.3a, BS2.8} Describes the stopping criteria used for
+#' nested sampling, and details how the results of previous runs can be
+#' used as starting points for subsequent runs.
 #' @method generate ernest_sampler
 #' @export
 generate.ernest_sampler <- function(

@@ -37,15 +37,15 @@ an efficient implementation of the unit hypercube transformation.
 }
 \description{
 A specialization of \code{\link[=create_prior]{create_prior()}}, where the parameter space is
-described by independently distributed Student's t marginals that are possibly
-truncated.
+described by independently distributed Student's t marginals that are
+possibly truncated.
 }
 \details{
 The parameters used to specify this prior are for the location-scale
-t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of freedom
-\eqn{\nu}. If the random variable \eqn{X} is Student-T distributed, then
-\deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T distribution
-with \eqn{\nu} degrees of freedom.
+t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of
+freedom \eqn{\nu}. If the random variable \eqn{X} is Student-T distributed,
+then \deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T
+distribution with \eqn{\nu} degrees of freedom.
 }
 \examples{
 prior <- create_t_prior(3, df = c(1,2,5), mu = c(0,1,2), sigma = c(1,2,3))
@@ -58,8 +58,6 @@ R Programs for Truncated Distributions. Journal of Statistical Software,
 Code Snippets, 16(2), 1–8. \url{https://doi.org/10.18637/jss.v016.c02}
 }
 \seealso{
-\code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior} object.
-
 Other special priors: 
 \code{\link{create_cauchy_prior}()},
 \code{\link{create_normal_prior}()},

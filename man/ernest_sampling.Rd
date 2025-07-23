@@ -49,7 +49,7 @@ When updated during a run (see \code{\link[=nested_sampling]{nested_sampling()}}
 its step-size to target the specified acceptance rate.
 }
 \references{
-For more on different LRPS, Buchner, J. (2023). Nested Sampling
-Methods. Statistics Surveys, 17(none), 169–215.
-\url{https://doi.org/10.1214/23-SS144}
+\code{unif_cube} and \code{rw_walk} are based off of implementations found
+in the \href{https://dynesty.readthedocs.io/en/v2.1.5/quickstart.html#sampling-options}{dynesty}
+python package.
 }

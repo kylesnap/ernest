@@ -46,13 +46,13 @@
 #
 #' @examples
 #' # Load an example run
-#' ernest_run_example <- run_example()
+#' data(example_run)
 #'
 #' # View results as a tibble with `ndraws = FALSE` (the default).
-#' calculate(ernest_run_example)
+#' calculate(example_run)
 #'
 #' # Generate 100 simulated log volume values for each iteration.
-#' calculate(ernest_run_example, ndraws = 100)
+#' calculate(example_run, ndraws = 100)
 #'
 #' @method calculate ernest_run
 #' @export
@@ -114,6 +114,10 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
 #' * `run`: A [posterior::draws_rvars] of all draws and variables.
 #'
 #' @seealso [calculate()]
+#' @examples
+#' data(example_run)
+#' calc <- calculate(example_run, ndraws = 2000)
+#' summary(calc)
 #' @export
 summary.ernest_estimate <- function(object, ...) {
   check_dots_empty()

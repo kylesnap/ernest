@@ -48,6 +48,11 @@ a random point from the live set and walks it through a number of steps.
 When updated during a run (see \code{\link[=nested_sampling]{nested_sampling()}}), the sampler will adjust
 its step-size to target the specified acceptance rate.
 }
+\examples{
+rwmh_cube()
+rwmh_cube(steps = 20)
+unif_cube()
+}
 \references{
 \code{unif_cube} and \code{rw_walk} are based off of implementations found
 in the \href{https://dynesty.readthedocs.io/en/v2.1.5/quickstart.html#sampling-options}{dynesty}

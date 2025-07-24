@@ -67,23 +67,35 @@ test_that("get_information calculates correctly", {
 })
 
 test_that("calculate works when ndraws = 0", {
-  run <- readRDS(test_path("./example_run.rds"))
-  calc <- calculate(run, ndraws = 0)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
-  expect_equal(drop(posterior::draws_of(calc$log_volume)), run$log_volume)
-  expect_equal(drop(posterior::draws_of(calc$log_weight)), run$log_weight)
-  expect_equal(drop(posterior::draws_of(calc$log_evidence)), run$log_evidence)
+  data(example_run)
+  calc <- calculate(example_run, ndraws = 0)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
+  expect_equal(
+    drop(posterior::draws_of(calc$log_volume)),
+    example_run$log_volume
+  )
+  expect_equal(
+    drop(posterior::draws_of(calc$log_weight)),
+    example_run$log_weight
+  )
+  expect_equal(
+    drop(posterior::draws_of(calc$log_evidence)),
+    example_run$log_evidence
+  )
   expect_equal(
     drop(posterior::draws_of(calc$log_evidence_err)),
-    sqrt(run$log_evidence_var)
+    sqrt(example_run$log_evidence_var)
   )
 
   smry <- summary(calc)
   expect_equal(smry$n_draws, 0)
-  expect_equal(smry$log_evidence, run$log_evidence[length(run$log_evidence)])
+  expect_equal(
+    smry$log_evidence,
+    example_run$log_evidence[length(example_run$log_evidence)]
+  )
   expect_equal(
     smry$log_evidence_err,
-    sqrt(run$log_evidence_var[length(run$log_evidence_var)])
+    sqrt(example_run$log_evidence_var[length(example_run$log_evidence_var)])
   )
   expect_true(inherits(smry, "summary.ernest_estimate"))
 
@@ -92,10 +104,10 @@ test_that("calculate works when ndraws = 0", {
 })
 
 test_that("calculate works when ndraws = 1", {
-  run <- readRDS(test_path("./example_run.rds"))
-  n_samp <- run$n_iter + run$n_points
-  calc <- calculate(run, ndraws = 1)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
+  data(example_run)
+  n_samp <- example_run$n_iter + example_run$n_points
+  calc <- calculate(example_run, ndraws = 1)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
@@ -110,27 +122,27 @@ test_that("calculate works when ndraws = 1", {
 })
 
 test_that("calculate works when ndraws = 4000 (default)", {
-  run <- readRDS(test_path("./example_run.rds"))
-  n_samp <- run$n_iter + run$n_points
+  data(example_run)
+  n_samp <- example_run$n_iter + example_run$n_points
 
-  calc <- calculate(run)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), run$log_lik)
+  calc <- calculate(example_run)
+  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(4000, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(4000, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(4000, n_samp))
 
   expect_equal(
-    (mean(calc$log_volume) - run$log_volume) <
+    (mean(calc$log_volume) - example_run$log_volume) <
       .Machine$double.eps + 2 * posterior::sd(calc$log_volume),
     rep(TRUE, n_samp)
   )
   expect_equal(
-    (mean(calc$log_weight) - run$log_weight) <
+    (mean(calc$log_weight) - example_run$log_weight) <
       .Machine$double.eps + 2 * posterior::sd(calc$log_weight),
     rep(TRUE, n_samp)
   )
   expect_equal(
-    (mean(calc$log_evidence) - run$log_evidence) <
+    (mean(calc$log_evidence) - example_run$log_evidence) <
       .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
     rep(TRUE, n_samp)
   )
@@ -138,7 +150,10 @@ test_that("calculate works when ndraws = 4000 (default)", {
   smry <- summary(calc)
   expect_equal(smry$n_draws, 4000L)
   expect_true(
-    abs(smry$log_evidence - run$log_evidence[length(run$log_evidence)]) <
+    abs(
+      smry$log_evidence -
+        example_run$log_evidence[length(example_run$log_evidence)]
+    ) <
       2 * smry$log_evidence_err
   )
   expect_true(smry$log_evidence_err > 0)

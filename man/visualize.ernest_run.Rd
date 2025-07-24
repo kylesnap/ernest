@@ -51,14 +51,14 @@ This method requires the \code{ggdist} and \code{tidyselect} optional packages.
 \examples{
 # Load example run
 library(ggdist)
-ernest_run_example <- run_example()
+data(example_run)
 
 # Plot posterior distributions of the parameters
-visualize(ernest_run_example, type = "density")
+visualize(example_run, type = "density")
 
 # Plot the trace of the radial coordinate in unit scale
 visualize(
-  ernest_run_example,
+  example_run,
   type = "trace",
   vars = ".radial",
   units = "unit_cube",

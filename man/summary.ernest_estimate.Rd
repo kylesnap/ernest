@@ -28,6 +28,11 @@ of \code{log_evidence} across the draws.
 \description{
 Provides a summary of an \code{ernest_estimate} object.
 }
+\examples{
+data(example_run)
+calc <- calculate(example_run, ndraws = 2000)
+summary(calc)
+}
 \seealso{
 \code{\link[=calculate]{calculate()}}
 }

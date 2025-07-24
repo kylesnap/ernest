@@ -3,7 +3,7 @@
     Code
       calc
     Output
-      An <ernest_calculate>: 0 draws x 3370 iterations
+      An <ernest_calculate>: 0 draws x 5225 iterations
 
 ---
 
@@ -13,14 +13,14 @@
       
       -- Analytical Evidence Estimate from <ernest_estimate> -------------------------
       No. Draws: 0
-      Log. Evidence: -4.504 (± 0.07082)
+      Log. Evidence: -9.11 (± 0.1153)
 
 # calculate works when ndraws = 1
 
     Code
       calc
     Output
-      An <ernest_calculate>: 1 draws x 3370 iterations
+      An <ernest_calculate>: 1 draws x 5225 iterations
 
 ---
 
@@ -30,14 +30,14 @@
       
       -- Simulated Evidence Estimate from <ernest_estimate> --------------------------
       No. Draws: 1
-      Log. Evidence: -4.545 (± Inf)
+      Log. Evidence: -9.103 (± Inf)
 
 # calculate works when ndraws = 4000 (default)
 
     Code
       calc
     Output
-      An <ernest_calculate>: 4000 draws x 3370 iterations
+      An <ernest_calculate>: 4000 draws x 5225 iterations
 
 ---
 
@@ -47,5 +47,5 @@
       
       -- Simulated Evidence Estimate from <ernest_estimate> --------------------------
       No. Draws: 4000
-      Log. Evidence: -4.44 (± 0.07437)
+      Log. Evidence: -9.045 (± 0.2621)
 

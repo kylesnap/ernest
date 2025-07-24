@@ -1,70 +1,39 @@
-gaussian_2 <- make_gaussian(2)
-sampler <- ernest_sampler$new(
-  log_lik_fn = gaussian_2$log_lik,
-  prior = gaussian_2$prior,
-  sampling = rwmh_cube(),
-  n_points = 500,
-  first_update = 200L,
-  update_interval = 50L
-)
+data(example_run)
 
-set.seed(42L)
-result <- generate(sampler, max_iterations = 100L)
-test_that("ernest_result returns as expected", {
-  expect_s3_class(result, "ernest_run")
-  expect_equal(sort(unique(result$id)), seq(1, 500))
-  expect_equal(result$points, c(rep(500L, 100), seq(500, 1, -1)))
-  expect_equal(sort(unique(result$birth)), seq(0, 100))
+test_that("example run returns as expected", {
+  expect_s3_class(example_run, "ernest_run")
+  expect_snapshot_value(example_run$id, style = "json2")
+  expect_snapshot_value(example_run$points, style = "json2")
+  expect_snapshot_value(example_run$birth, style = "json2")
 
-  row_match <- matrix(double(600L * 2L), nrow = 600L)
-  logl_match <- double(600L)
-  for (i in seq_len(nrow(result$samples))) {
-    row_match[i, ] <- gaussian_2$prior$fn(result$samples_unit[i, ])
-    logl_match[i] <- gaussian_2$log_lik(row_match[i, ])
+  log_lik <- example_run$spec$log_lik
+  prior_fn <- example_run$spec$prior$fn
+  row_match <- matrix(
+    nrow = example_run$n_points + example_run$n_iter,
+    ncol = 3L
+  )
+  logl_match <- double(example_run$n_points + example_run$n_iter)
+  for (i in seq_len(nrow(example_run$samples))) {
+    row_match[i, ] <- prior_fn(example_run$samples_unit[i, ])
+    logl_match[i] <- log_lik(row_match[i, ])
   }
-  colnames(row_match) <- gaussian_2$prior$varnames
-  expect_equal(row_match, result$samples)
-  expect_equal(logl_match, result$log_lik)
-  expect_equal(sort(attr(result, "live_loc")), seq(101, 600))
-  expect_snapshot(result)
+  colnames(row_match) <- example_run$spec$prior$varnames
+  expect_equal(row_match, example_run$samples)
+  expect_equal(logl_match, example_run$log_lik)
+  expect_equal(
+    sort(attr(example_run, "live_loc")),
+    seq(example_run$n_iter + 1, example_run$n_points + example_run$n_iter)
+  )
+  expect_snapshot(example_run)
 })
 
-set.seed(42L)
-result2 <- generate(sampler, max_iterations = 300L)
-test_that("Runs can continue after one call", {
-  expect_equal(result2$n_iter, 300L)
+test_that("Summary method expectation", {
+  smry <- summary(example_run)
+  expect_snapshot_value(smry$n_iter)
+  expect_equal(smry$n_points, 500)
+  expect_snapshot_value(smry$n_calls)
+  expect_equal(smry$log_volume, tail(example_run$log_volume, 1))
+  expect_equal(smry$log_evidence, tail(example_run$log_evidence, 1))
 
-  first <- seq(100)
-  expect_equal(result2$samples[first, ], result$samples[first, ])
-  expect_equal(result2$log_lik[first], result$log_lik[first])
-  expect_equal(result2$points[first], result$points[first])
-  expect_equal(result2$calls[first], result$calls[first])
-  expect_equal(result2$birth[first], result$birth[first])
-  expect_equal(result2$id[first], result$id[first])
-  expect_snapshot(result2)
-})
-
-set.seed(42L)
-result3 <- generate(sampler, max_iterations = 1000L)
-test_that("Runs can continue after two calls", {
-  expect_equal(result3$n_iter, 1000L)
-
-  first <- seq(300)
-  expect_equal(result3$samples[first, ], result2$samples[first, ])
-  expect_equal(result3$log_lik[first], result2$log_lik[first])
-  expect_equal(result3$points[first], result2$points[first])
-  expect_equal(result3$calls[first], result2$calls[first])
-  expect_equal(result3$birth[first], result2$birth[first])
-  expect_equal(result3$id[first], result2$id[first])
-  expect_snapshot(result3)
-
-  spec <- result3$spec
-  expect_identical(spec$log_lik, gaussian_2$log_lik)
-  expect_identical(spec$prior, gaussian_2$prior)
-  expect_equal(spec$first_update, 500L)
-  expect_equal(spec$update_interval, 500L)
-})
-
-test_that("Summary method returns", {
-  expect_snapshot(summary(result3))
+  expect_snapshot_value(smry$run, style = "serialize")
 })

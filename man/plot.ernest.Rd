@@ -54,13 +54,13 @@ plot will be generated instead.
 }
 \examples{
 # Plot integration results from a run.
-ernest_run_example <- run_example()
-plot(ernest_run_example)
+data(example_run)
+plot(example_run)
 
 # Simulate results before plotting.
-plot(ernest_run_example, ndraws = 50)
+plot(example_run, ndraws = 50)
 # Simulate results from a run, then plot simulated results.
-sim <- calculate(ernest_run_example, ndraws = 50)
+sim <- calculate(example_run, ndraws = 50)
 plot(sim)
 }
 \seealso{

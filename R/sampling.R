@@ -27,6 +27,11 @@
 #' @references `unif_cube` and `rw_walk` are based off of implementations found
 #' in the [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/quickstart.html#sampling-options)
 #' python package.
+#'
+#' @examples
+#' rwmh_cube()
+#' rwmh_cube(steps = 20)
+#' unif_cube()
 NULL
 
 #' @rdname ernest_sampling

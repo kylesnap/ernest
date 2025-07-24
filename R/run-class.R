@@ -48,6 +48,10 @@
 #' @seealso  [generate()] for how
 #' to create a new `ernest_run` object. [plot()] and [calculate()] on how to use
 #' `ernest_run` objects to examine uncertainty in the log volume estimates.
+#' @examples
+#' # Load an example of a nested sampling run
+#' data(example_run)
+#' example_run
 NULL
 
 #' Internal method for constructing the ernest_run object
@@ -191,10 +195,10 @@ print.ernest_run <- function(x, ...) {
 #' @export
 #' @examples
 #' # Load an example run
-#' ernest_run_example <- run_example()
+#' data(example_run)
 #'
 #' # Summarise the run and view a tibble of its results.
-#' run_sm <- summary(ernest_run_example)
+#' run_sm <- summary(example_run)
 #' run_sm
 #' run_sm$run
 summary.ernest_run <- function(object, ...) {

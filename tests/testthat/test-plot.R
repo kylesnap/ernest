@@ -1,11 +1,11 @@
 test_that("ernest_run can be plotted", {
-  run <- readRDS(test_path("./example_run.rds"))
+  data(example_run)
   tbl <- calc_var_tbl(
-    run$log_volume,
-    run$log_evidence,
-    run$log_evidence_var,
-    run$log_weight,
-    run$log_lik
+    example_run$log_volume,
+    example_run$log_evidence,
+    example_run$log_evidence_var,
+    example_run$log_weight,
+    example_run$log_lik
   )
   expect_equal(tbl$fill_name, expression(hat(sigma[Z])))
   expect_equal(tbl$fill_limits, c(3, 2, 1))
@@ -22,13 +22,13 @@ test_that("ernest_run can be plotted", {
     c("log_vol", ".label", ".var", ".lower", ".upper", ".width")
   )
 
-  vdiffr::expect_doppelganger("ernest_run plot", plot(run))
+  vdiffr::expect_doppelganger("ernest_run plot", plot(example_run))
 })
 
 test_that("ernest_run can be calculated, then plotted", {
-  run <- readRDS(test_path("./example_run.rds"))
+  data(example_run)
   set.seed(42)
-  calc_1 <- calculate(run, ndraws = 1)
+  calc_1 <- calculate(example_run, ndraws = 1)
   expect_warning(
     tbl_1 <- calc_hdi_tbl(calc_1)
   )
@@ -38,7 +38,7 @@ test_that("ernest_run can be calculated, then plotted", {
   )
   expect_equal(tbl_1$fill_name, expression(hat(sigma[Z])))
 
-  calc_2 <- calculate(run, ndraws = 2)
+  calc_2 <- calculate(example_run, ndraws = 2)
   expect_warning(
     tbl_2 <- calc_hdi_tbl(calc_2)
   )
@@ -48,7 +48,7 @@ test_that("ernest_run can be calculated, then plotted", {
   )
   expect_equal(tbl_2$fill_name, expression(hat(sigma[Z])))
 
-  calc_100 <- calculate(run, ndraws = 100)
+  calc_100 <- calculate(example_run, ndraws = 100)
   tbl_100 <- calc_hdi_tbl(calc_100)
   expect_named(
     tbl_100$df,
@@ -62,17 +62,17 @@ test_that("ernest_run can be calculated, then plotted", {
   skip_on_covr()
   expect_warning(vdiffr::expect_doppelganger(
     "ernest_estimate(ndraws = 1)",
-    plot(calculate(run, ndraws = 1))
+    plot(calculate(example_run, ndraws = 1))
   ))
 
   expect_warning(vdiffr::expect_doppelganger(
     "ernest_estimate(ndraws = 2)",
-    plot(calculate(run, ndraws = 2))
+    plot(calculate(example_run, ndraws = 2))
   ))
 
   vdiffr::expect_doppelganger(
-    "ernest_estimate(ndraws = 100)",
-    plot(calculate(run, ndraws = 100))
+    "ernest_estimate(ndraws = 500)",
+    plot(calculate(example_run, ndraws = 500))
   )
 })
 
@@ -80,10 +80,10 @@ test_that("ernest_run can be plotted with ndraws", {
   skip_on_ci()
   skip_on_cran()
   skip_on_covr()
-  run <- readRDS(test_path("./example_run.rds"))
+  data(example_run)
   set.seed(42)
   vdiffr::expect_doppelganger(
-    "ernest_run(ndraws = 100)",
-    plot(run, ndraws = 100)
+    "ernest_run(ndraws = 500)",
+    plot(example_run, ndraws = 500)
   )
 })

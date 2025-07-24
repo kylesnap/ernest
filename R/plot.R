@@ -43,11 +43,11 @@
 #' @export
 #' @examples
 #' # Plot integration results from a run.
-#' ernest_run_example <- run_example()
-#' plot(ernest_run_example)
+#' data(example_run)
+#' plot(example_run)
 #'
 #' # Simulate results before plotting.
-#' plot(ernest_run_example, ndraws = 50)
+#' plot(example_run, ndraws = 50)
 plot.ernest_estimate <- function(x, ...) {
   check_dots_empty()
   print(autoplot(x, ...))
@@ -59,7 +59,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' @export
 #' @examples
 #' # Simulate results from a run, then plot simulated results.
-#' sim <- calculate(ernest_run_example, ndraws = 50)
+#' sim <- calculate(example_run, ndraws = 50)
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
@@ -97,6 +97,7 @@ autoplot.ernest_estimate <- function(object, ...) {
 #' @param ... Additional arguments passed to the method.
 #' @return A ggplot object.
 #' @export
+#' @noRd
 autoplot.ernest_run <- function(object, ...) {
   check_dots_empty()
   plot_tbl <- calc_var_tbl(

@@ -62,6 +62,11 @@ prior space.}
 the \code{min_logz} value the run was terminated on.}
 }}
 
+\examples{
+# Load an example of a nested sampling run
+data(example_run)
+example_run
+}
 \seealso{
 \code{\link[=generate]{generate()}} for how
 to create a new \code{ernest_run} object. \code{\link[=plot]{plot()}} and \code{\link[=calculate]{calculate()}} on how to use

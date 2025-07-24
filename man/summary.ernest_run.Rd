@@ -28,10 +28,10 @@ Provides a summary of an \code{ernest_run} object.
 }
 \examples{
 # Load an example run
-ernest_run_example <- run_example()
+data(example_run)
 
 # Summarise the run and view a tibble of its results.
-run_sm <- summary(ernest_run_example)
+run_sm <- summary(example_run)
 run_sm
 run_sm$run
 }

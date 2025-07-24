@@ -20,7 +20,8 @@ of log. volume."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -79,8 +80,9 @@ one draw vector of log volumes are produced from the estimates contained in
 side effect.</p>
 <p>The plot is faceted in three frames. The horizontal axis shows values of log.
 volume: If <code>x</code> is an <code>ernest_run</code> these estimates are derived from the run,
-if <code>x</code> is an <code>ernest_estimate</code> (or <code>ndraws != 0</code>), these values are simulated.
-The three <code>y</code> axes are as follows:</p><ul><li><p><strong>Evidence:</strong> Estimate with a corresponding error ribbon drawn from either
+if <code>x</code> is an <code>ernest_estimate</code> (or <code>ndraws != 0</code>), these values are
+simulated.</p>
+<p>The three <code>y</code> axes are as follows:</p><ul><li><p><strong>Evidence:</strong> Estimate with a corresponding error ribbon drawn from either
 the estimated standard error (if <code>ernest_run</code>) or drawn from the high density
 credible interval (HDCI) (if <code>ernest_sampler</code>);</p></li>
 <li><p><strong>Normalized Likelihood:</strong> The likelihood value of the criteria used
@@ -93,32 +95,28 @@ an error ribbon is drawn with the HDCI of this estimate.</p></li>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
     <p>For <code>ernest_estimate</code>, <code>ndraws</code> must be sufficiently large to calculate
-HDI. If HDI calculation fails, the user will be warned and an <code>ernest_run</code> plot
-will be generated instead.</p>
+HDI. If HDI calculation fails, the user will be warned and an <code>ernest_run</code>
+plot will be generated instead.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> for generating <code>ernest_estimate</code> objects; also, <code><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize()</a></code> to
-plot the posterior distributions of the parameters from a run.</p></div>
+    <div class="dont-index"><p><code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> for generating <code>ernest_estimate</code> objects; also,
+<code><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize()</a></code> to plot the posterior distributions of the parameters from a
+run.</p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Plot integration results from a run.</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ernest_run_example</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ernest_run_example</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.ernest-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Simulate results before plotting.</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mjskay.github.io/ggdist/" class="external-link">ggdist</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ernest_run_example</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ernest_run_example</span>, ndraws <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.ernest-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Simulate results from a run, then plot simulated results.</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mjskay.github.io/ggdist/" class="external-link">ggdist</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">ernest_run_example</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">ernest_run_example</span>, ndraws <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.ernest-3.png" alt="" width="700" height="433"></span>
 </code></pre></div>

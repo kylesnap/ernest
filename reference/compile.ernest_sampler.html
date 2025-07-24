@@ -20,7 +20,8 @@ check the current state of the live points before continuing a previous run."></
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -111,35 +112,35 @@ or by calling <code><a href="https://rdrr.io/r/base/Random.html" class="external
 <span class="r-in"><span><span class="co"># Add live points to the sampler</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">$</span><span class="va">live_points</span><span class="op">$</span><span class="va">unit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]       [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.7672437 0.51116219</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5302281 0.33611787</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.9910911 0.77734734</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.3729138 0.17087720</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.2280109 0.28858551</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.6741731 0.08592728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.8092600 0.8933744</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5632866 0.3311443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.4600272 0.3106995</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.2293382 0.9517439</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.9851504 0.3984678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.4691504 0.1493300</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Check the status of the sampler with `clear = FALSE`</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="va">sampler</span>, clear <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">$</span><span class="va">live_points</span><span class="op">$</span><span class="va">unit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]       [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.7672437 0.51116219</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5302281 0.33611787</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.9910911 0.77734734</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.3729138 0.17087720</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.2280109 0.28858551</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.6741731 0.08592728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.8092600 0.8933744</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5632866 0.3311443</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.4600272 0.3106995</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.2293382 0.9517439</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.9851504 0.3984678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.4691504 0.1493300</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Reset the sampler with new live points with `clear = TRUE`</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="va">sampler</span>, clear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">$</span><span class="va">live_points</span><span class="op">$</span><span class="va">unit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.4384157 0.8661208</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.6346288 0.7230465</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.3068329 0.1493699</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.6377615 0.2208849</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.8567572 0.2654697</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.8057789 0.4799669</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.7364245 0.9222809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.4591469 0.5981844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.7512136 0.4839136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.0754709 0.9646164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.1202378 0.9849806</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.8002604 0.3736118</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

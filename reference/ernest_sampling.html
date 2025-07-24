@@ -36,7 +36,8 @@ taking random steps within the unit hypercube."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -108,11 +109,121 @@ its step-size to target the specified acceptance rate.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>For more on different LRPS, Buchner, J. (2023). Nested Sampling
-Methods. Statistics Surveys, 17(none), 169–215.
-<a href="https://doi.org/10.1214/23-SS144" class="external-link">https://doi.org/10.1214/23-SS144</a></p>
+    <p><code>unif_cube</code> and <code>rw_walk</code> are based off of implementations found
+in the <a href="https://dynesty.readthedocs.io/en/v2.1.5/quickstart.html#sampling-options" class="external-link">dynesty</a>
+python package.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">rwmh_cube</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters$steps</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters$target_acceptance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Random Walk Cube"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;rwcube_lrps&gt; object generator</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     update: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     as_string: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clone: function (deep = FALSE) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Active bindings:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     history: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     epsilon: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     acceptance_ratio: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Private:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     steps: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     target_acceptance: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     cur_epsilon: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_accept: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     hist_accept: vctrs_list_of, vctrs_vctr, list</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     hist_epsilon: vctrs_list_of, vctrs_vctr, list</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     increment: function (res) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Parent env: &lt;environment: namespace:ernest&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked objects: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked class: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Portable: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "ernest_sampling"</span>
+<span class="r-in"><span><span class="fu">rwmh_cube</span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters$steps</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters$target_acceptance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Random Walk Cube"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;rwcube_lrps&gt; object generator</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     update: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     as_string: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clone: function (deep = FALSE) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Active bindings:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     history: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     epsilon: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     acceptance_ratio: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Private:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     steps: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     target_acceptance: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     cur_epsilon: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_accept: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     hist_accept: vctrs_list_of, vctrs_vctr, list</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     hist_epsilon: vctrs_list_of, vctrs_vctr, list</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     increment: function (res) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Parent env: &lt;environment: namespace:ernest&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked objects: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked class: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Portable: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "ernest_sampling"</span>
+<span class="r-in"><span><span class="fu">unif_cube</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $parameters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> list()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Uniform Cube"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;uniform_lrps&gt; object generator</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     update: function (...) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     as_string: function () </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     clone: function (deep = FALSE) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Parent env: &lt;environment: namespace:ernest&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked objects: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Locked class: TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Portable: FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "ernest_sampling"</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

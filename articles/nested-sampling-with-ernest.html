@@ -33,7 +33,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+<li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul>
 </li>
       </ul>
@@ -296,13 +297,12 @@ prior, you can perform the following:</p>
 <code class="sourceCode R"><span><span class="va">transformation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span> <span class="op">*</span> <span class="fl">20</span> <span class="op">-</span> <span class="fl">10</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">user_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_prior.html">create_prior</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="../reference/create_prior.html">create_prior</a></span><span class="op">(</span></span>
 <span>  fn <span class="op">=</span> <span class="va">transformation</span>,</span>
 <span>  n_dim <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>,</span>
 <span>  upper <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">user_prior</span></span>
 <span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_prior&gt;</span>: 3 variables</span></span></code></pre></div>
 <p>If your prior involves dependencies between parameters, you can
 encode these in your transformation function. For example, a
@@ -314,12 +314,13 @@ hierarchical prior might look like:</p>
 <span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, mean <span class="op">=</span> <span class="va">mu</span>, sd <span class="op">=</span> <span class="va">sigma</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">sigma</span>, <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">custom_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_prior.html">create_prior</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="../reference/create_prior.html">create_prior</a></span><span class="op">(</span></span>
 <span>  fn <span class="op">=</span> <span class="va">hierarchical</span>,</span>
 <span>  n_dim <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span>, <span class="st">"x"</span><span class="op">)</span>,</span>
 <span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_prior&gt;</span>: 3 variables</span></span></code></pre></div>
 <p>By specifying the prior in this way, you ensure that nested sampling
 explores the correct region of parameter space, respecting any
 constraints or dependencies your model requires.</p>
@@ -404,6 +405,7 @@ evidence estimate falls below a specified threshold
 <code>sampler</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run_1k</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `max_iterations` reached (1000)</span></span>
 <span><span class="va">run_1k</span></span>
 <span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points x 1000 iter x 16727 lik. calls</span></span>
 <span><span class="co">#&gt; → Log. Evidence: <span style="color: #0000BB;">-9.201</span> ± <span style="color: #0000BB;">1.089</span></span></span></code></pre></div>
@@ -413,6 +415,10 @@ run until <code>min_logz</code> falls below 0.05. This allows
 collected dead points.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run_dlogz</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ⠙ Generating nested samples | 1559 iter. | 55677 lik. calls |3.32111786546693 e…</span></span>
+<span><span class="co">#&gt; ⠹ Generating nested samples | 2461 iter. | 78227 lik. calls |0.642041244867663 …</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0499525231775595 &lt; 0.05)</span></span>
+<span><span class="co">#&gt; ⠹ Generating nested samples | 3695 iter. | 109102 lik. calls |0.049952523177559…</span></span>
 <span><span class="va">run_dlogz</span></span>
 <span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points x 4695 iter x 109102 lik. calls</span></span>
 <span><span class="co">#&gt; → Log. Evidence: <span style="color: #0000BB;">-9.049</span> ± <span style="color: #0000BB;">0.115</span></span></span></code></pre></div>
@@ -420,38 +426,27 @@ collected dead points.</p>
 <div class="section level3">
 <h3 id="reviewing-nested-sampling-runs">Reviewing Nested Sampling Runs<a class="anchor" aria-label="anchor" href="#reviewing-nested-sampling-runs"></a>
 </h3>
-<p>Calls to <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> return an <code>ernest_run</code>
-object, which has methods for several generics to help you inspect and
-analyze the results from nested sampling. Unlike non-native NS
-implementations, ernest is designed to integrate neatly with popular R
-packages like <code>ggplot2</code> and <code>posterior</code>.</p>
-<p>For example, the <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> method provides a concise
-overview of the run, including the number of iterations, live points,
-and final evidence estimates. It also returns a tibble containing
-diagnostic quantities for each iteration.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">smry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run_dlogz</span><span class="op">)</span></span>
-<span><span class="va">smry</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Results from </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">───────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 4695</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 109102</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.049 (± 0.1152)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Weighted Posterior Distribution </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 7</span></span></span>
-<span><span class="co">#&gt;   variable     mean   median    sd   mad    q5   q95</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> X        -<span style="color: #BB0000;">0.008</span><span style="color: #BB0000; text-decoration: underline;">66</span> -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">27</span> 0.964 0.938 -<span style="color: #BB0000;">1.58</span>  1.62</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Y         0.012<span style="text-decoration: underline;">0</span>   0.028<span style="text-decoration: underline;">8</span>  0.980 0.987 -<span style="color: #BB0000;">1.63</span>  1.62</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Z         0.046<span style="text-decoration: underline;">3</span>   0.046<span style="text-decoration: underline;">4</span>  0.959 0.972 -<span style="color: #BB0000;">1.58</span>  1.64</span></span></code></pre></div>
+<pre><code>
+Calls to `generate()` return an `ernest_run` object, which has methods for several generics to help you inspect and analyze the results from nested sampling. Unlike non-native NS implementations, ernest is designed to integrate neatly with popular R packages like `ggplot2` and `posterior`.
+
+For example, the `summary()` method provides a concise overview of the run, including the number of iterations, live points, and final evidence estimates. It also returns a tibble containing diagnostic quantities for each iteration.
+
+
+``` r
+smry &lt;- summary(run_dlogz)
+smry
+#&gt; 
+#&gt;  [36m── [39m  [1mNested Sampling Results from  [34m&lt;ernest_run&gt; [39m [22m  [36m─────────────────────────────────── [39m
+#&gt; No. Points: 500
+#&gt; No. Iterations: 4695
+#&gt; No. Lik. Calls: 109102
+#&gt; Log. Evidence: -9.049 (± 0.1152)</code></pre>
 <p>To show how the evidence estimates change over the course of the run,
 you can use the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> function to construct a facetted
 <code>ggplot</code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run_dlogz</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 <p>To capture how uncertainty impacts the evidence estimates,
 <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> allows you to simulate a nested sampling run
 under a series of randomly drawn log volume estimates. This function
@@ -475,21 +470,21 @@ simulations and their related quantities.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Simulated Evidence Estimate from </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_estimate&gt;</span> <span style="color: #00BBBB;">──────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Draws: 1000</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.044 (± 0.1137)</span></span>
+<span><span class="co">#&gt; Log. Evidence: -9.151 (± 0.07498)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">calc_sim</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>Finally, the <code><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize()</a></code> function provides plots of the
 parameter values themselves.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Density plot of posterior marginals</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run_dlogz</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Trace plot of the radial coordinate in unit-cube space</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run_dlogz</span>, type <span class="op">=</span> <span class="st">"trace"</span>, vars <span class="op">=</span> <span class="st">".radial"</span>, units <span class="op">=</span> <span class="st">"unit_cube"</span>, radial <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-15-2.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-14-2.png" width="700"></p>
 <p>These tools allow you to thoroughly review and interpret the results
 of your nested sampling analysis.</p>
 </div>

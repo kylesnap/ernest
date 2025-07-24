@@ -22,7 +22,8 @@ specification."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -131,6 +132,20 @@ parameter vectors.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An <a href="ernest_sampler-class.html">ernest_sampler</a> object, prepared for nested sampling.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>This function prepares an <code>ernest_sampler</code> object for performing nested
+sampling, given a log-likelihood function, prior, and sampler specification.
+It checks that the provided log-likelihood and prior are compatible by
+performing a basic sanity check by evaluating the log-likelihood at the
+center of the prior space. This check ensures that the log-likelihood
+returns a finite value or <code>-Inf</code> for typical parameter values.</p>
+<p>The sanity check may fail even if <code>log_lik</code> is well-specified, for example
+if the prior's support does not include the test point
+(the center of the prior hypercube), or if the log-likelihood is only
+defined for a subset of the parameter space. In such cases, silencing the
+warning from <code>nested_sampling`` may require you to adjust the prior or adjust the </code>on_warning` argument.</p>
     </div>
 
     <div class="section level2">

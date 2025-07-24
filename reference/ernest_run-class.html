@@ -22,7 +22,8 @@ run's estimates."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -126,14 +127,29 @@ prior space.</p></dd>
 0-1 hypercube.</p></dd>
 
 
+<dt><code>spec</code></dt>
+<dd><p>A pairlist, describing the <code>log_lik</code>, <code>prior</code>, <code>sampler</code>,
+<code>first_update</code>, <code>update_interval</code> used to produce this run, as well as
+the <code>min_logz</code> value the run was terminated on.</p></dd>
+
+
 </dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><a href="ernest_run_example.html">ernest_run_example</a> for an example object, and <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> for how
+    <div class="dont-index"><p><code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> for how
 to create a new <code>ernest_run</code> object. <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> on how to use
 <code>ernest_run</code> objects to examine uncertainty in the log volume estimates.</p></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Load an example of a nested sampling run</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">example_run</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points x 4725 iter x 110076 lik. calls</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> → Log. Evidence: <span style="color: #0000BB;">-9.11</span> ± <span style="color: #0000BB;">0.115</span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

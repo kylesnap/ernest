@@ -40,23 +40,7 @@ calls between updates to the LRPS behaviour. If \code{NULL}, this is set to
 \item{...}{
   Arguments passed on to \code{\link[=create_likelihood.function]{create_likelihood.function}}
   \describe{
-    \item{\code{error_action}}{(case-sensitive string) Action to perform once \code{fn}
-throws an error.
-\itemize{
-\item \code{"abort"}: Stop execution and signal an error.
-\item \code{"warn"}: Issue a warning and replace output with \code{-Inf}.
-}}
-    \item{\code{nonfinite_action}}{(case-sensitive string) Action to perform when \code{fn}
-passes a value that is not a finite double nor \code{-Inf}.
-\itemize{
-\item \code{"warn"}: Issue a warning and replace values with \code{-Inf}.
-\item \code{"pass"}: Silently replace values with \code{-Inf}.
-\item \code{"abort"}: Stop execution and signal an error.
-}}
-    \item{\code{auto_batch}}{(logical) Whether to prepare \code{fn} so that it may be called
-with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
-can already produce a vector of likelihood values for a matrix with rows of
-parameter vectors.}
+    \item{\code{}}{}
   }}
 }
 \value{

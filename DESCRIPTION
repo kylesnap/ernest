@@ -17,6 +17,7 @@ Imports:
     lifecycle,
     matrixStats,
     posterior,
+    purrr,
     R6,
     rlang (>= 1.1.0),
     tibble,

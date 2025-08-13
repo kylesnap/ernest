@@ -88,17 +88,13 @@ create_likelihood <- function(fn, ...) {
 #' @export
 create_likelihood.ernest_likelihood <- function(
   fn,
-  error_action = c("abort", "warn"),
-  nonfinite_action = c("warn", "pass", "abort"),
-  auto_batch = TRUE,
-  ...
+  ...,
+  .nonfinite_action = c("warn", "quiet", "abort")
 ) {
   check_dots_empty()
-  create_likelihood.function(
-    attr(fn, "body"),
-    error_action,
-    nonfinite_action,
-    auto_batch
+  new_ernest_likelihood(
+    rowwise_fn = attr(fn, "unwrapped_fn"),
+    .nonfinite_action = .nonfinite_action
   )
 }
 
@@ -106,170 +102,65 @@ create_likelihood.ernest_likelihood <- function(
 #' @export
 create_likelihood.function <- function(
   fn,
-  error_action = c("abort", "warn"),
-  nonfinite_action = c("warn", "pass", "abort"),
-  auto_batch = TRUE,
-  ...
+  rowwise_fn,
+  ...,
+  .nonfinite_action = c("warn", "quiet", "abort")
 ) {
-  check_dots_empty()
-  new_ernest_likelihood(fn, error_action, nonfinite_action, auto_batch)
+  which_arg <- check_exclusive(fn, rowwise_fn)
+  rowwise_fn <- if (which_arg == "fn") {
+    fn <- as_function(fn)
+    partialized <- purrr::partial(fn, ...)
+    as_rowwise_fn(partialized)
+  } else {
+    rowwise_fn <- as_function(rowwise_fn)
+    partialized <- purrr::partial(rowwise_fn, ...)
+    partialized
+  }
+  new_ernest_likelihood(rowwise_fn, .nonfinite_action)
 }
 
 #' Construct an internal ernest likelihood function with error and nonfinite
 #' value handling.
 #'
-#' @param fn A function that computes likelihood values.
-#' @param error_action Character string, one of `"abort"` or `"warn"`.
-#' @param nonfinite_action Character string, one of `"warn"`, `"pass"`, or
+#' @param fn A partialized function that computes likelihood values.
+#' @param .nonfinite_action Character string, one of `"warn"`, `"pass"`, or
 #' `"abort"`.
-#' @param auto_batch Logical, whether to apply `fn` row-wise to matrix inputs.
-#' @param call Calling environment for error reporting.
+#' @param .call Calling environment for error reporting.
 #'
 #' @return A function of class `"ernest_likelihood"` and `"function"`.
 #' @noRd
 new_ernest_likelihood <- function(
-  fn,
-  error_action,
-  nonfinite_action,
-  auto_batch,
-  call = caller_env()
+  rowwise_fn,
+  .nonfinite_action,
+  .call = caller_env()
 ) {
-  fn <- as_univariate_function(fn, call = call)
-  error_action <- arg_match0(
-    error_action,
-    values = c("abort", "warn"),
-    error_call = call
+  .nonfinite_action <- arg_match(
+    .nonfinite_action,
+    values = c("warn", "quiet", "abort"),
+    error_call = .call
   )
-  nonfinite_action <- arg_match0(
-    nonfinite_action,
-    values = c("warn", "pass", "abort"),
-    error_call = call
+  log_lik_fn <- wrap_function(
+    rowwise_fn,
+    .nonfinite_action = .nonfinite_action,
+    .call = .call
   )
-  auto_batch <- as_scalar_logical(auto_batch, call = call)
-
-  cnd <- NULL
-  error_fn <- switch(
-    error_action,
-    "warn" = expr({
-      if (rlang::cnd_inherits(cnd, "nonfinite_nonnumeric")) {
-        cli_abort(
-          "Can't calculate likelihood without an error.",
-          parent = cnd
-        )
-      }
-      cli_warn(
-        c(
-          "Can't calculate likelihood without an error.",
-          "!" = "Replacing values with `-Inf`."
-        ),
-        parent = cnd
-      )
-      if (is.matrix(x)) rep(-Inf, nrow(x)) else -Inf
-    }),
-    "abort" = expr(
-      cli_abort(
-        "Can't calculate the likelihood without an error.",
-        parent = cnd
-      )
-    )
-  )
-
-  nonfinite_fn <- switch(
-    nonfinite_action,
-    "warn" = expr({
-      poor_values <- unique(
-        head(y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)])
-      )
-      cli_warn(c(
-        "`fn` must return finite numeric values or `-Inf`.",
-        "!" = "Replacing `{poor_values}` with `-Inf`."
-      ))
-      y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)] <- -Inf
-    }),
-    "pass" = expr({
-      y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)] <- -Inf
-    }),
-    "abort" = expr({
-      poor_values <- unique(
-        head(y[y == Inf | is.nan(y) | is.na(y) | !is.numeric(y)])
-      )
-      cli_abort(
-        "Encountered {poor_values} when evaluating likelihood.",
-        class = "nonfinite_nonnumeric"
-      )
-    })
-  )
-
-  x <- NULL
-  catching_likelihood <- new_function(
-    exprs(x = ),
-    expr({
-      try_fetch(
-        {
-          y <- fn(x)
-          if (any(y == Inf | is.nan(y) | is.na(y) | !is.numeric(y))) {
-            !!nonfinite_fn
-          }
-          y
-        },
-        error = function(cnd) {
-          !!error_fn
-        }
-      )
-    })
-  )
-
-  batch_expr <- if (auto_batch) expr(drop(apply(x, 1, fn))) else expr(fn(x))
-  batched_likelihood <- new_function(
-    exprs(x = ),
-    expr(try_fetch(
-      {
-        y <- !!batch_expr
-        if (any(y == Inf | is.nan(y) | is.na(y) | !is.numeric(y))) {
-          !!nonfinite_fn
-        }
-        y
-      },
-      error = function(cnd) {
-        !!error_fn
-      }
-    ))
-  )
-
-  likelihood <- function(x) {
-    if (is.matrix(x)) {
-      batched_likelihood(x)
-    } else if (is.double(x)) {
-      catching_likelihood(x)
-    } else {
-      cli_abort(
-        "Expected a numeric vector or matrix, got {.cls {class(x)[1]}}.",
-        call = call
-      )
-    }
-  }
 
   structure(
-    likelihood,
-    body = fn,
-    error_action = error_action,
-    nonfinite_action = nonfinite_action,
-    class = c("ernest_likelihood", "function")
+    log_lik_fn,
+    unwrapped_fn = rowwise_fn,
+    nonfinite_action = .nonfinite_action,
+    class = c("ernest_likelihood", "purrr_function_partial", "function")
   )
 }
-
 
 #' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_bullets(c(
-      "An {.cls ernest_likelihood} function:",
-      ">" = "{.arg error_action} = {.val {attr(x, 'error_action')}}",
-      ">" = "{.arg nonfinite_action} = {.val {attr(x, 'nonfinite_action')}}"
-    ))
-    cli::cat_line()
-    cli::cli_code(format(attr(x, "body")))
+    nonfinite_str <- attr(x, 'nonfinite_action')
+    cli::cli_text(
+      "An {.cls ernest_likelihood}: {.arg nonfinite_action} = {nonfinite_str}"
+    )
   })
 }
 
@@ -278,4 +169,61 @@ format.ernest_likelihood <- function(x, ...) {
 print.ernest_likelihood <- function(x, ...) {
   cat(format(x), sep = "\n")
   invisible(x)
+}
+
+#' Transform a function so that it can be applied over a matrix of inputs.
+#' @param fn Function.
+#' @return A function that can be applied over vectors.
+#' @noRd
+as_rowwise_fn <- function(fn) {
+  new_function(
+    exprs(... = ),
+    expr({
+      if (is.vector(..1)) {
+        (!!fn)(..1)
+      } else if (is.matrix(..1)) {
+        apply(..1, 1, (!!fn))
+      } else {
+        stop_input_type(..1, "a double vector or matrix", arg = "..1")
+      }
+    })
+  )
+}
+
+wrap_function <- function(rowwise_fn, .nonfinite_action, .call) {
+  nonfinite_expr <- switch(
+    .nonfinite_action,
+    "warn" = expr({
+      cli::cli_warn("Replacing `{unique(y[nonfinite])}` with `-Inf`.")
+      y[nonfinite] <- -Inf
+    }),
+    "abort" = expr(
+      cli::cli_abort(c(
+        "`lik(theta)` must always return finite double values or `-Inf`.",
+        "x" = "`lik(theta)` returned {unique(y[nonfinite])}.",
+        "i" = "Should you change `nonfinite_action` from {.val abort}?"
+      ))
+    ),
+    "quiet" = expr(y[nonfinite] <- -Inf)
+  )
+
+  new_function(
+    exprs(... = ),
+    expr({
+      if (!is.numeric(..1)) {
+        stop_input_type(..1, "a numeric vector or matrix")
+      }
+      size <- if (is.matrix(..1)) NROW(..1) else 1L
+      y <- (!!rowwise_fn)(..1)
+      vctrs::vec_check_size(y, size = size, arg = "lik(..1)")
+      if (!is.double(y)) {
+        cli::cli_abort("`lik(..1)` must always return a double.")
+      }
+      nonfinite <- (y == Inf | is.nan(y))
+      if (any(nonfinite)) {
+        !!nonfinite_expr
+      }
+      y
+    })
+  )
 }

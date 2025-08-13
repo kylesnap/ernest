@@ -8,20 +8,13 @@
 \usage{
 create_likelihood(fn, ...)
 
-\method{create_likelihood}{ernest_likelihood}(
-  fn,
-  error_action = c("abort", "warn"),
-  nonfinite_action = c("warn", "pass", "abort"),
-  auto_batch = TRUE,
-  ...
-)
+\method{create_likelihood}{ernest_likelihood}(fn, ..., .nonfinite_action = c("warn", "quiet", "abort"))
 
 \method{create_likelihood}{`function`}(
   fn,
-  error_action = c("abort", "warn"),
-  nonfinite_action = c("warn", "pass", "abort"),
-  auto_batch = TRUE,
-  ...
+  rowwise_fn,
+  ...,
+  .nonfinite_action = c("warn", "quiet", "abort")
 )
 }
 \arguments{

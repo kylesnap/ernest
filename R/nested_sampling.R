@@ -4,13 +4,12 @@
 #' log-likelihood function, prior distribution, and likelihood-restricted prior
 #' specification.
 #'
-#' @srrstats {G2.6} The sanity check performed by nested_sampling catches
-#' catch incommensurability between the prior and likelihood functions.
-#' Additional testing is performed in `compile`.
+#' @srrstatsTODO {G2.6}
 #'
-#' @param log_lik (function) A function that takes a vector of parameters and
-#' returns the log-likelihood of the parameters. The function should return a
-#' finite value or `-Inf` for invalid parameters (see [create_likelihood()]).
+#' @param log_lik (function) A function or `ernest_likelihood` that takes a
+#' vector of parameters and returns the log-likelihood. The function should
+#' return a finite value or `-Inf` for invalid parameters
+#' (see [create_likelihood()]).
 #' @param prior (ernest_prior) An object with class `ernest_prior`, created by
 #' [create_prior()] or its specializations.
 #' @param sampler (ernest_sampling) An [ernest_sampling] object, declaring which
@@ -23,10 +22,6 @@
 #' @param update_interval (optional positive integer) The number of likelihood
 #' calls between updates to the LRPS behaviour. If `NULL`, this is set to
 #' `n_points * 1.5`.
-#' @param on_warning (case-sensitive string) Action to perform when the sanity
-#' test throws a warning message (see Details).
-#' * `"abort"`: Throw an error.
-#' * `"warn"`: Issue a warning and initialize the sampler.
 #' @inheritDotParams create_likelihood.function -fn
 #'
 #' @return An [ernest_sampler] object, prepared for nested sampling.
@@ -38,13 +33,6 @@
 #' performing a basic sanity check by evaluating the log-likelihood at the
 #' center of the prior space. This check ensures that the log-likelihood
 #' returns a finite value or `-Inf` for typical parameter values.
-#'
-#' The sanity check may fail even if `log_lik` is well-specified, for example
-#' if the prior's support does not include the test point
-#' (the center of the prior hypercube), or if the log-likelihood is only
-#' defined for a subset of the parameter space. In such cases, silencing the
-#' warning from `nested_sampling`` may require you to adjust the prior or
-#' adjust the `on_warning` argument.
 #'
 #' @export
 #' @examples
@@ -59,59 +47,14 @@ nested_sampling <- function(
   n_points = 500,
   first_update = NULL,
   update_interval = NULL,
-  on_warning = c("abort", "warn"),
   ...
 ) {
-  check_dots_used()
-  is_class(prior, "ernest_prior")
-  log_lik <- create_likelihood(log_lik, ...)
-
-  on_warning <- arg_match(on_warning)
-  try_fetch(
-    {
-      sanity_val <- log_lik(prior$fn(rep(0.5, prior$n_dim)))
-      msg <- checkmate::check_number(
-        sanity_val,
-        na.ok = FALSE,
-        null.ok = FALSE
-      )
-      if (!isTRUE(msg)) {
-        format_checkmate(msg, "log_lik", call = caller_env())
-      }
-      if (!is.finite(sanity_val) && sanity_val != -Inf) {
-        cli_abort(
-          "`log_lik` must return a finite value or `-Inf`, not {sanity_val}.",
-          call = caller_env()
-        )
-      }
-    },
-    error = function(cnd) {
-      cli_abort("Failed sanity check.", parent = cnd)
-    },
-    warning = function(cnd) {
-      if (on_warning == "abort") {
-        cli_abort("Failed sanity check.", parent = cnd)
-      } else {
-        cli_warn(
-          c(
-            "Sanity check caused a warning.",
-            "i" = "Did you set the error behaviour with [create_likelihood()]?"
-          ),
-          parent = cnd
-        )
-      }
-    }
-  )
-
-  first_update <- first_update %||% n_points * 2.5
-  update_interval <- update_interval %||% n_points * 1.5
-
-  ernest_sampler$new(
-    log_lik,
-    prior,
-    sampler,
-    n_points,
-    first_update,
-    update_interval
+  new_ernest_sampler(
+    log_lik_fn = create_likelihood(log_lik, ...),
+    prior = prior,
+    sampling = sampler,
+    n_points = n_points,
+    first_update = first_update %||% as.integer(n_points * 2.5),
+    update_interval = update_interval %||% as.integer(n_points * 1.5)
   )
 }

@@ -42,7 +42,7 @@ test_that("Gaussian shells: 2D", {
 })
 
 test_that("Gaussian shells: 5D", {
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   set.seed(42L)
@@ -69,7 +69,7 @@ test_that("Gaussian shells: 5D", {
 })
 
 test_that("Gaussian shells: 10D", {
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   set.seed(42L)
@@ -96,7 +96,7 @@ test_that("Gaussian shells: 10D", {
 })
 
 test_that("Eggbox", {
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   set.seed(42L)

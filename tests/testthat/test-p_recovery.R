@@ -65,7 +65,7 @@ test_that("Parameter recovery", {
 #' recovered under different seeds and with random noise added to `y`.
 test_that("Parameter recovery under a different seed", {
   set.seed(24L)
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
 
@@ -97,7 +97,7 @@ test_that("Parameter recovery under a different seed", {
 
 test_that("Parameter recovery with noisy y", {
   set.seed(42L)
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   noisy_ll <- \(theta) {

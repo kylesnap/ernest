@@ -2,32 +2,54 @@
 
     Code
       sampler
-    Message
-      An <ernest_sampler>: 500 points x 0 iter. x 0 lik. calls
+    Output
+      An <ernest_sampler>: 500 points x 2 params. * Sampler: Random-Walk in Unit Cube with Adaptive Step Size, No. Iter: 0, No.   Call: 0, No. Steps: 25, and Epsilon: 1. 
 
-# compile method initializes live points
+# invalid samplers are caught
 
-    Code
-      sampler
-    Message
-      An <ernest_sampler>: 500 points x 0 iter. x 0 lik. calls
-
-# generate method performs sampling
-
-    Code
-      sampler
-    Message
-      An <ernest_sampler>: 500 points x 99 iter. x 114 lik. calls
+    `n_points` must be a whole number larger than or equal to 1, not the number 0.
 
 ---
 
-    Code
-      summary(result)
-    Output
-      
-      -- Nested Sampling Results from <ernest_run> -----------------------------------
-      No. Points: 500
-      No. Iterations: 99
-      No. Lik. Calls: 114
-      Log. Evidence: -4.668 (± 0.5263)
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `first_update` must be a whole number larger than or equal to 0, not the number -1.
+
+---
+
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `update_interval` must be a whole number larger than or equal to 0, not the number -1.
+
+---
+
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not an empty list.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+
+---
+
+    `prior` must be an object with class ernest_prior, not an empty list.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+
+---
+
+    `sampling` must be an object with class ernest_sampling, not an empty list.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
 

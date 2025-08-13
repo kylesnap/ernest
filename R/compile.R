@@ -3,17 +3,18 @@
 #' Create a new set of live points/particles for a new nested sampling run, or
 #' check the current state of the live points before continuing a previous run.
 #'
-#' @param object (ernest_sampler) An object of class `ernest_sampler`.
+#' @param object (ernest_sampler or ernest_run) An object of class
+#' `ernest_sampler` or `ernest_run`.
 #' @inheritParams rlang::args_dots_empty
 #' @param seed (integer or NA, optional) Specification for the random number
 #' generator.
-#' * integer: Passed to [set.seed()].
-#' * `NULL`: Passed to [set.seed()], which reinitializes the generator as if
-#' no seed has yet been set.
-#' * `NA`: Make no changes to the current seed if set. If `compile` has been
+#' * integer and NULL: Passed to [set.seed()]. If `NULL`, this reinitializes the
+#' generator as if no seed has yet been set.
+#' * `NA`: Make no changes to the current seed. If `compile` has been
 #' called on `object` before, then `NA` will ensure that the seed remain
 #' identical between runs.
-#' @param clear (boolean) Whether to reset the sampler before compiling.
+#' @param clear (boolean) Whether to clear results from previous runs before
+#' compiling.
 #' * `TRUE`: Previous results stored in `object` are removed, and live points
 #' are generated and validated.
 #' * `FALSE`: Previous results stored in `object` are retained, and live points
@@ -22,8 +23,8 @@
 #' @details
 #' The `compile` function prepares an `ernest_sampler` object for nested
 #' sampling by ensuring that its set of live points is valid and ready for use.
-#' In addition to constructing the live point set for new runs or when
-#' `clear = FALSE`, compile also ensures that:
+#' In addition to constructing the live point set for runs, compile also ensures
+#' that:
 #'
 #' * The live points are each represented within the unit hypercube.
 #' * The wrapped likelihood function `ernest_likelihood` has a valid return
@@ -36,10 +37,8 @@
 #' removed from `object`, preventing you from calling [generate()] on a
 #' malformed sampler.
 #'
-#' Random number generation can be seeded either through the `seed` argument,
-#' or by calling [set.seed()] before running `compile` or `generate`.
-#'
-#' @returns `object`, invisibly.
+#' @returns `object`, with a valid set of live points stored in the
+#' `live_points` environment.
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
@@ -56,11 +55,63 @@
 #' # Reset the sampler with new live points with `clear = TRUE`
 #' compile(sampler, clear = TRUE)
 #' head(sampler$live_points$unit)
-#' @method compile ernest_sampler
 #' @export
-compile.ernest_sampler <- function(object, ..., seed = NA, clear = FALSE) {
+compile.ernest_sampler <- function(object, ..., seed = NA) {
   check_dots_empty()
-  object$compile(seed = seed, clear = clear)
+  object <- refresh_ernest_sampler(object)
+
+  # Set seed
+  if (is.null(seed) || !is.na(seed)) {
+    check_number_whole(seed, allow_null = TRUE)
+    env_poke(object$live_points, "seed", seed, create = TRUE)
+  }
+  set.seed(env_cache(object$live_points, "seed", NULL))
+
+  # Fill live points
+  cli::cli_inform("Creating new live points.")
+  live <- create_live(object$lrps, object$n_points)
+  env_poke(object$live_points, "unit", live$unit, create = TRUE)
+  env_poke(object$live_points, "log_lik", live$log_lik, create = TRUE)
+  env_poke(object$live_points, "birth", rep(0L, object$n_points))
+
+  check_live_set(object)
+  object
+}
+
+#' @rdname compile.ernest_sampler
+#' @export
+compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
+  check_dots_empty()
+  check_bool(clear)
+
+  if (clear) {
+    NextMethod(object)
+  }
+
+  # Fill live points
+  live_positions <- vctrs::vec_as_location(
+    seq(object$n_iter),
+    vctrs::vec_size(object$log_lik)
+  )
+  env_bind(
+    object$live_points,
+    unit = object$samples_unit[-live_positions, ],
+    log_lik = object$log_lik[-live_positions],
+    birth = object$birth[-live_positions]
+  )
+  try_fetch(
+    check_live_set(object),
+    error = function(cnd) {
+      cli::cli_abort(
+        c(
+          "Can't create live points from the previous run.",
+          "i" = "Do you need to set `clear`?"
+        ),
+        parent = cnd
+      )
+    }
+  )
+  object
 }
 
 #' Create a live sample with `n` live points.
@@ -76,7 +127,8 @@ create_live <- function(lrps, n_points, call = caller_env()) {
     error = function(cnd) {
       cli::cli_abort(
         "Can't create live points.",
-        parent = cnd
+        parent = cnd,
+        call = call
       )
     }
   )
@@ -84,15 +136,8 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 
 #' Validate an existing nested sample for correctness.
 #'
-#' @param unit A numeric matrix of live points in the unit hypercube, with shape
-#' (n_points, n_var).
-#' @param log_lik A numeric vector of log-likelihood values, one for each live
-#' point (length n_points).
-#' @param n_points Integer. The expected number of live points (rows in `unit`,
-#' length of `log_lik`).
-#' @param n_var Integer. The expected number of dimensions for each point
-#' (columns in `unit`).
-#' @param call The calling environment for error handling (for advanced use).
+#' @param sampler The ernest_sampler object undergoing validation.
+#' @param call The calling environment for error handling.
 #'
 #' @srrstats {G2.13, G2.14, BS3.0} Before running, compile checks for uncaught
 #' NA, NaN, or Inf values produced by the user inputs `log_lik` and `prior`.
@@ -103,67 +148,54 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 #' @return Throws an error or warning if validation fails; otherwise, returns
 #' NULL.
 #' @noRd
-check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
-  # Check live point matrix using checkmate.
-  msg <- checkmate::check_matrix(
+check_live_set <- function(sampler, call = caller_env()) {
+  n_points <- sampler$n_points
+  n_dim <- sampler$prior$n_dim
+
+  # Live Point Check
+  unit <- env_get(sampler$live_points, "unit")
+  check_matrix(
     unit,
-    mode = "numeric",
-    nrows = n_points,
-    ncols = n_var,
-    any.missing = FALSE,
-    all.missing = FALSE
-  )
-  if (!isTRUE(msg)) {
-    format_checkmate(msg, "unit", call = call)
-  }
-  msg <- checkmate::check_numeric(
-    unit,
+    nrow = n_points,
+    ncol = n_dim,
     lower = 0,
     upper = 1,
-    any.missing = FALSE,
-    all.missing = FALSE,
-    finite = TRUE
+    arg = "unit",
+    call = call
   )
-  if (!isTRUE(msg)) {
-    format_checkmate(msg, "unit", call = call)
-  }
 
-  msg <- checkmate::check_numeric(
-    log_lik,
-    len = n_points,
-    any.missing = FALSE,
-    all.missing = FALSE
-  )
-  if (!isTRUE(msg)) {
-    format_checkmate(msg, "log_lik", call = call)
-  }
-  if (any(!is.finite(log_lik) & log_lik != -Inf)) {
-    nonfinite <- unique(log_lik[!is.finite(log_lik) & log_lik != -Inf])
-    cli_abort(
-      "`{log_lik}` must contain only finite values or -Inf, not {nonfinite}.",
-      call = call
-    )
-  }
+  # Log Lik Checks
+  log_lik <- env_get(sampler$live_points, "log_lik")
+  check_double(log_lik, size = n_points, arg = "log_lik", call = call)
 
   n_unique <- vctrs::vec_unique_count(log_lik)
   if (n_unique == 1L) {
-    cli_abort(
+    cli::cli_abort(
       c(
-        "Log likelihoods of the live points must not be a plateau.",
-        "!" = "Log likelihood of all {n_points} points = {log_lik[1]}."
+        "`log_lik` must contain a range of likelihood values.",
+        "x" = "`log_lik` currently contains one unique value ({log_lik[1]})."
       ),
       call = call
     )
   }
   if (n_unique < (n_points * 0.75)) {
-    cli_warn(
+    cli::cli_warn(
       c(
-        "Potential likelihood plateau; proceed with caution.",
-        "!" = "{n_unique} unique likelihoods across {n_points} live points."
+        "`log_lik` may contain a likelihood plateau; proceed with caution.",
+        "!" = "Only {n_unique}/{n_points} likelihood values are unique."
       ),
       call = call
     )
   }
 
-  NULL
+  # Birth vector
+  birth <- env_get(sampler$live_points, "birth")
+  if (!is_bare_integer(birth, n = n_points)) {
+    cli::cli_abort(
+      "`birth` vector cannot be missing from the `live_points` environment.",
+      call = call
+    )
+  }
+
+  invisible(NULL)
 }

@@ -8,6 +8,7 @@
 #' @importFrom tibble tibble
 #' @importFrom utils head
 #' @importFrom utils tail
+#' @import rlang
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL

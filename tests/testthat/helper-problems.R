@@ -1,7 +1,3 @@
-#' @srrstats {BS2.13} All testing is done with disabled progress messages, but
-#' warnings are not silenced.
-options(rlib_message_verbosity = "quiet")
-
 # An N-D Gaussian Distribution with Zero Mean and Given Correlation
 library(LaplacesDemon)
 

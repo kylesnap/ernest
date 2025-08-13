@@ -57,7 +57,7 @@ test_that("ernest_run can be calculated, then plotted", {
   )
   expect_equal(tbl_100$fill_name, "HDCI")
 
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   expect_warning(vdiffr::expect_doppelganger(
@@ -77,7 +77,7 @@ test_that("ernest_run can be calculated, then plotted", {
 })
 
 test_that("ernest_run can be plotted with ndraws", {
-  skip_on_ci()
+  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
   skip_on_covr()
   data(example_run)

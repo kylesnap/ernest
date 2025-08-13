@@ -1,32 +1,32 @@
 # nested_sampling errors with invalid prior
 
-    `prior` must inherit from class 'ernest_prior', but has class 'function'.
+    `prior` must be an object with class ernest_prior, not a function.
 
 # Fully verbose output [plain]
 
     Code
       run <- generate(sampler, max_iterations = 1000, seed = 42L)
     Message
-      `max_iterations` reached (1000)
+      Creating new live points.
 
 # Fully verbose output [ansi]
 
     Code
       run <- generate(sampler, max_iterations = 1000, seed = 42L)
     Message
-      [1m[22m`max_iterations` reached (1000)
+      [1m[22mCreating new live points.
 
 # Fully verbose output [unicode]
 
     Code
       run <- generate(sampler, max_iterations = 1000, seed = 42L)
     Message
-      `max_iterations` reached (1000)
+      Creating new live points.
 
 # Fully verbose output [fancy]
 
     Code
       run <- generate(sampler, max_iterations = 1000, seed = 42L)
     Message
-      [1m[22m`max_iterations` reached (1000)
+      [1m[22mCreating new live points.
 

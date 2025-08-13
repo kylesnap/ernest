@@ -110,7 +110,7 @@ test_that("Uniform can be updated without protest, and cleared", {
 test_that("RWMH can be initialized and catches bad parameters", {
   expect_snapshot_error({
     rwcube_lrps$new(
-      log_lik_fn = gaussian_2$log_lik,
+      log_lik = gaussian_2$log_lik,
       prior_fn = gaussian_2$prior$fn,
       n_dim = 2L,
       target_acceptance = 0.02
@@ -118,7 +118,7 @@ test_that("RWMH can be initialized and catches bad parameters", {
   })
   expect_snapshot_error({
     rwcube_lrps$new(
-      log_lik_fn = gaussian_2$log_lik,
+      log_lik = gaussian_2$log_lik,
       prior_fn = gaussian_2$prior$fn,
       n_dim = 2L,
       target_acceptance = 1.1
@@ -126,7 +126,7 @@ test_that("RWMH can be initialized and catches bad parameters", {
   })
   expect_snapshot_error({
     rwcube_lrps$new(
-      log_lik_fn = gaussian_2$log_lik,
+      log_lik = gaussian_2$log_lik,
       prior_fn = gaussian_2$prior$fn,
       n_dim = 2L,
       steps = 1
@@ -134,7 +134,7 @@ test_that("RWMH can be initialized and catches bad parameters", {
   })
 
   new <- rwcube_lrps$new(
-    log_lik_fn = gaussian_2$log_lik,
+    log_lik = gaussian_2$log_lik,
     prior_fn = gaussian_2$prior$fn,
     n_dim = 2L
   )
@@ -143,7 +143,7 @@ test_that("RWMH can be initialized and catches bad parameters", {
 })
 
 rwcube <- rwcube_lrps$new(
-  log_lik_fn = gaussian_2$log_lik,
+  log_lik = gaussian_2$log_lik,
   prior_fn = gaussian_2$prior$fn,
   n_dim = 2L
 )

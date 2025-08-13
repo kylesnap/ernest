@@ -3,10 +3,11 @@
 #' Internal R6 class for likelihood-restricted prior sampling (LRPS).
 #' Provides a base for subclasses implementing specific LRPS strategies.
 #'
-#' @param log_lik_fn Function computing log-likelihood at a point.
+#' @param log_lik Function computing log-likelihood at a point.
 #' @param prior_fn Function mapping unit cube to prior space.
 #' @param n_dim Number of dimensions.
 #' @keywords internal
+#' @importFrom R6 R6Class
 #' @noRd
 ernest_lrps <- R6Class(
   "ernest_lrps",
@@ -14,16 +15,16 @@ ernest_lrps <- R6Class(
   portable = FALSE,
   lock_class = TRUE,
   public = list(
-    initialize = function(log_lik_fn, prior_fn, n_dim) {
-      is_function(log_lik_fn)
+    initialize = function(log_lik, prior_fn, n_dim) {
+      is_function(log_lik)
       is_function(prior_fn)
       n_dim <- as_scalar_count(n_dim)
-      private$log_lik_fn <- log_lik_fn
+      private$log_lik <- log_lik
       private$prior_fn <- prior_fn
       private$n_dim <- n_dim
       private$unit_log_lik <- function(unit) {
         point <- private$prior_fn(unit)
-        private$log_lik_fn(point)
+        private$log_lik(point)
       }
     },
 
@@ -43,7 +44,7 @@ ernest_lrps <- R6Class(
 
     find_point = function(unit) {
       point <- prior_fn(unit)
-      log_lik <- log_lik_fn(point)
+      log_lik <- log_lik(point)
       list("unit" = drop(unit), "point" = point, "log_lik" = log_lik)
     },
 
@@ -65,7 +66,7 @@ ernest_lrps <- R6Class(
   ),
   private = list(
     # Parameters
-    log_lik_fn = NULL,
+    log_lik = NULL,
     prior_fn = NULL,
     n_dim = NULL,
     unit_log_lik = NULL,
@@ -121,8 +122,8 @@ uniform_lrps <- R6Class(
   portable = FALSE,
   lock_class = TRUE,
   public = list(
-    initialize = function(log_lik_fn, prior_fn, n_dim) {
-      super$initialize(log_lik_fn, prior_fn, n_dim)
+    initialize = function(log_lik, prior_fn, n_dim) {
+      super$initialize(log_lik, prior_fn, n_dim)
     },
 
     clear = function() {
@@ -168,13 +169,13 @@ rwcube_lrps <- R6::R6Class(
   lock_class = TRUE,
   public = list(
     initialize = function(
-      log_lik_fn,
+      log_lik,
       prior_fn,
       n_dim,
       steps = 25L,
       target_acceptance = 0.5
     ) {
-      super$initialize(log_lik_fn, prior_fn, n_dim)
+      super$initialize(log_lik, prior_fn, n_dim)
       steps <- as_scalar_integer(steps, min = 2)
       target_acceptance <- as_scalar_double(target_acceptance, max = 1)
       if (target_acceptance < 1 / steps) {

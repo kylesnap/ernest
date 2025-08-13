@@ -5,6 +5,147 @@
 #' @noRd
 NULL
 
+#' Check class of an object
+#'
+#' @param x An object.
+#' @param class A character vector of classes.
+#' @param allow_null,arg,call See stop_input_type.
+#' @returns NULL if `x` contains class, or an informative error message.
+#' @importFrom rlang inherits_any
+#' @noRd
+check_class <- function(
+  x,
+  class,
+  ...,
+  allow_null = FALSE,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  if (inherits_any(x, class)) {
+    return(invisible(NULL))
+  }
+
+  cls_format <- cli::pluralize(
+    "an object with {?class/at least one class from} {class}"
+  )
+  stop_input_type(
+    x,
+    cls_format,
+    ...,
+    allow_na = FALSE,
+    allow_null = FALSE,
+    arg = arg,
+    call = call
+  )
+}
+
+#' Check that `x` is a double matrix.
+#' @param x An object.
+#' @param nrow Expected number of columns.
+#' @param ncol Expected number of columns.
+#' @param arg,call See stop_input_type.
+#' @param lower,upper Exclusive boundaries; recycled to ncol-length vector.
+#' @returns NULL if `x` conforms, or an informative error message.
+#' @noRd
+check_matrix <- function(
+  x,
+  nrow,
+  ncol,
+  lower = -Inf,
+  upper = Inf,
+  ...,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  check_number_whole(nrow, min = 1, call = "check_matrix")
+  check_number_whole(ncol, min = 1, call = "check_matrix")
+  bounds <- vctrs::vec_recycle_common(lower, upper, .size = ncol)
+
+  if (!is.matrix(x) || !is_double(x)) {
+    stop_input_type(
+      x,
+      "a matrix",
+      ...,
+      allow_na = FALSE,
+      allow_null = FALSE,
+      arg = arg,
+      call = call
+    )
+  }
+  if (!isTRUE(identical(dim(x), c(nrow, ncol)))) {
+    cli::cli_abort(c(
+      "`{arg}` must have dimensions {nrow} x {ncol}.",
+      "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
+    ))
+  }
+  try_fetch(
+    for (i in seq(nrow(x))) {
+      if (any(is.na(x[i, ]) | is.nan(x[i, ]))) {
+        cli::cli_abort("`{arg}` must not contain missing or `NaN` values.")
+      }
+      if (any(x[i, ] <= lower)) {
+        cli::cli_abort("`{arg}` must respect the lower boundary ({lower}).")
+      }
+      if (any(x[i, ] >= upper)) {
+        cli::cli_abort("`{arg}` must respect the upper boundary ({upper}).")
+      }
+    },
+    error = function(cnd) {
+      cli::cli_abort(
+        "Problem at the {i}th row of `{arg}`.",
+        parent = cnd,
+        call = call
+      )
+    }
+  )
+  invisible(NULL)
+}
+
+#' Check that `x` is a double vector
+#' @param x An object.
+#' @param size Expected length.
+#' @param arg,call See stop_input_type.
+#' @param allow_neg_inf Can `x` contain `-Inf`?
+#' @returns NULL if `x` conforms, or an informative error message.
+#' @noRd
+check_double <- function(
+  x,
+  size,
+  allow_neg_inf = TRUE,
+  ...,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  check_number_whole(size, min = 0, call = "check_vector")
+
+  if (!is_bare_double(x)) {
+    stop_input_type(
+      x,
+      glue::glue("a double vector"),
+      ...,
+      allow_na = FALSE,
+      allow_null = FALSE,
+      arg = arg,
+      call = call
+    )
+  }
+  if (vctrs::vec_size(x) != size) {
+    act <- vctrs::vec_size(x)
+    cli::cli_abort("`{arg}` must be a double vector of size {size}, not {act}.")
+  }
+  if (size == 0L) {
+    return(invisible(NULL))
+  }
+
+  if (any(is.na(x) | is.nan(x) | x == Inf)) {
+    cli::cli_abort("`{arg}` must not contain missing, `NaN`, or `Inf` values.")
+  }
+  if (!allow_neg_inf && any(x == -Inf)) {
+    cli::cli_abort("`{arg}` must not contain `-Inf` values.")
+  }
+  invisible(NULL)
+}
+
 #' Validate and cast a scalar integer.
 #'
 #' @param x Input to check.
@@ -140,6 +281,39 @@ as_scalar_logical <- function(
   }
 }
 
+#' Check that a list is all named and that names are unique
+#' @param x The list
+#' @param arg,call See stop_input_type.
+#' @return Either NULL, invisibly, or an error message.
+#' @noRd
+check_unique_names <- function(
+  x,
+  ...,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  nms <- vctrs::vec_names(x)
+  if (is.null(nms) != any(nms == "")) {
+    cli::cli_abort(
+      "All elements of `{arg}` must have unique names.",
+      call = call
+    )
+  }
+
+  if (vctrs::vec_duplicate_any(nms)) {
+    idx <- vctrs::vec_duplicate_id(nms) |> unique()
+    cli::cli_abort(
+      c(
+        "All elements of `{arg}` must have unique names.",
+        "x" = "Repeated names: {nms[idx]}"
+      ),
+      call = call
+    )
+  }
+
+  invisible(NULL)
+}
+
 ##' Validate and coerce to a univariate function.
 ##'
 ##' @param fn Function or object coercible to function.
@@ -210,34 +384,6 @@ format_checkmate <- function(msg, arg, call) {
 #' @noRd
 list_c <- function(x) {
   inject(c(!!!x))
-}
-
-#' Set the random seed for reproducibility.
-#'
-#' @param seed Either a single value, interpretted as an integer, or `NA` or
-#' `NULL`.
-#' @param results The results object that contains the last seed.
-#' @param call The calling environment for error messages.
-#'
-#' @return The set seed value (.Random.seed).
-#' @noRd
-set_random_seed <- function(
-  seed,
-  results = NULL,
-  call = caller_env()
-) {
-  if (!is.na(seed)) {
-    seed <- as_scalar_integer(seed, allow_null = TRUE, call = call)
-    set.seed(seed)
-  } else {
-    if (!is.null(attr(results, "seed"))) {
-      .Random.seed <- attr(results, "seed") # nolint
-    }
-  }
-  if (!exists(".Random.seed")) {
-    set.seed(NULL)
-  }
-  .Random.seed
 }
 
 #' Calculate the HDI of an rvar

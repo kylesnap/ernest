@@ -2,27 +2,31 @@
 % Please edit documentation in R/compile.R
 \name{compile.ernest_sampler}
 \alias{compile.ernest_sampler}
+\alias{compile.ernest_run}
 \title{Prepare an \code{ernest_sampler} object for nested sampling}
 \usage{
-\method{compile}{ernest_sampler}(object, ..., seed = NA, clear = FALSE)
+\method{compile}{ernest_sampler}(object, ..., seed = NA)
+
+\method{compile}{ernest_run}(object, ..., seed = NA, clear = FALSE)
 }
 \arguments{
-\item{object}{(ernest_sampler) An object of class \code{ernest_sampler}.}
+\item{object}{(ernest_sampler or ernest_run) An object of class
+\code{ernest_sampler} or \code{ernest_run}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
 \item{seed}{(integer or NA, optional) Specification for the random number
 generator.
 \itemize{
-\item integer: Passed to \code{\link[=set.seed]{set.seed()}}.
-\item \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}, which reinitializes the generator as if
-no seed has yet been set.
-\item \code{NA}: Make no changes to the current seed if set. If \code{compile} has been
+\item integer and NULL: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, this reinitializes the
+generator as if no seed has yet been set.
+\item \code{NA}: Make no changes to the current seed. If \code{compile} has been
 called on \code{object} before, then \code{NA} will ensure that the seed remain
 identical between runs.
 }}
 
-\item{clear}{(boolean) Whether to reset the sampler before compiling.
+\item{clear}{(boolean) Whether to clear results from previous runs before
+compiling.
 \itemize{
 \item \code{TRUE}: Previous results stored in \code{object} are removed, and live points
 are generated and validated.
@@ -31,7 +35,8 @@ are validated.
 }}
 }
 \value{
-\code{object}, invisibly.
+\code{object}, with a valid set of live points stored in the
+\code{live_points} environment.
 }
 \description{
 Create a new set of live points/particles for a new nested sampling run, or
@@ -40,8 +45,8 @@ check the current state of the live points before continuing a previous run.
 \details{
 The \code{compile} function prepares an \code{ernest_sampler} object for nested
 sampling by ensuring that its set of live points is valid and ready for use.
-In addition to constructing the live point set for new runs or when
-\code{clear = FALSE}, compile also ensures that:
+In addition to constructing the live point set for runs, compile also ensures
+that:
 \itemize{
 \item The live points are each represented within the unit hypercube.
 \item The wrapped likelihood function \code{ernest_likelihood} has a valid return
@@ -54,9 +59,6 @@ share the same likelihood value.
 If \code{compile} fails these validation steps, the set of live points will be
 removed from \code{object}, preventing you from calling \code{\link[=generate]{generate()}} on a
 malformed sampler.
-
-Random number generation can be seeded either through the \code{seed} argument,
-or by calling \code{\link[=set.seed]{set.seed()}} before running \code{compile} or \code{generate}.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

@@ -7,16 +7,36 @@
 \method{generate}{ernest_sampler}(
   x,
   ...,
-  max_iterations = Inf,
-  max_calls = Inf,
+  max_iterations = NULL,
+  max_calls = NULL,
   min_logz = 0.05,
-  seed = NA
+  show_progress = FALSE
 )
 }
 \arguments{
 \item{x}{(ernest_sampler) An object of class \code{ernest_sampler}.}
 
-\item{...}{These dots are for future extensions and must be empty.}
+\item{...}{
+  Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
+  \describe{
+    \item{\code{seed}}{(integer or NA, optional) Specification for the random number
+generator.
+\itemize{
+\item integer and NULL: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, this reinitializes the
+generator as if no seed has yet been set.
+\item \code{NA}: Make no changes to the current seed. If \code{compile} has been
+called on \code{object} before, then \code{NA} will ensure that the seed remain
+identical between runs.
+}}
+    \item{\code{clear}}{(boolean) Whether to clear results from previous runs before
+compiling.
+\itemize{
+\item \code{TRUE}: Previous results stored in \code{object} are removed, and live points
+are generated and validated.
+\item \code{FALSE}: Previous results stored in \code{object} are retained, and live points
+are validated.
+}}
+  }}
 
 \item{max_iterations}{(positive integer) The maximum number of iterations to
 perform. If set to \code{Inf}, this stopping criterion is ignored.}
@@ -28,16 +48,8 @@ likelihood function. If set to \code{Inf}, this stopping criterion is ignored.}
 current log evidence and remaining log evidence (see Details). If set to
 zero, this stopping criterion is ignored.}
 
-\item{seed}{(integer or NA, optional) Specification for the random number
-generator.
-\itemize{
-\item integer: Passed to \code{\link[=set.seed]{set.seed()}}.
-\item \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}, which reinitializes the generator as if
-no seed has yet been set.
-\item \code{NA}: Make no changes to the current seed if set. If \code{compile} has been
-called on \code{object} before, then \code{NA} will ensure that the seed remain
-identical between runs.
-}}
+\item{show_progress}{Whether to show a simple progress spinner and iteration
+counter during the run.}
 }
 \value{
 An object of class \linkS4class{ernest_run}, containing the results of the
@@ -71,14 +83,8 @@ If \code{x} already contains results from previous calls to \code{generate()}, t
 \code{generate()} will ensure that your stopping criterion have not already been
 surpassed during previous runs.
 
-Control the verbosity of \code{generate} as it runs with the
-\code{rlib_message_verbosity} option. This can be set with one of these three
-values:
-\itemize{
-\item \code{"default"}: Verbose unless the \code{.frequency} argument is supplied.
-\item \code{"verbose"}: Always verbose.
-\item \code{"quiet"}: Always quiet.
-}
+Control the verbosity of other messages in ernest as it runs with the
+\code{rlib_message_verbosity} enviroment option.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

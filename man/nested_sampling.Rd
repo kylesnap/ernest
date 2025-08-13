@@ -11,14 +11,14 @@ nested_sampling(
   n_points = 500,
   first_update = NULL,
   update_interval = NULL,
-  on_warning = c("abort", "warn"),
   ...
 )
 }
 \arguments{
-\item{log_lik}{(function) A function that takes a vector of parameters and
-returns the log-likelihood of the parameters. The function should return a
-finite value or \code{-Inf} for invalid parameters (see \code{\link[=create_likelihood]{create_likelihood()}}).}
+\item{log_lik}{(function) A function or \code{ernest_likelihood} that takes a
+vector of parameters and returns the log-likelihood. The function should
+return a finite value or \code{-Inf} for invalid parameters
+(see \code{\link[=create_likelihood]{create_likelihood()}}).}
 
 \item{prior}{(ernest_prior) An object with class \code{ernest_prior}, created by
 \code{\link[=create_prior]{create_prior()}} or its specializations.}
@@ -36,13 +36,6 @@ calls before adopting LRPS behaviour. If \code{NULL}, this is set to
 \item{update_interval}{(optional positive integer) The number of likelihood
 calls between updates to the LRPS behaviour. If \code{NULL}, this is set to
 \code{n_points * 1.5}.}
-
-\item{on_warning}{(case-sensitive string) Action to perform when the sanity
-test throws a warning message (see Details).
-\itemize{
-\item \code{"abort"}: Throw an error.
-\item \code{"warn"}: Issue a warning and initialize the sampler.
-}}
 
 \item{...}{
   Arguments passed on to \code{\link[=create_likelihood.function]{create_likelihood.function}}
@@ -81,12 +74,6 @@ It checks that the provided log-likelihood and prior are compatible by
 performing a basic sanity check by evaluating the log-likelihood at the
 center of the prior space. This check ensures that the log-likelihood
 returns a finite value or \code{-Inf} for typical parameter values.
-
-The sanity check may fail even if \code{log_lik} is well-specified, for example
-if the prior's support does not include the test point
-(the center of the prior hypercube), or if the log-likelihood is only
-defined for a subset of the parameter space. In such cases, silencing the
-warning from \verb{nested_sampling`` may require you to adjust the prior or adjust the }on_warning` argument.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

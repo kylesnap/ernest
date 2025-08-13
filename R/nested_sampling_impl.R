@@ -5,10 +5,9 @@
 #' and checks for stoppage criteria. The function also handles progress updates
 #' and manages the live and dead points in the sampler.
 #'
-#' @param self An object containing the current state of the nested sampler.
-#' @param private A list containing private variables and functions used by the
-#' nested sampler.
-#' @param max_it Integer. The maximum number of iterations to perform.
+#' @param live_env A live points enviroment.
+#' @param lrps An LRPS object to generate new points.
+#' @param max_iterations Integer. The maximum number of iterations to perform.
 #' @param max_c Integer. The maximum number of calls to the likelihood function.
 #' @param min_logz Numeric. The minimum change in the log evidence (log Z) to
 #' continue sampling.
@@ -17,73 +16,64 @@
 #' plateau detection.
 #'
 #' @return The updated `self` object with the new state of the nested sampler.
-#' @keywords internal
 #' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
 #' @importFrom cli cli_inform
 #' @noRd
 nested_sampling_impl <- function(
-  self,
-  private,
-  max_it,
-  max_c,
-  min_logz
+  x,
+  max_iterations,
+  max_calls,
+  min_logz,
+  last_criterion = -1e300,
+  log_vol = 0,
+  log_z = 0,
+  iter = 0L,
+  call = 0L,
+  show_progress = TRUE
 ) {
-  prev <- private$results
-  iter <- prev$n_iter %||% 0L
-  call <- prev$n_call %||% 0L
-  log_vol <- prev$log_vol[prev$n_iter] %||% 0.0
-  log_z <- prev$log_evidence[prev$n_iter] %||% -1e300
-  max_lik <- max(private$live_log_lik)
+  live_env <- x$live_points
+  max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
-  last_criterion <- prev$log_lik[prev$n_iter] %||% -1e300
-  d_log_vol <- log((private$n_points + 1) / private$n_points)
+  d_log_vol <- log((x$n_points + 1) / x$n_points)
 
-  dead_unit <- vctrs::list_of(.ptype = double(private$n_points))
+  dead_unit <- vctrs::list_of(.ptype = double(x$n_points))
   dead_birth <- vctrs::list_of(.ptype = integer())
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_calls <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
 
-  progress <- paste0(
-    "{cli::pb_spin} Generating nested samples | ",
-    "{cli::pb_current} iter. | {call} lik. calls |",
-    "{d_log_z} est. log. z remaining"
-  )
-  verbose <- getOption("rlib_message_verbosity", "verbose") != "quiet"
-  if (verbose) {
-    cli_progress_bar(format = progress, clear = TRUE)
+  i <- 1
+  if (show_progress) {
+    cli::cli_progress_step("Performed {i} nested samples.", spinner = TRUE)
   }
-  for (i in seq(1, max_it - iter)) {
+  for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
-    if (call > max_c) {
-      private$status <- "MAX_CALLS"
-      cli_inform("`max_calls` surpassed ({call} > {max_c})")
+    if (call > max_calls) {
+      cli::cli_inform("`max_calls` surpassed ({call} > {max_c})")
       break
     }
-    max_lik <- max(private$live_log_lik)
+    max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      private$status <- "MIN_LOGZ"
-      cli_inform("`min_logz` reached ({d_log_z} < {min_logz})")
+      cli::cli_inform("`min_logz` reached ({d_log_z} < {min_logz})")
       break
     }
-    if (verbose) {
+    if (show_progress) {
       cli_progress_update()
     }
 
     # 2. Identify and log the worst points in the sampler
-    worst_idx <- which_minn(private$live_log_lik)
-    new_criterion <- private$live_log_lik[worst_idx[1]]
+    worst_idx <- which_minn(live_env$log_lik)
+    new_criterion <- live_env$log_lik[worst_idx[1]]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
-      cli_warn(
+      cli::cli_warn(
         "Stopping run due to a likelihood plateau at {round(max_lik, 3)}."
       )
-      private$status <- "PLATEAU"
       break
     }
-    dead_unit[[i]] <- private$live_unit[worst_idx[1], ]
-    dead_log_lik[[i]] <- private$live_log_lik[worst_idx[1]]
-    dead_birth[[i]] <- private$live_birth[worst_idx[1]]
+    dead_unit[[i]] <- live_env$unit[worst_idx[1], ]
+    dead_log_lik[[i]] <- live_env$log_lik[worst_idx[1]]
+    dead_birth[[i]] <- live_env$birth[worst_idx[1]]
     dead_id[[i]] <- worst_idx[1]
 
     # 3. Update the integration
@@ -93,41 +83,28 @@ nested_sampling_impl <- function(
     log_z <- logaddexp(log_z, log_wt)
     last_criterion <- new_criterion
 
-    # 3. If required, update the LRPS
-    # If current number of calls exceeds first_update, OR
-    # if first_update is already exceeded and the number of calls
-    # exceeds the update_interval, then update the LRPS
-    if (
-      call > private$first_update &&
-        private$lrps$since_update > private$update_interval
-    ) {
-      private$lrps <- private$lrps$update()
+    # 4. If required, update the LRPS
+    if (call > x$first_update && x$lrps$since_update > x$update_interval) {
+      x$lrps <- x$lrps$update()
     }
 
     # 4. Replace the worst points in live with new points
-    available_idx <- setdiff(seq_len(private$n_points), worst_idx)
+    available_idx <- setdiff(seq_len(x$n_points), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
 
-    new_unit <- if (call <= private$first_update) {
-      private$lrps$propose_uniform(private$live_log_lik[worst_idx])
+    new_unit <- if (call <= x$first_update) {
+      x$lrps$propose_uniform(live_env$log_lik[worst_idx])
     } else {
-      private$lrps$propose_live(
-        private$live_unit[copy, ],
-        private$live_log_lik[worst_idx]
+      x$lrps$propose_live(
+        live_env$unit[copy, ],
+        live_env$log_lik[worst_idx]
       )
     }
-    private$live_log_lik[worst_idx] <- new_unit$log_lik
-    private$live_unit[worst_idx, ] <- new_unit$unit
-    private$live_birth[worst_idx] <- i + iter
+    live_env$log_lik[worst_idx] <- new_unit$log_lik
+    live_env$unit[worst_idx, ] <- new_unit$unit
+    live_env$birth[worst_idx] <- i + iter
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
-  }
-  if (!(private$status %in% c("PLATEAU", "MIN_LOGZ", "MAX_CALLS"))) {
-    private$status <- "MAX_ITER"
-    cli_inform("`max_iterations` reached ({max_it})")
-  }
-  if (verbose) {
-    cli_progress_done()
   }
 
   list(
@@ -135,7 +112,6 @@ nested_sampling_impl <- function(
     "dead_log_lik" = dead_log_lik,
     "dead_id" = dead_id,
     "dead_calls" = dead_calls,
-    "dead_birth" = dead_birth,
-    "remaining_logz" = d_log_z
+    "dead_birth" = dead_birth
   )
 }

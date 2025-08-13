@@ -42,7 +42,7 @@ specification."></head><body>
     </div>
 
     <div class="ref-description section level2">
-    <p>Initialize a <a href="ernest_sampler-class.html">ernest_sampler</a> object to perform nested sampling with a given
+    <p>Initialize a ernest_sampler object to perform nested sampling with a given
 log-likelihood function, prior distribution, and likelihood-restricted prior
 specification.</p>
     </div>
@@ -56,7 +56,6 @@ specification.</p>
 <span>  n_points <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  first_update <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  update_interval <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  on_warning <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"abort"</span>, <span class="st">"warn"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -66,9 +65,10 @@ specification.</p>
 
 
 <dl><dt id="arg-log-lik">log_lik<a class="anchor" aria-label="anchor" href="#arg-log-lik"></a></dt>
-<dd><p>(function) A function that takes a vector of parameters and
-returns the log-likelihood of the parameters. The function should return a
-finite value or <code>-Inf</code> for invalid parameters (see <code><a href="create_likelihood.html">create_likelihood()</a></code>).</p></dd>
+<dd><p>(function) A function or <code>ernest_likelihood</code> that takes a
+vector of parameters and returns the log-likelihood. The function should
+return a finite value or <code>-Inf</code> for invalid parameters
+(see <code><a href="create_likelihood.html">create_likelihood()</a></code>).</p></dd>
 
 
 <dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>
@@ -98,13 +98,6 @@ calls between updates to the LRPS behaviour. If <code>NULL</code>, this is set t
 <code>n_points * 1.5</code>.</p></dd>
 
 
-<dt id="arg-on-warning">on_warning<a class="anchor" aria-label="anchor" href="#arg-on-warning"></a></dt>
-<dd><p>(case-sensitive string) Action to perform when the sanity
-test throws a warning message (see Details).</p><ul><li><p><code>"abort"</code>: Throw an error.</p></li>
-<li><p><code>"warn"</code>: Issue a warning and initialize the sampler.</p></li>
-</ul></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Arguments passed on to <code><a href="create_likelihood.html">create_likelihood.function</a></code></p><dl><dt><code>error_action</code></dt>
 <dd><p>(case-sensitive string) Action to perform once <code>fn</code>
@@ -131,7 +124,7 @@ parameter vectors.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <a href="ernest_sampler-class.html">ernest_sampler</a> object, prepared for nested sampling.</p>
+    <p>An ernest_sampler object, prepared for nested sampling.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -141,11 +134,6 @@ It checks that the provided log-likelihood and prior are compatible by
 performing a basic sanity check by evaluating the log-likelihood at the
 center of the prior space. This check ensures that the log-likelihood
 returns a finite value or <code>-Inf</code> for typical parameter values.</p>
-<p>The sanity check may fail even if <code>log_lik</code> is well-specified, for example
-if the prior's support does not include the test point
-(the center of the prior hypercube), or if the log-likelihood is only
-defined for a subset of the parameter space. In such cases, silencing the
-warning from <code>nested_sampling`` may require you to adjust the prior or adjust the </code>on_warning` argument.</p>
     </div>
 
     <div class="section level2">
@@ -154,7 +142,7 @@ warning from <code>nested_sampling`` may require you to adjust the prior or adju
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu">nested_sampling</span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 100 points x 0 iter. x 0 lik. calls</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 100 points, 2 variables. </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

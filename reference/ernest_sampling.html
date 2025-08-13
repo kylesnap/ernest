@@ -91,7 +91,7 @@ for the sampler.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>ernest_sampling</code> object, used by <a href="ernest_sampler-class.html">ernest_sampler</a>
+    <p>An <code>ernest_sampling</code> object, used by ernest_sampler
 during its initialization to create an R environment for its LRPS.</p>
     </div>
     <div class="section level2">
@@ -132,7 +132,7 @@ python package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;rwcube_lrps&gt; object generator</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     update: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>
@@ -173,7 +173,7 @@ python package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;rwcube_lrps&gt; object generator</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik, prior_fn, n_dim, steps = 25L, target_acceptance = 0.5) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     update: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>
@@ -209,7 +209,7 @@ python package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;uniform_lrps&gt; object generator</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Inherits from: &lt;ernest_lrps&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Public:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik_fn, prior_fn, n_dim) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     initialize: function (log_lik, prior_fn, n_dim) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     clear: function () </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     update: function (...) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     propose_live: function (original, criteria) </span>

@@ -382,7 +382,7 @@ behavior.</p>
 <span>  n_points <span class="op">=</span> <span class="fl">500</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">sampler</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 500 points x 0 iter. x 0 lik. calls</span></span></code></pre></div>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 500 points, 3 variables.</span></span></code></pre></div>
 <p>After initializing the sampler, you can start the nested sampling run
 using <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code>. This first calls <code><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile()</a></code>,
 which constructs and validates the live points within a nested sampler,
@@ -405,23 +405,24 @@ evidence estimate falls below a specified threshold
 <code>sampler</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run_1k</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `max_iterations` reached (1000)</span></span>
+<span><span class="co">#&gt; Creating new live points.</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0353770429547848 &lt; 0.05)</span></span>
 <span><span class="va">run_1k</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points x 1000 iter x 16727 lik. calls</span></span>
-<span><span class="co">#&gt; → Log. Evidence: <span style="color: #0000BB;">-9.201</span> ± <span style="color: #0000BB;">1.089</span></span></span></code></pre></div>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points, 3 variables</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> 0 iterations, 0 likelihood calls</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-8.951</span> (± <span style="color: #0000BB;">1.902</span>)</span></span></code></pre></div>
 <p>You can build more accurate estimates of evidence by continuing this
 run until <code>min_logz</code> falls below 0.05. This allows
 <code>sampler</code> to resume sampling while retaining the previously
 collected dead points.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run_dlogz</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ⠙ Generating nested samples | 1559 iter. | 55677 lik. calls |3.32111786546693 e…</span></span>
-<span><span class="co">#&gt; ⠹ Generating nested samples | 2461 iter. | 78227 lik. calls |0.642041244867663 …</span></span>
-<span><span class="co">#&gt; `min_logz` reached (0.0499525231775595 &lt; 0.05)</span></span>
-<span><span class="co">#&gt; ⠹ Generating nested samples | 3695 iter. | 109102 lik. calls |0.049952523177559…</span></span>
+<span><span class="co">#&gt; Creating new live points.</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0499766722433228 &lt; 0.05)</span></span>
 <span><span class="va">run_dlogz</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points x 4695 iter x 109102 lik. calls</span></span>
-<span><span class="co">#&gt; → Log. Evidence: <span style="color: #0000BB;">-9.049</span> ± <span style="color: #0000BB;">0.115</span></span></span></code></pre></div>
+<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points, 3 variables</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> 78 iterations, 83 likelihood calls</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-8.291</span> (± <span style="color: #0000BB;">1.749</span>)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="reviewing-nested-sampling-runs">Reviewing Nested Sampling Runs<a class="anchor" aria-label="anchor" href="#reviewing-nested-sampling-runs"></a>
@@ -438,9 +439,9 @@ smry
 #&gt; 
 #&gt;  [36m── [39m  [1mNested Sampling Results from  [34m&lt;ernest_run&gt; [39m [22m  [36m─────────────────────────────────── [39m
 #&gt; No. Points: 500
-#&gt; No. Iterations: 4695
-#&gt; No. Lik. Calls: 109102
-#&gt; Log. Evidence: -9.049 (± 0.1152)</code></pre>
+#&gt; No. Iterations: 78
+#&gt; No. Lik. Calls: 83
+#&gt; Log. Evidence: -8.291 (± 1.749)</code></pre>
 <p>To show how the evidence estimates change over the course of the run,
 you can use the <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> function to construct a facetted
 <code>ggplot</code>.</p>
@@ -470,7 +471,7 @@ simulations and their related quantities.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Simulated Evidence Estimate from </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_estimate&gt;</span> <span style="color: #00BBBB;">──────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Draws: 1000</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.151 (± 0.07498)</span></span>
+<span><span class="co">#&gt; Log. Evidence: -8.426 (± 0.4725)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">calc_sim</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>

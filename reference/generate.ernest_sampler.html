@@ -53,10 +53,10 @@ until a provided stopping criterion is met.</p>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  max_iterations <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  max_calls <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  max_iterations <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_calls <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_logz <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NA</span></span>
+<span>  show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -69,7 +69,25 @@ until a provided stopping criterion is met.</p>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>These dots are for future extensions and must be empty.</p></dd>
+<dd><p>Arguments passed on to <code><a href="compile.ernest_sampler.html">compile.ernest_run</a></code></p><dl><dt><code>seed</code></dt>
+<dd><p>(integer or NA, optional) Specification for the random number
+generator.</p><ul><li><p>integer and NULL: Passed to <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>. If <code>NULL</code>, this reinitializes the
+generator as if no seed has yet been set.</p></li>
+<li><p><code>NA</code>: Make no changes to the current seed. If <code>compile</code> has been
+called on <code>object</code> before, then <code>NA</code> will ensure that the seed remain
+identical between runs.</p></li>
+</ul></dd>
+
+    <dt><code>clear</code></dt>
+<dd><p>(boolean) Whether to clear results from previous runs before
+compiling.</p><ul><li><p><code>TRUE</code>: Previous results stored in <code>object</code> are removed, and live points
+are generated and validated.</p></li>
+<li><p><code>FALSE</code>: Previous results stored in <code>object</code> are retained, and live points
+are validated.</p></li>
+</ul></dd>
+
+
+</dl></dd>
 
 
 <dt id="arg-max-iterations">max_iterations<a class="anchor" aria-label="anchor" href="#arg-max-iterations"></a></dt>
@@ -88,15 +106,9 @@ current log evidence and remaining log evidence (see Details). If set to
 zero, this stopping criterion is ignored.</p></dd>
 
 
-<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>(integer or NA, optional) Specification for the random number
-generator.</p><ul><li><p>integer: Passed to <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>.</p></li>
-<li><p><code>NULL</code>: Passed to <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>, which reinitializes the generator as if
-no seed has yet been set.</p></li>
-<li><p><code>NA</code>: Make no changes to the current seed if set. If <code>compile</code> has been
-called on <code>object</code> before, then <code>NA</code> will ensure that the seed remain
-identical between runs.</p></li>
-</ul></dd>
+<dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
+<dd><p>Whether to show a simple progress spinner and iteration
+counter during the run.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -124,12 +136,9 @@ final evidence estimates.</p>
 <p>If <code>x</code> already contains results from previous calls to <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code>, then
 <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> will ensure that your stopping criterion have not already been
 surpassed during previous runs.</p>
-<p>Control the verbosity of <code>generate</code> as it runs with the
-<code>rlib_message_verbosity</code> option. This can be set with one of these three
-values:</p><ul><li><p><code>"default"</code>: Verbose unless the <code>.frequency</code> argument is supplied.</p></li>
-<li><p><code>"verbose"</code>: Always verbose.</p></li>
-<li><p><code>"quiet"</code>: Always quiet.</p></li>
-</ul></div>
+<p>Control the verbosity of other messages in ernest as it runs with the
+<code>rlib_message_verbosity</code> enviroment option.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -137,20 +146,22 @@ values:</p><ul><li><p><code>"default"</code>: Verbose unless the <code>.frequenc
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="nested_sampling.html">nested_sampling</a></span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_point <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 100 points x 0 iter. x 0 lik. calls</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span>: 100 points, 2 variables. </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Stop sampling after a set number of iterations or calls to the lik. func.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> `max_iterations` reached (100)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 100 points x 100 iter x 801 lik. calls</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> → Log. Evidence: <span style="color: #0000BB;">-0.649</span> ± <span style="color: #0000BB;">0.129</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating new live points.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 100 points, 2 variables</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> 100 iterations, 168 likelihood calls</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-0.612</span> (± <span style="color: #0000BB;">0.124</span>)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The final number of calls may be larger than `max_calls`, as `generate`</span></span></span>
 <span class="r-in"><span><span class="co"># only checks the number of calls when removing a live point.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_calls <span class="op">=</span> <span class="fl">2600</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> `max_calls` surpassed (2601 &gt; 2600)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 100 points x 172 iter x 2601 lik. calls</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> → Log. Evidence: <span style="color: #0000BB;">-0.643</span> ± <span style="color: #0000BB;">0.095</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating new live points.</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in "lapply(text, glue_cmd, .envir = .envir)":</span> <span style="color: #BBBB00;">!</span> Could not evaluate cli `{}` expression: `max_c`.</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error</span> in `eval(expr, envir = envir)`:</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> object 'max_c' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use the default stopping criteria</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span>  <span class="co"># \dontrun{}</span></span></span>

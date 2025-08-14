@@ -2,15 +2,9 @@
 % Please edit documentation in R/likelihood-class.R
 \name{create_likelihood}
 \alias{create_likelihood}
-\alias{create_likelihood.ernest_likelihood}
-\alias{create_likelihood.function}
 \title{Prepare a likelihood function for nested sampling}
 \usage{
-create_likelihood(fn, ...)
-
-\method{create_likelihood}{ernest_likelihood}(fn, ..., .nonfinite_action = c("warn", "quiet", "abort"))
-
-\method{create_likelihood}{`function`}(
+create_likelihood(
   fn,
   rowwise_fn,
   ...,

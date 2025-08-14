@@ -22,7 +22,7 @@
 #' @param update_interval (optional positive integer) The number of likelihood
 #' calls between updates to the LRPS behaviour. If `NULL`, this is set to
 #' `n_points * 1.5`.
-#' @inheritDotParams create_likelihood.function -fn
+#' @inheritDotParams create_likelihood -fn
 #'
 #' @return An [ernest_sampler] object, prepared for nested sampling.
 #'

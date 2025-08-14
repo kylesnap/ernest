@@ -21,7 +21,7 @@ check_class <- function(
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  if (inherits_any(x, class)) {
+  if ((allow_null && is.null(x)) || inherits_any(x, class)) {
     return(invisible(NULL))
   }
 
@@ -72,32 +72,36 @@ check_matrix <- function(
       call = call
     )
   }
-  if (!isTRUE(identical(dim(x), c(nrow, ncol)))) {
-    cli::cli_abort(c(
-      "`{arg}` must have dimensions {nrow} x {ncol}.",
-      "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
-    ))
+  if (!isTRUE(all.equal(dim(x), c(nrow, ncol)))) {
+    cli::cli_abort(
+      c(
+        "`{arg}` must have dimensions {nrow} x {ncol}.",
+        "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
+      ),
+      call = call
+    )
   }
-  try_fetch(
-    for (i in seq(nrow(x))) {
-      if (any(is.na(x[i, ]) | is.nan(x[i, ]))) {
-        cli::cli_abort("`{arg}` must not contain missing or `NaN` values.")
-      }
-      if (any(x[i, ] <= lower)) {
-        cli::cli_abort("`{arg}` must respect the lower boundary ({lower}).")
-      }
-      if (any(x[i, ] >= upper)) {
-        cli::cli_abort("`{arg}` must respect the upper boundary ({upper}).")
-      }
-    },
-    error = function(cnd) {
+
+  for (i in seq(nrow(x))) {
+    if (any(is.na(x[i, ]) | is.nan(x[i, ]))) {
       cli::cli_abort(
-        "Problem at the {i}th row of `{arg}`.",
-        parent = cnd,
+        "`{arg}` must not contain missing or `NaN` values.",
         call = call
       )
     }
-  )
+    if (any(x[i, ] <= lower)) {
+      cli::cli_abort(
+        "`{arg}` must respect the lower boundary ({lower}).",
+        call = call
+      )
+    }
+    if (any(x[i, ] >= upper)) {
+      cli::cli_abort(
+        "`{arg}` must respect the upper boundary ({upper}).",
+        call = call
+      )
+    }
+  }
   invisible(NULL)
 }
 
@@ -144,6 +148,26 @@ check_double <- function(
     cli::cli_abort("`{arg}` must not contain `-Inf` values.")
   }
   invisible(NULL)
+}
+
+#' Transform a function so that it can be applied over a matrix of inputs.
+#' @param fn Function.
+#' @return A function that can be applied over vectors.
+#' @noRd
+as_rowwise_fn <- function(fn) {
+  new_function(
+    exprs(... = ),
+    expr({
+      if (is.vector(..1)) {
+        (!!fn)(..1)
+      } else if (is.matrix(..1)) {
+        tmp <- apply(..1, 1, (!!fn))
+        if (is.matrix(tmp)) t(tmp) else tmp
+      } else {
+        stop_input_type(..1, "a double vector or matrix", arg = "..1")
+      }
+    })
+  )
 }
 
 #' Validate and cast a scalar integer.

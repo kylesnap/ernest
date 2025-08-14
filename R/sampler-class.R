@@ -94,50 +94,11 @@ new_ernest_sampler <- function(
   new_elems <- dots_list(..., .homonyms = "error")
   check_unique_names(c(elems, new_elems))
 
-  structure(
+  obj <- structure(
     c(elems, new_elems),
     class = c(.class, "ernest_sampler")
   )
-}
-
-#' Check an ernest sampler object
-#' @param obj An `ernest_sampler` object.
-#' @param call The environment from which the function was called.
-#' @return `NULL` if the object is valid, otherwise throws an error.
-#' @noRd
-check_ernest_sampler <- function(obj, call = caller_env()) {
-  check_class(obj, "ernest_sampler", call = call)
-  check_class(
-    obj$log_lik_fn,
-    "ernest_likelihood",
-    arg = "log_lik_fn",
-    call = call
-  )
-  check_class(obj$prior, "ernest_prior", arg = "prior", call = call)
-  check_environment(obj$lrps, arg = "lrps", call = call)
-  check_number_whole(
-    obj$n_points,
-    min = 1,
-    arg = "n_points",
-    allow_infinite = FALSE,
-    call = call
-  )
-  check_number_whole(
-    obj$first_update,
-    min = 0,
-    arg = "first_update",
-    allow_infinite = FALSE,
-    call = call
-  )
-  check_number_whole(
-    obj$update_interval,
-    min = 0,
-    arg = "update_interval",
-    allow_infinite = FALSE,
-    call = call
-  )
-  check_environment(obj$live_points, arg = "live_points", call = call)
-  invisible(NULL)
+  obj
 }
 
 #' Refresh a sampler to detect validity issues
@@ -155,7 +116,6 @@ refresh_ernest_sampler <- function(x) {
 #' @export
 #' @noRd
 format.ernest_sampler <- function(x, ...) {
-  check_ernest_sampler(x)
   cli::cli_format_method({
     str <- glue::glue("{x$n_points} points, {x$prior$n_dim} variables")
     cli::cli_text("An {.cls ernest_sampler}: {str}.")

@@ -7,11 +7,12 @@
 \usage{
 create_prior(
   fn,
+  rowwise_fn,
   n_dim,
+  ...,
   varnames = "X",
   lower = NULL,
-  upper = NULL,
-  auto_batch = TRUE
+  upper = NULL
 )
 }
 \arguments{
@@ -19,17 +20,14 @@ create_prior(
 
 \item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
 
+\item{...}{These dots are for future extensions and must be empty.}
+
 \item{varnames}{(optional character vector) A character vector of names for
 the variables in the prior distribution.}
 
 \item{lower, upper}{(optional numeric vector) The expected bounds for the
 parameter vectors after hypercube transformation. Set to \code{-Inf} and \code{Inf}
 by default.}
-
-\item{auto_batch}{(logical) Whether to prepare \code{fn} so that it may be called
-with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
-can already produce a vector of likelihood values for a matrix with rows of
-parameter vectors.}
 }
 \value{
 A named list with class \code{ernest_prior}. The list contains the

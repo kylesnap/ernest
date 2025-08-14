@@ -38,7 +38,7 @@ calls between updates to the LRPS behaviour. If \code{NULL}, this is set to
 \code{n_points * 1.5}.}
 
 \item{...}{
-  Arguments passed on to \code{\link[=create_likelihood.function]{create_likelihood.function}}
+  Arguments passed on to \code{\link[=create_likelihood]{create_likelihood}}
   \describe{
     \item{\code{}}{}
   }}

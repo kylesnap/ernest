@@ -1,16 +1,49 @@
-# create_likelihood with auto_batch
+# create_likelihood with simple function
 
     Code
       ll
     Output
-      An <ernest_likelihood>: `nonfinite_action` = warn
+      
+      -- <ernest_likelihood> 
+      function (x) 
+      -sum((x - 1)^2)
 
-# create_likelihood from an ernest_likelihood
+# create_likelihood with rowwise_fn
 
     Code
       ll
     Output
-      An <ernest_likelihood>: `nonfinite_action` = warn
+      
+      -- <ernest_likelihood> 
+      function (x) 
+      {
+          LaplacesDemon::dmvn(x, mu = c(-1, 1), Sigma = diag(0.95, 
+              nrow = 2))
+      }
+
+# create_likelihood throws errors
+
+    object 'fn' of mode 'function' was not found
+
+---
+
+    `.nonfinite_action` must be one of "warn", "quiet", or "abort", not "blob".
+
+---
+
+    Exactly one of `fn` or `rowwise_fn` must be supplied.
+
+# create_likelihood can forward arguments
+
+    Code
+      ll
+    Output
+      
+      -- <ernest_likelihood> 
+      <partialised>
+      function (...) 
+      ~rowwise_fn(mu = ~c(-1, 1), Sigma = c(0.95, 0, 0, 0.95), ...)
+      <environment ADDRESS>
 
 # non_finite action options
 

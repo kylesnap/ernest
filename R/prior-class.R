@@ -10,7 +10,7 @@
 #' @param lower,upper (optional numeric vector) The expected bounds for the
 #' parameter vectors after hypercube transformation. Set to `-Inf` and `Inf`
 #' by default.
-#' @inheritParams create_likelihood.function
+#' @inheritParams create_likelihood
 #'
 #' @returns A named list with class `ernest_prior`. The list contains the
 #' following:
@@ -105,38 +105,55 @@
 #' @export
 create_prior <- function(
   fn,
+  rowwise_fn,
   n_dim,
+  ...,
   varnames = "X",
-  lower = NULL,
-  upper = NULL,
-  auto_batch = TRUE
+  lower = -Inf,
+  upper = Inf
 ) {
-  fn <- as_univariate_function(fn)
-  auto_batch <- as_scalar_logical(auto_batch)
+  which_arg <- check_exclusive(fn, rowwise_fn)
+  rowwise_fn <- if (which_arg == "fn") {
+    fn <- as_function(fn, arg = "fn")
+    if (dots_n(...) != 0L) {
+      fn <- purrr::partial(fn, ...)
+    }
+    attr(fn, "is_rowwise") <- FALSE
+    as_rowwise_fn(fn)
+  } else {
+    rowwise_fn <- as_function(rowwise_fn, arg = "rowwise_fn")
+    if (dots_n(...) != 0L) {
+      rowwise_fn <- purrr::partial(rowwise_fn, ...)
+    }
+    rowwise_fn
+  }
   params <- check_prior_params(n_dim, varnames, lower, upper)
 
-  batched_fn <- if (auto_batch) {
-    function(x) {
-      if (is.matrix(x)) {
-        t(apply(x, 1, fn))
-      } else {
-        fn(x)
-      }
+  # fn,
+  # n_dim,
+  # lower,
+  # upper,
+  # n_tests = 10,
+  # call = caller_env()
+  prior_fn <- wrap_prior(rowwise_fn)
+  try_fetch(
+    check_prior_fn(
+      prior_fn,
+      params$n_dim,
+      params$lower,
+      params$upper,
+      call = caller_env()
+    ),
+    error = function(cnd) {
+      cli::cli_abort(
+        "Can't validate `{which_arg}` as a valid prior.",
+        parent = cnd
+      )
     }
-  } else {
-    fn
-  }
-
-  check_prior_fn(
-    batched_fn,
-    params$n_dim,
-    params$lower,
-    params$upper,
-    auto_batch
   )
 
   new_ernest_prior(
-    batched_fn,
+    prior_fn,
     params$n_dim,
     params$varnames,
     params$lower,
@@ -164,12 +181,11 @@ create_prior <- function(
 check_prior_params <- function(
   n_dim,
   varnames,
-  lower = NULL,
-  upper = NULL,
+  lower,
+  upper,
   call = caller_env()
 ) {
-  n_dim <- as_scalar_count(n_dim, positive = TRUE, call = call)
-
+  check_number_whole(n_dim, min = 1, call = call)
   varnames <- vctrs::vec_recycle(
     vctrs::vec_cast(varnames, to = character(), call = call),
     size = n_dim,
@@ -179,8 +195,8 @@ check_prior_params <- function(
   varnames <- make.unique(varnames)
 
   bounds <- vctrs::vec_cast_common(
-    "lower" = lower %||% -Inf,
-    "upper" = upper %||% Inf,
+    "lower" = lower,
+    "upper" = upper,
     .to = double(),
     .call = call
   )
@@ -192,7 +208,11 @@ check_prior_params <- function(
   if (any(common_length$lower >= common_length$upper)) {
     cli_abort("`lower` must be strictly smaller than `upper`.", call = call)
   }
-  c("n_dim" = as.integer(n_dim), "varnames" = list(varnames), common_length)
+  list2(
+    "n_dim" = as.integer(n_dim),
+    "varnames" = c(varnames),
+    !!!common_length
+  )
 }
 
 #' Check the validity of a prior transformation function.
@@ -215,80 +235,29 @@ check_prior_fn <- function(
   n_dim,
   lower,
   upper,
-  auto_batch = TRUE,
+  n_tests = 10,
   call = caller_env()
 ) {
-  try_fetch(
-    {
-      result <- fn(rep(0.5, n_dim))
-      msg <- checkmate::check_numeric(
-        result,
-        len = n_dim,
-        any.missing = FALSE,
-        finite = TRUE
-      )
-      if (!isTRUE(msg)) {
-        arg <- sprintf("fn(rep(0.5, %s))", n_dim)
-        format_checkmate(msg, arg, call = call)
-      }
-    },
-    error = function(cnd) {
-      cli_abort(
-        "Couldn't transform a test point.",
-        parent = cnd,
-        call = call
-      )
-    }
+  result <- fn(rep(0.5, n_dim))
+  check_double(
+    result,
+    size = n_dim,
+    arg = glue::glue("prior(rep(0.5, {n_dim}))"),
+    call = call
   )
 
-  if (1000 %/% n_dim < 1L) {
-    cli_warn("Skipping matrix testing, as `n_dim` > 1000.")
-  }
-  test <- matrix(stats::runif(1000 %/% n_dim), ncol = n_dim)
-  try_fetch(
-    {
-      result <- fn(test)
-      msg <- checkmate::check_matrix(
-        result,
-        mode = "numeric",
-        nrows = nrow(test),
-        ncols = ncol(test),
-        any.missing = FALSE
-      )
-      if (!isTRUE(msg)) {
-        format_checkmate(msg, "fn(test_matrix)", call = call)
-      }
-
-      if (any(!is.finite(result))) {
-        cli_abort("`fn` must always return finite values.")
-      }
-      if (any(sweep(result, 2, lower, `<`))) {
-        cli_abort(
-          "`fn` must return values greater than or equal to `lower`."
-        )
-      }
-      if (any(sweep(result, 2, upper, `>`))) {
-        cli_abort(
-          "`fn` must return values lesser than or equal to `upper`."
-        )
-      }
-    },
-    error = function(cnd) {
-      cli_abort(
-        c(
-          "Can't transform values in a test matrix.",
-          "i" = if (!auto_batch) {
-            "Can `fn` handle matrices without setting `auto_batch = TRUE`?"
-          } else {
-            NULL
-          }
-        ),
-        parent = cnd,
-        call = call
-      )
-    }
+  test <- matrix(stats::runif(n_tests * n_dim), nrow = n_tests)
+  result <- fn(test)
+  check_matrix(
+    result,
+    nrow = n_tests,
+    ncol = n_dim,
+    lower = lower,
+    upper = upper,
+    arg = glue::glue("prior(matrix(nrow = {n_tests}, ncol = {n_dim}))"),
+    call = call
   )
-  NULL
+  invisible(NULL)
 }
 
 #' Construct an object of class 'ernest_prior'.
@@ -349,4 +318,31 @@ format.ernest_prior <- function(x, ...) {
 print.ernest_prior <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
+}
+
+wrap_prior <- function(rowwise_fn) {
+  new_function(
+    exprs(unit = ),
+    expr({
+      if (!is.numeric(unit)) {
+        stop_input_type(unit, "a numeric vector or matrix")
+      }
+      y <- (!!rowwise_fn)(unit)
+      if (!is.double(y) || any(is.na(y)) || any(is.nan(y))) {
+        cli::cli_abort(
+          "`prior(unit)` must always return a vector or matrix of doubles."
+        )
+      }
+      if (is.matrix(unit) && !isTRUE(all.equal(dim(unit), dim(y)))) {
+        cli::cli_abort(c(
+          "`prior(unit)` must return a matrix of equal dim. to `unit`.",
+          "x" = "Expected dim(y) = {nrow(unit)} x {ncol(unit)}.",
+          "x" = "Returned dim(y) = {dim(y)}."
+        ))
+      } else {
+        vctrs::vec_check_size(y, vctrs::vec_size(unit))
+      }
+      y
+    })
+  )
 }

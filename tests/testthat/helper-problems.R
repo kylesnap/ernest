@@ -5,14 +5,10 @@ make_gaussian <- function(num_dim, corr = 0.95) {
   mu <- seq(-1, 1, length.out = num_dim)
   Sigma <- diag(corr, nrow = num_dim)
   log_lik <- create_likelihood(
-    \(x) {
-      LaplacesDemon::dmvn(
-        x,
-        mu = seq(-1, 1, length.out = num_dim),
-        Sigma = Sigma,
-        log = TRUE
-      )
-    }
+    LaplacesDemon::dmvn,
+    mu = !!seq(-1, 1, length.out = num_dim),
+    Sigma = Sigma,
+    log = TRUE
   )
   prior <- create_uniform_prior(
     n_dim = num_dim,

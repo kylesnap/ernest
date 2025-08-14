@@ -78,45 +78,46 @@
 #' # Silence warnings with `nonfinite_action = "pass"`
 #' quiet_lik <- create_likelihood(log_lik, nonfinite_action = "pass")
 #' quiet_lik(c(Inf, 0, 0))
-#' @rdname create_likelihood
 #' @export
-create_likelihood <- function(fn, ...) {
-  UseMethod("create_likelihood")
-}
-
-#' @rdname create_likelihood
-#' @export
-create_likelihood.ernest_likelihood <- function(
-  fn,
-  ...,
-  .nonfinite_action = c("warn", "quiet", "abort")
-) {
-  check_dots_empty()
-  new_ernest_likelihood(
-    rowwise_fn = attr(fn, "unwrapped_fn"),
-    .nonfinite_action = .nonfinite_action
-  )
-}
-
-#' @rdname create_likelihood
-#' @export
-create_likelihood.function <- function(
+create_likelihood <- function(
   fn,
   rowwise_fn,
   ...,
   .nonfinite_action = c("warn", "quiet", "abort")
 ) {
   which_arg <- check_exclusive(fn, rowwise_fn)
-  rowwise_fn <- if (which_arg == "fn") {
-    fn <- as_function(fn)
-    partialized <- purrr::partial(fn, ...)
-    as_rowwise_fn(partialized)
+  if (which_arg == "fn") {
+    if (inherits(fn, "ernest_likelihood")) {
+      unsafe_fn <- attr(fn, "unsafe_fn")
+      rowwise <- attr(unsafe_fn, "is_rowwise")
+      attr(unsafe_fn, "is_rowwise") <- NULL
+      if (rowwise) {
+        return(create_likelihood(
+          rowwise_fn = unsafe_fn,
+          .nonfinite_action = .nonfinite_action
+        ))
+      } else {
+        return(create_likelihood(
+          fn = unsafe_fn,
+          .nonfinite_action = .nonfinite_action
+        ))
+      }
+    }
+    fn <- as_function(fn, arg = "fn")
+    if (dots_n(...) != 0L) {
+      fn <- purrr::partial(fn, ...)
+    }
+    attr(fn, "is_rowwise") <- FALSE
+    rowwise_fn <- as_rowwise_fn(fn)
   } else {
-    rowwise_fn <- as_function(rowwise_fn)
-    partialized <- purrr::partial(rowwise_fn, ...)
-    partialized
+    rowwise_fn <- as_function(rowwise_fn, arg = "rowwise_fn")
+    if (dots_n(...) != 0L) {
+      rowwise_fn <- purrr::partial(rowwise_fn, ...)
+    }
+    fn <- rowwise_fn
+    attr(fn, "is_rowwise") <- TRUE
   }
-  new_ernest_likelihood(rowwise_fn, .nonfinite_action)
+  new_ernest_likelihood(fn, rowwise_fn, .nonfinite_action)
 }
 
 #' Construct an internal ernest likelihood function with error and nonfinite
@@ -130,6 +131,7 @@ create_likelihood.function <- function(
 #' @return A function of class `"ernest_likelihood"` and `"function"`.
 #' @noRd
 new_ernest_likelihood <- function(
+  fn,
   rowwise_fn,
   .nonfinite_action,
   .call = caller_env()
@@ -139,58 +141,40 @@ new_ernest_likelihood <- function(
     values = c("warn", "quiet", "abort"),
     error_call = .call
   )
-  log_lik_fn <- wrap_function(
-    rowwise_fn,
-    .nonfinite_action = .nonfinite_action,
-    .call = .call
-  )
+  log_lik_fn <- wrap_loglik(rowwise_fn, .nonfinite_action)
 
-  structure(
+  obj <- structure(
     log_lik_fn,
-    unwrapped_fn = rowwise_fn,
+    unsafe_fn = fn,
     nonfinite_action = .nonfinite_action,
-    class = c("ernest_likelihood", "purrr_function_partial", "function")
+    class = c("ernest_likelihood", "function")
   )
+  obj
 }
 
 #' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
   cli::cli_format_method({
-    nonfinite_str <- attr(x, 'nonfinite_action')
-    cli::cli_text(
-      "An {.cls ernest_likelihood}: {.arg nonfinite_action} = {nonfinite_str}"
-    )
+    cli::cli_h3("{.cls ernest_likelihood}")
+    fn <- attr(x, "unsafe_fn")
+    attr(fn, "is_rowwise") <- NULL
+    if (inherits(fn, "purrr_function_partial")) {
+      cli::cat_print(fn)
+    } else {
+      cli::cli_code(format(fn))
+    }
   })
 }
 
 #' @noRd
 #' @export
 print.ernest_likelihood <- function(x, ...) {
-  cat(format(x), sep = "\n")
+  cat(format(x, ...), sep = "\n")
   invisible(x)
 }
 
-#' Transform a function so that it can be applied over a matrix of inputs.
-#' @param fn Function.
-#' @return A function that can be applied over vectors.
-#' @noRd
-as_rowwise_fn <- function(fn) {
-  new_function(
-    exprs(... = ),
-    expr({
-      if (is.vector(..1)) {
-        (!!fn)(..1)
-      } else if (is.matrix(..1)) {
-        apply(..1, 1, (!!fn))
-      } else {
-        stop_input_type(..1, "a double vector or matrix", arg = "..1")
-      }
-    })
-  )
-}
-
-wrap_function <- function(rowwise_fn, .nonfinite_action, .call) {
+wrap_loglik <- function(rowwise_fn, .nonfinite_action) {
   nonfinite_expr <- switch(
     .nonfinite_action,
     "warn" = expr({

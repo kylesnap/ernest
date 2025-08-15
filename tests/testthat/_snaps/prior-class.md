@@ -34,7 +34,7 @@
 
     Can't validate `fn` as a valid prior.
     Caused by error in `fn()`:
-    ! `prior(unit)` must always return a vector or matrix of doubles.
+    ! `prior(unit)` must never return `NA` or `NaN` values.
 
 # create_prior errors with invalid bounds
 

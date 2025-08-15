@@ -49,13 +49,13 @@
 
     `lik(theta)` must always return finite double values or `-Inf`.
     x `lik(theta)` returned NaN.
-    i Should you change `nonfinite_action` from "abort"?
+    i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
     `lik(theta)` must always return finite double values or `-Inf`.
     x `lik(theta)` returned NaN.
-    i Should you change `nonfinite_action` from "abort"?
+    i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
@@ -69,13 +69,13 @@
 
     `lik(theta)` must always return finite double values or `-Inf`.
     x `lik(theta)` returned Inf.
-    i Should you change `nonfinite_action` from "abort"?
+    i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
     `lik(theta)` must always return finite double values or `-Inf`.
     x `lik(theta)` returned Inf.
-    i Should you change `nonfinite_action` from "abort"?
+    i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 

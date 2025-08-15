@@ -32,8 +32,8 @@ unif_cube <- function() {
 format.unif_cube <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_h3("Uniform Unit Cube LRPS")
-    cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    cli::cli_text("# Calls Since Update: {x$cache$n_call %||% 0L}")
+    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
+    cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
   })
 }
 

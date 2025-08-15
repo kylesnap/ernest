@@ -1,15 +1,12 @@
+# Runs can be completed and resume
+
+    `min_logz` must be a number between 0 and 0.498985114618665, not the number 0.5.
+
 # Throws errors when stop criteria are already passed
 
-    Invalid stopping criteria.
-    i The sampler already has 100 iterations and 851 likelihood calls.
+    `max_iterations` must be a whole number larger than or equal to 101 or `NULL`, not the number 50.
 
 ---
 
-    Invalid stopping criteria.
-    i The sampler already has 105 iterations and 1003 likelihood calls.
-
----
-
-    `min_logz` must be less than the estimated remaining evidence.
-    ! Remaining log evidence is 0.049.
+    `max_calls` must be a whole number larger than or equal to 1003 or `NULL`, not the number 500.
 

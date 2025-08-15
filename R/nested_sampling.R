@@ -49,12 +49,42 @@ nested_sampling <- function(
   update_interval = NULL,
   ...
 ) {
-  new_ernest_sampler(
-    log_lik_fn = create_likelihood(log_lik, ...),
+  if (!inherits(log_lik, "ernest_likelihood")) {
+    log_lik <- create_likelihood(fn = log_lik)
+  }
+  obj <- new_ernest_sampler(
+    log_lik_fn = log_lik,
     prior = prior,
-    sampling = sampler,
+    lrps = sampler,
     n_points = n_points,
     first_update = first_update %||% as.integer(n_points * 2.5),
     update_interval = update_interval %||% as.integer(n_points * 1.5)
   )
+
+  try_fetch(
+    {
+      live <- create_live(obj$lrps, obj$n_points)
+      env_bind(
+        obj$live_points,
+        "unit" = live$unit,
+        "log_lik" = live$log_lik,
+        "birth" = rep(0L, obj$n_points)
+      )
+      check_live_set(obj)
+      obj$live_point <- new_environment()
+    },
+    error = function(cnd) {
+      cli::cli_abort(
+        "{.cls ernest_sampler} cannot compile.",
+        parent = cnd
+      )
+    },
+    warning = function(cnd) {
+      cli::cli_warn(
+        "{.cls ernest_sampler} threw a warning during compilation",
+        parent = cnd
+      )
+    }
+  )
+  obj
 }

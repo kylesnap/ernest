@@ -328,10 +328,14 @@ wrap_prior <- function(rowwise_fn) {
         stop_input_type(unit, "a numeric vector or matrix")
       }
       y <- (!!rowwise_fn)(unit)
-      if (!is.double(y) || any(is.na(y)) || any(is.nan(y))) {
-        cli::cli_abort(
-          "`prior(unit)` must always return a vector or matrix of doubles."
-        )
+      if (!is.double(y)) {
+        cli::cli_abort(c(
+          "`prior(unit)` must always return a vector or matrix of doubles.",
+          "x" = "Instead, it returned {obj_type_friendly(y)}."
+        ))
+      }
+      if (any(is.na(y)) || any(is.nan(y))) {
+        cli::cli_abort("`prior(unit)` must never return `NA` or `NaN` values.")
       }
       if (is.matrix(unit) && !isTRUE(all.equal(dim(unit), dim(y)))) {
         cli::cli_abort(c(

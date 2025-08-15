@@ -3,7 +3,16 @@
     Code
       sampler
     Output
-      An <ernest_sampler>: 500 points x 2 params. * Sampler: Random-Walk in Unit Cube with Adaptive Step Size, No. Iter: 0, No.   Call: 0, No. Steps: 25, and Epsilon: 1. 
+      
+      -- Nested sampling specification 
+      No. Points: 500
+      
+      -- Sampling Method 
+      * -- Random Walk in Unit Cube LRPS 
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
 
 # invalid samplers are caught
 
@@ -47,9 +56,5 @@
 
 ---
 
-    `sampling` must be an object with class ernest_sampling, not an empty list.
-
----
-
-    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+    `lrps` must be an object with class ernest_lrps, not an empty list.
 

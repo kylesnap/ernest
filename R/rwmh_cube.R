@@ -45,10 +45,10 @@ rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
 format.rwmh_cube <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_h3("Random Walk in Unit Cube LRPS")
-    cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    cli::cli_text("# Calls Since Update: {x$cache$n_call %||% 0L}")
-    cli::cli_text("# Accepted Proposals Since Update: {x$cache$n_acc %||% 0L}")
-    cli::cli_text("Current Step Size: {.val {x$cache$epsilon %||% 1}}")
+    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
+    cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
+    cli::cli_text("No. Accepted Since Update: {x$cache$n_acc %||% 0L}")
+    cli::cli_text("Current Step Size: {x$cache$epsilon %||% 1}")
   })
 }
 
@@ -120,14 +120,18 @@ propose.rwmh_cube <- function(x, original = NULL, criteria = NULL) {
 update_lrps.rwmh_cube <- function(x) {
   cur_accept <- env_cache(x$cache, "n_accept", 0)
   cur_call <- env_cache(x$cache, "n_call", 0)
-  acc_ratio <- cur_accept / cur_call
-  # Newton-like update to target the acceptance ratio
-  new_epsilon <- env_cache(x$cache, "epsilon", 1.0) *
-    exp(
-      (acc_ratio - x$target_acceptance) / x$n_dim / x$target_acceptance
-    )
-  env_poke(x$cache, "epsilon", new_epsilon)
-  env_poke(x$cache, "n_accept", 0L)
+  if (cur_call != 0L) {
+    acc_ratio <- cur_accept / cur_call
+    # Newton-like update to target the acceptance ratio
+    new_epsilon <- env_cache(x$cache, "epsilon", 1.0) *
+      exp(
+        (acc_ratio - x$target_acceptance) / x$n_dim / x$target_acceptance
+      )
+    env_poke(x$cache, "epsilon", new_epsilon)
+  } else {
+    env_cache(x$cache, "epsilon", 1.0)
+  }
   env_poke(x$cache, "n_call", 0L)
+  env_poke(x$cache, "n_accept", 0L)
   do.call(new_rwmh_cube, as.list(x))
 }

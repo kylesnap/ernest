@@ -12,7 +12,7 @@ analytic_log_evidence <- -1.75
 
 set.seed(42L)
 sampler <- nested_sampling(log_lik, prior, n_points = 500)
-run_500 <- generate(sampler)
+run_500 <- generate(sampler, seed = 42L)
 smry_500 <- summary(run_500)
 
 test_that("Ernest produces near-identical results when max_iter is used", {
@@ -65,7 +65,7 @@ test_that("Increasing the volume of the prior increases iterations", {
   wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
 
   sampler <- nested_sampling(log_lik, wide_prior, n_points = 500)
-  run_wide <- generate(sampler)
+  run_wide <- generate(sampler, seed = 42L)
   smry_wide <- summary(run_wide)
 
   expect_lt(

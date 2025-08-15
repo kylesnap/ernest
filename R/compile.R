@@ -123,7 +123,7 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
 #' @noRd
 create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
-    lrps$propose_uniform(criteria = rep(-1e300, n_points)),
+    propose(lrps, criteria = rep(-1e300, n_points)),
     error = function(cnd) {
       cli::cli_abort(
         "Can't create live points.",

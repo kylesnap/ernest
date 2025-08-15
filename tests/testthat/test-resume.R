@@ -1,52 +1,35 @@
-ll_fn <- function(x) {
-  -0.5 * sum(x^2)
-}
-
-prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
-
-extract_dead <- function(run, dead_it) {
-  dead <- tibble(
-    "log_lik" = run$log_lik[dead_it],
-    "log_volume" = run$log_volume[dead_it],
-    "log_weight" = run$log_weight[dead_it],
-    "log_evidence" = run$log_evidence[dead_it],
-    "id" = run$id[dead_it],
-    "points" = run$points[dead_it],
-    "calls" = run$calls[dead_it],
-    "birth" = run$birth[dead_it]
-  )
-}
+gaussian_2 <- make_gaussian(2L)
+sampler <- nested_sampling(
+  log_lik = gaussian_2$log_lik,
+  prior = gaussian_2$prior
+)
 
 test_that("Runs can be completed and resume", {
-  set.seed(42L)
-  sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+  run1 <- generate(sampler, max_iterations = 100, seed = 42)
+  run2 <- generate(run1, max_iterations = 1000)
 
-  run1 <- generate(sampler, max_iterations = 100)
-  dead_it1 <- seq(run1$n_iter)
-  dead1 <- extract_dead(run1, dead_it1)
+  expect_equal(run2$n_iter, 1000)
+  expect_identical(run1$log_volume[1:100], run2$log_volume[1:100])
+  expect_identical(run1$log_evidence[1:100], run2$log_evidence[1:100])
+  expect_identical(run1$log_lik[1:100], run2$log_lik[1:100])
+  expect_identical(run1$samples_unit[1:100, ], run2$samples_unit[1:100, ])
 
-  run2 <- generate(sampler, max_iterations = 300)
-  dead2_1 <- extract_dead(run2, dead_it1)
-  expect_mapequal(dead1, dead2_1)
-  dead_it2 <- seq(run2$n_iter)
-  dead2 <- extract_dead(run2, dead_it2)
-
-  run3 <- generate(sampler)
-  dead3_2 <- extract_dead(run3, dead_it2)
-  expect_mapequal(dead2, dead3_2)
+  run3 <- generate(run2, min_logz = 0.5)
+  expect_identical(run3$log_volume[1:1000], run2$log_volume[1:1000])
+  expect_identical(run3$log_evidence[1:1000], run2$log_evidence[1:1000])
+  expect_identical(run3$log_lik[1:1000], run2$log_lik[1:1000])
+  expect_identical(run3$samples_unit[1:1000, ], run2$samples_unit[1:1000, ])
+  expect_snapshot_error(generate(run3, min_logz = 0.5))
 })
 
 test_that("Throws errors when stop criteria are already passed", {
-  set.seed(42L)
-  sampler <- nested_sampling(ll_fn, prior, n_point = 100)
-  generate(sampler, max_iterations = 100)
-  expect_snapshot_error(generate(sampler, max_iterations = 50))
+  sampler <- nested_sampling(
+    log_lik = gaussian_2$log_lik,
+    prior = gaussian_2$prior
+  )
+  run1 <- generate(sampler, max_iterations = 100, seed = 42L)
+  expect_snapshot_error(generate(run1, max_iterations = 50))
 
-  sampler <- nested_sampling(ll_fn, prior, n_point = 100)
-  generate(sampler, max_calls = 1000)
-  expect_snapshot_error(generate(sampler, max_calls = 500))
-
-  sampler <- nested_sampling(ll_fn, prior, n_point = 100)
-  generate(sampler)
-  expect_snapshot_error(generate(sampler, min_logz = 1))
+  run1 <- generate(sampler, max_calls = 1000, seed = 42L)
+  expect_snapshot_error(generate(run1, max_calls = 500))
 })

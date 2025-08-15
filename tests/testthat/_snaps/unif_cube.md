@@ -5,8 +5,8 @@
     Output
       
       -- Uniform Unit Cube LRPS 
-      # Dimensions: Uninitialized
-      # Calls Since Update: 0
+      No. Dimensions: Uninitialized
+      No. Calls Since Update: 0
 
 # propose.unif_cube proposes a single new point
 
@@ -15,8 +15,8 @@
     Output
       
       -- Uniform Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 0
 
 # propose.unif_cube proposes multiple new points with criteria
 
@@ -25,8 +25,8 @@
     Output
       
       -- Uniform Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 0
 
 # propose.unif_cube works with provided original points
 
@@ -35,8 +35,8 @@
     Output
       
       -- Uniform Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 8
+      No. Dimensions: 2
+      No. Calls Since Update: 8
 
 # propose.unif_cube errors when max_loop is reached
 

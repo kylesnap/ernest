@@ -49,7 +49,7 @@ nested_sampling_impl <- function(
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
-      cli::cli_inform("`max_calls` surpassed ({call} > {max_c})")
+      cli::cli_inform("`max_calls` surpassed ({call} > {max_calls})")
       break
     }
     max_lik <- max(live_env$log_lik)
@@ -84,20 +84,23 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (call > x$first_update && x$lrps$since_update > x$update_interval) {
-      x$lrps <- x$lrps$update()
+    if (
+      call > x$first_update &&
+        env_cache(x$lrps$cache, "n_call", 0L) > x$update_interval
+    ) {
+      x$lrps <- update_lrps(x$lrps)
     }
 
     # 4. Replace the worst points in live with new points
-    available_idx <- setdiff(seq_len(x$n_points), worst_idx)
-    copy <- sample(available_idx, length(worst_idx), replace = FALSE)
-
     new_unit <- if (call <= x$first_update) {
-      x$lrps$propose_uniform(live_env$log_lik[worst_idx])
+      propose(x$lrps, criteria = live_env$log_lik[worst_idx])
     } else {
-      x$lrps$propose_live(
-        live_env$unit[copy, ],
-        live_env$log_lik[worst_idx]
+      available_idx <- setdiff(seq_len(x$n_points), worst_idx)
+      copy <- sample(available_idx, length(worst_idx), replace = FALSE)
+      propose(
+        x$lrps,
+        original = live_env$unit[copy, , drop = FALSE],
+        criteria = live_env$log_lik[worst_idx]
       )
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik

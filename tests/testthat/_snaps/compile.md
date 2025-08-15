@@ -1,14 +1,14 @@
 # Informative error when prior or log. lik. fails completely.
 
     Can't create live points.
-    Caused by error in `private$log_lik()`:
+    Caused by error in `_fn`:
     ! Bad Likelihood Job!
 
 ---
 
     Can't create live points.
-    Caused by error in `private$prior_fn()`:
-    ! Bad prior job!
+    Caused by error in `_fn`:
+    ! Bad Prior Job!
 
 # check_live_set catches problems in the live_env
 
@@ -21,15 +21,11 @@
 
 ---
 
-    Problem at the 5th row of `unit`.
-    Caused by error in `check_matrix()`:
-    ! `unit` must not contain missing or `NaN` values.
+    `unit` must not contain missing or `NaN` values.
 
 ---
 
-    Problem at the 500th row of `unit`.
-    Caused by error in `check_matrix()`:
-    ! `unit` must respect the lower boundary (0).
+    `unit` must respect the lower boundary (0).
 
 ---
 
@@ -58,5 +54,14 @@
     Code
       sampler
     Output
-      An <ernest_sampler>: 500 points, 2 variables. 
+      
+      -- Nested sampling specification 
+      No. Points: 500
+      
+      -- Sampling Method 
+      * -- Random Walk in Unit Cube LRPS 
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
 

@@ -1,11 +1,7 @@
 gaussian_2 <- make_gaussian(2)
-sampler <- new_ernest_sampler(
+sampler <- nested_sampling(
   log_lik = gaussian_2$log_lik,
-  prior = gaussian_2$prior,
-  sampling = rwmh_cube(),
-  n_points = 500,
-  first_update = 200L,
-  update_interval = 50L
+  prior = gaussian_2$prior
 )
 
 test_that("create_live generates live points correctly", {
@@ -18,21 +14,27 @@ test_that("create_live generates live points correctly", {
 })
 
 test_that("Informative error when prior or log. lik. fails completely.", {
-  bad_lik <- rwcube_lrps$new(
-    log_lik = \(x) stop("Bad Likelihood Job!"),
-    prior_fn = gaussian_2$prior$fn,
+  bad_lik <- new_rwmh_cube(
+    unit_log_fn = purrr::compose(
+      \(x) stop("Bad Likelihood Job!"),
+      gaussian_2$prior$fn,
+    ),
     n_dim = 2L
   )
-  bad_prior <- rwcube_lrps$new(
-    log_lik = gaussian_2$log_lik,
-    prior_fn = \(x) stop("Bad prior job!"),
-    n_dim = 2L
-  )
-
   expect_snapshot_error(create_live(bad_lik, 10))
+
+  bad_prior <- new_rwmh_cube(
+    unit_log_fn = purrr::compose(
+      gaussian_2$log_lik,
+      \(x) stop("Bad Prior Job!")
+    ),
+    n_dim = 2L
+  )
   expect_snapshot_error(create_live(bad_prior, 10))
 })
 
+#' @srrstats {BS2.1a} Tests for check_set_live(), which ensures the log lik
+#' and prior specifications are commensurate before a sampling run begins.
 env_bind(
   sampler$live_points,
   unit = matrix(runif(1000), nrow = 500, ncol = 2),
@@ -40,9 +42,6 @@ env_bind(
   birth = rep(0L, 500)
 )
 
-#' @srrstats {BS2.1a} Tests for check_set_live(), which ensures the log lik
-#' and prior specifications are commensurate before a sampling run begins.
-NULL
 test_that("check_live_set catches problems in the live_env", {
   # Valid case: correct matrix and log_lik
   expect_silent(check_live_set(sampler))
@@ -103,15 +102,6 @@ test_that("check_live_set catches problems in the live_env", {
   env_bind(sampler$live_points, log_lik = log_lik_repeats)
   expect_snapshot_warning(check_live_set(sampler))
 })
-
-sampler <- new_ernest_sampler(
-  log_lik = gaussian_2$log_lik,
-  prior = gaussian_2$prior,
-  sampling = rwmh_cube(),
-  n_points = 500,
-  first_update = 200L,
-  update_interval = 50L
-)
 
 test_that("compile method initializes live points", {
   sampler <- compile(sampler)

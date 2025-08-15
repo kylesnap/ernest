@@ -1,11 +1,7 @@
 gaussian_2 <- make_gaussian(2)
-sampler <- new_ernest_sampler(
-  log_lik_fn = gaussian_2$log_lik,
-  prior = gaussian_2$prior,
-  sampling = rwmh_cube(),
-  n_points = 500,
-  first_update = 200L,
-  update_interval = 50L
+sampler <- nested_sampling(
+  log_lik = gaussian_2$log_lik,
+  prior = gaussian_2$prior
 )
 
 test_that("generate method performs sampling", {

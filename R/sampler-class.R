@@ -8,12 +8,7 @@
 #' function for the sampler.
 #' @param prior An object of class `ernest_prior`. The
 #' prior distribution for the sampler.
-#' @param lrps (Optional) An environment
-#' containing the sampler implementation. If not provided, will be constructed
-#' from `sampling`.
-#' @param sampling (Optional) An object of class
-#' `ernest_sampling`. The sampler implementation and parameters. Required if
-#' `lrps` is not provided.
+#' @param lrps (Optional) An object of class `ernest_lrps`.
 #' @param n_points Integer. Number of live points to use
 #' in the sampler (must be >= 1).
 #' @param first_update Integer. Iteration at
@@ -26,14 +21,11 @@
 #' @param .class The subclass inheriting from ernest_sampler.
 #' @param .call The calling environment.
 #' @return An object of class `ernest_sampler`.
-#' @note If both `lrps` and `sampling` are provided, `lrps` takes precedence and
-#' `prior` is silently ignored.
 #' @noRd
 new_ernest_sampler <- function(
   log_lik_fn = NULL,
   prior = NULL,
   lrps = NULL,
-  sampling = NULL,
   n_points = NULL,
   first_update = NULL,
   update_interval = NULL,
@@ -44,6 +36,7 @@ new_ernest_sampler <- function(
 ) {
   check_class(log_lik_fn, "ernest_likelihood", call = .call)
   check_class(prior, "ernest_prior", call = .call)
+  check_class(lrps, "ernest_lrps", call = .call)
   check_number_whole(
     n_points,
     min = 1,
@@ -67,19 +60,9 @@ new_ernest_sampler <- function(
   )
   check_environment(live_points, allow_null = TRUE, call = .call)
 
-  lrps <- if (!is.null(lrps)) {
-    check_environment(lrps, arg = "lrps", call = .call)
-    lrps
-  } else {
-    check_class(sampling, "ernest_sampling", call = .call)
-    sampling_args <- pairlist2(
-      log_lik = log_lik_fn,
-      prior_fn = prior$fn,
-      n_dim = prior$n_dim,
-      !!!sampling$parameters
-    )
-    eval(call2(sampling$class$new, !!!sampling_args))
-  }
+  lrps$unit_log_fn <- purrr::compose(log_lik_fn, prior$fn)
+  lrps$n_dim <- prior$n_dim
+  lrps <- update_lrps(lrps)
 
   elems <- list(
     log_lik_fn = log_lik_fn,
@@ -117,8 +100,11 @@ refresh_ernest_sampler <- function(x) {
 #' @noRd
 format.ernest_sampler <- function(x, ...) {
   cli::cli_format_method({
-    str <- glue::glue("{x$n_points} points, {x$prior$n_dim} variables")
-    cli::cli_text("An {.cls ernest_sampler}: {str}.")
+    cli::cli_h3("Nested sampling specification")
+    cli::cli_text("No. Points: {x$n_points}")
+
+    cli::cli_h3("Sampling Method")
+    cli::cat_bullet(format(x$lrps)[-1])
   })
 }
 
@@ -129,6 +115,6 @@ format.ernest_sampler <- function(x, ...) {
 #' @export
 #' @noRd
 print.ernest_sampler <- function(x, ...) {
-  cat(format(x, ...), "\n")
+  cat(format(x, ...), sep = "\n")
   invisible(x)
 }

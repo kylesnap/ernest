@@ -5,8 +5,8 @@
     Output
       
       -- Abstract LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 0
 
 # new_ernest_lrps throws errors for invalid arguments
 

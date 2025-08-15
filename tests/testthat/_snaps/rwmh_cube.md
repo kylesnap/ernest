@@ -5,9 +5,9 @@
     Output
       
       -- Random Walk in Unit Cube LRPS 
-      # Dimensions: Uninitialized
-      # Calls Since Update: 0
-      # Accepted Proposals Since Update: 0
+      No. Dimensions: Uninitialized
+      No. Calls Since Update: 0
+      No. Accepted Since Update: 0
       Current Step Size: 1
 
 # new_rwmh_cube errors on invalid arguments
@@ -29,9 +29,9 @@
     Output
       
       -- Random Walk in Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 0
-      # Accepted Proposals Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 0
+      No. Accepted Since Update: 0
       Current Step Size: 1
 
 # propose.rwmh_cube proposes multiple new points with criteria
@@ -41,9 +41,9 @@
     Output
       
       -- Random Walk in Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 0
-      # Accepted Proposals Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 0
+      No. Accepted Since Update: 0
       Current Step Size: 1
 
 # propose.rwmh_cube works with provided original points
@@ -53,9 +53,9 @@
     Output
       
       -- Random Walk in Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 125
-      # Accepted Proposals Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 125
+      No. Accepted Since Update: 0
       Current Step Size: 1
 
 # propose.rwmh_cube returns original log_lik when criteria is Inf
@@ -65,8 +65,8 @@
     Output
       
       -- Random Walk in Unit Cube LRPS 
-      # Dimensions: 2
-      # Calls Since Update: 250
-      # Accepted Proposals Since Update: 0
+      No. Dimensions: 2
+      No. Calls Since Update: 250
+      No. Accepted Since Update: 0
       Current Step Size: 1
 

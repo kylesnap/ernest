@@ -77,8 +77,8 @@ new_ernest_lrps <- function(
 format.ernest_lrps <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_h3("Abstract LRPS")
-    cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    cli::cli_text("# Calls Since Update: {x$cache$n_call %||% 0L}")
+    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
+    cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
   })
 }
 

@@ -4,7 +4,7 @@ test_that("ernest_sampler initializes correctly", {
   sampler <- new_ernest_sampler(
     log_lik = gaussian_2$log_lik,
     prior = gaussian_2$prior,
-    sampling = rwmh_cube(),
+    lrps = rwmh_cube(),
     n_points = 500,
     first_update = 200L,
     update_interval = 50L
@@ -23,7 +23,7 @@ sampler_call <- call2(
   new_ernest_sampler,
   log_lik_fn = gaussian_2$log_lik,
   prior = gaussian_2$prior,
-  sampling = rwmh_cube(),
+  lrps = rwmh_cube(),
   n_points = 500,
   first_update = 200L,
   update_interval = 50L
@@ -61,11 +61,9 @@ test_that("invalid samplers are caught", {
   bad_sampler$prior <- "sum"
   expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
 
-  # Invalid sampling/LRPS
-  sampling_call <- call_modify(sampler_call, sampling = list())
-  expect_snapshot_error(eval(sampling_call))
-  bad_sampler$lrps <- list()
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  # Invalid lrps
+  lrps_call <- call_modify(sampler_call, lrps = list())
+  expect_snapshot_error(eval(lrps_call))
 })
 
 test_that("refresh works as expected", {

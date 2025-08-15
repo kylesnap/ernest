@@ -27,8 +27,9 @@
     Code
       example_run
     Output
-      An <ernest_run>: 500 points x 4725 iter x 110076 lik. calls
-      > Log. Evidence: -9.11 ± 0.115
+      An <ernest_run>: 500 points, variables
+      * 4725 iterations, 110076 likelihood calls
+      * Log. Evidence ≈ -9.11 (± 0.115)
 
 # Summary method expectation
 

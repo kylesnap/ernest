@@ -175,39 +175,41 @@ print.ernest_likelihood <- function(x, ...) {
 }
 
 wrap_loglik <- function(rowwise_fn, .nonfinite_action) {
-  nonfinite_expr <- switch(
-    .nonfinite_action,
-    "warn" = expr({
-      cli::cli_warn("Replacing `{unique(y[nonfinite])}` with `-Inf`.")
+  function(...) {
+    if (!is.numeric(..1)) {
+      stop_input_type(..1, "a numeric vector or matrix")
+    }
+    size <- if (is.matrix(..1)) NROW(..1) else 1L
+    y <- rowwise_fn(..1)
+    y <- vctrs::vec_cast(y, to = double(), x_arg = "log_lik(...)")
+    vctrs::vec_check_size(y, size = size, arg = "log_lik(...)")
+    nonfinite <- is.na(y) | is.nan(y) | y == Inf
+    if (any(nonfinite)) {
+      if (.nonfinite_action == "abort") {
+        cli::cli_abort(c(
+          "`lik(theta)` must always return finite double values or `-Inf`.",
+          "x" = "`lik(theta)` returned {unique(y[nonfinite])}.",
+          "i" = "Did you set `.nonfinite_action` with {.fn create_likelihood})?"
+        ))
+      }
+      if (.nonfinite_action == "warn") {
+        cli::cli_warn("Replacing `{unique(y[nonfinite])}` with `-Inf`.")
+      }
       y[nonfinite] <- -Inf
-    }),
-    "abort" = expr(
-      cli::cli_abort(c(
-        "`lik(theta)` must always return finite double values or `-Inf`.",
-        "x" = "`lik(theta)` returned {unique(y[nonfinite])}.",
-        "i" = "Should you change `nonfinite_action` from {.val abort}?"
-      ))
-    ),
-    "quiet" = expr(y[nonfinite] <- -Inf)
-  )
-
-  new_function(
-    exprs(... = ),
-    expr({
-      if (!is.numeric(..1)) {
-        stop_input_type(..1, "a numeric vector or matrix")
-      }
-      size <- if (is.matrix(..1)) NROW(..1) else 1L
-      y <- (!!rowwise_fn)(..1)
-      vctrs::vec_check_size(y, size = size, arg = "lik(..1)")
-      if (!is.double(y)) {
-        cli::cli_abort("`lik(..1)` must always return a double.")
-      }
-      nonfinite <- (y == Inf | is.nan(y))
-      if (any(nonfinite)) {
-        !!nonfinite_expr
-      }
-      y
-    })
-  )
+    }
+    y
+  }
 }
+
+# vctrs::vec_check_size(y, size = size, arg = "log_lik(...)")
+#       if (!is.double(y)) {
+#         cli::cli_abort(c(
+#           "`log_lik(...)` must always return a double.",
+#           "x" = "Instead, it returned {obj_type_friendly(y)}."
+#         ))
+#       }
+#       # Only finite values and -Inf are allowed; replace others with -Inf
+#       nonfinite <- !(is.finite(y) | y == -Inf)
+#       if (any(nonfinite)) {
+#         !!nonfinite_expr
+#       }

@@ -15,7 +15,11 @@
 #' @srrstats {G2.0a, G2.1a} Documentation consistently mentions the expected type and length of each variable.
 #' @srrstats {G5.2, G5.2a, G5.2b} Warning and error messages are all tested with expect_error/warning or expect_snapshot.
 #' @srrstats {G5.5} Tests are run with a fixed random seed.
-
+#' @srrstatsTODO {BS1.3b} Documentation on the different sampling
+#' algorithms (but warns users away from the inefficient `unif_cube`) sampler.
+#' @srrstatsTODO {BS4.0} Cites original software implementation.
+#' blueprints inherit from the one created by `new_blueprint()`, and the default
+#' method specific blueprints inherit from the other three here.
 #' @noRd
 NULL
 

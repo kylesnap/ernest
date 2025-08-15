@@ -359,22 +359,6 @@ as_univariate_function <- function(
   }
 }
 
-##' Check if input is a function.
-##'
-##' @param fn Object to check.
-##' @param arg Argument name for error reporting.
-##' @param call Calling environment for error reporting.
-##' @return TRUE if function, error otherwise.
-##' @noRd
-is_function <- function(fn, arg = caller_arg(fn), call = caller_env()) {
-  msg <- checkmate::check_function(fn)
-  if (isTRUE(msg)) {
-    TRUE
-  } else {
-    format_checkmate(msg, arg, call)
-  }
-}
-
 #' Check if input inherits from a class.
 #'
 #' @param x Object to check.

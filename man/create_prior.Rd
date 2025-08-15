@@ -11,8 +11,8 @@ create_prior(
   n_dim,
   ...,
   varnames = "X",
-  lower = NULL,
-  upper = NULL
+  lower = -Inf,
+  upper = Inf
 )
 }
 \arguments{

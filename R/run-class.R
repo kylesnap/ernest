@@ -92,8 +92,11 @@ format.ernest_run <- function(x, ...) {
   log_z <- tail(x$log_evidence, 1)
   log_z_sd <- sqrt(tail(x$log_evidence_var, 1))
   cli::cli_format_method({
-    cli::cli_div(theme = list(.val = list(digits = 3)))
-    cli::cli_h3("Nested sampling run:")
+    cli::cli_text("Nested sampling run {.cls {class(x)}}")
+    cli::cli_text("No. Points: {x$n_points}")
+    cli::cli_h3("Sampling Method")
+    cli::cat_bullet(format(x$lrps))
+    cli::cli_h3("Results")
     cli::cli_text("No. Iterations: {x$n_iter}")
     cli::cli_text("No. Calls: {x$n_calls}")
     cli::cli_text("Log. Evidence: {.val {log_z}} (\U00B1 {.val {log_z_sd}})")

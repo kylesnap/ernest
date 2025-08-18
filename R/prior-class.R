@@ -304,9 +304,8 @@ new_ernest_prior <- function(
 #' @export
 format.ernest_prior <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_bullets(c(
-      "An {.cls {class(x)}}: {x$n_dim} variable{?s}"
-    ))
+    cli::cli_text("{.cls {class(x)}}")
+    cli::cli_text("{x$varnames}")
   })
 }
 

@@ -28,7 +28,8 @@ Suggests:
     tidyselect,
     testthat (>= 3.0.0),
     vdiffr,
-    xml2
+    xml2,
+    truncnorm
 LinkingTo:
     cpp11,
     testthat

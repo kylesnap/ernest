@@ -23,8 +23,8 @@ create_normal_prior(
 \item{varnames}{(optional character vector) A character vector of names for
 the variables in the prior distribution.}
 
-\item{lower, upper}{(optional numeric vector) The values to retain from a
-truncated distribution.}
+\item{lower, upper}{Double vectors. The values to retain from a
+truncated distribution. Recycled to length \code{n_dim}.}
 }
 \value{
 A \code{normal_prior}, which is a subclass of \code{ernest_prior} with
@@ -39,19 +39,15 @@ truncated.
 prior <- create_normal_prior(3)
 prior$fn(c(0.25, 0.5, 0.75))
 }
-\references{
-For the truncation routine:
-Nadarajah, S., & Kotz, S. (2006).
-R Programs for Truncated Distributions. Journal of Statistical Software,
-Code Snippets, 16(2), 1–8. \url{https://doi.org/10.18637/jss.v016.c02}
-}
 \seealso{
-\code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior}
+\itemize{
+\item \code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior}
 object.
+\item \code{\link[truncnorm:dtruncnorm]{truncnorm::qtruncnorm()}} for the implementation of the truncated normal
+quantile function.
+}
 
 Other special priors: 
-\code{\link{create_cauchy_prior}()},
-\code{\link{create_t_prior}()},
 \code{\link{create_uniform_prior}()}
 }
 \concept{special priors}

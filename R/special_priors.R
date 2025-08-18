@@ -11,19 +11,17 @@ NULL
 #'
 #' @inheritParams create_prior
 #' @inheritParams stats::qnorm
-#' @param lower,upper (optional numeric vector) The values to retain from a
-#' truncated distribution.
+#' @param lower,upper Double vectors. The values to retain from a
+#' truncated distribution. Recycled to length `n_dim`.
 #'
 #' @returns A `normal_prior`, which is a subclass of `ernest_prior` with
 #' an efficient implementation of the unit hypercube transformation.
 #'
-#' @references For the truncation routine:
-#' Nadarajah, S., & Kotz, S. (2006).
-#' R Programs for Truncated Distributions. Journal of Statistical Software,
-#' Code Snippets, 16(2), 1–8. <https://doi.org/10.18637/jss.v016.c02>
-#'
-#' @seealso [create_prior()] for a richer explanation of the `ernest_prior`
+#' @seealso
+#' * [create_prior()] for a richer explanation of the `ernest_prior`
 #' object.
+#' * [truncnorm::qtruncnorm()] for the implementation of the truncated normal
+#' quantile function.
 #' @family special priors
 #' @importFrom vctrs vec_cast
 #' @export
@@ -43,239 +41,62 @@ create_normal_prior <- function(
   if (any(sd <= 0)) {
     cli_abort("`sd` of a normal distribution must be non-negative.")
   }
-  default_names <- is.null(varnames)
 
-  params <- check_prior_params(n_dim, varnames %||% "N", lower, upper)
+  params <- check_prior_params(n_dim, varnames %||% "", lower, upper)
   dparams <- vctrs::vec_recycle_common(
     "mean" = mean,
     "sd" = sd,
     .size = params$n_dim
   )
-  if (default_names) {
-    params$varnames <- sprintf(
+  if (is.null(varnames)) {
+    new_names <- sprintf(
       "N(%s, %s)",
       round(dparams$mean, 3),
       round(dparams$sd^2, 3)
-    ) |>
-      make.unique()
+    )
+    params$varnames <- make.unique(new_names)
   }
 
-  exp_p <- if (any(params$lower != -Inf) || any(params$upper != Inf)) {
-    f_lwr <- stats::pnorm(params$lower, dparams$mean, dparams$sd)
-    f_upr <- stats::pnorm(params$upper, dparams$mean, dparams$sd)
-    expr(!!f_lwr + p * !!(f_upr - f_lwr))
+  truncated <- any(is.finite(params$lower)) || any(is.finite(params$lower))
+  unit <- NULL
+  fn_body <- if (truncated) {
+    check_installed(
+      "truncnorm",
+      "To calculate the quantile function of the truncated normal distribution."
+    )
+    expr({
+      y <- truncnorm::qtruncnorm(
+        t(unit),
+        mean = !!dparams$mean,
+        sd = !!dparams$sd,
+        a = !!params$lower,
+        b = !!params$upper
+      )
+      if (is.null(rows <- nrow(unit))) {
+        y
+      } else {
+        matrix(y, byrow = TRUE, nrow = rows)
+      }
+    })
   } else {
-    expr(p)
-  }
-
-  p <- NULL
-  fn <- new_function(
-    exprs(p = ),
-    expr(stats::qnorm(p = !!exp_p, mean = !!dparams$mean, sd = !!dparams$sd))
-  )
-  batched_fn <- \(x) {
-    if (is.matrix(x)) {
-      t(apply(x, 1, fn))
-    } else {
-      fn(x)
-    }
+    expr({
+      y <- stats::qnorm(t(unit), mean = !!dparams$mean, sd = !!dparams$sd)
+      if (!is.matrix(unit)) {
+        dim(y) <- NULL
+        y
+      } else {
+        t(y)
+      }
+    })
   }
 
   new_ernest_prior(
-    batched_fn,
-    params$n_dim,
-    params$varnames,
+    prior_fn = wrap_special_prior(fn_body),
+    n_dim = params$n_dim,
+    varnames = params$varnames,
     lower = params$lower,
     upper = params$upper,
     class = "normal_prior"
-  )
-}
-
-#' Specify a prior with Student's t-distributed marginals
-#'
-#' A specialization of [create_prior()], where the parameter space is
-#' described by independently distributed Student's t marginals that are
-#' possibly truncated.
-#'
-#' @inheritParams create_normal_prior
-#' @inheritParams distributional::dist_student_t
-#'
-#' @returns A `student_t_prior`, which is a subclass of `ernest_prior` with
-#' an efficient implementation of the unit hypercube transformation.
-#'
-#' @details
-#' The parameters used to specify this prior are for the location-scale
-#' t-distribution with location \eqn{\mu}, scale \eqn{\sigma}, and degrees of
-#' freedom \eqn{\nu}. If the random variable \eqn{X} is Student-T distributed,
-#' then \deqn{X \sim \mu + \sigma T} where \eqn{T} follows the Student-T
-#' distribution with \eqn{\nu} degrees of freedom.
-#'
-#' @inherit create_normal_prior seealso references
-#'
-#' @family special priors
-#' @export
-#' @examples
-#' prior <- create_t_prior(3, df = c(1,2,5), mu = c(0,1,2), sigma = c(1,2,3))
-#' prior$fn(c(0.25, 0.5, 0.75))
-create_t_prior <- function(
-  n_dim,
-  df,
-  mu = 0,
-  sigma = 1,
-  varnames = NULL,
-  lower = -Inf,
-  upper = Inf
-) {
-  df <- vec_cast(df, numeric())
-  mu <- vec_cast(mu, double())
-  sigma <- vec_cast(sigma, double())
-  if (any(df <= 0)) {
-    cli_abort("`df` of Student's t distribution must be non-negative.")
-  }
-  if (any(sigma <= 0)) {
-    cli_abort("`sigma` of Student's t distribution must be non-negative.")
-  }
-  default_names <- is.null(varnames)
-
-  params <- check_prior_params(n_dim, varnames %||% "T", lower, upper)
-  dparams <- vctrs::vec_recycle_common(
-    "df" = df,
-    "mu" = mu,
-    "sigma" = sigma,
-    .size = params$n_dim
-  )
-  if (default_names) {
-    params$varnames <- sprintf(
-      "T(%s, %s, %s)",
-      round(dparams$df, 3),
-      round(dparams$mu, 3),
-      round(dparams$sigma, 3)
-    ) |>
-      make.unique()
-  }
-
-  exp_p <- if (any(params$lower != -Inf) || any(params$upper != Inf)) {
-    f_lwr <- stats::pt(
-      (params$lower - dparams$mu) / dparams$sigma,
-      dparams$df
-    )
-    f_upr <- stats::pt(
-      (params$upper - dparams$mu) / dparams$sigma,
-      dparams$df
-    )
-    expr(!!f_lwr + p * !!(f_upr - f_lwr))
-  } else {
-    expr(p)
-  }
-
-  p <- NULL
-  fn <- new_function(
-    exprs(p = ),
-    expr(
-      stats::qt(p = !!exp_p, df = !!dparams$df) * !!dparams$sigma + !!dparams$mu
-    )
-  )
-  batched_fn <- \(x) {
-    if (is.matrix(x)) {
-      t(apply(x, 1, fn))
-    } else {
-      fn(x)
-    }
-  }
-
-  new_ernest_prior(
-    batched_fn,
-    params$n_dim,
-    params$varnames,
-    lower = params$lower,
-    upper = params$upper,
-    class = "student_t_prior"
-  )
-}
-
-#' Specify a prior with Cauchy-distributed marginals
-#'
-#' A specialization of [create_prior()], where the parameter space is
-#' described by independently distributed Cauchy marginals that are possibly
-#' truncated.
-#'
-#' @inheritParams create_normal_prior
-#' @inheritParams stats::qcauchy
-#'
-#' @returns A `cauchy_prior`, which is a subclass of `ernest_prior` with
-#' an efficient implementation of the unit hypercube transformation.
-#'
-#' @inherit create_normal_prior seealso references
-#'
-#' @family special priors
-#' @export
-#' @examples
-#' prior <- create_cauchy_prior(3, location = c(0, 0, -2), scale = c(0.5, 1, 1))
-#' prior$fn(c(0.25, 0.5, 0.75))
-create_cauchy_prior <- function(
-  n_dim,
-  location = 0,
-  scale = 1,
-  varnames = NULL,
-  lower = -Inf,
-  upper = Inf
-) {
-  location <- vec_cast(location, to = double())
-  scale <- vec_cast(scale, to = double())
-  if (any(scale <= 0)) {
-    cli_abort("`scale` of the Cauchy distribution must be non-negative.")
-  }
-  default_names <- is.null(varnames)
-
-  params <- check_prior_params(n_dim, varnames %||% "Cauchy", lower, upper)
-  dparams <- vctrs::vec_recycle_common(
-    "location" = location,
-    "scale" = scale,
-    .size = params$n_dim
-  )
-  if (default_names) {
-    params$varnames <- sprintf(
-      "Cauchy(%s, %s)",
-      round(dparams$location, 3),
-      round(dparams$scale, 3)
-    ) |>
-      make.unique()
-  }
-
-  exp_p <- if (any(params$lower != -Inf) || any(params$upper != Inf)) {
-    f_lwr <- stats::pcauchy(params$lower, dparams$location, dparams$scale)
-    f_upr <- stats::pcauchy(params$upper, dparams$location, dparams$scale)
-    expr(!!f_lwr + p * !!(f_upr - f_lwr))
-  } else {
-    expr(p)
-  }
-
-  p <- NULL
-  fn <- new_function(
-    exprs(p = ),
-    expr(
-      stats::qcauchy(
-        p = !!exp_p,
-        location = !!dparams$location,
-        scale = !!dparams$scale
-      )
-    )
-  )
-  batched_fn <- \(x) {
-    if (is.matrix(x)) {
-      t(apply(x, 1, fn))
-    } else {
-      fn(x)
-    }
-  }
-
-  new_ernest_prior(
-    batched_fn,
-    params$n_dim,
-    params$varnames,
-    lower = params$lower,
-    upper = params$upper,
-    class = "cauchy_prior"
   )
 }
 
@@ -303,38 +124,53 @@ create_uniform_prior <- function(
   upper = 1,
   varnames = NULL
 ) {
-  default_names <- is.null(varnames)
-  params <- check_prior_params(n_dim, varnames %||% "Uniform", lower, upper)
-  if (default_names) {
-    params$varnames <- sprintf(
-      "Uniform(%s, %s)",
+  params <- check_prior_params(n_dim, varnames %||% "", lower, upper)
+  if (any(is.infinite(lower)) || any(is.infinite(upper))) {
+    cli::cli_abort("Lower and upper must be vectors of finite doubles.")
+  }
+  if (is.null(varnames)) {
+    new_names <- sprintf(
+      "U[%s, %s]",
       round(params$lower, 3),
       round(params$upper, 3)
-    ) |>
-      make.unique()
+    )
+    params$varnames <- make.unique(new_names)
   }
 
-  p <- NULL
-  fn <- new_function(
-    exprs(p = ),
-    expr(
-      stats::qunif(p = p, min = !!params$lower, max = !!params$upper)
-    )
-  )
-  batched_fn <- \(x) {
-    if (is.matrix(x)) {
-      t(apply(x, 1, fn))
+  diff <- params$upper - params$lower
+  unit <- NULL
+  body <- expr({
+    if (is.matrix(unit)) {
+      y <- sweep(unit, MARGIN = 2, !!diff, `*`)
+      sweep(y, MARGIN = 2, !!params$lower, `+`)
     } else {
-      fn(x)
+      !!params$lower + (unit * !!diff)
     }
-  }
+  })
 
   new_ernest_prior(
-    batched_fn,
-    params$n_dim,
-    params$varnames,
+    prior_fn = wrap_special_prior(body),
+    n_dim = params$n_dim,
+    varnames = params$varnames,
     lower = params$lower,
     upper = params$upper,
     class = "uniform_prior"
+  )
+}
+
+#' Wrap a special prior in type- and size-stability checks
+#' @param body The body of the function to wrap, as an expression.
+#' @returns A type- and size-stable prior transformation.
+#' @noRd
+wrap_special_prior <- function(body) {
+  unit <- NULL
+  new_function(
+    exprs(unit = ),
+    expr({
+      if (!is.numeric(unit)) {
+        stop_input_type(unit, "a numeric vector or matrix")
+      }
+      !!body
+    })
   )
 }

@@ -3,8 +3,7 @@
     Code
       obj
     Output
-      
-      -- Random Walk in Unit Cube LRPS 
+      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: Uninitialized
       No. Calls Since Update: 0
       No. Accepted Since Update: 0
@@ -27,8 +26,7 @@
     Code
       rwcube
     Output
-      
-      -- Random Walk in Unit Cube LRPS 
+      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: 2
       No. Calls Since Update: 0
       No. Accepted Since Update: 0
@@ -39,8 +37,7 @@
     Code
       rwcube
     Output
-      
-      -- Random Walk in Unit Cube LRPS 
+      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: 2
       No. Calls Since Update: 0
       No. Accepted Since Update: 0
@@ -51,8 +48,7 @@
     Code
       rwcube
     Output
-      
-      -- Random Walk in Unit Cube LRPS 
+      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: 2
       No. Calls Since Update: 125
       No. Accepted Since Update: 0
@@ -63,8 +59,7 @@
     Code
       rwcube
     Output
-      
-      -- Random Walk in Unit Cube LRPS 
+      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: 2
       No. Calls Since Update: 250
       No. Accepted Since Update: 0

@@ -100,11 +100,10 @@ refresh_ernest_sampler <- function(x) {
 #' @noRd
 format.ernest_sampler <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_h3("Nested sampling specification")
+    cli::cli_text("Nested sampling specification {.cls ernest_sampler}")
     cli::cli_text("No. Points: {x$n_points}")
-
     cli::cli_h3("Sampling Method")
-    cli::cat_bullet(format(x$lrps)[-1])
+    cli::cat_bullet(format(x$lrps))
   })
 }
 

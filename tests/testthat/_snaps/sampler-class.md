@@ -3,12 +3,11 @@
     Code
       sampler
     Output
-      
-      -- Nested sampling specification 
+      Nested sampling specification <ernest_sampler>
       No. Points: 500
       
       -- Sampling Method 
-      * -- Random Walk in Unit Cube LRPS 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0

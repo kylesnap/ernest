@@ -1,3 +1,11 @@
+# create_prior creates a custom rowwise prior
+
+    Code
+      prior
+    Output
+      <ernest_prior>
+      X, X.1, and X.2
+
 # check_prior_params throws errors for improper inputs
 
     `n_dim` must be a whole number larger than or equal to 1, not the number -1.

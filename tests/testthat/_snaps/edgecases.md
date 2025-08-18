@@ -86,9 +86,18 @@
       Warning:
       Stopping run due to a likelihood plateau at 0.
     Output
+      Nested sampling run <ernest_run/ernest_sampler>
+      No. Points: 500
       
-      -- Nested sampling run: 
+      -- Sampling Method 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
+      
+      -- Results 
       No. Iterations: 151
       No. Calls: 172
-      Log. Evidence: -0.303 (± 0.064)
+      Log. Evidence: -0.302539095340251 (± 0.0638042975680375)
 

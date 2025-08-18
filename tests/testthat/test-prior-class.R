@@ -28,6 +28,7 @@ test_that("create_prior creates a custom rowwise prior", {
     prior$fn(mat),
     matrix(c(-5, 0, 5, -8, -6, -4), ncol = 3, byrow = TRUE)
   )
+  expect_snapshot(prior)
 })
 
 test_that("check_prior_params throws errors for improper inputs", {

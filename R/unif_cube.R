@@ -31,7 +31,7 @@ unif_cube <- function() {
 #' @export
 format.unif_cube <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_h3("Uniform Unit Cube LRPS")
+    cli::cli_text("Uniform Unit Cube LRPS {.cls {class(x)}}")
     cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
     cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
   })

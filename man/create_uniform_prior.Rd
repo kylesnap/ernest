@@ -28,8 +28,6 @@ prior$fn(c(0.33, 0.67))
 }
 \seealso{
 Other special priors: 
-\code{\link{create_cauchy_prior}()},
-\code{\link{create_normal_prior}()},
-\code{\link{create_t_prior}()}
+\code{\link{create_normal_prior}()}
 }
 \concept{special priors}

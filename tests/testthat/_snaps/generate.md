@@ -3,11 +3,20 @@
     Code
       result
     Output
+      Nested sampling run <ernest_run/ernest_sampler>
+      No. Points: 500
       
-      -- Nested sampling run: 
+      -- Sampling Method 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
+      
+      -- Results 
       No. Iterations: 99
       No. Calls: 112
-      Log. Evidence: -4.486 (± 0.475)
+      Log. Evidence: -4.48555601452496 (± 0.474865097582698)
 
 ---
 

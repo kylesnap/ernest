@@ -3,10 +3,7 @@
     Code
       obj
     Output
-      
-      -- Abstract LRPS 
-      No. Dimensions: 2
-      No. Calls Since Update: 0
+      ! An abstract LRPS sampler <ernest_lrps>
 
 # new_ernest_lrps throws errors for invalid arguments
 

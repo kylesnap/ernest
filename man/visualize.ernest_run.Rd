@@ -7,24 +7,24 @@
 \method{visualize}{ernest_run}(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE)
 }
 \arguments{
-\item{x}{(ernest_run) An \link{ernest_run} object.}
+\item{x}{An \link{ernest_run} object.}
 
 \item{...}{
-  Arguments passed on to \code{\link[=as_draws_rvars.ernest_run]{as_draws_rvars.ernest_run}}
+  Arguments passed on to \code{\link[=as_draws.ernest_run]{as_draws.ernest_run}}
   \describe{
-    \item{\code{units}}{(case-sensitive string) The scale in which to return the
+    \item{\code{units}}{Case-sensitive string. The scale in which to return the
 sampled points:
 \itemize{
 \item \code{"original"}: Points are expressed on the scale of the prior space.
 \item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
 hypercube.
 }}
-    \item{\code{radial}}{(logical) Whether to return an additional column \code{.radial},
+    \item{\code{radial}}{Logical. Whether to return an additional column \code{.radial},
 containing the radial coordinate (i.e., the squared sum of squares) for
 each sampled point.}
   }}
 
-\item{type}{(case-sensitive string) The type of plot to create.
+\item{type}{A case-sensitive string. The type of plot to create.
 \itemize{
 \item \code{"density"}: Shows the posterior density of each distribution.
 \item \code{"trace"}: Shows the distribution of points along estimates of the log

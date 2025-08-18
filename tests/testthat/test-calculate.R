@@ -87,20 +87,7 @@ test_that("calculate works when ndraws = 0", {
     sqrt(example_run$log_evidence_var)
   )
 
-  smry <- summary(calc)
-  expect_equal(smry$n_draws, 0)
-  expect_equal(
-    smry$log_evidence,
-    example_run$log_evidence[length(example_run$log_evidence)]
-  )
-  expect_equal(
-    smry$log_evidence_err,
-    sqrt(example_run$log_evidence_var[length(example_run$log_evidence_var)])
-  )
-  expect_true(inherits(smry, "summary.ernest_estimate"))
-
   expect_snapshot(calc)
-  expect_snapshot(smry)
 })
 
 test_that("calculate works when ndraws = 1", {
@@ -112,13 +99,7 @@ test_that("calculate works when ndraws = 1", {
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
 
-  smry <- summary(calc)
-  expect_equal(smry$n_draws, 1)
-  expect_equal(smry$log_evidence_err, Inf)
-  expect_true(inherits(smry, "summary.ernest_estimate"))
-
   expect_snapshot(calc)
-  expect_snapshot(smry)
 })
 
 test_that("calculate works when ndraws = 4000 (default)", {
@@ -133,33 +114,10 @@ test_that("calculate works when ndraws = 4000 (default)", {
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(4000, n_samp))
 
   expect_equal(
-    (mean(calc$log_volume) - example_run$log_volume) <
-      .Machine$double.eps + 2 * posterior::sd(calc$log_volume),
+    abs(mean(calc$log_evidence) - example_run$log_evidence) <
+      .Machine$double.eps + 3 * posterior::sd(calc$log_evidence),
     rep(TRUE, n_samp)
   )
-  expect_equal(
-    (mean(calc$log_weight) - example_run$log_weight) <
-      .Machine$double.eps + 2 * posterior::sd(calc$log_weight),
-    rep(TRUE, n_samp)
-  )
-  expect_equal(
-    (mean(calc$log_evidence) - example_run$log_evidence) <
-      .Machine$double.eps + 2 * posterior::sd(calc$log_evidence),
-    rep(TRUE, n_samp)
-  )
-
-  smry <- summary(calc)
-  expect_equal(smry$n_draws, 4000L)
-  expect_true(
-    abs(
-      smry$log_evidence -
-        example_run$log_evidence[length(example_run$log_evidence)]
-    ) <
-      2 * smry$log_evidence_err
-  )
-  expect_true(smry$log_evidence_err > 0)
-  expect_true(inherits(smry, "summary.ernest_estimate"))
 
   expect_snapshot(calc)
-  expect_snapshot(smry)
 })

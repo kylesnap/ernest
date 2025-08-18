@@ -2,23 +2,24 @@
 % Please edit documentation in R/calculate.R
 \name{calculate.ernest_run}
 \alias{calculate.ernest_run}
+\alias{ernest_estimate}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
 \method{calculate}{ernest_run}(x, ..., ndraws = NULL)
 }
 \arguments{
-\item{x}{(ernest_run) An \code{ernest_run} object.}
+\item{x}{An \code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{(positive integer or zero, optional) The number of log volume
+\item{ndraws}{An optional positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log volumes are produced from the estimates contained in
 \code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
 }
 \value{
-A tibble, containing \code{run$n_iter + run$n_points} rows and the
-following columns:
+A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{n_iter + n_points} rows
+and several columns:
 \itemize{
 \item \code{log_lik}: The log-likelihood of the model.
 \item \code{log_volume}: The log volume of the prior space.
@@ -38,24 +39,6 @@ Computes evidence and related quantities from a nested
 sampling run, optionally by simulating the volumes of each nested
 likelihood shell.
 }
-\details{
-Use \code{calculate()} to simulate the estimation error nested sampling runs
-caused by approximating the change in log volume between iterations. Given
-the use of ordered log likelihood restricted prior sampling, these volumes
-can be modelled as the order statistics of a uniform random variable.
-Ernest uses the following distributions to perform this simulation:
-\itemize{
-\item Constant number of live points: At each iteration, the point with the
-lowest likelihood is replaced by a new sample constrained to a higher
-likelihood region. Under this setup, the shrinkage in prior volume at
-iteration \code{i} can be shown to follow the Beta distribution.
-\item Decreasing number of live points: At the end of the sampling run, the
-remaining live points are added to the dead point set. This introduces a
-discrete stepwise behavior in volume shrinkage. Ernest uses a transformation
-of variables drawn from the exponential distribution to simulate the
-corresponding changes in volume.
-}
-}
 \examples{
 # Load an example run
 data(example_run)
@@ -68,5 +51,7 @@ calculate(example_run, ndraws = 100)
 
 }
 \references{
-See Appendix A6 of Speagle, J. (2020).
+Skilling, J. (2006). Nested Sampling for General
+Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+\url{https://doi.org/10.1214/06-BA127}
 }

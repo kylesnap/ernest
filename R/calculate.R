@@ -4,15 +4,16 @@
 #' sampling run, optionally by simulating the volumes of each nested
 #' likelihood shell.
 #'
-#' @param x (ernest_run) An `ernest_run` object.
+#' @param x An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
-#' @param ndraws (positive integer or zero, optional) The number of log volume
+#' @param ndraws An optional positive integer. The number of log-volume
 #' sequences to simulate. If equal to zero, no simulations will be made, and a
 #' one draw vector of log volumes are produced from the estimates contained in
 #' `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used (default 4000).
 #'
-#' @returns A tibble, containing `run$n_iter + run$n_points` rows and the
-#' following columns:
+#' @returns A [tibble::tibble()], containing `n_iter + n_points` rows
+#' and several columns:
+#'
 #' * `log_lik`: The log-likelihood of the model.
 #' * `log_volume`: The log volume of the prior space.
 #' * `log_weight`: The log weights of the live points.
@@ -25,25 +26,10 @@
 #'
 #' Each column is returned as an [posterior::rvar()] vector.
 #'
-#' @details
-#' Use `calculate()` to simulate the estimation error nested sampling runs
-#' caused by approximating the change in log volume between iterations. Given
-#' the use of ordered log likelihood restricted prior sampling, these volumes
-#' can be modelled as the order statistics of a uniform random variable.
-#' Ernest uses the following distributions to perform this simulation:
+#' @references Skilling, J. (2006). Nested Sampling for General
+#' Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+#' <https://doi.org/10.1214/06-BA127>
 #'
-#' * Constant number of live points: At each iteration, the point with the
-#' lowest likelihood is replaced by a new sample constrained to a higher
-#' likelihood region. Under this setup, the shrinkage in prior volume at
-#' iteration `i` can be shown to follow the Beta distribution.
-#' * Decreasing number of live points: At the end of the sampling run, the
-#' remaining live points are added to the dead point set. This introduces a
-#' discrete stepwise behavior in volume shrinkage. Ernest uses a transformation
-#' of variables drawn from the exponential distribution to simulate the
-#' corresponding changes in volume.
-#'
-#' @references See Appendix A6 of Speagle, J. (2020).
-#
 #' @examples
 #' # Load an example run
 #' data(example_run)
@@ -54,7 +40,7 @@
 #' # Generate 100 simulated log volume values for each iteration.
 #' calculate(example_run, ndraws = 100)
 #'
-#' @method calculate ernest_run
+#' @aliases ernest_estimate
 #' @export
 calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   check_dots_empty()
@@ -92,68 +78,6 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   )
 }
 
-#' Summarise an evidence estimate from nested sampling
-#'
-#' Provides a summary of an `ernest_estimate` object.
-#'
-#' @param object An `ernest_estimate` object.
-#' @inheritParams rlang::args_dots_empty
-#'
-#' @return
-#' A list with summary statistics for the evidence estimate:
-#' * `n_iter`: Number of iterations.
-#' * `n_points`: Number of live points.
-#' * `log_volume`: Mean log volume at the final iteration.
-#' * `log_evidence`: Mean log evidence at the final iteration.
-#' * `log_evidence_err`: Standard error of the log evidence.
-#' ** If `ndraws = 0`, this is computed analytically.
-#' ** If `ndraws` is 1 or greater, it is estimated as the standard deviation
-#' of `log_evidence` across the draws.
-#' * `run`: A [posterior::draws_rvars] of all draws and variables.
-#'
-#' @seealso [calculate()]
-#' @examples
-#' data(example_run)
-#' calc <- calculate(example_run, ndraws = 2000)
-#' summary(calc)
-#' @export
-summary.ernest_estimate <- function(object, ...) {
-  check_dots_empty()
-  n_rows <- length(object$log_lik)
-  n_draws <- attr(object, "ndraws")
-
-  run_df <- posterior::draws_rvars(
-    "log_lik" = object$log_lik,
-    "log_volume" = object$log_volume,
-    "log_weight" = object$log_weight,
-    "log_evidence" = object$log_evidence,
-    "log_evidence_err" = if ("log_evidence_err" %in% names(object)) {
-      object$log_evidence_err
-    } else {
-      NULL
-    }
-  )
-
-  log_volume <- mean(run_df$log_volume[n_rows])
-  log_evidence <- mean(run_df$log_evidence[n_rows])
-  log_evidence_err <- if ("log_evidence_err" %in% names(object)) {
-    mean(run_df$log_evidence_err[n_rows])
-  } else {
-    posterior::sd(run_df$log_evidence[n_rows])
-  }
-
-  structure(
-    list(
-      "n_draws" = n_draws,
-      "log_volume" = log_volume,
-      "log_evidence" = log_evidence,
-      "log_evidence_err" = log_evidence_err %|% Inf,
-      "run" = run_df
-    ),
-    class = "summary.ernest_estimate"
-  )
-}
-
 #' Format method for `ernest_estimate`
 #'
 #' @param x An `ernest_estimate` object.
@@ -162,14 +86,17 @@ summary.ernest_estimate <- function(object, ...) {
 #' @export
 #' @noRd
 format.ernest_estimate <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_div(theme = list(.val = list(digits = 3)))
-    ndraws <- attr(x, "ndraws")
-    iter <- length(x$log_lik)
-    cli::cli_bullets(c(
-      "An {.cls ernest_calculate}: {ndraws} draws x {iter} iterations"
-    ))
+  vec <- cli::cli_format_method({
+    cli::cli_text("Nested sampling estimates {.cls ernest_estimate}")
+    if (attr(x, "ndraws") != 0) {
+      cli::cli_text("No. of Simulated Draws: {attr(x, 'ndraws')}")
+    }
+    log_z <- tail(x$log_evidence, 1)
+    log_vol <- tail(x$log_volume, 1)
+    cli::cli_text("Log. Volume: {.val {log_vol}}")
+    cli::cli_text("Log. Evidence: {.val {log_z}}")
   })
+  c(vec, NextMethod(x))
 }
 
 #' Print method for `ernest_estimate`

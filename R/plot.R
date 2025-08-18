@@ -3,9 +3,7 @@
 #' Show the normalized likelihood, importance weights, and evidence as functions
 #' of log. volume.
 #'
-#' @param x (ernest_estimate or ernest_run) An object either of class
-#' `ernest_estimate` (containing uncertainty simulations) or of class
-#' `ernest_run` (containing a nested sampling run).
+#' @param x An [ernest_estimate] or [ernest_run] object.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
@@ -63,7 +61,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
-  check_number_whole(ndraws, lower = 0L)
+  check_number_whole(ndraws, lower = 0)
   if (ndraws != 0) {
     x <- calculate(x, ndraws = ndraws)
   }

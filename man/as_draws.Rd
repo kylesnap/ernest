@@ -13,11 +13,11 @@
 \method{as_draws_rvars}{ernest_run}(x, ..., units = c("original", "unit_cube"), radial = FALSE)
 }
 \arguments{
-\item{x}{(ernest_run) An \link{ernest_run} object.}
+\item{x}{An \link{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{units}{(case-sensitive string) The scale in which to return the
+\item{units}{Case-sensitive string. The scale in which to return the
 sampled points:
 \itemize{
 \item \code{"original"}: Points are expressed on the scale of the prior space.
@@ -25,7 +25,7 @@ sampled points:
 hypercube.
 }}
 
-\item{radial}{(logical) Whether to return an additional column \code{.radial},
+\item{radial}{Logical. Whether to return an additional column \code{.radial},
 containing the radial coordinate (i.e., the squared sum of squares) for
 each sampled point.}
 }
@@ -72,4 +72,11 @@ plot(
   xlab = "Log volume",
   ylab = "Radial coordinate"
 )
+}
+\seealso{
+\itemize{
+\item \code{\link[posterior:draws]{posterior::as_draws()}} describes the \code{draws} object.
+\item \code{\link[posterior:resample_draws]{posterior::resample_draws()}} uses the log weights within ernest's output
+to produce a weighted posterior sample.
+}
 }

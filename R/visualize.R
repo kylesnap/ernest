@@ -4,8 +4,8 @@
 #' or trace the evolution of the discarded live points along the log prior
 #' volume.
 #'
-#' @param x (ernest_run) An [ernest_run] object.
-#' @param type (case-sensitive string) The type of plot to create.
+#' @param x An [ernest_run] object.
+#' @param type A case-sensitive string. The type of plot to create.
 #' * `"density"`: Shows the posterior density of each distribution.
 #' * `"trace"`: Shows the distribution of points along estimates of the log
 #' prior volume.
@@ -13,7 +13,8 @@
 #' plot from the run. If left `NULL`, every variable is plotted.
 #' @param plot Logical, whether to return a `ggplot` of the visualization, or
 #' a `tibble` of the data used to create the plot.
-#' @inheritDotParams as_draws_rvars.ernest_run units radial
+#' @inheritDotParams as_draws.ernest_run units radial
+#'
 #'
 #' @returns Either a `ggplot` object if `plot = TRUE`, or a `tibble`.
 #'

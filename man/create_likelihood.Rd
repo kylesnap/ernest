@@ -13,11 +13,11 @@ create_likelihood(
 )
 }
 \arguments{
-\item{fn, rowwise_fn}{(function) Pick one of \code{fn} or \code{rowwise_fn}:
+\item{fn, rowwise_fn}{Pick one of \code{fn} or \code{rowwise_fn}:
 \itemize{
-\item \code{fn}: A function that takes in vectors of parameters and returns a scalar
+\item \code{fn}: A function. Takes in vectors of parameters and returns a scalar
 likelihood value (either a finite double or \code{-Inf}).
-\item \code{rowwise_fn}: A function that takes in a matrix of parameters and returns
+\item \code{rowwise_fn}: A function. Takes in a matrix of parameters and returns
 a vector of likelihood values (which are all finite doubles or \code{-Inf}).
 }}
 

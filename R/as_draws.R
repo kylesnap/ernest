@@ -3,13 +3,13 @@
 #' Try to transform an [ernest_run] to a format supported by the
 #' [posterior][posterior::posterior-package] package.
 #'
-#' @param x (ernest_run) An [ernest_run] object.
-#' @param units (case-sensitive string) The scale in which to return the
+#' @param x An [ernest_run] object.
+#' @param units Case-sensitive string. The scale in which to return the
 #' sampled points:
 #' * `"original"`: Points are expressed on the scale of the prior space.
 #' * `"unit_cube"`: Points are expressed on the scale of the (0-1)-unit
 #' hypercube.
-#' @param radial (logical) Whether to return an additional column `.radial`,
+#' @param radial Logical. Whether to return an additional column `.radial`,
 #' containing the radial coordinate (i.e., the squared sum of squares) for
 #' each sampled point.
 #' @inheritParams rlang::args_dots_empty
@@ -51,8 +51,11 @@
 #'   xlab = "Log volume",
 #'   ylab = "Radial coordinate"
 #' )
-#' @rdname as_draws.ernest
-#' @method as_draws ernest_run
+#' @seealso
+#' * [posterior::as_draws()] describes the `draws` object.
+#' * [posterior::resample_draws()] uses the log weights within ernest's output
+#' to produce a weighted posterior sample.
+#' @rdname as_draws
 #' @export
 as_draws.ernest_run <- function(
   x,
@@ -63,7 +66,7 @@ as_draws.ernest_run <- function(
   as_draws_matrix.ernest_run(x, ..., units = units, radial = radial)
 }
 
-#' @rdname as_draws.ernest
+#' @rdname as_draws
 #' @method as_draws_matrix ernest_run
 #' @export
 as_draws_matrix.ernest_run <- function(
@@ -75,8 +78,7 @@ as_draws_matrix.ernest_run <- function(
   as_draws_matrix_(x, ..., units = units, radial = radial)
 }
 
-#' @rdname as_draws.ernest
-#' @method as_draws_rvars ernest_run
+#' @rdname as_draws
 #' @export
 as_draws_rvars.ernest_run <- function(
   x,

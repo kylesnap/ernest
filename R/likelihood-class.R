@@ -4,10 +4,10 @@
 #' either a finite value or `-Inf` for each vector of parameters that is
 #' provided.
 #'
-#' @param fn,rowwise_fn (function) Pick one of `fn` or `rowwise_fn`:
-#' * `fn`: A function that takes in vectors of parameters and returns a scalar
+#' @param fn,rowwise_fn Pick one of `fn` or `rowwise_fn`:
+#' * `fn`: A function. Takes in vectors of parameters and returns a scalar
 #' likelihood value (either a finite double or `-Inf`).
-#' * `rowwise_fn`: A function that takes in a matrix of parameters and returns
+#' * `rowwise_fn`: A function. Takes in a matrix of parameters and returns
 #' a vector of likelihood values (which are all finite doubles or `-Inf`).
 #' @param ... Named arguments to `fn` or `rowwise_fn` that should be partially
 #' applied (see [purrr::partial()]).

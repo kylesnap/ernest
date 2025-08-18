@@ -10,13 +10,11 @@
 \method{plot}{ernest_run}(x, ..., ndraws = 0)
 }
 \arguments{
-\item{x}{(ernest_estimate or ernest_run) An object either of class
-\code{ernest_estimate} (containing uncertainty simulations) or of class
-\code{ernest_run} (containing a nested sampling run).}
+\item{x}{An \link{ernest_estimate} or \link{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{(positive integer or zero, optional) The number of log volume
+\item{ndraws}{An optional positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log volumes are produced from the estimates contained in
 \code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}

@@ -198,16 +198,8 @@ run_dlogz
 ```
 
 ## Reviewing Nested Sampling Runs
-```
 
 Calls to `generate()` return an `ernest_run` object, which has methods for several generics to help you inspect and analyze the results from nested sampling. Unlike non-native NS implementations, ernest is designed to integrate neatly with popular R packages like `ggplot2` and `posterior`.
-
-For example, the `summary()` method provides a concise overview of the run, including the number of iterations, live points, and final evidence estimates. It also returns a tibble containing diagnostic quantities for each iteration.
-
-```{r}
-smry <- summary(run_dlogz)
-smry
-```
 
 To show how the evidence estimates change over the course of the run, you can use the `plot()` function to construct a facetted `ggplot`.
 
@@ -221,8 +213,7 @@ To capture how uncertainty impacts the evidence estimates, `calculate()` allows 
 # Simulate uncertainty with 1000 draws
 library(posterior)
 calc_sim <- calculate(run_dlogz, ndraws = 1000)
-
-summary(calc_sim)
+calc_sim
 
 plot(calc_sim)
 ```

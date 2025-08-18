@@ -115,3 +115,8 @@ generate(sampler, max_calls = 2600)
 # Use the default stopping criteria
 \dontrun{ generate(sampler) }
 }
+\references{
+Skilling, J. (2006). Nested Sampling for General
+Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+\url{https://doi.org/10.1214/06-BA127}
+}

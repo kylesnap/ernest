@@ -63,6 +63,10 @@
 #' remaining evidence is sufficiently small compared to the accumulated
 #' evidence.
 #'
+#' @references Skilling, J. (2006). Nested Sampling for General
+#' Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+#' <https://doi.org/10.1214/06-BA127>
+#'
 #' @srrstats {BS4.3, BS4.4, BS4.5} Ernest defaults to using `min_logz` to
 #' halt the nested sampling loop when the remaining evidence in the unexplored
 #' parameter space is sufficiently small. `max_iterations` is used to prevent

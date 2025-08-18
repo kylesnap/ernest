@@ -48,11 +48,12 @@ nested sampling run.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_prior</span><span class="op">(</span></span>
 <span>  <span class="va">fn</span>,</span>
+<span>  <span class="va">rowwise_fn</span>,</span>
 <span>  <span class="va">n_dim</span>,</span>
+<span>  <span class="va">...</span>,</span>
 <span>  varnames <span class="op">=</span> <span class="st">"X"</span>,</span>
-<span>  lower <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  upper <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  auto_batch <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
+<span>  upper <span class="op">=</span> <span class="cn">Inf</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -60,12 +61,21 @@ nested sampling run.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-fn">fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
-<dd><p>(function) The unit hypercube transformation (see Details).</p></dd>
+<dl><dt id="arg-fn-rowwise-fn">fn, rowwise_fn<a class="anchor" aria-label="anchor" href="#arg-fn-rowwise-fn"></a></dt>
+<dd><p>(function) Pick one of <code>fn</code> or <code>rowwise_fn</code>:</p><ul><li><p><code>fn</code>: A function that takes in a vector of unit cube coordinates and
+returns a same-size vector of parameters.</p></li>
+<li><p><code>rowwise_fn</code>: A function that takes in a vector of unit cube coordinates
+and returns a matrix of parameters with identical dimensions.</p></li>
+</ul></dd>
 
 
 <dt id="arg-n-dim">n_dim<a class="anchor" aria-label="anchor" href="#arg-n-dim"></a></dt>
 <dd><p>(positive integer) The dimensionality of the prior distribution.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Named arguments to <code>fn</code> or <code>rowwise_fn</code> that should be partially
+applied (see <code><a href="https://purrr.tidyverse.org/reference/partial.html" class="external-link">purrr::partial()</a></code>).</p></dd>
 
 
 <dt id="arg-varnames">varnames<a class="anchor" aria-label="anchor" href="#arg-varnames"></a></dt>
@@ -77,13 +87,6 @@ the variables in the prior distribution.</p></dd>
 <dd><p>(optional numeric vector) The expected bounds for the
 parameter vectors after hypercube transformation. Set to <code>-Inf</code> and <code>Inf</code>
 by default.</p></dd>
-
-
-<dt id="arg-auto-batch">auto_batch<a class="anchor" aria-label="anchor" href="#arg-auto-batch"></a></dt>
-<dd><p>(logical) Whether to prepare <code>fn</code> so that it may be called
-with a matrix of parameter values. If <code>FALSE</code>, its assumed that <code>fn</code>
-can already produce a vector of likelihood values for a matrix with rows of
-parameter vectors.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -103,25 +106,24 @@ as independent and identically distributed points within a unit hypercube.
 Implementations of nested sampling, including ernest, use this transformation
 to simplify likelihood-restricted prior sampling, avoiding uncessary
 rejection steps.</p>
-<p>In ernest, the <code>create_prior</code> function allows you to specify your own
-prior distribution. This requires you to provide your own transformation
+<p><code>create_prior</code> allows you to specify your own prior distribution.
+This requires you to provide your own transformation
 function. In many cases, when the prior can be factorized, this function
 can simply be transforming a vector of values in (0, 1) and transforming
 them elementwise with inverse cumulative distribution function (CDF) of
 each parameter. In more complex cases, you can specify a hierarchical or
 conditionally-dependent prior (see Examples).</p>
-<p>ernest will perform several regularity checks on <code>fn</code> when the prior is
-created. These checks are passed if:</p><ul><li><p><code>fn</code> is a function;</p></li>
-<li><p><code>fn(rep(0.5, n_dim))</code> returns a finite double vector of length <code>n_dim</code>;</p></li>
-<li><p><code>fn</code>, when given a matrix of random unit cube coordinates, returns a
-finite double matrix with the same dimensions that all respect the specified
-bounds.</p></li>
-</ul><p>As default, <code>auto_batch</code> expects that <code>fn</code> is incapable of handling matrices
-of unit cube values. It resolves this by wrapping <code>fn</code> in a call to
-<code><a href="https://rdrr.io/r/base/apply.html" class="external-link">base::apply()</a></code>. Should you have a more efficient implementation of your
-likelihood function, then consider setting <code>auto_batch == FALSE</code>.
-Failing the checks on <code>fn</code> with <code>auto_batch = FALSE</code> will remind the user
-of this setting.</p>
+<p><code>create_prior</code> will perform several regularity checks on your prior function.
+This intends to capture basic errors that may confound ernest's nested
+sampling implementation. To pass these checks, <code>fn</code> or <code>rowwise_fn</code> must:</p><ul><li><p>return a finite double vector of length <code>n_dim</code> when provided
+<code>rep(0.5, n_dim)</code>,</p></li>
+<li><p>return a finite double matrix of parameters with the same dimensions that
+all respect the bounds <code>lower</code> and <code>upper</code> (if provided) when provided
+random matrix with dimensions <code>c(5, n_dim)</code>.</p></li>
+</ul><p>Ernest will wrap <code>fn</code> so that it may take in a matrix of parameters. Should
+you have a more efficient implementation of your likelihood function that
+can handle vectors and matrices, then consider providing <code>rowwise_fn</code>
+instead.</p>
     </div>
 
     <div class="section level2">
@@ -154,7 +156,8 @@ of this setting.</p>
 <span class="r-in"><span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span>, <span class="st">"x"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_prior&gt;</span>: 3 variables</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mu, sigma, and x</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Setting `auto_batch = FALSE` should be done with care</span></span></span>
 <span class="r-in"><span><span class="va">bb_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
@@ -171,12 +174,12 @@ of this setting.</p>
 <span class="r-in"><span> <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Error in create_prior(bb_p, n_dim = 2, varnames = c("beta", "bern"), auto_batch = FALSE) : </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Can't transform values in a test matrix.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Can `fn` handle matrices without setting `auto_batch = TRUE`?</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error in `create_prior()`:</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> `fn(test_matrix)` must be of type 'matrix', not 'double'.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Can't validate `fn` as a valid prior.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error in `fn()`:</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> unused argument (auto_batch = FALSE)</span>
 <span class="r-in"><span><span class="fu">create_prior</span><span class="op">(</span><span class="va">bb_p</span>, n_dim <span class="op">=</span> <span class="fl">2</span>, varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"bern"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_prior&gt;</span>: 2 variables</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> beta and bern</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

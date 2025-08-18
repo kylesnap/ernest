@@ -81,8 +81,8 @@ the variables in the prior distribution.</p></dd>
 
 
 <dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
-<dd><p>(optional numeric vector) The values to retain from a
-truncated distribution.</p></dd>
+<dd><p>Double vectors. The values to retain from a
+truncated distribution. Recycled to length <code>n_dim</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -91,19 +91,13 @@ truncated distribution.</p></dd>
 an efficient implementation of the unit hypercube transformation.</p>
     </div>
     <div class="section level2">
-    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>For the truncation routine:
-Nadarajah, S., &amp; Kotz, S. (2006).
-R Programs for Truncated Distributions. Journal of Statistical Software,
-Code Snippets, 16(2), 1–8. <a href="https://doi.org/10.18637/jss.v016.c02" class="external-link">https://doi.org/10.18637/jss.v016.c02</a></p>
-    </div>
-    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="create_prior.html">create_prior()</a></code> for a richer explanation of the <code>ernest_prior</code>
-object.</p>
-<p>Other special priors:
-<code><a href="create_cauchy_prior.html">create_cauchy_prior</a>()</code>,
-<code><a href="create_t_prior.html">create_t_prior</a>()</code>,
+    <div class="dont-index">
+<ul><li><p><code><a href="create_prior.html">create_prior()</a></code> for a richer explanation of the <code>ernest_prior</code>
+object.</p></li>
+<li><p><code><a href="https://rdrr.io/pkg/truncnorm/man/dtruncnorm.html" class="external-link">truncnorm::qtruncnorm()</a></code> for the implementation of the truncated normal
+quantile function.</p></li>
+</ul><p>Other special priors:
 <code><a href="create_uniform_prior.html">create_uniform_prior</a>()</code></p></div>
     </div>
 

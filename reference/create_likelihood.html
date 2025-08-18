@@ -49,24 +49,11 @@ provided.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span><span class="va">fn</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class 'ernest_likelihood'</span></span>
-<span><span class="fu">create_likelihood</span><span class="op">(</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span></span>
 <span>  <span class="va">fn</span>,</span>
-<span>  error_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"abort"</span>, <span class="st">"warn"</span><span class="op">)</span>,</span>
-<span>  nonfinite_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"pass"</span>, <span class="st">"abort"</span><span class="op">)</span>,</span>
-<span>  auto_batch <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class '`function`'</span></span>
-<span><span class="fu">create_likelihood</span><span class="op">(</span></span>
-<span>  <span class="va">fn</span>,</span>
-<span>  error_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"abort"</span>, <span class="st">"warn"</span><span class="op">)</span>,</span>
-<span>  nonfinite_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"pass"</span>, <span class="st">"abort"</span><span class="op">)</span>,</span>
-<span>  auto_batch <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  <span class="va">rowwise_fn</span>,</span>
+<span>  <span class="va">...</span>,</span>
+<span>  .nonfinite_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"quiet"</span>, <span class="st">"abort"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -74,60 +61,49 @@ provided.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-fn">fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
-<dd><p>(uni-variate function) The log-likelihood function (see Details).</p></dd>
+<dl><dt id="arg-fn-rowwise-fn">fn, rowwise_fn<a class="anchor" aria-label="anchor" href="#arg-fn-rowwise-fn"></a></dt>
+<dd><p>Pick one of <code>fn</code> or <code>rowwise_fn</code>:</p><ul><li><p><code>fn</code>: A function. Takes in vectors of parameters and returns a scalar
+likelihood value (either a finite double or <code>-Inf</code>).</p></li>
+<li><p><code>rowwise_fn</code>: A function. Takes in a matrix of parameters and returns
+a vector of likelihood values (which are all finite doubles or <code>-Inf</code>).</p></li>
+</ul></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>These dots are for future extensions and must be empty.</p></dd>
+<dd><p>Named arguments to <code>fn</code> or <code>rowwise_fn</code> that should be partially
+applied (see <code><a href="https://purrr.tidyverse.org/reference/partial.html" class="external-link">purrr::partial()</a></code>).</p></dd>
 
 
-<dt id="arg-error-action">error_action<a class="anchor" aria-label="anchor" href="#arg-error-action"></a></dt>
-<dd><p>(case-sensitive string) Action to perform once <code>fn</code>
-throws an error.</p><ul><li><p><code>"abort"</code>: Stop execution and signal an error.</p></li>
-<li><p><code>"warn"</code>: Issue a warning and replace output with <code>-Inf</code>.</p></li>
-</ul></dd>
-
-
-<dt id="arg-nonfinite-action">nonfinite_action<a class="anchor" aria-label="anchor" href="#arg-nonfinite-action"></a></dt>
+<dt id="arg--nonfinite-action">.nonfinite_action<a class="anchor" aria-label="anchor" href="#arg--nonfinite-action"></a></dt>
 <dd><p>(case-sensitive string) Action to perform when <code>fn</code>
-passes a value that is not a finite double nor <code>-Inf</code>.</p><ul><li><p><code>"warn"</code>: Issue a warning and replace values with <code>-Inf</code>.</p></li>
-<li><p><code>"pass"</code>: Silently replace values with <code>-Inf</code>.</p></li>
+passes a value that is nonfinite and non-<code>-Inf</code> (e.g, <code>NaN</code>, <code>NA</code>, or <code>Inf</code>).</p><ul><li><p><code>"warn"</code>: Issue a warning and replace values with <code>-Inf</code>.</p></li>
+<li><p><code>"quiet"</code>: Silently replace values with <code>-Inf</code>.</p></li>
 <li><p><code>"abort"</code>: Stop execution and signal an error.</p></li>
 </ul></dd>
-
-
-<dt id="arg-auto-batch">auto_batch<a class="anchor" aria-label="anchor" href="#arg-auto-batch"></a></dt>
-<dd><p>(logical) Whether to prepare <code>fn</code> so that it may be called
-with a matrix of parameter values. If <code>FALSE</code>, its assumed that <code>fn</code>
-can already produce a vector of likelihood values for a matrix with rows of
-parameter vectors.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A function with additional class <code>ernest_likelihood</code>. This function
-will accept vectors of parameters, and matrices of parameters, where
-each row represents a single parameter vector. <code>ernest_likelihood</code> will
-always produce either scalar or vector doubles containing finite values
-or <code>-Inf</code>; values outside this range are either replaced by <code>-Inf</code> or
-cause errors.</p>
-    </div>
+    <p>A function with additional class <code>ernest_likelihood</code>. This function is
+wrapped in checks that promote type- and size-stability:</p><ul><li><p>If provided a vector of doubles, the function will return
+a scalar double, <code>-Inf</code>, or an error.</p></li>
+<li><p>If provided a matrix of doubles, the function will return
+a vector of doubles and <code>-Inf</code> equal to the number of matrix rows,
+or an error.</p></li>
+<li><p>If provided anything else, the function will throw an error.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Model likelihoods should be provided as a log density function. It is
-expected that <code>fn</code> should take in exactly one argument; likelihood functions
-that take in multiple non-default arguments should be entered as anonymous
-functions (see <code><a href="https://rlang.r-lib.org/reference/as_function.html" class="external-link">rlang::as_function()</a></code>). See vignettes for an example of
-entering data through an anonymous function.</p>
-<p>It is expected that <code>fn</code> returns a scalar finite values or <code>-Inf</code> for each
-parameter vector. Use <code>error_action</code> and <code>nonfinite_action</code> to decide on
-how <code>ernest_likelihood</code> handles errors, non-finite, and non-numeric return
-values from <code>fn</code>.</p>
-<p>As default, <code>auto_batch</code> expects that <code>fn</code> is incapable of handling matrices
-of parameter values. It resolves this by wrapping <code>fn</code> in a call to
-<code><a href="https://rdrr.io/r/base/apply.html" class="external-link">base::apply()</a></code>. Should you have a more efficient implementation of your
-likelihood function, then consider setting <code>auto_batch</code> to <code>FALSE</code>.</p>
+    <p>Model likelihoods should be provided as a log density function. The first
+argument of <code>fn</code> or <code>rowwise_fn</code> should be a vector or matrix of parameters,
+respectively. Other arguments can be forwarded by providing named arguments
+to <code>...</code> or through anonymous functions (see Examples).</p>
+<p>It is expected that <code>fn</code> returns a scalar finite doubles or <code>-Inf</code> for each
+parameter vector.</p>
+<p>Ernest will wrap <code>fn</code> so that it may take in a matrix of parameters. Should
+you have a more efficient implementation of your likelihood function that
+can handle vectors and matrices, then consider providing <code>rowwise_fn</code>
+instead.</p>
     </div>
 
     <div class="section level2">
@@ -149,13 +125,13 @@ likelihood function, then consider setting <code>auto_batch</code> to <code>FALS
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># As default, `log_lik` will loudly replace non-finite, non-`-Inf` values.</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`fn` must return finite numeric values or `-Inf`.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> Replacing `NaN` with `-Inf`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Replacing `NaN` with `-Inf`.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -Inf</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Silence warnings with `nonfinite_action = "pass"`</span></span></span>
 <span class="r-in"><span><span class="va">quiet_lik</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span><span class="va">log_lik</span>, nonfinite_action <span class="op">=</span> <span class="st">"pass"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">quiet_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Replacing `NaN` with `-Inf`.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -Inf</span>
 </code></pre></div>
     </div>

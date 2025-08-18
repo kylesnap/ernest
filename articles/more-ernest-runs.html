@@ -121,14 +121,25 @@ space, with one shell offset in the first dimension by 3.5.</p>
 <span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sampler_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span><span class="va">log_lik_2d</span>, <span class="va">prior_2d</span><span class="op">)</span></span>
+<span><span class="va">sampler_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">log_lik_2d</span>, <span class="va">prior_2d</span><span class="op">)</span></span>
 <span><span class="va">run_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_2d</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating new live points.</span></span>
-<span><span class="co">#&gt; `min_logz` reached (0.0499288932007837 &lt; 0.05)</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0499433683386997 &lt; 0.05)</span></span>
 <span><span class="va">run_2d</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points, 2 variables</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> 2452 iterations, 46601 likelihood calls</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-1.723</span> (± <span style="color: #0000BB;">0.129</span>)</span></span></code></pre></div>
+<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; No. Points: 500</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Sampling Method </span></span>
+<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • No. Dimensions: 2</span></span>
+<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
+<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
+<span><span class="co">#&gt; • Current Step Size: 0.0130221178937009</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Results </span></span>
+<span><span class="co">#&gt; No. Iterations: 3395</span></span>
+<span><span class="co">#&gt; No. Calls: 70577</span></span>
+<span><span class="co">#&gt; Log. Evidence: <span style="color: #0000BB;">-1.69816597264065</span> (± <span style="color: #0000BB;">0.0855980472986465</span>)</span></span></code></pre></div>
 <p>We can review the results with more detail using
 <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -136,9 +147,9 @@ space, with one shell offset in the first dimension by 3.5.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Results from </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">───────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 2452</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 46601</span></span>
-<span><span class="co">#&gt; Log. Evidence: -1.723 (± 0.1292)</span></span></code></pre></div>
+<span><span class="co">#&gt; No. Iterations: 3395</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 70577</span></span>
+<span><span class="co">#&gt; Log. Evidence: -1.698 (± 0.0856)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="shells-in-5d">1.2. Shells in 5D<a class="anchor" aria-label="anchor" href="#shells-in-5d"></a>
@@ -152,14 +163,25 @@ space, with one shell offset in the first dimension by 3.5.</p>
 <span>  varnames <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sampler_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span><span class="va">log_lik_5d</span>, <span class="va">prior_5d</span><span class="op">)</span></span>
+<span><span class="va">sampler_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">log_lik_5d</span>, <span class="va">prior_5d</span><span class="op">)</span></span>
 <span><span class="va">run_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_5d</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating new live points.</span></span>
-<span><span class="co">#&gt; `min_logz` reached (0.000313401032129308 &lt; 0.05)</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0499835650528216 &lt; 0.05)</span></span>
 <span><span class="va">run_5d</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points, 5 variables</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> 0 iterations, 0 likelihood calls</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-15.012</span> (± <span style="color: #0000BB;">2.635</span>)</span></span></code></pre></div>
+<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; No. Points: 500</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Sampling Method </span></span>
+<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • No. Dimensions: 5</span></span>
+<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
+<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
+<span><span class="co">#&gt; • Current Step Size: 0.00116753543809434</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Results </span></span>
+<span><span class="co">#&gt; No. Iterations: 5259</span></span>
+<span><span class="co">#&gt; No. Calls: 117178</span></span>
+<span><span class="co">#&gt; Log. Evidence: <span style="color: #0000BB;">-5.45102920782928</span> (± <span style="color: #0000BB;">0.126972829550989</span>)</span></span></code></pre></div>
 <p>If we wanted to ensure ourselves that our prior was behaving as
 expected, we can use the <code>posterior</code> package to examine our
 recorded samples.</p>
@@ -176,9 +198,9 @@ recorded samples.</p>
 <span><span class="co">#&gt;     %in%, match</span></span>
 <span><span class="va">draws_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">run_5d</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/extract_variable.html" class="external-link">extract_variable</a></span><span class="op">(</span><span class="va">draws_5d</span>, <span class="st">"A"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.943474  5.954716</span></span>
+<span><span class="co">#&gt; [1] -5.982774  5.993720</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/extract_variable.html" class="external-link">extract_variable</a></span><span class="op">(</span><span class="va">draws_5d</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.969977  5.999538</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -5.977131  5.991892</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -191,17 +213,17 @@ classical example in nested sampling.</p>
 <span>  <span class="op">(</span><span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">5</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">prior_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">2</span>, upper <span class="op">=</span> <span class="fl">10</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span>
-<span><span class="va">sampler_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">prior_eggbox</span><span class="op">)</span></span>
+<span><span class="va">sampler_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">prior_eggbox</span><span class="op">)</span></span>
 <span><span class="va">run_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_eggbox</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating new live points.</span></span>
-<span><span class="co">#&gt; `min_logz` reached (0.0499816989251997 &lt; 0.05)</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.0499395387918177 &lt; 0.05)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run_eggbox</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested Sampling Results from </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">───────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 4999</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 111257</span></span>
-<span><span class="co">#&gt; Log. Evidence: 236 (± 0.1257)</span></span></code></pre></div>
+<span><span class="co">#&gt; No. Iterations: 5067</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 112801</span></span>
+<span><span class="co">#&gt; Log. Evidence: 235.9 (± 0.1274)</span></span></code></pre></div>
 <p>We can plot the run to examine how our evidence estimates changed
 over time:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -245,17 +267,28 @@ dataset from the National Institutte of Science and Technology.</p>
 <span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"sd"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sampler_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nested_sampling.html">nested_sampling</a></span><span class="op">(</span></span>
+<span><span class="va">sampler_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span></span>
 <span>  log_lik <span class="op">=</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik_norm</span><span class="op">(</span><span class="va">theta</span>, y <span class="op">=</span> <span class="va">data</span><span class="op">)</span>,</span>
 <span>  <span class="va">prior_norm</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">run_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_norm</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating new live points.</span></span>
-<span><span class="co">#&gt; `min_logz` reached (0.0499481502128933 &lt; 0.05)</span></span>
+<span><span class="co">#&gt; `min_logz` reached (0.049991170720449 &lt; 0.05)</span></span>
 <span><span class="va">run_norm</span></span>
-<span><span class="co">#&gt; An <span style="color: #0000BB;">&lt;ernest_run&gt;</span>: 500 points, 2 variables</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> 393 iterations, 576 likelihood calls</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence ≈ <span style="color: #0000BB;">-9.497</span> (± <span style="color: #0000BB;">2.489</span>)</span></span></code></pre></div>
+<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; No. Points: 500</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Sampling Method </span></span>
+<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • No. Dimensions: 2</span></span>
+<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
+<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
+<span><span class="co">#&gt; • Current Step Size: 0.000486779687291685</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Results </span></span>
+<span><span class="co">#&gt; No. Iterations: 7069</span></span>
+<span><span class="co">#&gt; No. Calls: 162427</span></span>
+<span><span class="co">#&gt; Log. Evidence: <span style="color: #0000BB;">-0.870811673817073</span> (± <span style="color: #0000BB;">0.16111262255462</span>)</span></span></code></pre></div>
 <p>To examine the posterior, we need to first call
 <code><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">posterior::resample_draws()</a></code> on the <code>draws</code>
 arugment produced from an <code>ernest_run</code>. This is because
@@ -268,11 +301,10 @@ examine the posterior distribution</p>
 <span></span>
 <span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarize_draws</a></span><span class="op">(</span><span class="va">draws_norm</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
-<span><span class="co">#&gt;   variable          mean     median     sd   mad       q5     q95  rhat ess_bulk</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mean     100<span style="text-decoration: underline;">000</span>000.      1.000<span style="color: #949494;">e</span>+8 0.117      0 1.000<span style="color: #949494;">e</span>+8 1.00<span style="color: #949494;">e</span>+8  1.25     3.09</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sd               0.384   3.50 <span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 0.079<span style="text-decoration: underline;">7</span>     0 3.50 <span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 5.47<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span>  1.26     6.06</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: ess_tail &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt;   variable    mean  median     sd    mad      q5     q95  rhat ess_bulk ess_tail</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mean     1.00<span style="color: #949494;">e</span>+8 1.00<span style="color: #949494;">e</span>+8 0.036<span style="text-decoration: underline;">5</span> 0.032<span style="text-decoration: underline;">9</span> 1.00<span style="color: #949494;">e</span>+8 1.00<span style="color: #949494;">e</span>+8  1.38  <span style="text-decoration: underline;">2</span>164.       12.5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sd       1.15<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 1.09<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 0.030<span style="text-decoration: underline;">9</span> 0.025<span style="text-decoration: underline;">0</span> 7.81<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span> 1.72<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span>  1.28     3.87     11.0</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

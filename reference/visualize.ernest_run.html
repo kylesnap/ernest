@@ -58,19 +58,19 @@ volume.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>(ernest_run) An <a href="ernest_run-class.html">ernest_run</a> object.</p></dd>
+<dd><p>An <a href="generate.ernest_sampler.html">ernest_run</a> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Arguments passed on to <code><a href="as_draws.ernest.html">as_draws_rvars.ernest_run</a></code></p><dl><dt><code>units</code></dt>
-<dd><p>(case-sensitive string) The scale in which to return the
+<dd><p>Arguments passed on to <code><a href="as_draws.html">as_draws.ernest_run</a></code></p><dl><dt><code>units</code></dt>
+<dd><p>Case-sensitive string. The scale in which to return the
 sampled points:</p><ul><li><p><code>"original"</code>: Points are expressed on the scale of the prior space.</p></li>
 <li><p><code>"unit_cube"</code>: Points are expressed on the scale of the (0-1)-unit
 hypercube.</p></li>
 </ul></dd>
 
     <dt><code>radial</code></dt>
-<dd><p>(logical) Whether to return an additional column <code>.radial</code>,
+<dd><p>Logical. Whether to return an additional column <code>.radial</code>,
 containing the radial coordinate (i.e., the squared sum of squares) for
 each sampled point.</p></dd>
 
@@ -79,7 +79,7 @@ each sampled point.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>(case-sensitive string) The type of plot to create.</p><ul><li><p><code>"density"</code>: Shows the posterior density of each distribution.</p></li>
+<dd><p>A case-sensitive string. The type of plot to create.</p><ul><li><p><code>"density"</code>: Shows the posterior density of each distribution.</p></li>
 <li><p><code>"trace"</code>: Shows the distribution of points along estimates of the log
 prior volume.</p></li>
 </ul></dd>

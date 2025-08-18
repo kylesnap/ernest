@@ -48,7 +48,7 @@
 
       <dl><dt>
 
-          <code><a href="as_draws.ernest.html">as_draws(<i>&lt;ernest_run&gt;</i>)</a></code> <code><a href="as_draws.ernest.html">as_draws_matrix(<i>&lt;ernest_run&gt;</i>)</a></code> <code><a href="as_draws.ernest.html">as_draws_rvars(<i>&lt;ernest_run&gt;</i>)</a></code>
+          <code><a href="as_draws.html">as_draws(<i>&lt;ernest_run&gt;</i>)</a></code> <code><a href="as_draws.html">as_draws_matrix(<i>&lt;ernest_run&gt;</i>)</a></code> <code><a href="as_draws.html">as_draws_rvars(<i>&lt;ernest_run&gt;</i>)</a></code>
 
         </dt>
         <dd>Transform nested sampling runs to <code>draws</code> objects</dd>
@@ -60,16 +60,10 @@
         <dd>Estimate Evidence using a Nested Sampling Run</dd>
       </dl><dl><dt>
 
-          <code><a href="compile.ernest_sampler.html">compile(<i>&lt;ernest_sampler&gt;</i>)</a></code> <code><a href="compile.ernest_sampler.html">compile(<i>&lt;ernest_run&gt;</i>)</a></code>
+          <code><a href="compile.html">compile(<i>&lt;ernest_sampler&gt;</i>)</a></code> <code><a href="compile.html">compile(<i>&lt;ernest_run&gt;</i>)</a></code>
 
         </dt>
-        <dd>Prepare an <code>ernest_sampler</code> object for nested sampling</dd>
-      </dl><dl><dt>
-
-          <code><a href="create_cauchy_prior.html">create_cauchy_prior()</a></code>
-
-        </dt>
-        <dd>Specify a prior with Cauchy-distributed marginals</dd>
+        <dd>Create a set of live points for a nested sampling run</dd>
       </dl><dl><dt>
 
           <code><a href="create_likelihood.html">create_likelihood()</a></code>
@@ -90,28 +84,16 @@
         <dd>Specify a prior distribution for nested sampling</dd>
       </dl><dl><dt>
 
-          <code><a href="create_t_prior.html">create_t_prior()</a></code>
-
-        </dt>
-        <dd>Specify a prior with Student's t-distributed marginals</dd>
-      </dl><dl><dt>
-
           <code><a href="create_uniform_prior.html">create_uniform_prior()</a></code>
 
         </dt>
         <dd>Specify a prior with Uniformly-distributed marginals</dd>
       </dl><dl><dt>
 
-          <code><a href="ernest_run-class.html">ernest_run-class</a></code> <code><a href="ernest_run-class.html">ernest_run</a></code>
+          <code><a href="ernest_sampler.html">ernest_sampler()</a></code>
 
         </dt>
-        <dd>Results from nested sampling runs</dd>
-      </dl><dl><dt>
-
-          <code><a href="ernest_sampling.html">unif_cube()</a></code> <code><a href="ernest_sampling.html">rwmh_cube()</a></code>
-
-        </dt>
-        <dd>Specify a likelihood-restricted prior sampler (LRPS)</dd>
+        <dd>Prepare a new nested sampling run</dd>
       </dl><dl><dt>
 
           <code><a href="example_run.html">example_run</a></code>
@@ -123,13 +105,7 @@
           <code><a href="generate.ernest_sampler.html">generate(<i>&lt;ernest_sampler&gt;</i>)</a></code>
 
         </dt>
-        <dd>Perform nested sampling</dd>
-      </dl><dl><dt>
-
-          <code><a href="nested_sampling.html">nested_sampling()</a></code>
-
-        </dt>
-        <dd>Prepare a nested sampler to evaluate Bayesian evidence</dd>
+        <dd>Run nested sampling to estimate Bayesian evidence</dd>
       </dl><dl><dt>
 
           <code><a href="plot.ernest.html">plot(<i>&lt;ernest_estimate&gt;</i>)</a></code> <code><a href="plot.ernest.html">plot(<i>&lt;ernest_run&gt;</i>)</a></code>
@@ -138,16 +114,22 @@
         <dd>Plot diagnostics for a nested sampling run</dd>
       </dl><dl><dt>
 
-          <code><a href="summary.ernest_estimate.html">summary(<i>&lt;ernest_estimate&gt;</i>)</a></code>
+          <code><a href="rwmh_cube.html">rwmh_cube()</a></code>
 
         </dt>
-        <dd>Summarise an evidence estimate from nested sampling</dd>
+        <dd>Random walk over the unconstrained prior distribution</dd>
       </dl><dl><dt>
 
           <code><a href="summary.ernest_run.html">summary(<i>&lt;ernest_run&gt;</i>)</a></code>
 
         </dt>
         <dd>Summarise a nested sampling run</dd>
+      </dl><dl><dt>
+
+          <code><a href="unif_cube.html">unif_cube()</a></code>
+
+        </dt>
+        <dd>Uniformly sample from the unconstrained prior distribution</dd>
       </dl><dl><dt>
 
           <code><a href="visualize.ernest_run.html">visualize(<i>&lt;ernest_run&gt;</i>)</a></code>

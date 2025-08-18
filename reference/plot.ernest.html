@@ -58,9 +58,7 @@ of log. volume.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>(ernest_estimate or ernest_run) An object either of class
-<code>ernest_estimate</code> (containing uncertainty simulations) or of class
-<code>ernest_run</code> (containing a nested sampling run).</p></dd>
+<dd><p>An <a href="calculate.ernest_run.html">ernest_estimate</a> or <a href="generate.ernest_sampler.html">ernest_run</a> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -68,7 +66,7 @@ of log. volume.</p>
 
 
 <dt id="arg-ndraws">ndraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
-<dd><p>(positive integer or zero, optional) The number of log volume
+<dd><p>An optional positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log volumes are produced from the estimates contained in
 <code>x</code>. If <code>NULL</code>, <code>getOption("posterior.rvar_ndraws")</code> is used (default 4000).</p></dd>

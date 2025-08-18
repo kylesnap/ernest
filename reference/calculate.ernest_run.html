@@ -58,7 +58,7 @@ likelihood shell.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>(ernest_run) An <code>ernest_run</code> object.</p></dd>
+<dd><p>An <code>ernest_run</code> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -66,7 +66,7 @@ likelihood shell.</p>
 
 
 <dt id="arg-ndraws">ndraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
-<dd><p>(positive integer or zero, optional) The number of log volume
+<dd><p>An optional positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log volumes are produced from the estimates contained in
 <code>x</code>. If <code>NULL</code>, <code>getOption("posterior.rvar_ndraws")</code> is used (default 4000).</p></dd>
@@ -74,8 +74,8 @@ one draw vector of log volumes are produced from the estimates contained in
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A tibble, containing <code>run$n_iter + run$n_points</code> rows and the
-following columns:</p><ul><li><p><code>log_lik</code>: The log-likelihood of the model.</p></li>
+    <p>A <code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble::tibble()</a></code>, containing <code>n_iter + n_points</code> rows
+and several columns:</p><ul><li><p><code>log_lik</code>: The log-likelihood of the model.</p></li>
 <li><p><code>log_volume</code>: The log volume of the prior space.</p></li>
 <li><p><code>log_weight</code>: The log weights of the live points.</p></li>
 <li><p><code>log_evidence</code>: The log evidence of the model.</p></li>
@@ -86,24 +86,10 @@ when <code>ndraws = 0</code>).</p></li>
 <p>Each column is returned as an <code><a href="https://mc-stan.org/posterior/reference/rvar.html" class="external-link">posterior::rvar()</a></code> vector.</p>
     </div>
     <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Use <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> to simulate the estimation error nested sampling runs
-caused by approximating the change in log volume between iterations. Given
-the use of ordered log likelihood restricted prior sampling, these volumes
-can be modelled as the order statistics of a uniform random variable.
-Ernest uses the following distributions to perform this simulation:</p><ul><li><p>Constant number of live points: At each iteration, the point with the
-lowest likelihood is replaced by a new sample constrained to a higher
-likelihood region. Under this setup, the shrinkage in prior volume at
-iteration <code>i</code> can be shown to follow the Beta distribution.</p></li>
-<li><p>Decreasing number of live points: At the end of the sampling run, the
-remaining live points are added to the dead point set. This introduces a
-discrete stepwise behavior in volume shrinkage. Ernest uses a transformation
-of variables drawn from the exponential distribution to simulate the
-corresponding changes in volume.</p></li>
-</ul></div>
-    <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>See Appendix A6 of Speagle, J. (2020).</p>
+    <p>Skilling, J. (2006). Nested Sampling for General
+Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+<a href="https://doi.org/10.1214/06-BA127" class="external-link">https://doi.org/10.1214/06-BA127</a></p>
     </div>
 
     <div class="section level2">
@@ -113,11 +99,45 @@ corresponding changes in volume.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># View results as a tibble with `ndraws = FALSE` (the default).</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_calculate&gt;</span>: 4000 draws x 5225 iterations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 4000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: <span style="color: #0000BB;">-16 ± 1.3</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: <span style="color: #0000BB;">-9 ± 0.05</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5,158 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik       log_volume  log_weight log_evidence</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -146 <span style="color: #949494;">± NA</span>  -0.002 <span style="color: #949494;">± 0.0019</span>  -153 <span style="color: #949494;">± 1.3</span>  -153 <span style="color: #949494;">± 1.26</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -144 <span style="color: #949494;">± NA</span>  -0.004 <span style="color: #949494;">± 0.0027</span>  -151 <span style="color: #949494;">± 1.3</span>  -151 <span style="color: #949494;">± 0.95</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -139 <span style="color: #949494;">± NA</span>  -0.006 <span style="color: #949494;">± 0.0033</span>  -146 <span style="color: #949494;">± 1.3</span>  -146 <span style="color: #949494;">± 1.21</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.008 <span style="color: #949494;">± 0.0039</span>  -143 <span style="color: #949494;">± 1.3</span>  -143 <span style="color: #949494;">± 1.09</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -129 <span style="color: #949494;">± NA</span>  -0.010 <span style="color: #949494;">± 0.0043</span>  -136 <span style="color: #949494;">± 1.3</span>  -136 <span style="color: #949494;">± 1.25</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -126 <span style="color: #949494;">± NA</span>  -0.012 <span style="color: #949494;">± 0.0048</span>  -134 <span style="color: #949494;">± 1.3</span>  -134 <span style="color: #949494;">± 1.00</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -125 <span style="color: #949494;">± NA</span>  -0.014 <span style="color: #949494;">± 0.0051</span>  -132 <span style="color: #949494;">± 1.3</span>  -132 <span style="color: #949494;">± 0.87</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -125 <span style="color: #949494;">± NA</span>  -0.016 <span style="color: #949494;">± 0.0055</span>  -132 <span style="color: #949494;">± 1.3</span>  -131 <span style="color: #949494;">± 0.71</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -118 <span style="color: #949494;">± NA</span>  -0.018 <span style="color: #949494;">± 0.0058</span>  -126 <span style="color: #949494;">± 1.3</span>  -126 <span style="color: #949494;">± 1.21</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -118 <span style="color: #949494;">± NA</span>  -0.020 <span style="color: #949494;">± 0.0060</span>  -125 <span style="color: #949494;">± 1.3</span>  -124 <span style="color: #949494;">± 0.83</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 5,148 more rows</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate 100 simulated log volume values for each iteration.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> An <span style="color: #0000BB;">&lt;ernest_calculate&gt;</span>: 100 draws x 5225 iterations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: <span style="color: #0000BB;">-16 ± 1.2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: <span style="color: #0000BB;">-8.8 ± 0.12</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 5,158 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik        log_volume  log_weight log_evidence</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -146 <span style="color: #949494;">± NA</span>  -0.0021 <span style="color: #949494;">± 0.0021</span>  -153 <span style="color: #949494;">± 1.2</span>  -153 <span style="color: #949494;">± 1.22</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -144 <span style="color: #949494;">± NA</span>  -0.0043 <span style="color: #949494;">± 0.0036</span>  -151 <span style="color: #949494;">± 1.2</span>  -151 <span style="color: #949494;">± 1.06</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -139 <span style="color: #949494;">± NA</span>  -0.0062 <span style="color: #949494;">± 0.0041</span>  -146 <span style="color: #949494;">± 1.1</span>  -146 <span style="color: #949494;">± 1.11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.0084 <span style="color: #949494;">± 0.0050</span>  -143 <span style="color: #949494;">± 1.2</span>  -143 <span style="color: #949494;">± 1.04</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -129 <span style="color: #949494;">± NA</span>  -0.0101 <span style="color: #949494;">± 0.0051</span>  -136 <span style="color: #949494;">± 1.0</span>  -136 <span style="color: #949494;">± 1.01</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -126 <span style="color: #949494;">± NA</span>  -0.0121 <span style="color: #949494;">± 0.0058</span>  -134 <span style="color: #949494;">± 1.2</span>  -134 <span style="color: #949494;">± 0.99</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -125 <span style="color: #949494;">± NA</span>  -0.0140 <span style="color: #949494;">± 0.0060</span>  -132 <span style="color: #949494;">± 1.3</span>  -132 <span style="color: #949494;">± 0.88</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -125 <span style="color: #949494;">± NA</span>  -0.0160 <span style="color: #949494;">± 0.0061</span>  -132 <span style="color: #949494;">± 1.2</span>  -131 <span style="color: #949494;">± 0.70</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -118 <span style="color: #949494;">± NA</span>  -0.0181 <span style="color: #949494;">± 0.0063</span>  -126 <span style="color: #949494;">± 1.1</span>  -126 <span style="color: #949494;">± 1.08</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -118 <span style="color: #949494;">± NA</span>  -0.0200 <span style="color: #949494;">± 0.0064</span>  -125 <span style="color: #949494;">± 1.0</span>  -124 <span style="color: #949494;">± 0.68</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 5,148 more rows</span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

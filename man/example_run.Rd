@@ -42,7 +42,4 @@ of the likelihood and prior.
 [-10, 10]: R:-10,\%2010\%5C
 [-10, 10]: R:-10,\%2010
 }
-\seealso{
-\code{\link[=nested_sampling]{nested_sampling()}} \linkS4class{ernest_run}
-}
 \keyword{datasets}

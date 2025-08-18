@@ -27,7 +27,6 @@
 #' the documentation. Users may want to use this function in their own
 #' experimentation with ernest.
 #'
-#' @seealso [nested_sampling()] [ernest_run-class]
 #' @source This example problem comes from the crash course for the
 #' [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/crashcourse.html)
 #' Python-based nested sampling software.

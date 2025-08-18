@@ -4,46 +4,42 @@
 #' either a finite value or `-Inf` for each vector of parameters that is
 #' provided.
 #'
-#' @param fn (uni-variate function) The log-likelihood function (see Details).
-#' @param error_action (case-sensitive string) Action to perform once `fn`
-#' throws an error.
-#' * `"abort"`: Stop execution and signal an error.
-#' * `"warn"`: Issue a warning and replace output with `-Inf`.
-#' @param nonfinite_action (case-sensitive string) Action to perform when `fn`
-#' passes a value that is not a finite double nor `-Inf`.
+#' @param fn,rowwise_fn (function) Pick one of `fn` or `rowwise_fn`:
+#' * `fn`: A function that takes in vectors of parameters and returns a scalar
+#' likelihood value (either a finite double or `-Inf`).
+#' * `rowwise_fn`: A function that takes in a matrix of parameters and returns
+#' a vector of likelihood values (which are all finite doubles or `-Inf`).
+#' @param ... Named arguments to `fn` or `rowwise_fn` that should be partially
+#' applied (see [purrr::partial()]).
+#' @param .nonfinite_action (case-sensitive string) Action to perform when `fn`
+#' passes a value that is nonfinite and non-`-Inf` (e.g, `NaN`, `NA`, or `Inf`).
 #' * `"warn"`: Issue a warning and replace values with `-Inf`.
-#' * `"pass"`: Silently replace values with `-Inf`.
+#' * `"quiet"`: Silently replace values with `-Inf`.
 #' * `"abort"`: Stop execution and signal an error.
-#' @param auto_batch (logical) Whether to prepare `fn` so that it may be called
-#' with a matrix of parameter values. If `FALSE`, its assumed that `fn`
-#' can already produce a vector of likelihood values for a matrix with rows of
-#' parameter vectors.
-#' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
-#' A function with additional class `ernest_likelihood`. This function
-#' will accept vectors of parameters, and matrices of parameters, where
-#' each row represents a single parameter vector. `ernest_likelihood` will
-#' always produce either scalar or vector doubles containing finite values
-#' or `-Inf`; values outside this range are either replaced by `-Inf` or
-#' cause errors.
+#' A function with additional class `ernest_likelihood`. This function is
+#' wrapped in checks that promote type- and size-stability:
+#' * If provided a vector of doubles, the function will return
+#' a scalar double, `-Inf`, or an error.
+#' * If provided a matrix of doubles, the function will return
+#' a vector of doubles and `-Inf` equal to the number of matrix rows,
+#' or an error.
+#' * If provided anything else, the function will throw an error.
 #'
 #' @details
-#' Model likelihoods should be provided as a log density function. It is
-#' expected that `fn` should take in exactly one argument; likelihood functions
-#' that take in multiple non-default arguments should be entered as anonymous
-#' functions (see [rlang::as_function()]). See vignettes for an example of
-#' entering data through an anonymous function.
+#' Model likelihoods should be provided as a log density function. The first
+#' argument of `fn` or `rowwise_fn` should be a vector or matrix of parameters,
+#' respectively. Other arguments can be forwarded by providing named arguments
+#' to `...` or through anonymous functions (see Examples).
 #'
-#' It is expected that `fn` returns a scalar finite values or `-Inf` for each
-#' parameter vector. Use `error_action` and `nonfinite_action` to decide on
-#' how `ernest_likelihood` handles errors, non-finite, and non-numeric return
-#' values from `fn`.
+#' It is expected that `fn` returns a scalar finite doubles or `-Inf` for each
+#' parameter vector.
 #'
-#' As default, `auto_batch` expects that `fn` is incapable of handling matrices
-#' of parameter values. It resolves this by wrapping `fn` in a call to
-#' [base::apply()]. Should you have a more efficient implementation of your
-#' likelihood function, then consider setting `auto_batch` to `FALSE`.
+#' Ernest will wrap `fn` so that it may take in a matrix of parameters. Should
+#' you have a more efficient implementation of your likelihood function that
+#' can handle vectors and matrices, then consider providing `rowwise_fn`
+#' instead.
 #'
 #' @srrstats {BS2.14, BS2.15} create_likelihood controls the behaviour for
 #' handling errors and warnings in the calculation of a nested sampling run.
@@ -78,6 +74,7 @@
 #' # Silence warnings with `nonfinite_action = "pass"`
 #' quiet_lik <- create_likelihood(log_lik, nonfinite_action = "pass")
 #' quiet_lik(c(Inf, 0, 0))
+#' @aliases ernest_likelihood
 #' @export
 create_likelihood <- function(
   fn,
@@ -175,20 +172,20 @@ print.ernest_likelihood <- function(x, ...) {
 }
 
 wrap_loglik <- function(rowwise_fn, .nonfinite_action) {
-  function(...) {
-    if (!is.numeric(..1)) {
-      stop_input_type(..1, "a numeric vector or matrix")
+  function(x) {
+    if (!is.numeric(x)) {
+      stop_input_type(x, "a numeric vector or matrix")
     }
-    size <- if (is.matrix(..1)) NROW(..1) else 1L
-    y <- rowwise_fn(..1)
+    size <- if (is.matrix(x)) NROW(x) else 1L
+    y <- rowwise_fn(x)
     y <- vctrs::vec_cast(y, to = double(), x_arg = "log_lik(...)")
     vctrs::vec_check_size(y, size = size, arg = "log_lik(...)")
     nonfinite <- is.na(y) | is.nan(y) | y == Inf
     if (any(nonfinite)) {
       if (.nonfinite_action == "abort") {
         cli::cli_abort(c(
-          "`lik(theta)` must always return finite double values or `-Inf`.",
-          "x" = "`lik(theta)` returned {unique(y[nonfinite])}.",
+          "`lik(x)` must always return finite double values or `-Inf`.",
+          "x" = "`lik(x)` returned {unique(y[nonfinite])}.",
           "i" = "Did you set `.nonfinite_action` with {.fn create_likelihood})?"
         ))
       }
@@ -200,16 +197,3 @@ wrap_loglik <- function(rowwise_fn, .nonfinite_action) {
     y
   }
 }
-
-# vctrs::vec_check_size(y, size = size, arg = "log_lik(...)")
-#       if (!is.double(y)) {
-#         cli::cli_abort(c(
-#           "`log_lik(...)` must always return a double.",
-#           "x" = "Instead, it returned {obj_type_friendly(y)}."
-#         ))
-#       }
-#       # Only finite values and -Inf are allowed; replace others with -Inf
-#       nonfinite <- !(is.finite(y) | y == -Inf)
-#       if (any(nonfinite)) {
-#         !!nonfinite_expr
-#       }

@@ -16,7 +16,7 @@ log_lik_mvn <- function(theta) {
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }
 
-sampler <- nested_sampling(
+sampler <- ernest_sampler(
   log_lik_mvn,
   create_uniform_prior(
     n_dim = 3,

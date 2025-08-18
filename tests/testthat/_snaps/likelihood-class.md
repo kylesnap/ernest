@@ -47,14 +47,14 @@
 
 # non_finite action options
 
-    `lik(theta)` must always return finite double values or `-Inf`.
-    x `lik(theta)` returned NaN.
+    `lik(x)` must always return finite double values or `-Inf`.
+    x `lik(x)` returned NaN.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
-    `lik(theta)` must always return finite double values or `-Inf`.
-    x `lik(theta)` returned NaN.
+    `lik(x)` must always return finite double values or `-Inf`.
+    x `lik(x)` returned NaN.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
@@ -67,14 +67,14 @@
 
 # nonfinite_action options with auto_batch = FALSE
 
-    `lik(theta)` must always return finite double values or `-Inf`.
-    x `lik(theta)` returned Inf.
+    `lik(x)` must always return finite double values or `-Inf`.
+    x `lik(x)` returned Inf.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
-    `lik(theta)` must always return finite double values or `-Inf`.
-    x `lik(theta)` returned Inf.
+    `lik(x)` must always return finite double values or `-Inf`.
+    x `lik(x)` returned Inf.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---

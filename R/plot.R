@@ -63,7 +63,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()
-  ndraws <- as_scalar_count(ndraws, positive = FALSE)
+  check_number_whole(ndraws, lower = 0L)
   if (ndraws != 0) {
     x <- calculate(x, ndraws = ndraws)
   }

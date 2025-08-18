@@ -2,7 +2,8 @@
 % Please edit documentation in R/generate.R
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
-\title{Perform nested sampling}
+\alias{ernest_run}
+\title{Run nested sampling to estimate Bayesian evidence}
 \usage{
 \method{generate}{ernest_sampler}(
   x,
@@ -14,82 +15,94 @@
 )
 }
 \arguments{
-\item{x}{(ernest_sampler) An object of class \code{ernest_sampler}.}
+\item{x}{An object of class \code{ernest_sampler} or \code{ernest_run}.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
   \describe{
-    \item{\code{seed}}{(integer or NA, optional) Specification for the random number
-generator.
+    \item{\code{seed}}{An integer, \code{NULL}, or \code{NA}. Controls the random number
+generator:
 \itemize{
-\item integer and NULL: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, this reinitializes the
+\item Integer or \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, reinitializes the
 generator as if no seed has yet been set.
-\item \code{NA}: Make no changes to the current seed. If \code{compile} has been
-called on \code{object} before, then \code{NA} will ensure that the seed remain
-identical between runs.
+\item \code{NA}: Makes no changes to the current seed. If \code{compile()} has been
+called on \code{object} before, \code{NA} ensures the seed remains identical
+between runs.
 }}
-    \item{\code{clear}}{(boolean) Whether to clear results from previous runs before
-compiling.
-\itemize{
-\item \code{TRUE}: Previous results stored in \code{object} are removed, and live points
-are generated and validated.
-\item \code{FALSE}: Previous results stored in \code{object} are retained, and live points
-are validated.
-}}
+    \item{\code{clear}}{Logical. If \code{TRUE}, clears results from previous runs before
+compiling. If \code{FALSE}, retains previous results and validates live points.}
   }}
 
-\item{max_iterations}{(positive integer) The maximum number of iterations to
-perform. If set to \code{Inf}, this stopping criterion is ignored.}
+\item{max_iterations}{An optional strictly positive integer. The maximum
+number of iterations to perform. If left \code{NULL}, this criterion is ignored.}
 
-\item{max_calls}{(positive integer) The maximum number of calls to the
-likelihood function. If set to \code{Inf}, this stopping criterion is ignored.}
+\item{max_calls}{An optional strictly positive integer. The maximum number
+of calls to the likelihood function. If set to \code{Inf}, this criterion is
+ignored.}
 
-\item{min_logz}{(positive double or zero) The minimum ratio between the
-current log evidence and remaining log evidence (see Details). If set to
-zero, this stopping criterion is ignored.}
+\item{min_logz}{A non-negative double. The minimum log-ratio between the
+current estimated evidence and the remaining evidence. If set to zero, this
+criterion is ignored.}
 
-\item{show_progress}{Whether to show a simple progress spinner and iteration
-counter during the run.}
+\item{show_progress}{Logical. If \code{TRUE}, displays a progress spinner and
+iteration counter during sampling.}
 }
 \value{
-An object of class \linkS4class{ernest_run}, containing the results of the
-nested sampling run.
+An object of class \code{ernest_run}, which inherits from \code{ernest_sampler} and
+contains these additional components:
+\itemize{
+\item \code{n_iter}: Integer. Number of iterations.
+\item \code{n_calls}: Integer. Total number of likelihood function calls.
+\item \code{log_lik}: \code{double(n_iter + n_points)}. The
+log-likelihoods for each sample.
+\item \code{log_volume}: \code{double(n_iter + n_points)}. The estimated
+log-prior volumes at each iteration.
+\item \code{log_weight}: \code{double(n_iter + n_points)}. The
+unnormalized log-weights for each sample.
+\item \code{log_evidence}: \code{double(n_iter + n_points)}. The
+cumulative log-evidence estimates at each iteration.
+\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. The
+variance of the log-evidence estimate at each iteration.
+\item \code{information}: \code{double(n_iter + n_points)}. The KL
+divergence between the prior and posterior, estimated at each iteration.
+\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. The parameter
+values of each sample.
+\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. The
+parameter values of each sample, in their unit hypercube representation.
+\item \code{id}: \code{integer(n_iter + n_points)}. The unique integer identifiers for each
+sample from the live set (ranging from 1 to \code{n_points}).
+\item \code{points}: \code{integer(n_iter + n_points)}. The number of live points present
+at each iteration.
+\item \code{calls}: \code{integer(n_iter + n_points)}. The number of calls used to generate
+a new live point at each iteration.
+\item \code{birth}: \code{integer(n_iter + n_points)}. The iteration at which each sample
+was first created (ranging from 0 to \code{n_iter}).
+}
 }
 \description{
-Execute the nested sampling loop. Iteratively replaces the worst live point
-in a set with a point drawn from a likelihood-restricted prior sampler,
-until a provided stopping criterion is met.
+Executes the nested sampling algorithm, iteratively replacing the worst live
+point with a new sample from a likelihood-restricted prior, until a stopping
+criterion is met.
 }
 \details{
-At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz}  must represent
-a non-ignored stopping criterion.
+At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz} must
+indicated a valid stopping criterion. Setting \code{min_logz} to zero while
+not changing \code{max_iterations} or \code{max_calls} from their defaults will cause
+an error.
 
-At the iteration \eqn{i}, the remaining log evidence within the prior space
-bound by a minimum likelihood criterion can be estimated as
-\deqn{Z^*_i \approx L^{(max)}_i V_i} where \eqn{L^{(max)}_i}
-is the maximum likelihood of the current live points and \eqn{V_i} is the
-estimated remaining volume.
+If \code{x} is an \code{ernest_run} object, the stopping criteria are checked against
+the current state of the run. An error is thrown if the stopping criteria
+have already been satisfied by \code{x}.
 
-This estimate can be used to define a relative stopping criterion based on
-the log-ratio of the current estimated evidence \eqn{\hat{Z_i}} to the
-remaining evidence, such that
-\deqn{\delta \log(Z) = \log(\hat{Z_i} - Z^*_i) - \log(\hat{Z_i})}
-By setting \code{min_logz}, you can vary the minimum log-ratio at which sampling
-stops. Once \eqn{\delta \log(Z)} falls below this value, you can assume that
-only a negligible fraction of the evidence remains unaccounted for in the
-final evidence estimates.
-
-If \code{x} already contains results from previous calls to \code{generate()}, then
-\code{generate()} will ensure that your stopping criterion have not already been
-surpassed during previous runs.
-
-Control the verbosity of other messages in ernest as it runs with the
-\code{rlib_message_verbosity} enviroment option.
+The \code{min_logz} parameter controls the relative tolerance for the remaining
+evidence in the unexplored parameter space. Sampling stops when the estimated
+remaining evidence is sufficiently small compared to the accumulated
+evidence.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 ll_fn <- function(x) -sum(x^2)
-sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 sampler
 
 # Stop sampling after a set number of iterations or calls to the lik. func.

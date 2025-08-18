@@ -58,10 +58,8 @@
 #' @export
 calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   check_dots_empty()
-  ndraws <- as_scalar_count(
-    ndraws %||% getOption("posterior.rvar_ndraws", 4000L),
-    positive = FALSE
-  )
+  ndraws <- ndraws %||% getOption("posterior.rvar_ndraws", 4000L)
+  check_number_whole(ndraws, lower = 0L)
 
   if (ndraws == 0) {
     return(tibble::new_tibble(

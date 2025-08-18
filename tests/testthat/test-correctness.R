@@ -15,7 +15,7 @@ test_that("Gaussian shells: 2D", {
     varnames = c("x", "y")
   )
 
-  sampler <- nested_sampling(log_lik, prior)
+  sampler <- ernest_sampler(log_lik, prior)
   run <- generate(sampler, seed = 42L)
   smry <- summary(run)
 
@@ -48,7 +48,7 @@ test_that("Gaussian shells: 5D", {
   log_lik <- gaussian_shell(5)
   prior <- create_uniform_prior(n_dim = 5, lower = -6, upper = 6)
 
-  sampler <- nested_sampling(log_lik, prior)
+  sampler <- ernest_sampler(log_lik, prior)
   run <- generate(sampler, seed = 42L)
   smry <- summary(run)
 
@@ -75,7 +75,7 @@ test_that("Gaussian shells: 10D", {
   log_lik <- gaussian_shell(10)
   prior <- create_uniform_prior(n_dim = 10, lower = -6, upper = 6)
 
-  sampler <- nested_sampling(log_lik, prior)
+  sampler <- ernest_sampler(log_lik, prior)
   run <- generate(sampler, seed = 42L)
   smry <- summary(run)
 
@@ -104,7 +104,7 @@ test_that("Eggbox", {
   }
   prior <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
 
-  sampler <- nested_sampling(log_lik, prior)
+  sampler <- ernest_sampler(log_lik, prior)
   run <- generate(sampler, seed = 42L)
   smry <- summary(run)
 

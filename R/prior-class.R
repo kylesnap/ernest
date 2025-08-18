@@ -3,7 +3,11 @@
 #' Use an R function to specify the prior distribution of parameters for a
 #' nested sampling run.
 #'
-#' @param fn (function) The unit hypercube transformation (see Details).
+#' @param fn,rowwise_fn (function) Pick one of `fn` or `rowwise_fn`:
+#' * `fn`: A function that takes in a vector of unit cube coordinates and
+#' returns a same-size vector of parameters.
+#' * `rowwise_fn`: A function that takes in a vector of unit cube coordinates
+#' and returns a matrix of parameters with identical dimensions.
 #' @param n_dim (positive integer) The dimensionality of the prior distribution.
 #' @param varnames (optional character vector) A character vector of names for
 #' the variables in the prior distribution.
@@ -28,28 +32,27 @@
 #' to simplify likelihood-restricted prior sampling, avoiding uncessary
 #' rejection steps.
 #'
-#' In ernest, the `create_prior` function allows you to specify your own
-#' prior distribution. This requires you to provide your own transformation
+#' `create_prior` allows you to specify your own prior distribution.
+#' This requires you to provide your own transformation
 #' function. In many cases, when the prior can be factorized, this function
 #' can simply be transforming a vector of values in (0, 1) and transforming
 #' them elementwise with inverse cumulative distribution function (CDF) of
 #' each parameter. In more complex cases, you can specify a hierarchical or
 #' conditionally-dependent prior (see Examples).
 #'
-#' ernest will perform several regularity checks on `fn` when the prior is
-#' created. These checks are passed if:
-#' * `fn` is a function;
-#' * `fn(rep(0.5, n_dim))` returns a finite double vector of length `n_dim`;
-#' * `fn`, when given a matrix of random unit cube coordinates, returns a
-#' finite double matrix with the same dimensions that all respect the specified
-#' bounds.
+#' `create_prior` will perform several regularity checks on your prior function.
+#' This intends to capture basic errors that may confound ernest's nested
+#' sampling implementation. To pass these checks, `fn` or `rowwise_fn` must:
+#' * return a finite double vector of length `n_dim` when provided
+#' `rep(0.5, n_dim)`,
+#' * return a finite double matrix of parameters with the same dimensions that
+#' all respect the bounds `lower` and `upper` (if provided) when provided
+#' random matrix with dimensions `c(5, n_dim)`.
 #'
-#' As default, `auto_batch` expects that `fn` is incapable of handling matrices
-#' of unit cube values. It resolves this by wrapping `fn` in a call to
-#' [base::apply()]. Should you have a more efficient implementation of your
-#' likelihood function, then consider setting `auto_batch == FALSE`.
-#' Failing the checks on `fn` with `auto_batch = FALSE` will remind the user
-#' of this setting.
+#' Ernest will wrap `fn` so that it may take in a matrix of parameters. Should
+#' you have a more efficient implementation of your likelihood function that
+#' can handle vectors and matrices, then consider providing `rowwise_fn`
+#' instead.
 #'
 #' @srrstats {BS2.2, BS2.3} This function validates the boundary parameters
 #' placed on a user-provided prior, and tests the user's input to ensure
@@ -320,7 +323,13 @@ print.ernest_prior <- function(x, ...) {
   invisible(x)
 }
 
+#' Wrap a prior in catchers to promote its size- and type-stability
+#' @param rowwise_fn A prior function that can operate on matrices and vectors.
+#' @returns A function that outputs matrices and vectors of the expected type
+#' (double) and size, or errors.
+#' @noRd
 wrap_prior <- function(rowwise_fn) {
+  unit <- NULL
   new_function(
     exprs(unit = ),
     expr({

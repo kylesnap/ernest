@@ -3,9 +3,11 @@
     Code
       result
     Output
-      An <ernest_run>: 500 points, 2 variables
-      * 99 iterations, 112 likelihood calls
-      * Log. Evidence ≈ -4.486 (± 0.475)
+      
+      -- Nested sampling run: 
+      No. Iterations: 99
+      No. Calls: 112
+      Log. Evidence: -4.486 (± 0.475)
 
 ---
 

@@ -11,12 +11,12 @@ prior <- create_uniform_prior(n_dim = 2, lower = -6, upper = 6)
 analytic_log_evidence <- -1.75
 
 set.seed(42L)
-sampler <- nested_sampling(log_lik, prior, n_points = 500)
+sampler <- ernest_sampler(log_lik, prior, n_points = 500)
 run_500 <- generate(sampler, seed = 42L)
 smry_500 <- summary(run_500)
 
 test_that("Ernest produces near-identical results when max_iter is used", {
-  sampler <- nested_sampling(log_lik, prior, n_points = 500)
+  sampler <- ernest_sampler(log_lik, prior, n_points = 500)
   run_iter <- generate(
     sampler,
     max_iterations = smry_500$n_iter,
@@ -36,7 +36,7 @@ test_that("Ernest produces near-identical results when max_iter is used", {
 
 test_that("Increasing N increases the iterations needed for convergence", {
   skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
-  sampler <- nested_sampling(log_lik, prior, n_points = 1000)
+  sampler <- ernest_sampler(log_lik, prior, n_points = 1000)
   run_1000 <- generate(sampler, seed = 42)
   smry_1k <- summary(run_1000)
 
@@ -49,7 +49,7 @@ test_that("Increasing N increases the iterations needed for convergence", {
 
 test_that("Increasing min_logz reduces the iterations needed to converge", {
   skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
-  sampler <- nested_sampling(log_lik, prior, n_points = 500)
+  sampler <- ernest_sampler(log_lik, prior, n_points = 500)
   run_01 <- generate(sampler, min_logz = 0.1, seed = 42)
   smry_01 <- summary(run_01)
 
@@ -64,7 +64,7 @@ test_that("Increasing the volume of the prior increases iterations", {
   skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
 
-  sampler <- nested_sampling(log_lik, wide_prior, n_points = 500)
+  sampler <- ernest_sampler(log_lik, wide_prior, n_points = 500)
   run_wide <- generate(sampler, seed = 42L)
   smry_wide <- summary(run_wide)
 

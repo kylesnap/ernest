@@ -11,7 +11,7 @@
 #' `new_ernest_lrps`. You will also need to provide S3 methods for [propose()]
 #' and [update_lrps()] for your subclass.
 #'
-#' @param unit_log_fn,ndim These values are provided when [nested_sampling] is
+#' @param unit_log_fn,ndim These values are provided when [ernest_sampler()] is
 #' called with a given `ernest_lrps`:
 #' * `unit_log_fn` (function, optional) A function that takes a matrix of
 #' points in the unit cube and returns a numeric vector of log-likelihood
@@ -127,7 +127,7 @@ propose <- function(x, original = NULL, criteria = NULL, ...) {
 
 #' @noRd
 #' @export
-propose.ernest_lrps <- function(x, original = NULL, criteria = NULL) {
+propose.ernest_lrps <- function(x, original = NULL, criteria = NULL, ...) {
   if (is.null(original)) {
     UniformCube(
       criteria = criteria,
@@ -146,7 +146,7 @@ propose.ernest_lrps <- function(x, original = NULL, criteria = NULL) {
 #' During a nested sampling run, one may seek to update the internal parameters
 #' of the LRPS based on the sampler's performance or other criteria. You can set
 #' the frequency of these updates is configured by adjusting the `first_update`
-#' and `update_interval` arguments of [nested_sampling()].
+#' and `update_interval` arguments of [ernest_sampler()].
 #'
 #' If you are creating your own subclass of [ernest_lrps], you can subclass this
 #' method to specify any special update behaviour. The default method simply

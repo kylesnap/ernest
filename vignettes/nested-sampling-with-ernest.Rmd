@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ernest)
-set.seed(42L)
 ```
 # A Nested Sampling Crash Course using ernest
 
@@ -159,9 +158,9 @@ log_lik <- function(theta) {
 }
 ```
 
-Once you have specified your prior and likelihood, you are ready to set up a nested sampling run using the `nested_sampling()` function. This function prepares an `ernest_sampler` object, which manages the live points and the sampling process.
+Once you have specified your prior and likelihood, you are ready to set up a nested sampling run using the `ernest_sampler()` function. This function prepares an `ernest_sampler` object, which manages the live points and the sampling process.
 
-The `sampler` argument in `nested_sampling()` determines how new live points are generated under the likelihood constraint. At present, ernest provides two built-in samplers:
+The `sampler` argument in `ernest_sampler()` determines how new live points are generated under the likelihood constraint. At present, ernest provides two built-in samplers:
 
 - `unif_cube()`: Uniformly samples points from the unit hypercube, rejecting those that do not meet the likelihood constraint. This is simple but inefficient in high dimensions.
 - `rwmh_cube(steps = 25L, target_acceptance = 0.5)`: Uses a random walk Metropolis-Hastings algorithm to propose new points, which is more efficient for moderate to high dimensions.
@@ -170,7 +169,7 @@ For most practical problems, `rwmh_cube()` is recommended and set as the default
 
 ```{r}
 # Set up a sampler using rwmh_cube
-sampler <- nested_sampling(
+sampler <- ernest_sampler(
   log_lik = log_lik,
   prior = prior,
   n_points = 500
@@ -187,14 +186,14 @@ After initializing the sampler, you can start the nested sampling run using `gen
 For example, you can perform 1000 iterations of nested sampling using `sampler`.
 
 ```{r}
-run_1k <- generate(sampler, max_iterations = 1000)
+run_1k <- generate(sampler, max_iterations = 1000, seed = 42L)
 run_1k
 ```
 
 You can build more accurate estimates of evidence by continuing this run until `min_logz` falls below 0.05. This allows `sampler` to resume sampling while retaining the previously collected dead points.
 
 ```{r}
-run_dlogz <- generate(sampler)
+run_dlogz <- generate(run_1k)
 run_dlogz
 ```
 

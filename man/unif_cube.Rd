@@ -8,7 +8,7 @@ unif_cube()
 }
 \value{
 A list, with class \code{c("unif_cube", "ernest_lrps")}. Can be used with
-\link{nested_sampling} to specify the sampling behaviour of a nested sampling run.
+\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling run.
 }
 \description{
 Generate new live points by performing rejection sampling across the entire

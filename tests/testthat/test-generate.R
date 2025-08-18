@@ -1,5 +1,5 @@
 gaussian_2 <- make_gaussian(2)
-sampler <- nested_sampling(
+sampler <- ernest_sampler(
   log_lik = gaussian_2$log_lik,
   prior = gaussian_2$prior
 )

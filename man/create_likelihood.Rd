@@ -2,6 +2,7 @@
 % Please edit documentation in R/likelihood-class.R
 \name{create_likelihood}
 \alias{create_likelihood}
+\alias{ernest_likelihood}
 \title{Prepare a likelihood function for nested sampling}
 \usage{
 create_likelihood(
@@ -12,37 +13,36 @@ create_likelihood(
 )
 }
 \arguments{
-\item{fn}{(uni-variate function) The log-likelihood function (see Details).}
-
-\item{...}{These dots are for future extensions and must be empty.}
-
-\item{error_action}{(case-sensitive string) Action to perform once \code{fn}
-throws an error.
+\item{fn, rowwise_fn}{(function) Pick one of \code{fn} or \code{rowwise_fn}:
 \itemize{
-\item \code{"abort"}: Stop execution and signal an error.
-\item \code{"warn"}: Issue a warning and replace output with \code{-Inf}.
+\item \code{fn}: A function that takes in vectors of parameters and returns a scalar
+likelihood value (either a finite double or \code{-Inf}).
+\item \code{rowwise_fn}: A function that takes in a matrix of parameters and returns
+a vector of likelihood values (which are all finite doubles or \code{-Inf}).
 }}
 
-\item{nonfinite_action}{(case-sensitive string) Action to perform when \code{fn}
-passes a value that is not a finite double nor \code{-Inf}.
+\item{...}{Named arguments to \code{fn} or \code{rowwise_fn} that should be partially
+applied (see \code{\link[purrr:partial]{purrr::partial()}}).}
+
+\item{.nonfinite_action}{(case-sensitive string) Action to perform when \code{fn}
+passes a value that is nonfinite and non-\code{-Inf} (e.g, \code{NaN}, \code{NA}, or \code{Inf}).
 \itemize{
 \item \code{"warn"}: Issue a warning and replace values with \code{-Inf}.
-\item \code{"pass"}: Silently replace values with \code{-Inf}.
+\item \code{"quiet"}: Silently replace values with \code{-Inf}.
 \item \code{"abort"}: Stop execution and signal an error.
 }}
-
-\item{auto_batch}{(logical) Whether to prepare \code{fn} so that it may be called
-with a matrix of parameter values. If \code{FALSE}, its assumed that \code{fn}
-can already produce a vector of likelihood values for a matrix with rows of
-parameter vectors.}
 }
 \value{
-A function with additional class \code{ernest_likelihood}. This function
-will accept vectors of parameters, and matrices of parameters, where
-each row represents a single parameter vector. \code{ernest_likelihood} will
-always produce either scalar or vector doubles containing finite values
-or \code{-Inf}; values outside this range are either replaced by \code{-Inf} or
-cause errors.
+A function with additional class \code{ernest_likelihood}. This function is
+wrapped in checks that promote type- and size-stability:
+\itemize{
+\item If provided a vector of doubles, the function will return
+a scalar double, \code{-Inf}, or an error.
+\item If provided a matrix of doubles, the function will return
+a vector of doubles and \code{-Inf} equal to the number of matrix rows,
+or an error.
+\item If provided anything else, the function will throw an error.
+}
 }
 \description{
 Creates a modified version of a log. likelihood function that always returns
@@ -50,21 +50,18 @@ either a finite value or \code{-Inf} for each vector of parameters that is
 provided.
 }
 \details{
-Model likelihoods should be provided as a log density function. It is
-expected that \code{fn} should take in exactly one argument; likelihood functions
-that take in multiple non-default arguments should be entered as anonymous
-functions (see \code{\link[rlang:as_function]{rlang::as_function()}}). See vignettes for an example of
-entering data through an anonymous function.
+Model likelihoods should be provided as a log density function. The first
+argument of \code{fn} or \code{rowwise_fn} should be a vector or matrix of parameters,
+respectively. Other arguments can be forwarded by providing named arguments
+to \code{...} or through anonymous functions (see Examples).
 
-It is expected that \code{fn} returns a scalar finite values or \code{-Inf} for each
-parameter vector. Use \code{error_action} and \code{nonfinite_action} to decide on
-how \code{ernest_likelihood} handles errors, non-finite, and non-numeric return
-values from \code{fn}.
+It is expected that \code{fn} returns a scalar finite doubles or \code{-Inf} for each
+parameter vector.
 
-As default, \code{auto_batch} expects that \code{fn} is incapable of handling matrices
-of parameter values. It resolves this by wrapping \code{fn} in a call to
-\code{\link[base:apply]{base::apply()}}. Should you have a more efficient implementation of your
-likelihood function, then consider setting \code{auto_batch} to \code{FALSE}.
+Ernest will wrap \code{fn} so that it may take in a matrix of parameters. Should
+you have a more efficient implementation of your likelihood function that
+can handle vectors and matrices, then consider providing \code{rowwise_fn}
+instead.
 }
 \examples{
 # A 3D Gaussian likelihood function

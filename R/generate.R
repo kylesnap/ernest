@@ -1,50 +1,68 @@
-#' Perform nested sampling
+#' Run nested sampling to estimate Bayesian evidence
 #'
-#' Execute the nested sampling loop. Iteratively replaces the worst live point
-#' in a set with a point drawn from a likelihood-restricted prior sampler,
-#' until a provided stopping criterion is met.
+#' Executes the nested sampling algorithm, iteratively replacing the worst live
+#' point with a new sample from a likelihood-restricted prior, until a stopping
+#' criterion is met.
 #'
-#' @param x (ernest_sampler) An object of class `ernest_sampler`.
-#' @inheritDotParams compile.ernest_run seed clear
-#' @param max_iterations (positive integer) The maximum number of iterations to
-#' perform. If set to `Inf`, this stopping criterion is ignored.
-#' @param max_calls (positive integer) The maximum number of calls to the
-#' likelihood function. If set to `Inf`, this stopping criterion is ignored.
-#' @param min_logz (positive double or zero) The minimum ratio between the
-#' current log evidence and remaining log evidence (see Details). If set to
-#' zero, this stopping criterion is ignored.
-#' @param show_progress Whether to show a simple progress spinner and iteration
-#' counter during the run.
+#' @param x An object of class `ernest_sampler` or `ernest_run`.
+#' @inheritDotParams compile.ernest_run -object
+#' @param max_iterations An optional strictly positive integer. The maximum
+#' number of iterations to perform. If left `NULL`, this criterion is ignored.
+#' @param max_calls An optional strictly positive integer. The maximum number
+#' of calls to the likelihood function. If set to `Inf`, this criterion is
+#' ignored.
+#' @param min_logz A non-negative double. The minimum log-ratio between the
+#' current estimated evidence and the remaining evidence. If set to zero, this
+#' criterion is ignored.
+#' @param show_progress Logical. If `TRUE`, displays a progress spinner and
+#' iteration counter during sampling.
+#'
+#' @returns
+#' An object of class `ernest_run`, which inherits from `ernest_sampler` and
+#' contains these additional components:
+#'
+#' * `n_iter`: Integer. Number of iterations.
+#' * `n_calls`: Integer. Total number of likelihood function calls.
+#' * `log_lik`: `double(n_iter + n_points)`. The
+#' log-likelihoods for each sample.
+#' * `log_volume`: `double(n_iter + n_points)`. The estimated
+#' log-prior volumes at each iteration.
+#' * `log_weight`: `double(n_iter + n_points)`. The
+#' unnormalized log-weights for each sample.
+#' * `log_evidence`: `double(n_iter + n_points)`. The
+#' cumulative log-evidence estimates at each iteration.
+#' * `log_evidence_var`: `double(n_iter + n_points)`. The
+#' variance of the log-evidence estimate at each iteration.
+#' * `information`: `double(n_iter + n_points)`. The KL
+#' divergence between the prior and posterior, estimated at each iteration.
+#' * `samples`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. The parameter
+#' values of each sample.
+#' * `samples_unit`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. The
+#' parameter values of each sample, in their unit hypercube representation.
+#' * `id`: `integer(n_iter + n_points)`. The unique integer identifiers for each
+#' sample from the live set (ranging from 1 to `n_points`).
+#' * `points`: `integer(n_iter + n_points)`. The number of live points present
+#' at each iteration.
+#' * `calls`: `integer(n_iter + n_points)`. The number of calls used to generate
+#' a new live point at each iteration.
+#' * `birth`: `integer(n_iter + n_points)`. The iteration at which each sample
+#' was first created (ranging from 0 to `n_iter`).
 #'
 #' @details
-#' At least one of `max_iterations`, `max_calls`, or `min_logz`  must represent
-#' a non-ignored stopping criterion.
+#' At least one of `max_iterations`, `max_calls`, or `min_logz` must
+#' indicated a valid stopping criterion. Setting `min_logz` to zero while
+#' not changing `max_iterations` or `max_calls` from their defaults will cause
+#' an error.
 #'
-#' At the iteration \eqn{i}, the remaining log evidence within the prior space
-#' bound by a minimum likelihood criterion can be estimated as
-#' \deqn{Z^*_i \approx L^{(max)}_i V_i} where \eqn{L^{(max)}_i}
-#' is the maximum likelihood of the current live points and \eqn{V_i} is the
-#' estimated remaining volume.
+#' If `x` is an `ernest_run` object, the stopping criteria are checked against
+#' the current state of the run. An error is thrown if the stopping criteria
+#' have already been satisfied by `x`.
 #'
-#' This estimate can be used to define a relative stopping criterion based on
-#' the log-ratio of the current estimated evidence \eqn{\hat{Z_i}} to the
-#' remaining evidence, such that
-#' \deqn{\delta \log(Z) = \log(\hat{Z_i} - Z^*_i) - \log(\hat{Z_i})}
-#' By setting `min_logz`, you can vary the minimum log-ratio at which sampling
-#' stops. Once \eqn{\delta \log(Z)} falls below this value, you can assume that
-#' only a negligible fraction of the evidence remains unaccounted for in the
-#' final evidence estimates.
+#' The `min_logz` parameter controls the relative tolerance for the remaining
+#' evidence in the unexplored parameter space. Sampling stops when the estimated
+#' remaining evidence is sufficiently small compared to the accumulated
+#' evidence.
 #'
-#' If `x` already contains results from previous calls to `generate()`, then
-#' `generate()` will ensure that your stopping criterion have not already been
-#' surpassed during previous runs.
-#'
-#' Control the verbosity of other messages in ernest as it runs with the
-#' `rlib_message_verbosity` enviroment option.
-#'
-#' @returns An object of class [ernest_run-class], containing the results of the
-#' nested sampling run.
-#' @srrstats {BS2.12, BS2.13} Documentation of the `rlang` verbosity parameter.
 #' @srrstats {BS4.3, BS4.4, BS4.5} Ernest defaults to using `min_logz` to
 #' halt the nested sampling loop when the remaining evidence in the unexplored
 #' parameter space is sufficiently small. `max_iterations` is used to prevent
@@ -55,7 +73,7 @@
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
-#' sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+#' sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 #' sampler
 #'
 #' # Stop sampling after a set number of iterations or calls to the lik. func.
@@ -67,7 +85,7 @@
 #'
 #' # Use the default stopping criteria
 #' \dontrun{ generate(sampler) }
-#' @method generate ernest_sampler
+#' @aliases ernest_run
 #' @export
 generate.ernest_sampler <- function(
   x,

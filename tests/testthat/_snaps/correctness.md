@@ -6,7 +6,7 @@
       
       -- Nested Sampling Results from <ernest_run> -----------------------------------
       No. Points: 500
-      No. Iterations: 2452
-      No. Lik. Calls: 47284
-      Log. Evidence: -1.746 (± 0.1314)
+      No. Iterations: 3418
+      No. Lik. Calls: 71434
+      Log. Evidence: -1.745 (± 0.08602)
 

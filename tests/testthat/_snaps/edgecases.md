@@ -1,7 +1,7 @@
 # Zero-length likelihood fails
 
     <ernest_sampler> cannot compile.
-    Caused by error in `nested_sampling()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't create live points.
     Caused by error in `_fn`:
     ! `log_lik(...)` must have size 1, not size 0.
@@ -26,7 +26,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `nested_sampling()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't create live points.
     Caused by error in `_fn`:
     ! Can't convert `log_lik(...)` <character> to <double>.
@@ -41,7 +41,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `nested_sampling()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't create live points.
     Caused by error in `_fn`:
     ! Can't convert `log_lik(...)` <complex> to <double>.
@@ -61,17 +61,17 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `nested_sampling()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't create live points.
     Caused by error in `_fn`:
-    ! `lik(theta)` must always return finite double values or `-Inf`.
-    x `lik(theta)` returned NA.
+    ! `lik(x)` must always return finite double values or `-Inf`.
+    x `lik(x)` returned NA.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 # Ernest fails when ll is flat to begin with
 
     <ernest_sampler> cannot compile.
-    Caused by error in `nested_sampling()`:
+    Caused by error in `ernest_sampler()`:
     ! `log_lik` must contain a range of likelihood values.
     x `log_lik` currently contains one unique value (0).
 
@@ -86,7 +86,9 @@
       Warning:
       Stopping run due to a likelihood plateau at 0.
     Output
-      An <ernest_run>: 500 points, 2 variables
-      * 151 iterations, 172 likelihood calls
-      * Log. Evidence ≈ -0.303 (± 0.064)
+      
+      -- Nested sampling run: 
+      No. Iterations: 151
+      No. Calls: 172
+      Log. Evidence: -0.303 (± 0.064)
 

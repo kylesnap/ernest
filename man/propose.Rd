@@ -8,9 +8,9 @@
 \usage{
 propose(x, original = NULL, criteria = NULL, ...)
 
-\method{propose}{rwmh_cube}(x, original = NULL, criteria = NULL)
+\method{propose}{rwmh_cube}(x, original = NULL, criteria = NULL, ...)
 
-\method{propose}{unif_cube}(x, original = NULL, criteria = NULL)
+\method{propose}{unif_cube}(x, original = NULL, criteria = NULL, ...)
 }
 \arguments{
 \item{x}{(ernest_lrps) An \code{ernest_lrps} object.}

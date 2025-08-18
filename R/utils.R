@@ -155,154 +155,20 @@ check_double <- function(
 #' @return A function that can be applied over vectors.
 #' @noRd
 as_rowwise_fn <- function(fn) {
+  x <- NULL
   new_function(
-    exprs(... = ),
+    exprs(x = ),
     expr({
-      if (is.vector(..1)) {
-        (!!fn)(..1)
-      } else if (is.matrix(..1)) {
-        tmp <- apply(..1, 1, (!!fn))
+      if (is.vector(x)) {
+        (!!fn)(x)
+      } else if (is.matrix(x)) {
+        tmp <- apply(x, 1, (!!fn))
         if (is.matrix(tmp)) t(tmp) else tmp
       } else {
-        stop_input_type(..1, "a double vector or matrix", arg = "..1")
+        stop_input_type(x, "a double vector or matrix", arg = "x")
       }
     })
   )
-}
-
-#' Validate and cast a scalar integer.
-#'
-#' @param x Input to check.
-#' @param min Minimum allowed value (inclusive).
-#' @param max Maximum allowed value (inclusive).
-#' @param allow_null Whether NULL is allowed.
-#' @param allow_na Whether NA is allowed.
-#' @param arg Argument name for error reporting.
-#' @param call Calling environment for error reporting.
-#' @return An integer scalar or error.
-#' @noRd
-as_scalar_integer <- function(
-  x,
-  min = -Inf,
-  max = Inf,
-  allow_null = FALSE,
-  allow_na = FALSE,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  msg <- checkmate::check_int(
-    x,
-    na.ok = allow_na,
-    lower = min,
-    upper = max,
-    null.ok = allow_null
-  )
-
-  if (isTRUE(msg)) {
-    storage.mode(x) <- "integer"
-    x
-  } else {
-    format_checkmate(sub("^Element \\d+ ", "", msg), arg, call)
-  }
-}
-
-##' Validate and cast a scalar count (non-negative integer).
-##'
-##' @param x Input to check.
-##' @param positive Whether only positive values are allowed.
-##' @param allow_null Whether NULL is allowed.
-##' @param allow_na Whether NA is allowed.
-##' @param arg Argument name for error reporting.
-##' @param call Calling environment for error reporting.
-##' @return An integer scalar or error.
-##' @noRd
-as_scalar_count <- function(
-  x,
-  positive = TRUE,
-  allow_null = FALSE,
-  allow_na = FALSE,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  msg <- checkmate::check_count(
-    x,
-    positive = positive,
-    na.ok = allow_na,
-    null.ok = allow_null
-  )
-  if (isTRUE(msg)) {
-    storage.mode(x) <- "integer"
-    x
-  } else {
-    format_checkmate(msg, arg, call)
-  }
-}
-
-##' Validate and cast a scalar double.
-##'
-##' @param x Input to check.
-##' @param min Minimum allowed value (inclusive).
-##' @param max Maximum allowed value (inclusive).
-##' @param allow_null Whether NULL is allowed.
-##' @param allow_na Whether NA is allowed.
-##' @param arg Argument name for error reporting.
-##' @param call Calling environment for error reporting.
-##' @return A double scalar or error.
-##' @noRd
-as_scalar_double <- function(
-  x,
-  min = -Inf,
-  max = Inf,
-  allow_null = FALSE,
-  allow_na = FALSE,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  msg <- checkmate::check_number(
-    x,
-    na.ok = allow_na,
-    lower = min,
-    upper = max,
-    null.ok = allow_null
-  )
-  if (isTRUE(msg)) {
-    storage.mode <- "double" # nolint
-    if (!is.null(x) && is.na(x)) {
-      x <- NA_real_
-    }
-    x
-  } else {
-    format_checkmate(sub("^Element \\d+ ", "", msg), arg, call)
-  }
-}
-
-##' Validate and cast a scalar logical.
-##'
-##' @param x Input to check.
-##' @param allow_null Whether NULL is allowed.
-##' @param allow_na Whether NA is allowed.
-##' @param arg Argument name for error reporting.
-##' @param call Calling environment for error reporting.
-##' @return A logical scalar or error.
-##' @noRd
-as_scalar_logical <- function(
-  x,
-  allow_null = FALSE,
-  allow_na = FALSE,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  msg <- checkmate::check_logical(
-    x,
-    any.missing = allow_na,
-    null.ok = allow_null,
-    len = 1L
-  )
-  if (isTRUE(msg)) {
-    as.logical(x)
-  } else {
-    format_checkmate(msg, arg, call)
-  }
 }
 
 #' Check that a list is all named and that names are unique
@@ -336,54 +202,6 @@ check_unique_names <- function(
   }
 
   invisible(NULL)
-}
-
-##' Validate and coerce to a univariate function.
-##'
-##' @param fn Function or object coercible to function.
-##' @param arg Argument name for error reporting.
-##' @param call Calling environment for error reporting.
-##' @return A function of one argument or error.
-##' @noRd
-as_univariate_function <- function(
-  fn,
-  arg = caller_arg(fn),
-  call = caller_env()
-) {
-  fn <- rlang::as_function(fn, env = rlang::global_env())
-  msg <- checkmate::check_function(fn, nargs = 1L)
-  if (isTRUE(msg)) {
-    fn
-  } else {
-    format_checkmate(msg, arg, call)
-  }
-}
-
-#' Check if input inherits from a class.
-#'
-#' @param x Object to check.
-#' @param class Class name(s) to check against.
-#' @param arg Argument name for error reporting.
-#' @param call Calling environment for error reporting.
-#' @return TRUE if inherits, error otherwise.
-#' @noRd
-is_class <- function(x, class, arg = caller_arg(x), call = caller_env()) {
-  msg <- checkmate::check_class(x, class)
-  if (isTRUE(msg)) {
-    TRUE
-  } else {
-    format_checkmate(msg, arg, call)
-  }
-}
-
-#' Format a message from checkmate.
-#' @param msg The message to format.
-#' @param arg Argument name for error reporting.
-#' @param call Calling environment for error reporting.
-#' @return A formatted error message.
-#' @noRd
-format_checkmate <- function(msg, arg, call) {
-  cli::cli_abort("`{arg}` {tolower(msg)}.", call = call)
 }
 
 #' Inject a list into a vector.

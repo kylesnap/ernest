@@ -26,7 +26,7 @@ nested_sampling_impl <- function(
   min_logz,
   last_criterion = -1e300,
   log_vol = 0,
-  log_z = 0,
+  log_z = -1e300,
   iter = 0L,
   call = 0L,
   show_progress = TRUE

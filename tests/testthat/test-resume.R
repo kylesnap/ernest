@@ -1,5 +1,5 @@
 gaussian_2 <- make_gaussian(2L)
-sampler <- nested_sampling(
+sampler <- ernest_sampler(
   log_lik = gaussian_2$log_lik,
   prior = gaussian_2$prior
 )
@@ -23,7 +23,7 @@ test_that("Runs can be completed and resume", {
 })
 
 test_that("Throws errors when stop criteria are already passed", {
-  sampler <- nested_sampling(
+  sampler <- ernest_sampler(
     log_lik = gaussian_2$log_lik,
     prior = gaussian_2$prior
   )

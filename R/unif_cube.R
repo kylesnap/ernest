@@ -6,7 +6,7 @@
 #' specification.
 #'
 #' @returns A list, with class `c("unif_cube", "ernest_lrps")`. Can be used with
-#' [nested_sampling] to specify the sampling behaviour of a nested sampling run.
+#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling run.
 #'
 #' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 #' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
@@ -63,7 +63,7 @@ new_unif_cube <- function(
 
 #' @rdname propose
 #' @export
-propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
+propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
   if (is.null(original)) {
     NextMethod()
   } else {

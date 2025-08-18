@@ -16,11 +16,18 @@ create_prior(
 )
 }
 \arguments{
-\item{fn}{(function) The unit hypercube transformation (see Details).}
+\item{fn, rowwise_fn}{(function) Pick one of \code{fn} or \code{rowwise_fn}:
+\itemize{
+\item \code{fn}: A function that takes in a vector of unit cube coordinates and
+returns a same-size vector of parameters.
+\item \code{rowwise_fn}: A function that takes in a vector of unit cube coordinates
+and returns a matrix of parameters with identical dimensions.
+}}
 
 \item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
 
-\item{...}{These dots are for future extensions and must be empty.}
+\item{...}{Named arguments to \code{fn} or \code{rowwise_fn} that should be partially
+applied (see \code{\link[purrr:partial]{purrr::partial()}}).}
 
 \item{varnames}{(optional character vector) A character vector of names for
 the variables in the prior distribution.}
@@ -52,30 +59,29 @@ Implementations of nested sampling, including ernest, use this transformation
 to simplify likelihood-restricted prior sampling, avoiding uncessary
 rejection steps.
 
-In ernest, the \code{create_prior} function allows you to specify your own
-prior distribution. This requires you to provide your own transformation
+\code{create_prior} allows you to specify your own prior distribution.
+This requires you to provide your own transformation
 function. In many cases, when the prior can be factorized, this function
 can simply be transforming a vector of values in (0, 1) and transforming
 them elementwise with inverse cumulative distribution function (CDF) of
 each parameter. In more complex cases, you can specify a hierarchical or
 conditionally-dependent prior (see Examples).
 
-ernest will perform several regularity checks on \code{fn} when the prior is
-created. These checks are passed if:
+\code{create_prior} will perform several regularity checks on your prior function.
+This intends to capture basic errors that may confound ernest's nested
+sampling implementation. To pass these checks, \code{fn} or \code{rowwise_fn} must:
 \itemize{
-\item \code{fn} is a function;
-\item \code{fn(rep(0.5, n_dim))} returns a finite double vector of length \code{n_dim};
-\item \code{fn}, when given a matrix of random unit cube coordinates, returns a
-finite double matrix with the same dimensions that all respect the specified
-bounds.
+\item return a finite double vector of length \code{n_dim} when provided
+\code{rep(0.5, n_dim)},
+\item return a finite double matrix of parameters with the same dimensions that
+all respect the bounds \code{lower} and \code{upper} (if provided) when provided
+random matrix with dimensions \code{c(5, n_dim)}.
 }
 
-As default, \code{auto_batch} expects that \code{fn} is incapable of handling matrices
-of unit cube values. It resolves this by wrapping \code{fn} in a call to
-\code{\link[base:apply]{base::apply()}}. Should you have a more efficient implementation of your
-likelihood function, then consider setting \code{auto_batch == FALSE}.
-Failing the checks on \code{fn} with \code{auto_batch = FALSE} will remind the user
-of this setting.
+Ernest will wrap \code{fn} so that it may take in a matrix of parameters. Should
+you have a more efficient implementation of your likelihood function that
+can handle vectors and matrices, then consider providing \code{rowwise_fn}
+instead.
 }
 \examples{
 # 3D uniform prior in the range [-10, 10]

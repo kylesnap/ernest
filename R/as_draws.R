@@ -1,9 +1,9 @@
 #' Transform nested sampling runs to `draws` objects
 #'
-#' Try to transform an [ernest_run-class] to a format supported by the
+#' Try to transform an [ernest_run] to a format supported by the
 #' [posterior][posterior::posterior-package] package.
 #'
-#' @param x (ernest_run) An `ernest_run` object.
+#' @param x (ernest_run) An [ernest_run] object.
 #' @param units (case-sensitive string) The scale in which to return the
 #' sampled points:
 #' * `"original"`: Points are expressed on the scale of the prior space.
@@ -105,7 +105,7 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
     values = c("original", "unit_cube"),
     error_call = call
   )
-  radial <- as_scalar_logical(radial, call = call)
+  check_bool(radial, call = call)
 
   points <- if (units == "original") x$samples else x$samples_unit
   if (radial) {

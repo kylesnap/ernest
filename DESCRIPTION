@@ -9,16 +9,13 @@ License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 BugReports: https://github.com/kylesnap/ernest/issues/
 Imports: 
-    checkmate,
     cli,
     generics,
     ggplot2,
     glue,
-    lifecycle,
     matrixStats,
     posterior,
     purrr,
-    R6,
     rlang (>= 1.1.0),
     tibble,
     utils,

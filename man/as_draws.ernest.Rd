@@ -13,7 +13,7 @@
 \method{as_draws_rvars}{ernest_run}(x, ..., units = c("original", "unit_cube"), radial = FALSE)
 }
 \arguments{
-\item{x}{(ernest_run) An \code{ernest_run} object.}
+\item{x}{(ernest_run) An \link{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
@@ -43,7 +43,7 @@ classes \code{c("draws_rvars", "draws", "list")}.
 }
 }
 \description{
-Try to transform an \linkS4class{ernest_run} to a format supported by the
+Try to transform an \link{ernest_run} to a format supported by the
 \link[posterior:posterior-package]{posterior} package.
 }
 \examples{

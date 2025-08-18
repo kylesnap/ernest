@@ -12,7 +12,7 @@ test_that("Zero-length likelihood fails", {
   ll <- \(theta) double(0)
   prior <- create_uniform_prior(2)
 
-  expect_snapshot_error(nested_sampling(ll, prior))
+  expect_snapshot_error(ernest_sampler(ll, prior))
 })
 
 test_that("Zero-length prior fails", {
@@ -31,7 +31,7 @@ test_that("Fails on character types", {
   expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
-  expect_snapshot_error(nested_sampling(ll, create_uniform_prior(2)))
+  expect_snapshot_error(ernest_sampler(ll, create_uniform_prior(2)))
 })
 
 test_that("Fails on complex types", {
@@ -39,7 +39,7 @@ test_that("Fails on complex types", {
   expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
 
   ll <- \(theta) sum(0.15i * length(theta))
-  expect_snapshot_error(nested_sampling(ll, create_uniform_prior(2)))
+  expect_snapshot_error(ernest_sampler(ll, create_uniform_prior(2)))
 })
 
 #' Missing type
@@ -66,21 +66,21 @@ test_that("Missing values in the log-likelihood", {
   prior <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
 
   expect_snapshot_warning(
-    nested_sampling(
+    ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "warn"),
       prior
     )
   )
 
   expect_snapshot_error(
-    nested_sampling(
+    ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "abort"),
       prior
     )
   )
 
   expect_no_message(
-    nested_sampling(
+    ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "quiet"),
       prior
     )
@@ -93,7 +93,7 @@ test_that("Missing values in the log-likelihood", {
 #' (caught by compile) or becomes flat after many iterations.
 test_that("Ernest fails when ll is flat to begin with", {
   ll <- \(theta) 0
-  expect_snapshot_error(nested_sampling(ll, create_uniform_prior(2)))
+  expect_snapshot_error(ernest_sampler(ll, create_uniform_prior(2)))
 })
 
 test_that("Ernest halts and warns when ll becomes flat during a run", {
@@ -106,7 +106,7 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
   }
 
   expect_warning(
-    sampler <- nested_sampling(ll_flat, prior = ll$prior),
+    sampler <- ernest_sampler(ll_flat, prior = ll$prior),
     "`log_lik` may contain a likelihood plateau"
   )
   expect_snapshot(

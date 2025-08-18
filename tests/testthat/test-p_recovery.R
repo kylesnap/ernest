@@ -47,7 +47,7 @@ sd_lower <- 0.069871704416342
 sd_upper <- 0.175493354741336
 
 test_that("Parameter recovery (NIST mcmc01)", {
-  sampler <- nested_sampling(
+  sampler <- ernest_sampler(
     log_lik,
     prior
   )
@@ -68,7 +68,7 @@ test_that("Parameter recovery (NIST mcmc01)", {
 #' recovered under different seeds and with random noise added to `y`.
 test_that("Parameter recovery under a different seed", {
   skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
-  sampler <- nested_sampling(
+  sampler <- ernest_sampler(
     log_lik,
     prior
   )
@@ -98,7 +98,7 @@ test_that("Parameter recovery with noisy y", {
       log = TRUE
     ))
   }
-  sampler <- nested_sampling(jitter_log_lik, prior)
+  sampler <- ernest_sampler(jitter_log_lik, prior)
   run <- generate(sampler, seed = 24L)
   draws <- as_draws(run) |>
     posterior::resample_draws()

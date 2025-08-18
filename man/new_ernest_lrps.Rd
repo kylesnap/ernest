@@ -16,7 +16,7 @@ new_ernest_lrps(
 )
 }
 \arguments{
-\item{unit_log_fn, ndim}{These values are provided when \link{nested_sampling} is
+\item{unit_log_fn, ndim}{These values are provided when \code{\link[=ernest_sampler]{ernest_sampler()}} is
 called with a given \code{ernest_lrps}:
 \itemize{
 \item \code{unit_log_fn} (function, optional) A function that takes a matrix of

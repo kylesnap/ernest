@@ -1,60 +1,64 @@
-#' Prepare an `ernest_sampler` object for nested sampling
+#' Create a set of live points for a nested sampling run
 #'
-#' Create a new set of live points/particles for a new nested sampling run, or
-#' check the current state of the live points before continuing a previous run.
+#' Prepares an object for nested sampling by validating and
+#' (re)generating its set of live points. This ensures the sampler is viable
+#' before new live points are generated during the nested sampling algorithm.
 #'
-#' @param object (ernest_sampler or ernest_run) An object of class
-#' `ernest_sampler` or `ernest_run`.
+#' @param object An object of class [ernest_sampler] or [ernest_run].
+#' * `ernest_sampler`: Prepares a new sampler with a fresh set of live points.
+#' * `ernest_run`: Regenerates live points from the previously stored results,
+#' unless `clear = TRUE`.
 #' @inheritParams rlang::args_dots_empty
-#' @param seed (integer or NA, optional) Specification for the random number
-#' generator.
-#' * integer and NULL: Passed to [set.seed()]. If `NULL`, this reinitializes the
-#' generator as if no seed has yet been set.
-#' * `NA`: Make no changes to the current seed. If `compile` has been
-#' called on `object` before, then `NA` will ensure that the seed remain
-#' identical between runs.
-#' @param clear (boolean) Whether to clear results from previous runs before
-#' compiling.
-#' * `TRUE`: Previous results stored in `object` are removed, and live points
-#' are generated and validated.
-#' * `FALSE`: Previous results stored in `object` are retained, and live points
-#' are validated.
+#' @param seed An integer, `NULL`, or `NA`. Controls the random number
+#' generator:
+#'   * Integer or `NULL`: Passed to [set.seed()]. If `NULL`, reinitializes the
+#'     generator as if no seed has yet been set.
+#'   * `NA`: Makes no changes to the current seed. If `compile()` has been
+#'     called on `object` before, `NA` ensures the seed remains identical
+#'     between runs.
+#' @param clear Logical. If `TRUE`, clears results from previous runs before
+#' compiling. If `FALSE`, retains previous results and validates live points.
 #'
 #' @details
-#' The `compile` function prepares an `ernest_sampler` object for nested
-#' sampling by ensuring that its set of live points is valid and ready for use.
-#' In addition to constructing the live point set for runs, compile also ensures
-#' that:
+#' The `compile()` function validates the set of live points in the sampler or
+#' run, ensuring that:
 #'
-#' * The live points are each represented within the unit hypercube.
-#' * The wrapped likelihood function `ernest_likelihood` has a valid return
-#' value for each point (either a finite double or `-Inf`).
-#' * The live points don't represent a perfect plateau (i.e., all points share
-#' the same likelihood). You are warned if more than 25% of the points
-#' share the same likelihood value.
+#' * Each live point is within the unit hypercube.
+#' * The likelihood function returns valid values (finite double or `-Inf`) for
+#'   each point.
+#' * The set of live points is not a perfect plateau (all points sharing the
+#'   same likelihood). A warning is issued if more than 25% of points share the
+#'   same likelihood value.
 #'
-#' If `compile` fails these validation steps, the set of live points will be
-#' removed from `object`, preventing you from calling [generate()] on a
-#' malformed sampler.
+#' If validation fails, the set of live points is removed, preventing further
+#' sampling until the issue is resolved.
 #'
-#' @returns `object`, with a valid set of live points stored in the
+#' @return A validated `object`, with a valid set of live points stored in its
 #' `live_points` environment.
+#'
+#' @seealso
+#' * [ernest_sampler()] describes how to create an `ernest_sampler` object.
+#' * [generate()] describes the nested sampling algorithm and the `ernest_run`
+#' object.
+#'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
-#' sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+#' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
 #'
-#' # Add live points to the sampler
+#' # Compile the sampler to add live points
 #' compile(sampler)
 #' head(sampler$live_points$unit)
 #'
-#' # Check the status of the sampler with `clear = FALSE`
-#' compile(sampler, clear = FALSE)
-#' head(sampler$live_points$unit)
+#' # Continue a previous run
+#' # run <- data(example_run)
+#' # sampler_2 <- compile(example_run)
+#' # sampler_2
 #'
-#' # Reset the sampler with new live points with `clear = TRUE`
-#' compile(sampler, clear = TRUE)
-#' head(sampler$live_points$unit)
+#' # Make a new sampler from a previous run
+#' sampler_3 <- compile(example_run, clear = TRUE)
+#' sampler_3
+#' @rdname compile
 #' @export
 compile.ernest_sampler <- function(object, ..., seed = NA) {
   check_dots_empty()
@@ -78,14 +82,22 @@ compile.ernest_sampler <- function(object, ..., seed = NA) {
   object
 }
 
-#' @rdname compile.ernest_sampler
+#' @rdname compile
 #' @export
 compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   check_dots_empty()
   check_bool(clear)
 
   if (clear) {
-    NextMethod(object)
+    object <- list(
+      log_lik_fn = object$log_lik_fn,
+      prior = object$prior,
+      lrps = object$lrps,
+      n_points = object$n_points,
+      first_update = object$first_update,
+      update_interval = object$update_interval
+    )
+    return(compile.ernest_sampler(object, ..., seed = seed))
   }
 
   # Fill live points

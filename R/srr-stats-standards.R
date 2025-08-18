@@ -20,6 +20,7 @@
 #' @srrstatsTODO {BS4.0} Cites original software implementation.
 #' blueprints inherit from the one created by `new_blueprint()`, and the default
 #' method specific blueprints inherit from the other three here.
+#' @srrstatsTODO {BS2.12, BS2.13} Documentation of the `rlang` verbosity parameter.
 #' @noRd
 NULL
 

@@ -68,7 +68,7 @@ prior_2d <- create_uniform_prior(
   varnames = c("x", "y")
 )
 
-sampler_2d <- nested_sampling(log_lik_2d, prior_2d)
+sampler_2d <- ernest_sampler(log_lik_2d, prior_2d)
 run_2d <- generate(sampler_2d)
 run_2d
 ```
@@ -90,7 +90,7 @@ prior_5d <- create_uniform_prior(
   varnames = LETTERS[1:5]
 )
 
-sampler_5d <- nested_sampling(log_lik_5d, prior_5d)
+sampler_5d <- ernest_sampler(log_lik_5d, prior_5d)
 run_5d <- generate(sampler_5d)
 run_5d
 ```
@@ -112,7 +112,7 @@ eggbox_loglik <- function(theta) {
   (2 + cos(theta[1] / 2) * cos(theta[2] / 2))^5
 }
 prior_eggbox <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
-sampler_eggbox <- nested_sampling(eggbox_loglik, prior_eggbox)
+sampler_eggbox <- ernest_sampler(eggbox_loglik, prior_eggbox)
 run_eggbox <- generate(sampler_eggbox)
 summary(run_eggbox)
 ```
@@ -154,7 +154,7 @@ prior_norm <- create_normal_prior(
   varnames = c("mean", "sd")
 )
 
-sampler_norm <- nested_sampling(
+sampler_norm <- ernest_sampler(
   log_lik = \(theta) log_lik_norm(theta, y = data),
   prior_norm
 )

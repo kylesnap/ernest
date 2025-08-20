@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Tools for Nested Sampling
+# A Toolkit for Nested Sampling
 
 <!-- badges: start -->
 
@@ -9,23 +9,24 @@
 [![codecov](https://codecov.io/gh/kylesnap/ernest/branch/ropensci_submission/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
 <!-- badges: end -->
 
-The best place to start learning about NS would be this paper, surveying
-modern applications and implementations of the algorithm. Much of ernest
-was developed based on this paper’s description of NS:
+ernest is a comprehensive toolkit for nested sampling (NS) in R,
+enabling estimation of Bayesian evidence and posterior distributions for
+statistical models. Alongside an original R-based implementation of the
+algorithm described by Skilling (2006), ernest provides:
 
-- Buchner, J. (2023). Nested Sampling Methods. Statistics Surveys, 17,
-  169–215. <https://doi.org/10.1214/23-SS144>
+1.  S3 objects and methods for defining model likelihoods and prior
+    parameter distributions;
+2.  Methods for simulating, reporting, and visualising uncertainty in NS
+    estimates;
+3.  S3 generics for developers to implement custom likelihood-restricted
+    prior samplers.
 
-To read the original papers describing NS’s development, see:
-
-- Skilling, J. (2004). Nested Sampling. *AIP Conference Proceedings*,
-  735(1), 395–405. <https://doi.org/10.1063/1.1835238>
-- Skilling, J. (2006). Nested Sampling for General Bayesian Computation.
-  *Bayesian Analysis*, 1(4), 833–859. <https://doi.org/10.1214/06-BA127>
+ernest’s API is inspired by the Python package nestle (Barbary 2015),
+which also influenced dynesty (Speagle 2020).
 
 ## Installation
 
-You can install the development version of ernest from
+Install the development version of ernest from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -33,132 +34,129 @@ You can install the development version of ernest from
 devtools::install_github("kylesnap/ernest")
 ```
 
-## Why Use Nested Sampling?
+## Nested Sampling in a Nutshell
 
-Nested Sampling (NS) is a Bayesian algorithm developed for evaluating
-the plausibility of a statistical model. In Bayesian statistics, we
-describe our knowledge of a model’s unknown parameters using
-probabilities. We use Bayes’ theorem to represent how new data can be
-used to update our beliefs about a model’s parameters ($`\theta`$):
-``` math
-
-P(\theta) = \frac{L(\theta) \pi(\theta)}{\mathcal{Z}} 
-```
-Here, the *prior* $`\pi(\theta)`$ reflects what we know about parameters
-before seeing the data, the *likelihood* $`l(\theta)`$ encodes the
-likelihood of the parameters given the data, and the *posterior*
-$`P(\theta)`$ reflects our updated beliefs about $`\theta`$ after
-learning from the data.
-
-The quantity $`\mathcal{Z}`$, called the *model evidence* or *marginal
-likelihood*, has a special interpretation in Bayesian inference. If we
-reorganize Bayes’ theorem, we notice that $`\mathcal{Z}`$ represents the
-probability of generating the observed sample for all possible values of
-$`\theta`$:
+Nested sampling (NS) is a Bayesian algorithm for evaluating model
+plausibility, measured as the *Bayesian evidence* or *marginal
+likelihood* ($`\mathcal{Z}`$). The evidence normalises the posterior
+distribution; by reorganising Bayes’ theorem, we see that
+$`\mathcal{Z}`$ is the probability of the observed data across all
+possible parameter values $`\theta`$:
 ``` math
 
 \mathcal{Z} = \int_{\forall \theta} L(\theta) \pi(\theta) d\theta
 ```
-This allows us to use $`\mathcal{Z}`$ to represent the overall
-plausibility of a model given some observed data. This leads to Bayesian
-model comparison, where ratios of $`\mathcal{Z}`$ are used to make
-nuanced comparisons between different models based on their
-plausibility.
-
-Aside from simple models and data, this evidence integral cannot be
-solved analytically. To address this, NS was developed as a method to
-estimate $`\mathcal{Z}`$ while also producing an estimate of
-$`P(\theta)`$. In basic terms, NS works by dividing the prior space into
-a nested sequence of very small volumes or shells. By then sorting these
-shells according to their worst likelihood value, they can then be used
-to form an unidimensional approximation of the evidence integral that
-can be solved using numerical methods. In addition to providing
-estimates of $`\mathcal{Z}`$ and $`P(\theta)`$, NS has the following
-desirable qualities over other Bayesian methods such as Markov-chain
+For most models, this integral cannot be solved analytically. NS
+addresses this by dividing the prior space $`\pi(\theta)`$ into a nested
+sequence of small volumes, sorted by likelihood, to form a
+one-dimensional approximation of the evidence integral. NS offers
+several advantages over other Bayesian methods such as Markov chain
 Monte Carlo (MCMC):
 
-1.  NS conducts a global exploration of $`\pi(\theta)`$;
-2.  NS can more easily traverse complicated or poorly-conditioned
-    distributions, such as those with multiple modes or discontinuities,
-    and;
-3.  NS defines natural stopping criteria, such that it does not require
-    burn-in runs nor does it require supervised testing across
-    convergence or termination conditions.
+1.  Global exploration of $`\pi(\theta)`$;
+2.  Robustness to complex or poorly conditioned distributions (e.g.,
+    multimodal or discontinuous);
+3.  Simultaneous estimation of the posterior distribution;
+4.  Natural stopping criteria—no need for burn-in or manual convergence
+    checks.
 
-## Why Use Ernest?
+## Nested Sampling in Ernest
 
-Other NS implementations, such as MultiNest, do provide R interfaces to
-nested sampling algorithms originally developed in other languages
-(e.g., Python, Fortran). The goal of Ernest is to provide a complete,
-native R implementation of the nested sampling algorithm, designed
-specifically for the resources and packages already used by R
-programmers.
+ernest provides a native R and C++11 implementation of nested sampling,
+with an API designed for R users.
 
-### Ernest Helps You Specify Prior Distributions
+To begin, specify a likelihood function and a prior space. For example:
 
-Nested sampling in ernest works by drawing samples from the unit
-hypercube—a $`d`$-dimensional space where each coordinate is in
-$`[0, 1)`$. The “hypercube transformation” maps these coordinates to the
-actual parameter space using the inverse cumulative distribution
-function (CDF) of each marginal prior. This approach ensures efficient
-sampling and avoids rejection steps.
+``` r
+library(ernest)
+library(LaplacesDemon)
 
-Ernest allows you to encode common priors as S3 objects with convenience
-functions, like `create_uniform_prior()` and `create_normal_prior()`.
-Advanced prior transformations can be provided as functions to
-`create_prior`, which will validate a prior specification before a run
-is performed.
+# Uniform prior over [-10, 10) for three parameters
+prior <- create_uniform_prior(
+  3,
+  lower = -10,
+  upper = 10,
+  varnames = c("x", "y", "z")
+)
 
-### Ernest Can Start and Continue Previous Nested Sampling Runs
+# Multivariate normal log-likelihood
+mu <- c(0, 0, 0)
+C <- diag(1, 3)
+C[C == 0] <- 0.95
+loglike <- create_likelihood(
+  rowwise_fn = dmvn,
+  mu = !!mu,
+  Sigma = !!C,
+  log = TRUE
+)
 
-Ernest allows you to start a new nested sampling run or continue an
-existing one using the same sampler object. When you call `generate()`
-on a sampler, it performs nested sampling and stores the results in an
-`ernest_run` object. If you call `generate()` again on the same sampler,
-Ernest will resume the run from where it left off, retaining all
-previously collected points and evidence estimates. This makes it easy
-to refine your results by increasing the number of iterations or
-adjusting stopping criteria without losing previous work.
+# Set up and run the sampler
+sampler <- ernest_sampler(
+  log_lik = loglike,
+  prior = prior,
+  n_points = 500
+)
+run <- generate(sampler, max_iterations = 2000, seed = 123)
 
-### Ernest Can Simulate the Uncertainty within Evidence Estimates
+# Summarise and visualise results
+summary(run)
+plot(run)
+visualize(run, type = "density")
+```
 
-The `calculate()` function in ernest is a powerful tool for quantifying
-uncertainty in evidence estimates produced by nested sampling. By
-default, it computes deterministic estimates of evidence and related
-quantities. However, you can also use `calculate()` to simulate the
-impact of uncertainty in the log volume estimates. This allows you to
-generates multiple realizations of the nested sampling process, allowing
-you to assess the variability and robustness of your evidence estimates.
-The results are returned as S3 objects with their own `summary()` and
-`plot()` methods.
+For advanced usage, including custom priors and hierarchical models, see
+the package vignette.
 
 ## Prior Art
 
-In addition to the citations provided, Ernest’s API was informed by the
-excellent [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/index.html)
-python package.
-
-- Speagle, J. (2020). DYNESTY: A Dynamic Nested Sampling Package for
-  Estimating Bayesian Posteriors and Evidences. *Monthly Notices of the
-  Royal Astronomical Society*, 493(3), 3132–3158.
-  <https://doi.org/10.1093/mnras/staa278>.
-
-Beyond dynesty, there exist several other nested sampling
-implementations for popular, non-R programming languages. The
-implementations listed below are popular, well-maintained, and
-well-documented.
+Below are selected packages that implement NS, in addition to nestle and
+dynesty:
 
 | Package | Author | Languages |
 |:---|:--:|:--:|
-| [polychord](https://github.com/PolyChord/PolyChordLite) | Will Handley, Mike Hobson, & Anthony Lasenby | Fortran, with interfaces for Python and C/C++ |
-| [MultiNest](https://github.com/JohannesBuchner/MultiNest) | Farhan Feroz & Mike Hobson | Fortran, with interfaces for R, Python, and C++ |
+| [polychord](https://github.com/PolyChord/PolyChordLite) | Will Handley, Mike Hobson, & Anthony Lasenby | Fortran, with Python and C/C++ interfaces |
+| [MultiNest](https://github.com/JohannesBuchner/MultiNest) | Farhan Feroz & Mike Hobson | Fortran, with R, Python, and C++ interfaces |
 | [perfectns](https://github.com/ejhigson/perfectns) | Edward Higson | Python |
 
-In addition, the
-[nestcheck](https://nestcheck.readthedocs.io/en/latest/) python package
-provides methods for creating diagnostic plots for nested sampling runs.
+The nestcheck Python package provides routines for diagnosing nested
+sampling runs (Handley 2019).
 
-- Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019). nestcheck:
-  Diagnostic Tests for Nested Sampling Calculations. *Monthly Notices of
-  the Royal Astronomical Society*, 483(2), 2044–2056.
-  <https://doi.org/10.1093/mnras/sty3090>
+### References
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-barbary2015" class="csl-entry">
+
+Barbary, Kyle. 2015. “Nestle: Pure Python, MIT-Licensed Implementation
+of Nested Sampling Algorithms for Evaluating Bayesian Evidence.”
+<https://github.com/kbarbary/nestle>.
+
+</div>
+
+<div id="ref-anesthetic" class="csl-entry">
+
+Handley, Will. 2019. “Anesthetic: Nested Sampling Visualisation.” *The
+Journal of Open Source Software* 4 (37): 1414.
+<https://doi.org/10.21105/joss.01414>.
+
+</div>
+
+<div id="ref-skilling2006" class="csl-entry">
+
+Skilling, John. 2006. “Nested Sampling for General Bayesian
+Computation.” *Bayesian Analysis* 1 (4): 833–59.
+<https://doi.org/10.1214/06-BA127>.
+
+</div>
+
+<div id="ref-speagle2020" class="csl-entry">
+
+Speagle, Joshua S. 2020. “DYNESTY: A Dynamic Nested Sampling Package for
+Estimating Bayesian Posteriors and Evidences.” *Monthly Notices of the
+Royal Astronomical Society* 493 (April): 3132–58.
+<https://doi.org/10.1093/mnras/staa278>.
+
+</div>
+
+</div>

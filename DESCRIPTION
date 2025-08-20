@@ -1,14 +1,18 @@
 Package: ernest
-Title: The R Nested Sampling Toolkit
+Title: The Nested Sampling Toolkit
 Version: 0.0.0.9000
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2132-8083"))
-Description: TODO.
+Description: Estimate model evidence and posterior distributions using
+    Bayesian nested sampling, and review your results using popular
+    statistical analysis packages.
 License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 BugReports: https://github.com/kylesnap/ernest/issues/
-Imports: 
+Depends: 
+    R (>= 2.10)
+Imports:
     cli,
     generics,
     ggplot2,
@@ -25,11 +29,11 @@ Suggests:
     knitr,
     LaplacesDemon,
     rmarkdown,
-    tidyselect,
     testthat (>= 3.0.0),
+    tidyselect,
+    truncnorm,
     vdiffr,
-    xml2,
-    truncnorm
+    xml2
 LinkingTo:
     cpp11,
     testthat
@@ -37,8 +41,7 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd", "srr::srr_stats_roclet"))
-RoxygenNote: 7.3.2
-Depends: 
-    R (>= 2.10)
 LazyData: true
+Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",
+    "srr::srr_stats_roclet"))
+RoxygenNote: 7.3.2

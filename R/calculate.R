@@ -73,7 +73,7 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
       "log_weight" = posterior::rvar(log_weight),
       "log_evidence" = posterior::rvar(log_evidence)
     ),
-    ndraws = ndraws,
+    ndraws = as.integer(ndraws),
     class = "ernest_estimate"
   )
 }

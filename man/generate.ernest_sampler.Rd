@@ -11,7 +11,7 @@
   max_iterations = NULL,
   max_calls = NULL,
   min_logz = 0.05,
-  show_progress = FALSE
+  show_progress = NULL
 )
 }
 \arguments{
@@ -44,7 +44,8 @@ current estimated evidence and the remaining evidence. If zero, this
 criterion is ignored.}
 
 \item{show_progress}{Logical. If \code{TRUE}, displays a progress spinner and
-iteration counter during sampling.}
+iteration counter during sampling. If \code{NULL}, then the parameter is inferred
+based on the value of the \code{rlib_message_verbosity} option.}
 }
 \value{
 An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},

@@ -50,8 +50,7 @@ test_that("Missing values in the prior", {
   expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
 })
 
-#' @srrstats {G5.3} Here, we test to make sure no NA values sneak into
-#' the final log-likelihood vector.
+#' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
 #'
 NULL
 
@@ -65,13 +64,6 @@ test_that("Missing values in the log-likelihood", {
   }
   prior <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
 
-  expect_snapshot_warning(
-    ernest_sampler(
-      create_likelihood(ll_fn_missing, .nonfinite_action = "warn"),
-      prior
-    )
-  )
-
   expect_snapshot_error(
     ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "abort"),
@@ -82,6 +74,13 @@ test_that("Missing values in the log-likelihood", {
   expect_no_message(
     ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "quiet"),
+      prior
+    )
+  )
+
+  expect_snapshot_warning(
+    ernest_sampler(
+      create_likelihood(ll_fn_missing, .nonfinite_action = "warn"),
       prior
     )
   )

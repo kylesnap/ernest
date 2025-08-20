@@ -11,6 +11,9 @@
 #' @returns A `normal_prior`, a subclass of `ernest_prior` with an efficient
 #' implementation of the unit hypercube transformation.
 #'
+#' @srrstats {BS2.5} create_normal_prior performs checks to ensure that the sd
+#' parameter is strictly positive.
+#'
 #' @seealso
 #' * [create_prior()] for more on the `ernest_prior` object.
 #' * [truncnorm::qtruncnorm()] for the truncated normal quantile function.

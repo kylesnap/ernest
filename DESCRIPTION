@@ -33,6 +33,7 @@ Suggests:
     tidyselect,
     truncnorm,
     vdiffr,
+    withr,
     xml2
 LinkingTo:
     cpp11,

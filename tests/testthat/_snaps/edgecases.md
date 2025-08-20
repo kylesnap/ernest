@@ -54,12 +54,6 @@
 
 # Missing values in the log-likelihood
 
-    <ernest_sampler> threw a warning during compilation
-    Caused by warning:
-    ! Replacing `NA` with `-Inf`.
-
----
-
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
     ! Can't create live points.
@@ -67,6 +61,12 @@
     ! `lik(x)` must always return finite double values or `-Inf`.
     x `lik(x)` returned NA.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
+
+---
+
+    <ernest_sampler> threw a warning during compilation
+    Caused by warning:
+    ! Replacing `NA` with `-Inf`.
 
 # Ernest fails when ll is flat to begin with
 
@@ -83,8 +83,8 @@
       Warning in `compile()`:
       `log_lik` may contain a likelihood plateau; proceed with caution.
       ! Only 135/500 likelihood values are unique.
-      Warning:
-      Stopping run due to a likelihood plateau at 0.
+    Message
+      ! Stopping run due to a likelihood plateau at 0.
     Output
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500

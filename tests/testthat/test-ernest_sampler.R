@@ -12,14 +12,21 @@ test_that("ernest_sampler errors with invalid prior", {
   )
 })
 
-#' @srrstats {BS2.12} Test for enabling verbose output.
-cli::test_that_cli("Fully verbose output", {
+#' @srrstats {BS2.13} Test that R can produce fully-verbose output when
+#' requested (messages are turned off for all other tests).
+test_that("Fully verbose output works", {
   log_lik <- gaussian_shell(2)
   prior <- create_uniform_prior(n_dim = 2, lower = -6, upper = 6)
   sampler <- ernest_sampler(log_lik, prior, n_points = 500)
-  rlang::local_options(rlib_message_verbosity = "default")
 
-  expect_snapshot({
-    run <- generate(sampler, max_iterations = 1000, seed = 42L)
-  })
+  withr::local_options(rlib_message_verbosity = "verbose")
+
+  expect_message(
+    run <- generate(sampler, max_iterations = 1000, seed = 42L),
+    regexp = "Creating new live points"
+  )
+
+  expect_snapshot(
+    run2 <- generate(sampler, max_iterations = 2000, show_progress = FALSE)
+  )
 })

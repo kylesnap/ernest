@@ -19,6 +19,11 @@
 #'
 #' @seealso [plot()] for visualising evidence estimates from an
 #'   `ernest_run`.
+#' 
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
+#' error message is provided when the user provides an invalid value for
+#' `type`.
+#' 
 #' @examples
 #' # Load example run
 #' library(ggdist)

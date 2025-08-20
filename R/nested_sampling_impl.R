@@ -47,29 +47,32 @@ nested_sampling_impl <- function(
 
   i <- 1
   if (show_progress) {
-    cli::cli_progress_step("Performed {i} nested samples.", spinner = TRUE)
+    cli::cli_progress_step(
+      "Performing nested sampling ({i} points replaced)...",
+      spinner = TRUE
+    )
   }
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
-      cli::cli_inform("`max_calls` surpassed ({call} > {max_calls})")
+      cli::cli_inform("`max_calls` surpassed ({call} > {max_calls}).")
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      cli::cli_inform("`min_logz` reached ({d_log_z} < {min_logz})")
+      cli::cli_inform("`min_logz` reached ({d_log_z} < {min_logz}).")
       break
     }
     if (show_progress) {
-      cli_progress_update()
+      cli::cli_progress_update()
     }
 
     # 2. Identify and log the worst points in the sampler
     worst_idx <- which_minn(live_env$log_lik)
     new_criterion <- live_env$log_lik[worst_idx[1]]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
-      cli::cli_warn(
+      cli::cli_alert_warning(
         "Stopping run due to a likelihood plateau at {round(max_lik, 3)}."
       )
       break
@@ -111,6 +114,9 @@ nested_sampling_impl <- function(
     live_env$birth[worst_idx] <- i + iter
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
+  }
+  if (i >= max_iterations) {
+    cli::cli_inform("`max_iterations` reached ({i}).")
   }
 
   list(

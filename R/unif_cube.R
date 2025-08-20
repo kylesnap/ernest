@@ -41,6 +41,9 @@ format.unif_cube <- function(x, ...) {
 #' @param n_dim Integer. Number of dimensions.
 #' @param max_loop Integer. Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
+#' 
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages for univariate inputs.
 #'
 #' @return An LRPS specification, a list with class
 #' `c("unif_cube", "ernest_lrps")`.

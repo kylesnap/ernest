@@ -17,6 +17,9 @@
 #' @param .class The subclass inheriting from ernest_sampler.
 #' @param .call The calling environment.
 #'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages for univariate inputs.
+#'
 #' @return An object of class `ernest_sampler`.
 #' @noRd
 new_ernest_sampler <- function(

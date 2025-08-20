@@ -26,10 +26,23 @@
 #' `live_points` which is used to store the `n_points` live particles throughout
 #' a nested sampling run.
 #'
-#' @details The `ernest_sampler` object is tested with [compile()] before it is
+#' @details
+#' The `ernest_sampler` object is tested with [compile()] before it is
 #' returned. This helps to catch errors with the likelihood and prior
 #' specifications. If this compilation step fails, review your `log_lik_fn` and
 #' `prior` objects for their compliance.
+#'
+#' ## Verbosity
+#' Messages from ernest can be silenced with the global options
+#' `rlib_message_verbosity` and `rlib_warning_verbosity`. These options take the
+#' values:
+#'
+#' * "default": Verbose unless the `.frequency` argument is supplied.
+#' * "verbose": Always verbose.
+#' * "quiet": Always quiet.
+#'
+#' When set to quiet, message are not displayed and the condition is not
+#' signaled. See [rlang::abort()] for more information.
 #'
 #' @seealso
 #' * [create_likelihood()] describes the requirements of the `log_lik_fn`
@@ -39,6 +52,13 @@
 #' * prior samplers.
 #'
 #' @srrstats {BS1.3, BS1.3b} Describes how to set different sampling techniques.
+#' @srrstats {G2.13, BS2.1, BS2.4} Both `compile()` and the checks performed by
+#' ernest_sampler catch missing values or incommensurability between the
+#' prior and likelihood. This helps avoid calls to `generate()` with malformed
+#' samplers.
+#' @srrstats {BS2.12} Documents verbosity settings for all progress messages
+#' and warnings within ernest.
+#'
 #' @export
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

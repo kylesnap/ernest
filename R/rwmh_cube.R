@@ -37,14 +37,6 @@ rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
   )
 }
 
-#' Format a rwmh_cube LRPS object for printing
-#'
-#' Formats a `rwmh_cube` LRPS object for display in the console.
-#'
-#' @param x A `rwmh_cube` object.
-#' @param ... Ignored.
-#'
-#' @return A character string describing the object.
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
@@ -67,6 +59,11 @@ format.rwmh_cube <- function(x, ...) {
 #' @param cache Optional cache environment.
 #' @param steps Integer. Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
+#'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages for univariate inputs.
+#' @srrstats {BS2.6} Ensures that both control parameters for random walks
+#' are within plausible ranges.
 #'
 #' @return An LRPS specification, a list with class
 #' `c("rwmh_cube", "ernest_lrps")`.
@@ -92,8 +89,8 @@ new_rwmh_cube <- function(
     n_dim = n_dim,
     max_loop = max_loop,
     cache = cache,
-    steps = steps,
-    target_acceptance = target_acceptance,
+    steps = as.integer(steps),
+    target_acceptance = as.double(target_acceptance),
     .class = "rwmh_cube"
   )
 }

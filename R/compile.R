@@ -63,16 +63,10 @@
 compile.ernest_sampler <- function(object, ..., seed = NA) {
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
-
-  # Set seed
-  if (is.null(seed) || !is.na(seed)) {
-    check_number_whole(seed, allow_null = TRUE)
-    env_poke(object$live_points, "seed", seed, create = TRUE)
-  }
-  set.seed(env_cache(object$live_points, "seed", NULL))
+  set_ernest_seed(seed, object$live_points)
 
   # Fill live points
-  cli::cli_inform("Creating new live points.")
+  cli::cli_inform("Creating new live points...")
   live <- create_live(object$lrps, object$n_points)
   env_poke(object$live_points, "unit", live$unit, create = TRUE)
   env_poke(object$live_points, "log_lik", live$log_lik, create = TRUE)
@@ -101,6 +95,7 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   }
 
   # Fill live points
+  cli::cli_inform("Restoring live points from a previous run...")
   live_positions <- vctrs::vec_as_location(
     seq(object$n_iter),
     vctrs::vec_size(object$log_lik)
@@ -148,7 +143,7 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 }
 
 #' Validate a set of live points for correctness
-#' 
+#'
 #' @param sampler The `ernest_sampler` object undergoing validation.
 #' @param call The calling environment for error handling.
 #'
@@ -204,5 +199,29 @@ check_live_set <- function(sampler, call = caller_env()) {
     )
   }
 
+  invisible(NULL)
+}
+
+#' Set a seed for nested sampling.
+#'
+#' @param seed An integer, `NULL`, or `NA`.
+#' @param cache The cache from `object`, used to detect previous seeds.
+#'
+#' @returns NULL, invisibly.
+#' @noRd
+set_ernest_seed <- function(seed, cache, call = caller_env()) {
+  if (is.null(seed) || !is.na(seed)) {
+    check_number_whole(seed, allow_null = TRUE, call = call)
+    set.seed(seed)
+    env_poke(cache, "seed", .Random.seed)
+  } else if (env_has(cache, "seed")) {
+    .Random.seed <- env_get(cache, "seed")
+    cli::cli_inform("Restored a previously saved RNG state.")
+  } else {
+    if (!exists(".Random.seed")) {
+      set.seed(NULL)
+    }
+    env_poke(cache, "seed", .Random.seed)
+  }
   invisible(NULL)
 }

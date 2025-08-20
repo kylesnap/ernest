@@ -2,31 +2,12 @@
 
     `prior` must be an object with class ernest_prior, not a function.
 
-# Fully verbose output [plain]
+# Fully verbose output works
 
     Code
-      run <- generate(sampler, max_iterations = 1000, seed = 42L)
+      run2 <- generate(sampler, max_iterations = 2000, show_progress = FALSE)
     Message
-      Creating new live points.
-
-# Fully verbose output [ansi]
-
-    Code
-      run <- generate(sampler, max_iterations = 1000, seed = 42L)
-    Message
-      [1m[22mCreating new live points.
-
-# Fully verbose output [unicode]
-
-    Code
-      run <- generate(sampler, max_iterations = 1000, seed = 42L)
-    Message
-      Creating new live points.
-
-# Fully verbose output [fancy]
-
-    Code
-      run <- generate(sampler, max_iterations = 1000, seed = 42L)
-    Message
-      [1m[22mCreating new live points.
+      Restored a previously saved RNG state.
+      Creating new live points...
+      `max_iterations` reached (2000).
 

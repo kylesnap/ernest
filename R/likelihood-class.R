@@ -44,6 +44,10 @@
 #'
 #' @srrstats {BS1.1} Instructions on how to bind data to likelihood calculation
 #' provided here in text and in the example.
+#' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15, G2.16} create_likelihood
+#' controls the behaviour of the likelihood function when it returns a missing
+#' value (see `.nonfinite_action`). The same parameter also controls the
+#' behaviour when non-finite, non-`-Inf` values are returned.
 #'
 #' @examples
 #' # A 3D Gaussian likelihood function
@@ -120,9 +124,13 @@ create_likelihood <- function(
 #'
 #' @param fn A partialized function that computes likelihood values.
 #' @param rowwise_fn A function that computes likelihoods rowwise.
-#' @param .nonfinite_action Character string, one of `"warn"`, `"quiet"`, or
-#' `"abort"`.
+#' @param .nonfinite_action Case-sensitive string, one of `"warn"`, `"quiet"`,
+#' or `"abort"`.
 #' @param .call Calling environment for error reporting.
+#'
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
+#' error message is provided when the user provides an invalid value for
+#' `.nonfinite_action`.
 #'
 #' @return A function of class `"ernest_likelihood"` and `"function"`.
 #' @noRd
@@ -139,13 +147,12 @@ new_ernest_likelihood <- function(
   )
   log_lik_fn <- wrap_loglik(rowwise_fn, .nonfinite_action)
 
-  obj <- structure(
+  structure(
     log_lik_fn,
     unsafe_fn = fn,
     nonfinite_action = .nonfinite_action,
     class = c("ernest_likelihood", "function")
   )
-  obj
 }
 
 #' @noRd

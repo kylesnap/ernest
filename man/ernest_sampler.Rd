@@ -52,6 +52,20 @@ The \code{ernest_sampler} object is tested with \code{\link[=compile]{compile()}
 returned. This helps to catch errors with the likelihood and prior
 specifications. If this compilation step fails, review your \code{log_lik_fn} and
 \code{prior} objects for their compliance.
+\subsection{Verbosity}{
+
+Messages from ernest can be silenced with the global options
+\code{rlib_message_verbosity} and \code{rlib_warning_verbosity}. These options take the
+values:
+\itemize{
+\item "default": Verbose unless the \code{.frequency} argument is supplied.
+\item "verbose": Always verbose.
+\item "quiet": Always quiet.
+}
+
+When set to quiet, message are not displayed and the condition is not
+signaled. See \code{\link[rlang:abort]{rlang::abort()}} for more information.
+}
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

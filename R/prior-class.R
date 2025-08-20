@@ -49,6 +49,8 @@
 #' more efficient implementation that handles vectors and matrices, consider
 #' providing `rowwise_fn` instead.
 #'
+#' @srrstats {G2.0a, G2.1a} Documents expectations on the vector parameters
+#' `lower` and `upper`.
 #' @srrstats {BS1.2, BS1.2c} Specifies how to design a prior in ernest, and
 #' provides examples.
 #'
@@ -119,12 +121,6 @@ create_prior <- function(
   }
   params <- check_prior_params(n_dim, varnames, lower, upper)
 
-  # fn,
-  # n_dim,
-  # lower,
-  # upper,
-  # n_tests = 10,
-  # call = caller_env()
   prior_fn <- wrap_prior(rowwise_fn)
   try_fetch(
     check_prior_fn(
@@ -144,10 +140,10 @@ create_prior <- function(
 
   new_ernest_prior(
     prior_fn,
-    params$n_dim,
-    params$varnames,
-    params$lower,
-    params$upper
+    n_dim = params$n_dim,
+    varnames = params$varnames,
+    lower = params$lower,
+    upper = params$upper
   )
 }
 
@@ -164,6 +160,15 @@ create_prior <- function(
 #' and made unique.
 #' * An`n_dim`-length double vectors `lower` or `upper`; by default, these
 #' contain `-Inf` and `Inf`
+#'
+#' @srrstats {G2.0, G2.1} Uses vctrs functions to ensure that the inputs are of
+#' the commensurate size and type.
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages for univariate parameters.
+#' @srrstats {G2.4c} Ensures that varnames is a unique character string,
+#' thanks to the `make.unique()` function.
+#' @srrstats {BS2.2, BS2.3} Ensures that the lengths of the prior parameters are
+#' validated before the NS algorithm is invoked.
 #'
 #' Alternatively, if checks fail, an error is raised.
 #' @importFrom cli cli_abort

@@ -25,6 +25,9 @@
 #' @param .class (character vector, optional) Subclasses of this LRPS.
 #' @inheritParams rlang::check_exclusive
 #'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages.
+#'
 #' @returns An LRPS specification: a list containing the input arguments, with a
 #' class specific to the LRPS type.
 #' @aliases ernest_lrps
@@ -52,8 +55,8 @@ new_ernest_lrps <- function(
 
   elem <- list(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
-    max_loop = max_loop,
+    n_dim = if (is.null(n_dim)) NULL else as.integer(n_dim),
+    max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
 

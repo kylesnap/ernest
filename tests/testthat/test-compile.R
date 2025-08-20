@@ -33,8 +33,9 @@ test_that("Informative error when prior or log. lik. fails completely.", {
   expect_snapshot_error(create_live(bad_prior, 10))
 })
 
-#' @srrstats {BS2.1a} Tests for check_set_live(), which ensures the log lik
-#' and prior specifications are commensurate before a sampling run begins.
+#' @srrstats {BS2.1a} check_set_live() ensures that log_lik produces an expected
+#' output given some output from the prior transformation, ensuring the two
+#' are commensurate. It is run by compile and by ernest_sampler.
 env_bind(
   sampler$live_points,
   unit = matrix(runif(1000), nrow = 500, ncol = 2),
@@ -117,7 +118,6 @@ test_that("compile method initializes live points", {
 
   expect_equal(orig_log_lik, expected_log_lik)
   expect_equal(sampler$live_points$birth, rep(0L, 500))
-  expect_null(sampler$live_points$seed)
   expect_snapshot(sampler)
 })
 

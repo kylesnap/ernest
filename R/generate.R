@@ -14,7 +14,8 @@
 #' current estimated evidence and the remaining evidence. If zero, this
 #' criterion is ignored.
 #' @param show_progress Logical. If `TRUE`, displays a progress spinner and
-#' iteration counter during sampling.
+#' iteration counter during sampling. If `NULL`, then the parameter is inferred
+#' based on the value of the `rlib_message_verbosity` option.
 #'
 #' @returns An object of class `ernest_run`, inheriting from `ernest_sampler`,
 #' with additional components:
@@ -62,6 +63,9 @@
 #' Computation. Bayesian Analysis, 1(4), 833–859.
 #' <https://doi.org/10.1214/06-BA127>
 #'
+#' @srrstats {BS2.12} The `show_progress` indicator controls whether a simple
+#' spinner bar is shown during sampling.
+#'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
@@ -85,8 +89,11 @@ generate.ernest_sampler <- function(
   max_iterations = NULL,
   max_calls = NULL,
   min_logz = 0.05,
-  show_progress = FALSE
+  show_progress = NULL
 ) {
+  if (is.null(show_progress)) {
+    show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
+  }
   check_bool(show_progress)
   c(max_iterations, max_calls, min_logz) %<-%
     check_stopping_criteria(
@@ -107,6 +114,7 @@ generate.ernest_sampler <- function(
 }
 
 #' @method generate ernest_run
+#' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run from the last known set of live points.
 #' @export
 generate.ernest_run <- function(
   x,
@@ -114,8 +122,11 @@ generate.ernest_run <- function(
   max_iterations = NULL,
   max_calls = NULL,
   min_logz = 0.05,
-  show_progress = FALSE
+  show_progress = NULL
 ) {
+  if (is.null(show_progress)) {
+    show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
+  }
   check_bool(show_progress)
   cur_iter <- x$n_iter
   cur_cls <- x$n_calls

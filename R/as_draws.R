@@ -21,6 +21,10 @@
 #'   object (class `c("draws_matrix", "draws", "matrix")`).
 #' * For `as_draws_rvars`, a [posterior::draws_rvars()] object (class
 #'   `c("draws_rvars", "draws", "list")`).
+#' 
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
+#' error message is provided when the user provides an invalid value for
+#' `radial`.
 #'
 #' @seealso
 #' * [posterior::as_draws()] for details on the `draws` object.

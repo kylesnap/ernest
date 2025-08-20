@@ -2,32 +2,29 @@
 % Please edit documentation in R/lrps-class.R, R/rwmh_cube.R
 \name{update_lrps}
 \alias{update_lrps}
-\alias{update_lrps.ernest_lrps}
 \alias{update_lrps.rwmh_cube}
 \title{Update an LRPS}
 \usage{
 update_lrps(x)
 
-\method{update_lrps}{ernest_lrps}(x)
-
 \method{update_lrps}{rwmh_cube}(x)
 }
 \arguments{
-\item{x}{(ernest_lrps) An \code{ernest_lrps} object.}
+\item{x}{An \code{ernest_lrps} object.}
 }
 \value{
-An updated \code{ernest_lrps} object with the same class as \code{x}, but
-perhaps with updated parameters.
+An updated \code{ernest_lrps} object with the same class as \code{x}, possibly
+with updated parameters.
 }
 \description{
-During a nested sampling run, one may seek to update the internal parameters
-of the LRPS based on the sampler's performance or other criteria. You can set
-the frequency of these updates is configured by adjusting the \code{first_update}
-and \code{update_interval} arguments of \code{\link[=ernest_sampler]{ernest_sampler()}}.
+During a nested sampling run, you may wish to update the internal parameters
+of the LRPS based on sampler performance or other criteria. The frequency of
+these updates is set by the \code{first_update} and \code{update_interval} arguments of
+\code{\link[=ernest_sampler]{ernest_sampler()}}.
 
-If you are creating your own subclass of \link{ernest_lrps}, you can subclass this
-method to specify any special update behaviour. The default method simply
-reconstructs the LRPS with the current parameters and resets the likelihood
-call counter in the cache.
+If you are creating your own \link{ernest_lrps} subclass, implement this method to
+specify any special update behaviour. The default method reconstructs the
+LRPS with current parameters and resets the likelihood call counter in the
+cache.
 }
 \keyword{internal}

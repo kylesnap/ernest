@@ -2,32 +2,33 @@
 % Please edit documentation in R/special_priors.R
 \name{create_uniform_prior}
 \alias{create_uniform_prior}
-\title{Specify a prior with Uniformly-distributed marginals}
+\title{Specify a prior with uniformly distributed marginals}
 \usage{
 create_uniform_prior(n_dim, lower = 0, upper = 1, varnames = NULL)
 }
 \arguments{
-\item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
+\item{n_dim}{A positive integer. The number of dimensions of the prior
+distribution.}
 
-\item{lower, upper}{(Numeric vectors) The bounds of the distribution.}
+\item{lower, upper}{Double vectors. Bounds of the distribution.}
 
-\item{varnames}{(optional character vector) A character vector of names for
-the variables in the prior distribution.}
+\item{varnames}{An optional character vector. Names for the variables in the
+prior distribution.}
 }
 \value{
-A \code{uniform_prior}, which is a subclass of \code{ernest_prior} with
-an efficient implementation of the unit hypercube transformation.
+A \code{uniform_prior}, a subclass of \code{ernest_prior} with an efficient
+implementation of the unit hypercube transformation.
 }
 \description{
-A specialization of \code{\link[=create_prior]{create_prior()}}, where the parameter space is
-described by independently distributed uniform marginals.
+A specialisation of \code{\link[=create_prior]{create_prior()}} where the parameter space is
+described by independent uniform marginals.
 }
 \examples{
 prior <- create_uniform_prior(2, lower = c(3, -2), upper = c(5, 4))
 prior$fn(c(0.33, 0.67))
 }
 \seealso{
-Other special priors: 
+Other special_priors: 
 \code{\link{create_normal_prior}()}
 }
-\concept{special priors}
+\concept{special_priors}

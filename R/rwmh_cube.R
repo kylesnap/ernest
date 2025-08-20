@@ -4,29 +4,30 @@
 #' a random walk with a fixed number of steps and an adaptive step
 #' size.
 #'
-#' @param steps (positive integer) Number of steps to take when generating a
+#' @param steps Positive integer. Number of steps to take when generating a
 #' proposal point.
-#' @param target_acceptance (double between 0 and 1) The target acceptance rate
-#' for the sampler.
+#' @param target_acceptance Double between `1 / steps` and 1.0. The target
+#' acceptance rate for the proposed points.
 #'
-#' @returns A list, with class `c("rwmh_cube", "ernest_lrps")`. Can be used with
-#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling run.
+#' @returns A list with class `c("rwmh_cube", "ernest_lrps")`. Can be used with
+#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
+#' run.
 #'
 #' @details
-#' Calling [update_lrps()] will build a new proposal distribution based on the
+#' Calling [update_lrps()] builds a new proposal distribution based on the
 #' acceptance rate of the previous run. The step size \eqn{\epsilon} is updated
 #' using a Newton-like method, where the current acceptance rate \eqn{a_{cur}}
 #' is used to target the acceptance rate \eqn{a^*}:
-#' \deqn{\epsilon_{new}=\epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
+#' \deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
 #'
 #' @references
-#' * Original implementation: Skilling, J. (2006). Nested Sampling for General
-#' Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
-#' <https://doi.org/10.1214/06-BA127>
-#' * Adaptive step size implementation: Speagle, J. S. (2020). Dynesty: A
-#' Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and
-#' Evidences. Monthly Notices of the Royal Astronomical Society, 493, 3132–3158.
-#' <https://doi.org/10.1093/mnras/staa278>
+#' * Skilling, J. (2006). Nested Sampling for General
+#'   Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+#'   <https://doi.org/10.1214/06-BA127>
+#' * Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
+#'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+#'   Royal Astronomical Society, 493, 3132–3158.
+#'   <https://doi.org/10.1093/mnras/staa278>
 #'
 #' @export
 rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
@@ -36,10 +37,14 @@ rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
   )
 }
 
-#' Format method for rwmh_cube
-#' @param x A `rwmh_cube`
+#' Format a rwmh_cube LRPS object for printing
+#'
+#' Formats a `rwmh_cube` LRPS object for display in the console.
+#'
+#' @param x A `rwmh_cube` object.
 #' @param ... Ignored.
-#' @returns A string
+#'
+#' @return A character string describing the object.
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
@@ -56,10 +61,14 @@ format.rwmh_cube <- function(x, ...) {
 #'
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
-#' @param unit_log_fn,n_dim,max_loop,cache,steps,target_acceptance
-#' See [new_ernest_lrps] and [rwmh_cube()].
+#' @param unit_log_fn Function for computing log-likelihood in unit space.
+#' @param n_dim Integer. Number of dimensions.
+#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param cache Optional cache environment.
+#' @param steps Integer. Number of steps in the random walk.
+#' @param target_acceptance Numeric. Target acceptance rate for proposals.
 #'
-#' @returns An LRPS specification, a list with class
+#' @return An LRPS specification, a list with class
 #' `c("rwmh_cube", "ernest_lrps")`.
 #' @noRd
 new_rwmh_cube <- function(

@@ -1,13 +1,14 @@
-#' Create a set of live points for a nested sampling run
+#' Compile a set of live points for nested sampling
 #'
-#' Prepares an object for nested sampling by validating and
-#' (re)generating its set of live points. This ensures the sampler is viable
-#' before new live points are generated during the nested sampling algorithm.
+#' Prepares an object for nested sampling by validating and (re)generating its
+#' set of live points. This ensures the sampler is viable before new live points
+#' are generated during the nested sampling algorithm.
 #'
-#' @param object An object of class [ernest_sampler] or [ernest_run].
-#' * `ernest_sampler`: Prepares a new sampler with a fresh set of live points.
-#' * `ernest_run`: Regenerates live points from the previously stored results,
-#' unless `clear = TRUE`.
+#' @param object An [ernest_sampler] or [ernest_run] object.
+#'   * For `ernest_sampler`: Prepares a new sampler with a fresh set of live
+#'     points.
+#'   * For `ernest_run`: Regenerates live points from previous results, unless
+#'     `clear = TRUE`.
 #' @inheritParams rlang::args_dots_empty
 #' @param seed An integer, `NULL`, or `NA`. Controls the random number
 #' generator:
@@ -19,9 +20,8 @@
 #' @param clear Logical. If `TRUE`, clears results from previous runs before
 #' compiling. If `FALSE`, retains previous results and validates live points.
 #'
-#' @details
-#' The `compile()` function validates the set of live points in the sampler or
-#' run, ensuring that:
+#' @details `compile()` validates the set of live points in the sampler or run,
+#' ensuring:
 #'
 #' * Each live point is within the unit hypercube.
 #' * The likelihood function returns valid values (finite double or `-Inf`) for
@@ -37,9 +37,9 @@
 #' `live_points` environment.
 #'
 #' @seealso
-#' * [ernest_sampler()] describes how to create an `ernest_sampler` object.
-#' * [generate()] describes the nested sampling algorithm and the `ernest_run`
-#' object.
+#' * [ernest_sampler()] for creating an `ernest_sampler` object.
+#' * [generate()] for running nested sampling and details on the `ernest_run`
+#'   object.
 #'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
@@ -126,12 +126,13 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   object
 }
 
-#' Create a live sample with `n` live points.
+#' Create a live sample with n_points live points
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param n_points The number of live points to generate.
+#' @param n_points Integer. The number of live points to generate.
 #' @param call The calling environment for error handling.
-#' @return A list containing `unit`, `point`, and `log_lik` matrices/vectors.
+#'
+#' @return A list containing `unit`, `point`, and `log_lik` matrices or vectors.
 #' @noRd
 create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
@@ -146,19 +147,13 @@ create_live <- function(lrps, n_points, call = caller_env()) {
   )
 }
 
-#' Validate an existing nested sample for correctness.
-#'
-#' @param sampler The ernest_sampler object undergoing validation.
+#' Validate a set of live points for correctness
+#' 
+#' @param sampler The `ernest_sampler` object undergoing validation.
 #' @param call The calling environment for error handling.
 #'
-#' @srrstats {G2.13, G2.14, BS3.0} Before running, compile checks for uncaught
-#' NA, NaN, or Inf values produced by the user inputs `log_lik` and `prior`.
-#' @srrstats {G2.0, BS2.1, BS2.2, BS2.4} Compile checks that `prior`
-#' creates parameters that are valid inputs to `log_lik`. Also warns when the
-#' log-likelihood points surface contains flatness.
-#'
-#' @return Throws an error or warning if validation fails; otherwise, returns
-#' NULL.
+#' @return Returns NULL invisibly if validation passes, otherwise throws an
+#' error or warning.
 #' @noRd
 check_live_set <- function(sampler, call = caller_env()) {
   n_points <- sampler$n_points

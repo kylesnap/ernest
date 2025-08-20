@@ -1,17 +1,16 @@
-#' INPUT VALIDATION FUNCTIONS --------
+#' Check the class of an object
 #'
-#' @srrstats {G2.1, G2.2, G2.4, G2.4a, G2.4b} `These checkers validate and cast
-#' unidimensional integer and double input.
-#' @noRd
-NULL
-
-#' Check class of an object
+#' Validates that an object inherits from at least one of the specified classes.
 #'
-#' @param x An object.
-#' @param class A character vector of classes.
-#' @param allow_null,arg,call See stop_input_type.
-#' @returns NULL if `x` contains class, or an informative error message.
-#' @importFrom rlang inherits_any
+#' @param x An object to check.
+#' @param class A character vector of allowed classes.
+#' @param ... Additional arguments passed to error handlers.
+#' @param allow_null Logical. If TRUE, allows NULL values.
+#' @param arg Argument name for error messages.
+#' @param call Call environment for error messages.
+#'
+#' @return Returns NULL invisibly if `x` inherits from one of the specified
+#' classes, otherwise throws an informative error.
 #' @noRd
 check_class <- function(
   x,
@@ -39,13 +38,22 @@ check_class <- function(
   )
 }
 
-#' Check that `x` is a double matrix.
-#' @param x An object.
-#' @param nrow Expected number of columns.
+#' Check that an object is a double matrix
+#'
+#' Validates that an object is a double matrix with specified dimensions
+#' and within given bounds.
+#'
+#' @param x An object to check.
+#' @param nrow Expected number of rows.
 #' @param ncol Expected number of columns.
-#' @param arg,call See stop_input_type.
-#' @param lower,upper Exclusive boundaries; recycled to ncol-length vector.
-#' @returns NULL if `x` conforms, or an informative error message.
+#' @param lower Numeric. Exclusive lower bounds, recycled to length `ncol`.
+#' @param upper Numeric. Exclusive upper bounds, recycled to length `ncol`.
+#' @param ... Additional arguments passed to error handlers.
+#' @param arg Argument name for error messages.
+#' @param call Call environment for error messages.
+#'
+#' @return Returns NULL invisibly if `x` is a valid double matrix,
+#' otherwise throws an informative error.
 #' @noRd
 check_matrix <- function(
   x,
@@ -105,12 +113,20 @@ check_matrix <- function(
   invisible(NULL)
 }
 
-#' Check that `x` is a double vector
-#' @param x An object.
-#' @param size Expected length.
-#' @param arg,call See stop_input_type.
-#' @param allow_neg_inf Can `x` contain `-Inf`?
-#' @returns NULL if `x` conforms, or an informative error message.
+#' Check that an object is a double vector
+#'
+#' Validates that an object is a double vector of a specified length and value
+#' constraints.
+#'
+#' @param x An object to check.
+#' @param size Expected length of the vector.
+#' @param allow_neg_inf Logical. If FALSE, `-Inf` values are not allowed.
+#' @param ... Additional arguments passed to error handlers.
+#' @param arg Argument name for error messages.
+#' @param call Call environment for error messages.
+#'
+#' @return Returns NULL invisibly if `x` is a valid double vector, otherwise
+#' throws an informative error.
 #' @noRd
 check_double <- function(
   x,
@@ -150,9 +166,14 @@ check_double <- function(
   invisible(NULL)
 }
 
-#' Transform a function so that it can be applied over a matrix of inputs.
-#' @param fn Function.
-#' @return A function that can be applied over vectors.
+#' Transform a function for rowwise application
+#'
+#' Converts a function so it can be applied rowwise to a matrix or directly to
+#' a vector.
+#'
+#' @param fn A function to transform.
+#'
+#' @return A function that applies `fn` to each row of a matrix or to a vector.
 #' @noRd
 as_rowwise_fn <- function(fn) {
   x <- NULL
@@ -171,10 +192,17 @@ as_rowwise_fn <- function(fn) {
   )
 }
 
-#' Check that a list is all named and that names are unique
-#' @param x The list
-#' @param arg,call See stop_input_type.
-#' @return Either NULL, invisibly, or an error message.
+#' Check that a list has unique, non-empty names
+#'
+#' Validates that all elements of a list are named and that names are unique.
+#'
+#' @param x A list to check.
+#' @param ... Additional arguments passed to error handlers.
+#' @param arg Argument name for error messages.
+#' @param call Call environment for error messages.
+#'
+#' @return Returns NULL invisibly if all names are unique and non-empty,
+#' otherwise throws an informative error.
 #' @noRd
 check_unique_names <- function(
   x,
@@ -204,22 +232,29 @@ check_unique_names <- function(
   invisible(NULL)
 }
 
-#' Inject a list into a vector.
-#' @param x A list to inject.
-#' @return A vector with the elements of the list.
+#' Inject a list into a vector
+#'
+#' Concatenates the elements of a list into a single vector.
+#'
+#' @param x A list to concatenate.
+#'
+#' @return A vector containing all elements of the list.
 #' @noRd
 list_c <- function(x) {
   inject(c(!!!x))
 }
 
-#' Calculate the HDI of an rvar
+#' Calculate the highest density credible interval (HDI) of an rvar
+#'
+#' Computes the HDI for each element of an rvar object containing posterior
+#' draws.
 #'
 #' @param object An rvar object containing draws.
-#' @param width The width of the HDI to compute (default is 0.
-#' @returns A data.frame with the median, lower and upper bounds of the HDI,
+#' @param width Numeric. The width of the HDI to compute (default is 0.95).
+#' @param ... Additional arguments (currently unused).
 #'
-#' @author Based on implementation from
-#' https://github.com/mikemeredith/HDInterval
+#' @return A data frame with the median, lower, and upper bounds of the HDI
+#' for each element.
 #' @noRd
 hdci <- function(object, width = 0.95, ...) {
   if (!inherits(object, "rvar")) {
@@ -258,12 +293,15 @@ hdci <- function(object, width = 0.95, ...) {
   )
 }
 
-#' Estimate the density of the posterior weights across the log volumes
-#' @param log_volume,weight rvars of log_volume draws and corresponding
-#' normalized posterior weights.
+#' Estimate the density of posterior weights across log-volumes
 #'
-#' @returns A data.frame containing 128 values of log volume and an rvar of
-#' densities
+#' Computes the density of posterior weights for a range of log-volume values.
+#'
+#' @param log_volume An rvar of log-volume draws.
+#' @param weight An rvar of normalized posterior weights.
+#'
+#' @return A data frame with 128 log-volume values and an rvar of corresponding
+#' densities.
 #' @noRd
 get_density <- function(log_volume, weight) {
   min_vol <- min(mean(log_volume))
@@ -297,14 +335,18 @@ get_density <- function(log_volume, weight) {
   data.frame("log_volume" = log_vol_spaced, "density" = density_rvar)
 }
 
-#' Interpolate evidence across a range of log volumes
-#' @param log_volume,weight rvars of log_volume draws and corresponding
-#' normalized posterior weights.
-#' @param The breaks of log_volume at which to interpolate the evidence
-#' estimates.
+#' Interpolate evidence across log-volume values
 #'
-#' @returns An rvar with the same ndraws as `log_volume` and length of
-#' `log_volume_out`.
+#' Interpolates evidence estimates across a specified range of log-volume
+#' values.
+#'
+#' @param log_volume An rvar of log-volume draws.
+#' @param log_evidence An rvar of log-evidence draws.
+#' @param log_volume_out Numeric vector of log-volume values at which to
+#' interpolate.
+#'
+#' @return An rvar with interpolated evidence values at each specified
+#' log-volume.
 #' @noRd
 interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
   log_vol_draws <- posterior::draws_of(log_volume)
@@ -329,10 +371,13 @@ interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
 
 # Helpers for running nested sampling ---
 
-#' Find the indices of the smallest `n` values in a vector.
+#' Find indices of the smallest n values in a vector
+#'
+#' Returns the indices of the smallest `n` values in a numeric vector.
 #'
 #' @param x A numeric vector to search.
-#' @param n The number of smallest values to find.
+#' @param n Integer. The number of smallest values to find.
+#'
 #' @return An integer vector of indices corresponding to the smallest values.
 #' @noRd
 which_minn <- function(x, n = 1L) {
@@ -345,12 +390,16 @@ which_minn <- function(x, n = 1L) {
 
 # Helpers for computing and reporting results -----
 
-#' Compute the nested sampling integral and related statistics.
+#' Compute the nested sampling integral and statistics
 #'
-#' @param log_lik A vector of log-likelihoods in descending order.
-#' @param log_volume A vector of log-volumes in ascending order.
+#' Calculates the nested sampling integral and related statistics from
+#' log-likelihoods and log-volumes.
 #'
-#' @return A list of calculations.
+#' @param log_lik Numeric vector of log-likelihoods in descending order.
+#' @param log_volume Numeric vector of log-volumes in ascending order.
+#'
+#' @return A list containing log-likelihoods, log-volumes, log-weights,
+#' log-evidence, log-evidence variance, and information.
 #' @noRd
 compute_integral <- function(log_lik, log_volume) {
   if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
@@ -382,11 +431,15 @@ compute_integral <- function(log_lik, log_volume) {
   )
 }
 
-#' Estimate log vol for the live points
+#' Estimate log-volume for live points
 #'
-#' @param dead_log_vol A vector of log volumes for dead points.
-#' @param n_points The number of live points to estimate log volume for.
-#' @return A vector of log volumes for the live points.
+#' Estimates the log-volume for live points given the log-volumes of dead
+#' points.
+#'
+#' @param dead_log_vol Numeric vector of log-volumes for dead points.
+#' @param n_points Integer. The number of live points to estimate.
+#'
+#' @return A numeric vector of log-volumes for the live points.
 #' @noRd
 get_live_vol <- function(dead_log_vol, n_points) {
   last_vol <- dead_log_vol[[vctrs::vec_size(dead_log_vol)]]

@@ -33,62 +33,59 @@ between runs.
 compiling. If \code{FALSE}, retains previous results and validates live points.}
   }}
 
-\item{max_iterations}{An optional strictly positive integer. The maximum
-number of iterations to perform. If left \code{NULL}, this criterion is ignored.}
+\item{max_iterations}{Optional positive integer. The maximum number of
+iterations to perform. If \code{NULL}, this criterion is ignored.}
 
-\item{max_calls}{An optional strictly positive integer. The maximum number
-of calls to the likelihood function. If set to \code{Inf}, this criterion is
-ignored.}
+\item{max_calls}{Optional positive integer. The maximum number of calls to
+the likelihood function. If \code{Inf}, this criterion is ignored.}
 
-\item{min_logz}{A non-negative double. The minimum log-ratio between the
-current estimated evidence and the remaining evidence. If set to zero, this
+\item{min_logz}{Non-negative double. The minimum log-ratio between the
+current estimated evidence and the remaining evidence. If zero, this
 criterion is ignored.}
 
 \item{show_progress}{Logical. If \code{TRUE}, displays a progress spinner and
 iteration counter during sampling.}
 }
 \value{
-An object of class \code{ernest_run}, which inherits from \code{ernest_sampler} and
-contains these additional components:
+An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},
+with additional components:
 \itemize{
 \item \code{n_iter}: Integer. Number of iterations.
 \item \code{n_calls}: Integer. Total number of likelihood function calls.
-\item \code{log_lik}: \code{double(n_iter + n_points)}. The
-log-likelihoods for each sample.
-\item \code{log_volume}: \code{double(n_iter + n_points)}. The estimated
-log-prior volumes at each iteration.
-\item \code{log_weight}: \code{double(n_iter + n_points)}. The
-unnormalized log-weights for each sample.
-\item \code{log_evidence}: \code{double(n_iter + n_points)}. The
-cumulative log-evidence estimates at each iteration.
-\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. The
-variance of the log-evidence estimate at each iteration.
-\item \code{information}: \code{double(n_iter + n_points)}. The KL
-divergence between the prior and posterior, estimated at each iteration.
-\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. The parameter
-values of each sample.
-\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. The
-parameter values of each sample, in their unit hypercube representation.
-\item \code{id}: \code{integer(n_iter + n_points)}. The unique integer identifiers for each
+\item \code{log_lik}: \code{double(n_iter + n_points)}. Log-likelihoods for each sample.
+\item \code{log_volume}: \code{double(n_iter + n_points)}. Estimated log-prior volumes at
+each iteration.
+\item \code{log_weight}: \code{double(n_iter + n_points)}. Unnormalised log-weights for
+each sample.
+\item \code{log_evidence}: \code{double(n_iter + n_points)}. Cumulative log-evidence
+estimates at each iteration.
+\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. Variance of the
+log-evidence estimate at each iteration.
+\item \code{information}: \code{double(n_iter + n_points)}. KL divergence between the prior
+and posterior, estimated at each iteration.
+\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+values for each sample.
+\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+values for each sample in unit hypercube representation.
+\item \code{id}: \code{integer(n_iter + n_points)}. Unique integer identifiers for each
 sample from the live set (ranging from 1 to \code{n_points}).
-\item \code{points}: \code{integer(n_iter + n_points)}. The number of live points present
-at each iteration.
-\item \code{calls}: \code{integer(n_iter + n_points)}. The number of calls used to generate
-a new live point at each iteration.
-\item \code{birth}: \code{integer(n_iter + n_points)}. The iteration at which each sample
-was first created (ranging from 0 to \code{n_iter}).
+\item \code{points}: \code{integer(n_iter + n_points)}. Number of live points present at
+each iteration.
+\item \code{calls}: \code{integer(n_iter + n_points)}. Number of calls used to generate a
+new live point at each iteration.
+\item \code{birth}: \code{integer(n_iter + n_points)}. Iteration at which each sample was
+first created (ranging from 0 to \code{n_iter}).
 }
 }
 \description{
 Executes the nested sampling algorithm, iteratively replacing the worst live
-point with a new sample from a likelihood-restricted prior, until a stopping
+point with a new sample from a likelihood-restricted prior until a stopping
 criterion is met.
 }
 \details{
 At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz} must
-indicated a valid stopping criterion. Setting \code{min_logz} to zero while
-not changing \code{max_iterations} or \code{max_calls} from their defaults will cause
-an error.
+specify a valid stopping criterion. Setting \code{min_logz} to zero while leaving
+\code{max_iterations} and \code{max_calls} at their defaults will result in an error.
 
 If \code{x} is an \code{ernest_run} object, the stopping criteria are checked against
 the current state of the run. An error is thrown if the stopping criteria
@@ -105,10 +102,10 @@ ll_fn <- function(x) -sum(x^2)
 sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 sampler
 
-# Stop sampling after a set number of iterations or calls to the lik. func.
+# Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
 
-# The final number of calls may be larger than `max_calls`, as `generate`
+# The final number of calls may exceed `max_calls`, as `generate`
 # only checks the number of calls when removing a live point.
 generate(sampler, max_calls = 2600)
 
@@ -116,7 +113,7 @@ generate(sampler, max_calls = 2600)
 \dontrun{ generate(sampler) }
 }
 \references{
-Skilling, J. (2006). Nested Sampling for General
-Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+Skilling, J. (2006). Nested Sampling for General Bayesian
+Computation. Bayesian Analysis, 1(4), 833–859.
 \url{https://doi.org/10.1214/06-BA127}
 }

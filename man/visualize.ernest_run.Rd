@@ -12,41 +12,36 @@
 \item{...}{
   Arguments passed on to \code{\link[=as_draws.ernest_run]{as_draws.ernest_run}}
   \describe{
-    \item{\code{units}}{Case-sensitive string. The scale in which to return the
-sampled points:
+    \item{\code{units}}{Case-sensitive string. The scale for the sampled points:
 \itemize{
-\item \code{"original"}: Points are expressed on the scale of the prior space.
-\item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
-hypercube.
+\item \code{"original"}: Points are on the scale of the prior space.
+\item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
-    \item{\code{radial}}{Logical. Whether to return an additional column \code{.radial},
-containing the radial coordinate (i.e., the squared sum of squares) for
-each sampled point.}
+    \item{\code{radial}}{Logical. If \code{TRUE}, returns an additional column \code{.radial}
+containing the radial coordinate (i.e., the Euclidean norm) for each
+sampled point.}
   }}
 
-\item{type}{A case-sensitive string. The type of plot to create.
+\item{type}{Case-sensitive string. The type of plot to create:
 \itemize{
-\item \code{"density"}: Shows the posterior density of each distribution.
+\item \code{"density"}: Shows the posterior density of each parameter.
 \item \code{"trace"}: Shows the distribution of points along estimates of the log
 prior volume.
 }}
 
-\item{vars}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> The variables to
-plot from the run. If left \code{NULL}, every variable is plotted.}
+\item{vars}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> Variables to
+plot from the run. If \code{NULL}, all variables are plotted.}
 
-\item{plot}{Logical, whether to return a \code{ggplot} of the visualization, or
-a \code{tibble} of the data used to create the plot.}
+\item{plot}{Logical. If \code{TRUE}, returns a \code{ggplot} of the visualisation;
+if \code{FALSE}, returns a \code{tibble} of the data used to create the plot.}
 }
 \value{
-Either a \code{ggplot} object if \code{plot = TRUE}, or a \code{tibble}.
+A \code{ggplot} object if \code{plot = TRUE}, otherwise a \code{tibble}.
 }
 \description{
 Create a plot of the posterior distributions from a nested sampling run,
-or trace the evolution of the discarded live points along the log prior
+or trace the evolution of discarded live points along the log prior
 volume.
-}
-\note{
-This method requires the \code{ggdist} and \code{tidyselect} optional packages.
 }
 \examples{
 # Load example run
@@ -66,6 +61,6 @@ visualize(
 )
 }
 \seealso{
-\code{\link[=plot]{plot()}} for visualizing the evidence estimates from an
+\code{\link[=plot]{plot()}} for visualising evidence estimates from an
 \code{ernest_run}.
 }

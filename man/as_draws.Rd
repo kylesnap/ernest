@@ -17,33 +17,30 @@
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{units}{Case-sensitive string. The scale in which to return the
-sampled points:
+\item{units}{Case-sensitive string. The scale for the sampled points:
 \itemize{
-\item \code{"original"}: Points are expressed on the scale of the prior space.
-\item \code{"unit_cube"}: Points are expressed on the scale of the (0-1)-unit
-hypercube.
+\item \code{"original"}: Points are on the scale of the prior space.
+\item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
 
-\item{radial}{Logical. Whether to return an additional column \code{.radial},
-containing the radial coordinate (i.e., the squared sum of squares) for
-each sampled point.}
+\item{radial}{Logical. If \code{TRUE}, returns an additional column \code{.radial}
+containing the radial coordinate (i.e., the Euclidean norm) for each
+sampled point.}
 }
 \value{
-A \link[posterior:draws]{draws} object, containing the posterior samples
-from the nested sampling run. Each samples are also bound to their importance
-weight (in log. units).
+A \link[posterior:draws]{draws} object containing posterior samples
+from the nested sampling run, with importance weights (in log units).
 
-The exact type of the returned object depends on the function used:
+The returned object type depends on the function used:
 \itemize{
 \item For \code{as_draws} and \code{as_draws_matrix}, a \code{\link[posterior:draws_matrix]{posterior::draws_matrix()}}
-object, which has classes \code{c("draws_matrix", "draws", "matrix")}.
-\item For \code{as_draws_rvars}, a \code{\link[posterior:draws_rvars]{posterior::draws_rvars()}} object, which has
-classes \code{c("draws_rvars", "draws", "list")}.
+object (class \code{c("draws_matrix", "draws", "matrix")}).
+\item For \code{as_draws_rvars}, a \code{\link[posterior:draws_rvars]{posterior::draws_rvars()}} object (class
+\code{c("draws_rvars", "draws", "list")}).
 }
 }
 \description{
-Try to transform an \link{ernest_run} to a format supported by the
+Convert an \link{ernest_run} to a format supported by the
 \link[posterior:posterior-package]{posterior} package.
 }
 \examples{
@@ -55,28 +52,28 @@ data(example_run)
 dm <- as_draws(example_run)
 weights(dm) |> head()
 
-# Summarize points after resampling
+# Summarise points after resampling
 dm |>
- resample_draws() |>
- summarize_draws()
+  resample_draws() |>
+  summarize_draws()
 
-# View the radial coordinate in the unit-space over the run
+# View the radial coordinate in unit space over the run
 dm_rad <- as_draws_rvars(
- example_run,
- units = "unit_cube",
- radial = TRUE
+  example_run,
+  units = "unit_cube",
+  radial = TRUE
 )
 plot(
   x = example_run$log_volume,
   y = draws_of(dm_rad$.radial),
-  xlab = "Log volume",
+  xlab = "Log-volume",
   ylab = "Radial coordinate"
 )
 }
 \seealso{
 \itemize{
-\item \code{\link[posterior:draws]{posterior::as_draws()}} describes the \code{draws} object.
-\item \code{\link[posterior:resample_draws]{posterior::resample_draws()}} uses the log weights within ernest's output
+\item \code{\link[posterior:draws]{posterior::as_draws()}} for details on the \code{draws} object.
+\item \code{\link[posterior:resample_draws]{posterior::resample_draws()}} uses the log weights from ernest's output
 to produce a weighted posterior sample.
 }
 }

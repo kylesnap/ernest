@@ -29,7 +29,6 @@ test_that("Trace tables", {
 })
 
 test_that("Density plot", {
-  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
   skip_on_cran()
 
   set.seed(42)

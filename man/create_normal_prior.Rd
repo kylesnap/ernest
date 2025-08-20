@@ -2,7 +2,7 @@
 % Please edit documentation in R/special_priors.R
 \name{create_normal_prior}
 \alias{create_normal_prior}
-\title{Specify a prior with normally-distributed marginals.}
+\title{Specify a prior with normally distributed marginals}
 \usage{
 create_normal_prior(
   n_dim,
@@ -14,26 +14,26 @@ create_normal_prior(
 )
 }
 \arguments{
-\item{n_dim}{(positive integer) The dimensionality of the prior distribution.}
+\item{n_dim}{A positive integer. The number of dimensions of the prior
+distribution.}
 
 \item{mean}{vector of means.}
 
 \item{sd}{vector of standard deviations.}
 
-\item{varnames}{(optional character vector) A character vector of names for
-the variables in the prior distribution.}
+\item{varnames}{An optional character vector. Names for the variables in the
+prior distribution.}
 
-\item{lower, upper}{Double vectors. The values to retain from a
-truncated distribution. Recycled to length \code{n_dim}.}
+\item{lower, upper}{Double vectors. Bounds for a truncated distribution.
+Recycled to length \code{n_dim}.}
 }
 \value{
-A \code{normal_prior}, which is a subclass of \code{ernest_prior} with
-an efficient implementation of the unit hypercube transformation.
+A \code{normal_prior}, a subclass of \code{ernest_prior} with an efficient
+implementation of the unit hypercube transformation.
 }
 \description{
-A specialization of \code{\link[=create_prior]{create_prior()}}, where the parameter space is
-described by independently distributed normal variables that are possibly
-truncated.
+A specialisation of \code{\link[=create_prior]{create_prior()}} where the parameter space is
+described by independent normal variables, possibly truncated.
 }
 \examples{
 prior <- create_normal_prior(3)
@@ -41,13 +41,11 @@ prior$fn(c(0.25, 0.5, 0.75))
 }
 \seealso{
 \itemize{
-\item \code{\link[=create_prior]{create_prior()}} for a richer explanation of the \code{ernest_prior}
-object.
-\item \code{\link[truncnorm:dtruncnorm]{truncnorm::qtruncnorm()}} for the implementation of the truncated normal
-quantile function.
+\item \code{\link[=create_prior]{create_prior()}} for more on the \code{ernest_prior} object.
+\item \code{\link[truncnorm:dtruncnorm]{truncnorm::qtruncnorm()}} for the truncated normal quantile function.
 }
 
-Other special priors: 
+Other special_priors: 
 \code{\link{create_uniform_prior}()}
 }
-\concept{special priors}
+\concept{special_priors}

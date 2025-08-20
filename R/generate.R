@@ -1,58 +1,53 @@
 #' Run nested sampling to estimate Bayesian evidence
 #'
 #' Executes the nested sampling algorithm, iteratively replacing the worst live
-#' point with a new sample from a likelihood-restricted prior, until a stopping
+#' point with a new sample from a likelihood-restricted prior until a stopping
 #' criterion is met.
 #'
 #' @param x An object of class `ernest_sampler` or `ernest_run`.
 #' @inheritDotParams compile.ernest_run -object
-#' @param max_iterations An optional strictly positive integer. The maximum
-#' number of iterations to perform. If left `NULL`, this criterion is ignored.
-#' @param max_calls An optional strictly positive integer. The maximum number
-#' of calls to the likelihood function. If set to `Inf`, this criterion is
-#' ignored.
-#' @param min_logz A non-negative double. The minimum log-ratio between the
-#' current estimated evidence and the remaining evidence. If set to zero, this
+#' @param max_iterations Optional positive integer. The maximum number of
+#' iterations to perform. If `NULL`, this criterion is ignored.
+#' @param max_calls Optional positive integer. The maximum number of calls to
+#' the likelihood function. If `Inf`, this criterion is ignored.
+#' @param min_logz Non-negative double. The minimum log-ratio between the
+#' current estimated evidence and the remaining evidence. If zero, this
 #' criterion is ignored.
 #' @param show_progress Logical. If `TRUE`, displays a progress spinner and
 #' iteration counter during sampling.
 #'
-#' @returns
-#' An object of class `ernest_run`, which inherits from `ernest_sampler` and
-#' contains these additional components:
+#' @returns An object of class `ernest_run`, inheriting from `ernest_sampler`,
+#' with additional components:
 #'
 #' * `n_iter`: Integer. Number of iterations.
 #' * `n_calls`: Integer. Total number of likelihood function calls.
-#' * `log_lik`: `double(n_iter + n_points)`. The
-#' log-likelihoods for each sample.
-#' * `log_volume`: `double(n_iter + n_points)`. The estimated
-#' log-prior volumes at each iteration.
-#' * `log_weight`: `double(n_iter + n_points)`. The
-#' unnormalized log-weights for each sample.
-#' * `log_evidence`: `double(n_iter + n_points)`. The
-#' cumulative log-evidence estimates at each iteration.
-#' * `log_evidence_var`: `double(n_iter + n_points)`. The
-#' variance of the log-evidence estimate at each iteration.
-#' * `information`: `double(n_iter + n_points)`. The KL
-#' divergence between the prior and posterior, estimated at each iteration.
-#' * `samples`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. The parameter
-#' values of each sample.
-#' * `samples_unit`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. The
-#' parameter values of each sample, in their unit hypercube representation.
-#' * `id`: `integer(n_iter + n_points)`. The unique integer identifiers for each
-#' sample from the live set (ranging from 1 to `n_points`).
-#' * `points`: `integer(n_iter + n_points)`. The number of live points present
-#' at each iteration.
-#' * `calls`: `integer(n_iter + n_points)`. The number of calls used to generate
-#' a new live point at each iteration.
-#' * `birth`: `integer(n_iter + n_points)`. The iteration at which each sample
-#' was first created (ranging from 0 to `n_iter`).
+#' * `log_lik`: `double(n_iter + n_points)`. Log-likelihoods for each sample.
+#' * `log_volume`: `double(n_iter + n_points)`. Estimated log-prior volumes at
+#'   each iteration.
+#' * `log_weight`: `double(n_iter + n_points)`. Unnormalised log-weights for
+#'   each sample.
+#' * `log_evidence`: `double(n_iter + n_points)`. Cumulative log-evidence
+#'   estimates at each iteration.
+#' * `log_evidence_var`: `double(n_iter + n_points)`. Variance of the
+#'   log-evidence estimate at each iteration.
+#' * `information`: `double(n_iter + n_points)`. KL divergence between the prior
+#'   and posterior, estimated at each iteration.
+#' * `samples`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. Parameter
+#'   values for each sample.
+#' * `samples_unit`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. Parameter
+#'   values for each sample in unit hypercube representation.
+#' * `id`: `integer(n_iter + n_points)`. Unique integer identifiers for each
+#'   sample from the live set (ranging from 1 to `n_points`).
+#' * `points`: `integer(n_iter + n_points)`. Number of live points present at
+#'   each iteration.
+#' * `calls`: `integer(n_iter + n_points)`. Number of calls used to generate a
+#'   new live point at each iteration.
+#' * `birth`: `integer(n_iter + n_points)`. Iteration at which each sample was
+#'   first created (ranging from 0 to `n_iter`).
 #'
-#' @details
-#' At least one of `max_iterations`, `max_calls`, or `min_logz` must
-#' indicated a valid stopping criterion. Setting `min_logz` to zero while
-#' not changing `max_iterations` or `max_calls` from their defaults will cause
-#' an error.
+#' @details At least one of `max_iterations`, `max_calls`, or `min_logz` must
+#' specify a valid stopping criterion. Setting `min_logz` to zero while leaving
+#' `max_iterations` and `max_calls` at their defaults will result in an error.
 #'
 #' If `x` is an `ernest_run` object, the stopping criteria are checked against
 #' the current state of the run. An error is thrown if the stopping criteria
@@ -63,27 +58,20 @@
 #' remaining evidence is sufficiently small compared to the accumulated
 #' evidence.
 #'
-#' @references Skilling, J. (2006). Nested Sampling for General
-#' Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
+#' @references Skilling, J. (2006). Nested Sampling for General Bayesian
+#' Computation. Bayesian Analysis, 1(4), 833–859.
 #' <https://doi.org/10.1214/06-BA127>
 #'
-#' @srrstats {BS4.3, BS4.4, BS4.5} Ernest defaults to using `min_logz` to
-#' halt the nested sampling loop when the remaining evidence in the unexplored
-#' parameter space is sufficiently small. `max_iterations` is used to prevent
-#' infinite loops when `min_logz` cannot be reached.
-#' @srrstats {BS1.3, BS1.3a, BS2.8} Describes the stopping criteria used for
-#' nested sampling, and details how the results of previous runs can be
-#' used as starting points for subsequent runs.
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 #' sampler
 #'
-#' # Stop sampling after a set number of iterations or calls to the lik. func.
+#' # Stop sampling after a set number of iterations or likelihood calls.
 #' generate(sampler, max_iterations = 100)
 #'
-#' # The final number of calls may be larger than `max_calls`, as `generate`
+#' # The final number of calls may exceed `max_calls`, as `generate`
 #' # only checks the number of calls when removing a live point.
 #' generate(sampler, max_calls = 2600)
 #'
@@ -161,12 +149,19 @@ generate.ernest_run <- function(
   new_ernest_run(x, results)
 }
 
-#' Check the stopping criteria for a proposed nested sampling run
-#' @param max_iterations,max_calls,min_logz User-requested stopping values
-#' @param cur_it,cur_cls,d_logz Minimum stopping values derived from
-#' previous runs, if available.
-#' @param call Contextual error info.
-#' @returns A named vector of stopping criteria.
+#' Check and validate stopping criteria for nested sampling
+#'
+#' @param max_iterations Maximum number of iterations to perform.
+#' @param max_calls Maximum number of likelihood function calls.
+#' @param min_logz Minimum log-ratio between current estimated evidence and
+#' remaining evidence.
+#' @param cur_it Current iteration.
+#' @param cur_cls Current number of likelihood calls.
+#' @param d_logz Current log-ratio for evidence.
+#' @param call Environment for error reporting.
+#'
+#' @return A named vector of stopping criteria: `max_iterations`,
+#' `max_calls`, and `min_logz`.
 #' @noRd
 check_stopping_criteria <- function(
   max_iterations,

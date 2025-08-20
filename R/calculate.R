@@ -8,17 +8,17 @@
 #' @inheritParams rlang::args_dots_empty
 #' @param ndraws An optional positive integer. The number of log-volume
 #' sequences to simulate. If equal to zero, no simulations will be made, and a
-#' one draw vector of log volumes are produced from the estimates contained in
+#' one draw vector of log-volumes are produced from the estimates contained in
 #' `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used (default 4000).
 #'
 #' @returns A [tibble::tibble()], containing `n_iter + n_points` rows
 #' and several columns:
 #'
 #' * `log_lik`: The log-likelihood of the model.
-#' * `log_volume`: The log volume of the prior space.
+#' * `log_volume`: The log-volume of the prior space.
 #' * `log_weight`: The log weights of the live points.
-#' * `log_evidence`: The log evidence of the model.
-#' * `log_evidence_err`: The standard error of the log evidence (only available
+#' * `log_evidence`: The log-evidence of the model.
+#' * `log_evidence_err`: The standard error of the log-evidence (only available
 #' when `ndraws = 0`).
 #'
 #' The tibble has the additional class `ernest_estimate`, which has its own
@@ -37,7 +37,7 @@
 #' # View results as a tibble with `ndraws = FALSE` (the default).
 #' calculate(example_run)
 #'
-#' # Generate 100 simulated log volume values for each iteration.
+#' # Generate 100 simulated log-volume values for each iteration.
 #' calculate(example_run, ndraws = 100)
 #'
 #' @aliases ernest_estimate
@@ -78,11 +78,6 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   )
 }
 
-#' Format method for `ernest_estimate`
-#'
-#' @param x An `ernest_estimate` object.
-#' @param ... Additional arguments (not used).
-#'
 #' @export
 #' @noRd
 format.ernest_estimate <- function(x, ...) {
@@ -99,11 +94,6 @@ format.ernest_estimate <- function(x, ...) {
   c(vec, NextMethod(x))
 }
 
-#' Print method for `ernest_estimate`
-#'
-#' @param x An `ernest_estimate` object.
-#' @param ... Forwarded to `format.ernest_estimate()`.
-#'
 #' @export
 #' @noRd
 print.ernest_estimate <- function(x, ...) {
@@ -111,55 +101,18 @@ print.ernest_estimate <- function(x, ...) {
   invisible(x)
 }
 
-#' Format method for `summary.ernest_estimate`
-#'
-#' @param x A `summary.ernest_estimate` object.
-#' @param ... Additional arguments (not used).
-#'
-#' @export
-#' @noRd
-format.summary.ernest_estimate <- function(x, ...) {
-  log_z <- formatC(x$log_evidence, digits = 4, format = "fg")
-  log_z_sd <- formatC(x$log_evidence_err, digits = 4, format = "fg")
-  cli::cli_format_method({
-    cli::cli_h1(
-      if (x$n_draws == 0L) {
-        "Analytical Evidence Estimate from {.cls ernest_estimate}"
-      } else {
-        "Simulated Evidence Estimate from {.cls ernest_estimate}"
-      }
-    )
-    cli::cli_dl(c(
-      "No. Draws" = "{x$n_draws}",
-      "Log. Evidence" = "{log_z} (\U00B1 {log_z_sd})"
-    ))
-  })
-}
-
-#' Print method for `summary.ernest_estimate`
-#'
-#' @param x A `summary.ernest_estimate` object.
-#' @param ... Forwarded to `format.summary.ernest_estimate()`.
-#'
-#' @export
-#' @noRd
-print.summary.ernest_estimate <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
 # HELPERS FOR CALCULATING EVIDENCE ------
 
-#' Simulate log volumes for nested sampling
+#' Simulate log-volumes for nested sampling
 #'
-#' @param n_points The number of points in the prior space.
-#' @param n_iter The number of iterations in the nested sampling run.
-#' @param ndraws The number of draws to simulate for each volume.
+#' Simulates log-volumes for dead and live points in a nested sampling run.
 #'
-#' @return An (ndraws * (n_iter + n_points)) vector of log volumes. The n_iter
-#' dead points are simulated from the order statistics of the uniform
-#' distribution; the n_points live points are simulated from the order
-#' statistics of the exponential distribution.
+#' @param n_points Integer. The number of points in the prior space.
+#' @param n_iter Integer. The number of iterations in the nested sampling run.
+#' @param ndraws Integer. The number of draws to simulate for each volume.
+#'
+#' @return A matrix of simulated log-volumes with dimensions `ndraws` by 
+#' `n_iter + n_points`.
 #' @noRd
 sim_volume <- function(n_points, n_iter, ndraws) {
   volumes <- matrix(nrow = ndraws, ncol = (n_points + n_iter))
@@ -184,12 +137,15 @@ sim_volume <- function(n_points, n_iter, ndraws) {
 }
 
 #' Compute log weights for nested sampling
-#' @param log_lik The log likelihoods from the run
-#' @param log_volume Either a vector or a matrix containing log volume
-#' estimates
-#' @returns A vector or column, in the same shape as log_volume, with the
-#' log weight of each point. More generally, this applies the trapezoidal rule
-#' in log-space.
+#'
+#' Calculates log weights for each point in a nested sampling run using the
+#' trapezoidal rule in log-space.
+#'
+#' @param log_lik Numeric vector of log-likelihoods from the run.
+#' @param log_volume Numeric vector or matrix of log-volume estimates.
+#'
+#' @return A vector or matrix of log weights, matching the shape of
+#' `log_volume`.
 #' @noRd
 get_logweight <- function(log_lik, log_volume) {
   is_matrix <- if (!is.matrix(log_volume)) {
@@ -221,7 +177,13 @@ get_logweight <- function(log_lik, log_volume) {
   vol_term
 }
 
-#' Compute cumulative log evidence from log weights
+#' Compute cumulative log-evidence from log weights
+#'
+#' Calculates the cumulative log-evidence from log weights.
+#'
+#' @param log_weight Numeric vector or matrix of log weights.
+#'
+#' @return A vector or matrix of cumulative log-evidence.
 #' @noRd
 get_logevid <- function(log_weight) {
   if (is.matrix(log_weight)) {
@@ -238,6 +200,15 @@ get_logevid <- function(log_weight) {
 }
 
 #' Compute information (KL divergence) for nested sampling
+#'
+#' Calculates the information (Kullback-Leibler divergence) for a nested
+#' sampling run.
+#'
+#' @param log_lik Numeric vector of log-likelihoods.
+#' @param log_volume Numeric vector of log-volumes.
+#' @param log_evidence Numeric vector of log-evidence values.
+#'
+#' @return A numeric vector of information values for each iteration.
 #' @noRd
 get_information <- function(log_lik, log_volume, log_evidence) {
   loglstar_pad <- c(-1e300, log_lik)

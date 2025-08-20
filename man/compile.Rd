@@ -3,18 +3,19 @@
 \name{compile.ernest_sampler}
 \alias{compile.ernest_sampler}
 \alias{compile.ernest_run}
-\title{Create a set of live points for a nested sampling run}
+\title{Compile a set of live points for nested sampling}
 \usage{
 \method{compile}{ernest_sampler}(object, ..., seed = NA)
 
 \method{compile}{ernest_run}(object, ..., seed = NA, clear = FALSE)
 }
 \arguments{
-\item{object}{An object of class \link{ernest_sampler} or \link{ernest_run}.
+\item{object}{An \link{ernest_sampler} or \link{ernest_run} object.
 \itemize{
-\item \code{ernest_sampler}: Prepares a new sampler with a fresh set of live points.
-\item \code{ernest_run}: Regenerates live points from the previously stored results,
-unless \code{clear = TRUE}.
+\item For \code{ernest_sampler}: Prepares a new sampler with a fresh set of live
+points.
+\item For \code{ernest_run}: Regenerates live points from previous results, unless
+\code{clear = TRUE}.
 }}
 
 \item{...}{These dots are for future extensions and must be empty.}
@@ -37,13 +38,13 @@ A validated \code{object}, with a valid set of live points stored in its
 \code{live_points} environment.
 }
 \description{
-Prepares an object for nested sampling by validating and
-(re)generating its set of live points. This ensures the sampler is viable
-before new live points are generated during the nested sampling algorithm.
+Prepares an object for nested sampling by validating and (re)generating its
+set of live points. This ensures the sampler is viable before new live points
+are generated during the nested sampling algorithm.
 }
 \details{
-The \code{compile()} function validates the set of live points in the sampler or
-run, ensuring that:
+\code{compile()} validates the set of live points in the sampler or run,
+ensuring:
 \itemize{
 \item Each live point is within the unit hypercube.
 \item The likelihood function returns valid values (finite double or \code{-Inf}) for
@@ -76,8 +77,8 @@ sampler_3
 }
 \seealso{
 \itemize{
-\item \code{\link[=ernest_sampler]{ernest_sampler()}} describes how to create an \code{ernest_sampler} object.
-\item \code{\link[=generate]{generate()}} describes the nested sampling algorithm and the \code{ernest_run}
+\item \code{\link[=ernest_sampler]{ernest_sampler()}} for creating an \code{ernest_sampler} object.
+\item \code{\link[=generate]{generate()}} for running nested sampling and details on the \code{ernest_run}
 object.
 }
 }

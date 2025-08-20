@@ -2,12 +2,12 @@
 % Please edit documentation in R/run-class.R
 \name{summary.ernest_run}
 \alias{summary.ernest_run}
-\title{Summarise a nested sampling run}
+\title{Summarize a nested sampling run}
 \usage{
 \method{summary}{ernest_run}(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{ernest_run}.}
+\item{object}{An \code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
@@ -22,10 +22,10 @@ A list of class \code{summary.ernest_run} with the following components:
 \item \code{log_evidence_err}: Double. Standard deviation of the log-evidence
 estimate.
 \item \code{draws}: Posterior draws as returned by \code{\link[=as_draws]{as_draws()}}.
+\item \code{run} A \link[tibble:tibble]{tibble::tibble}.
 }
 
-In addition, the \code{run} tibble stores the state of the run at each iteration
-within these columns:
+\code{run} stores the state of the run at each iteration with these columns:
 \itemize{
 \item \code{call}: Cumulative number of likelihood calls.
 \item \code{log_lik}: Log-likelihood for each sample.
@@ -44,14 +44,14 @@ tibble of results for each iteration.
 # Load an example run
 data(example_run)
 
-# Summarise the run and view a tibble of its results.
+# Summarize the run and view a tibble of its results.
 run_sm <- summary(example_run)
 run_sm
 run_sm$run
 }
 \seealso{
 \itemize{
-\item \code{\link[=generate]{generate()}} describes the \code{ernest_run} object.
-\item \code{\link[=as_draws]{as_draws()}} provides more information on \code{draws} objects.
+\item \code{\link[=generate]{generate()}} for details on the \code{ernest_run} object.
+\item \code{\link[=as_draws]{as_draws()}} for more information on \code{draws} objects.
 }
 }

@@ -14,7 +14,7 @@
 
 \item{ndraws}{An optional positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
-one draw vector of log volumes are produced from the estimates contained in
+one draw vector of log-volumes are produced from the estimates contained in
 \code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
 }
 \value{
@@ -22,10 +22,10 @@ A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{n_iter + n_poi
 and several columns:
 \itemize{
 \item \code{log_lik}: The log-likelihood of the model.
-\item \code{log_volume}: The log volume of the prior space.
+\item \code{log_volume}: The log-volume of the prior space.
 \item \code{log_weight}: The log weights of the live points.
-\item \code{log_evidence}: The log evidence of the model.
-\item \code{log_evidence_err}: The standard error of the log evidence (only available
+\item \code{log_evidence}: The log-evidence of the model.
+\item \code{log_evidence_err}: The standard error of the log-evidence (only available
 when \code{ndraws = 0}).
 }
 
@@ -46,7 +46,7 @@ data(example_run)
 # View results as a tibble with `ndraws = FALSE` (the default).
 calculate(example_run)
 
-# Generate 100 simulated log volume values for each iteration.
+# Generate 100 simulated log-volume values for each iteration.
 calculate(example_run, ndraws = 100)
 
 }

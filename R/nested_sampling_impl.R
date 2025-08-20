@@ -1,23 +1,26 @@
-#' Nested Sampling Implementation
+#' Internal implementation of the nested sampling algorithm
 #'
-#' This function performs the nested sampling algorithm to estimate the evidence
-#' of a model. It iteratively updates the live points, calculates evidence,
-#' and checks for stoppage criteria. The function also handles progress updates
-#' and manages the live and dead points in the sampler.
+#' Performs the core nested sampling loop, updating live points, accumulating
+#' evidence, and checking stopping criteria.
 #'
-#' @param live_env A live points enviroment.
-#' @param lrps An LRPS object to generate new points.
-#' @param max_iterations Integer. The maximum number of iterations to perform.
-#' @param max_c Integer. The maximum number of calls to the likelihood function.
-#' @param min_logz Numeric. The minimum change in the log evidence (log Z) to
+#' @param x An `ernest_sampler` or `ernest_run` object containing the current
+#' state and configuration.
+#' @param max_iterations Integer. Maximum number of iterations to perform.
+#' @param max_calls Integer. Maximum number of likelihood function calls
+#' allowed.
+#' @param min_logz Numeric. Minimum change in log-evidence (log Z) required to
 #' continue sampling.
+#' @param last_criterion Numeric. Log-likelihood value of the last removed
+#' sample (default: -1e300).
+#' @param log_vol Numeric. Current log prior volume.
+#' @param log_z Numeric. Current log-evidence.
+#' @param iter Integer. Current iteration.
+#' @param call Integer. Current number of likelihood calls.
+#' @param show_progress Logical. If TRUE, displays a progress bar during
+#' sampling.
 #'
-#' @srrstats {G3.0} Safely compares max and min log likelihood values for
-#' plateau detection.
-#'
-#' @return The updated `self` object with the new state of the nested sampler.
-#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
-#' @importFrom cli cli_inform
+#' @return A list containing the dead points and their associated metadata,
+#' representing the updated state of the nested sampler.
 #' @noRd
 nested_sampling_impl <- function(
   x,

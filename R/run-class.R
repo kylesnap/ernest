@@ -7,15 +7,15 @@ new_ernest_run <- function(x, results) {
   UseMethod("new_ernest_run")
 }
 
-#' @method new_ernest_run ernest_sampler
 #' @export
+#' @noRd
 new_ernest_run.ernest_sampler <- function(x, results) {
   parsed <- parse_results(results)
   new_ernest_run_(x, parsed)
 }
 
-#' @method new_ernest_run ernest_run
 #' @export
+#' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
   prev_iter <- x$n_iter
   old_idx <- vctrs::vec_as_location(
@@ -25,18 +25,23 @@ new_ernest_run.ernest_run <- function(x, results) {
   parsed <- parse_results(results)
 
   parsed$unit <- rbind(x$samples_unit[old_idx, ], parsed$unit)
-  parsed$log_lik <- vec_c(x$log_lik[old_idx], parsed$log_lik)
-  parsed$id <- vec_c(x$id[old_idx], parsed$id)
-  parsed$calls <- vec_c(x$calls[old_idx], parsed$calls)
-  parsed$birth <- vec_c(x$birth[old_idx], parsed$birth)
+  parsed$log_lik <- vctrs::vec_c(x$log_lik[old_idx], parsed$log_lik)
+  parsed$id <- vctrs::vec_c(x$id[old_idx], parsed$id)
+  parsed$calls <- vctrs::vec_c(x$calls[old_idx], parsed$calls)
+  parsed$birth <- vctrs::vec_c(x$birth[old_idx], parsed$birth)
   parsed$n_iter <- x$n_iter + parsed$n_iter
   new_ernest_run_(x, parsed)
 }
 
 #' Form the new_ernest_run from samples from the current and previous runs
-#' @param x The ernest_run or ernest_sampler object.
+#'
+#' Combines parsed results and live points to construct a new `ernest_run`
+#' object.
+#'
+#' @param x The `ernest_run` or `ernest_sampler` object.
 #' @param parsed A list with the previous dead points from the run.
-#' @returns A new ernest_run object.
+#'
+#' @return A new `ernest_run` object.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
   live_order <- order(x$live_points$log_lik)
@@ -83,9 +88,6 @@ new_ernest_run_ <- function(x, parsed) {
   )
 }
 
-#' Format method for ernest_run
-#' @param x The ernest_run object.
-#' @return A formatted string.
 #' @noRd
 #' @export
 format.ernest_run <- function(x, ...) {
@@ -103,10 +105,6 @@ format.ernest_run <- function(x, ...) {
   })
 }
 
-#' Print method for ernest_run
-#' @param x The ernest_run object.
-#' @return Itself, invisibly.
-#' @srrstats {BS6.0} Default print for results objects.
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
@@ -114,12 +112,12 @@ print.ernest_run <- function(x, ...) {
   invisible(x)
 }
 
-#' Summarise a nested sampling run
+#' Summarize a nested sampling run
 #'
 #' Provides a summary of an `ernest_run` object, including key statistics and a
 #' tibble of results for each iteration.
 #'
-#' @param object An object of class `ernest_run`.
+#' @param object An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns
@@ -133,9 +131,9 @@ print.ernest_run <- function(x, ...) {
 #' * `log_evidence_err`: Double. Standard deviation of the log-evidence
 #' estimate.
 #' * `draws`: Posterior draws as returned by [as_draws()].
+#' * `run` A [tibble::tibble].
 #'
-#' In addition, the `run` tibble stores the state of the run at each iteration
-#' within these columns:
+#' `run` stores the state of the run at each iteration with these columns:
 #' * `call`: Cumulative number of likelihood calls.
 #' * `log_lik`: Log-likelihood for each sample.
 #' * `log_volume`: Estimated log-prior volume.
@@ -145,15 +143,15 @@ print.ernest_run <- function(x, ...) {
 #' * `information`: Estimated KL divergence at each iteration.
 #'
 #' @seealso
-#' * [generate()] describes the `ernest_run` object.
-#' * [as_draws()] provides more information on `draws` objects.
+#' * [generate()] for details on the `ernest_run` object.
+#' * [as_draws()] for more information on `draws` objects.
 #' @srrstats {BS6.4} Summary method for results object.
 #' @export
 #' @examples
 #' # Load an example run
 #' data(example_run)
 #'
-#' # Summarise the run and view a tibble of its results.
+#' # Summarize the run and view a tibble of its results.
 #' run_sm <- summary(example_run)
 #' run_sm
 #' run_sm$run
@@ -186,9 +184,6 @@ summary.ernest_run <- function(object, ...) {
   )
 }
 
-#' Format method for ernest_run summary.
-#' @param x The summary.ernest_run object.
-#' @return A formatted string.
 #' @noRd
 #' @export
 format.summary.ernest_run <- function(x, ...) {
@@ -206,9 +201,6 @@ format.summary.ernest_run <- function(x, ...) {
   })
 }
 
-#' Format method for ernest_run summary.
-#' @param x The summary.ernest_run object.
-#' @return x, invisibly.
 #' @noRd
 #' @export
 print.summary.ernest_run <- function(x, ...) {
@@ -219,7 +211,12 @@ print.summary.ernest_run <- function(x, ...) {
 # HELPERS FOR ERNEST_RUN-----
 
 #' Parse the results from nested_sampling_impl into a list
-#' @param results Output from nested_sampling_impl
+#'
+#' Converts the output from `nested_sampling_impl` into a structured list of
+#' vectors.
+#'
+#' @param results Output from `nested_sampling_impl`.
+#'
 #' @return A named list of vectors and the number of iterations.
 #' @noRd
 parse_results <- function(results) {
@@ -240,23 +237,28 @@ parse_results <- function(results) {
 }
 
 #' Merge dead and live samples together
-#' @param dead The list object from parse_results.
-#' @param live The log_lik, id, and birth vectors from the current live points.
-#' @param n_iter,n_points The iterations and live points used for the run.
-#' @returns A df_list of vectors, that are all of the length n_points + n_iter.
-#' @importFrom vctrs vec_c
+#'
+#' Combines dead and live sample information into a single data frame list.
+#'
+#' @param dead The list object from `parse_results`.
+#' @param live The log-likelihood, id, and birth vectors from the current live
+#' points.
+#' @param n_iter Number of iterations used for the run.
+#' @param n_points Number of live points used for the run.
+#'
+#' @return A data frame list of vectors, all of length `n_points + n_iter`.
 #' @noRd
 bind_dead_live <- function(dead, live, n_points, n_iter) {
   vctrs::df_list(
-    "log_lik" = vec_c(dead$log_lik, live$log_lik, .ptype = double()),
-    "id" = vec_c(dead$id, live$id, .ptype = integer()),
+    "log_lik" = vctrs::vec_c(dead$log_lik, live$log_lik, .ptype = double()),
+    "id" = vctrs::vec_c(dead$id, live$id, .ptype = integer()),
     # TODO points should be collected as a list of int during the run.
-    "points" = vec_c(
+    "points" = vctrs::vec_c(
       rep(n_points, n_iter),
       seq(n_points, 1),
       .ptype = integer()
     ),
-    "calls" = vec_c(dead$calls, rep(0L, n_points), .ptype = integer()),
-    "birth" = vec_c(dead$birth, live$birth, .ptype = integer())
+    "calls" = vctrs::vec_c(dead$calls, rep(0L, n_points), .ptype = integer()),
+    "birth" = vctrs::vec_c(dead$birth, live$birth, .ptype = integer())
   )
 }

@@ -7,14 +7,14 @@
 unif_cube()
 }
 \value{
-A list, with class \code{c("unif_cube", "ernest_lrps")}. Can be used with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling run.
+A list with class \code{c("unif_cube", "ernest_lrps")}. Can be used with
+\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling
+run.
 }
 \description{
 Generate new live points by performing rejection sampling across the entire
-prior distribution. This is horribly inefficient as an LRPS, but you might
-find this helpful for testing the behaviour of a nested sampling
-specification.
+prior distribution. This is highly inefficient as an LRPS, but may be useful
+for testing the behaviour of a nested sampling specification.
 }
 \references{
 Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package

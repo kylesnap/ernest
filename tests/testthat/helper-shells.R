@@ -10,7 +10,7 @@ gaussian_shell <- function(n_dim) {
   w <- 0.1
   const <- log(1 / sqrt(2 * pi * w^2))
 
-  # Single-shell log likelihood
+  # Single-shell log-likelihood
   log_lik_shell <- function(theta, c) {
     d <- sqrt(sum((theta - c)^2))
     const - (d - r)^2 / (2 * w^2)

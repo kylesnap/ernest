@@ -16,26 +16,25 @@ new_ernest_lrps(
 )
 }
 \arguments{
-\item{unit_log_fn, ndim}{These values are provided when \code{\link[=ernest_sampler]{ernest_sampler()}} is
-called with a given \code{ernest_lrps}:
+\item{unit_log_fn, n_dim}{Provided when \code{\link[=ernest_sampler]{ernest_sampler()}} is called with a
+given \code{ernest_lrps}:
 \itemize{
-\item \code{unit_log_fn} (function, optional) A function that takes a matrix of
-points in the unit cube and returns a numeric vector of log-likelihood
-values.
-\item \code{n_dim} (integer, optional) The number of dimensions of the prior space.
+\item \code{unit_log_fn} (function, optional): Takes a matrix of points in the unit
+cube and returns a numeric vector of log-likelihood values.
+\item \code{n_dim} (integer, optional): Number of dimensions of the prior space.
 }}
 
-\item{max_loop}{(strictly positive integer) The maximum number of attempts
-to generate points through region-based sampling methods. Normally hidden
-from users, but can be set through the option \code{ernest.max_loop}.}
+\item{max_loop}{Positive integer. Maximum number of attempts to generate
+points via region-based sampling. Usually hidden from users, but can be set
+via the \code{ernest.max_loop} option.}
 
-\item{cache}{(environment, optional) An environment to use for caching
-values. If \code{NULL}, a new environment is created.}
+\item{cache}{(environment, optional) Environment for caching values. If
+\code{NULL}, a new environment is created.}
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Name-value pairs for
-additional elements of samplers that subclass this LRPS.}
+additional elements for subclasses of this LRPS.}
 
-\item{.class}{(character vector, optional) The subclasses of this LRPS.}
+\item{.class}{(character vector, optional) Subclasses of this LRPS.}
 
 \item{.call}{The execution environment of a currently
 running function, e.g. \code{caller_env()}. The function will be
@@ -43,19 +42,17 @@ mentioned in error messages as the source of the error. See the
 \code{call} argument of \code{\link[rlang:abort]{abort()}} for more information.}
 }
 \value{
-An LRPS specification, which is a list containing the inputs used
-as arguments to the function, along with a class specific to the type
-of LRPS being created.
+An LRPS specification: a list containing the input arguments, with a
+class specific to the LRPS type.
 }
 \description{
 Nested sampling relies on generating a series of points in the prior space
-with increasing log-likelihood values. This is accomplished through using an
-likelihood-restricted prior sampler (LRPS), which provides a technique to
-generate identically and independently distributed points from the prior
-space, subject to a hard likelihood constraint.
+with increasing log-likelihood values. This is accomplished using a
+likelihood-restricted prior sampler (LRPS), which generates independent and
+identically distributed points from the prior, subject to a hard likelihood
+constraint.
 
-If you want to create your own LRPS, you may do so by subclassing
-\code{new_ernest_lrps}. You will also need to provide S3 methods for \code{\link[=propose]{propose()}}
-and \code{\link[=update_lrps]{update_lrps()}} for your subclass.
+To create your own LRPS, subclass \code{new_ernest_lrps} and provide S3 methods
+for \code{\link[=propose]{propose()}} and \code{\link[=update_lrps]{update_lrps()}} for your subclass.
 }
 \keyword{internal}

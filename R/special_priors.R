@@ -1,28 +1,20 @@
-#' @srrstats {BS2.5} `special_priors` check user-entered distributional
-#' parameters to ensure their validity.
-#' @noRd
-NULL
-
-#' Specify a prior with normally-distributed marginals.
+#' Specify a prior with normally distributed marginals
 #'
-#' A specialization of [create_prior()], where the parameter space is
-#' described by independently distributed normal variables that are possibly
-#' truncated.
+#' A specialisation of [create_prior()] where the parameter space is
+#' described by independent normal variables, possibly truncated.
 #'
 #' @inheritParams create_prior
 #' @inheritParams stats::qnorm
-#' @param lower,upper Double vectors. The values to retain from a
-#' truncated distribution. Recycled to length `n_dim`.
+#' @param lower,upper Double vectors. Bounds for a truncated distribution.
+#' Recycled to length `n_dim`.
 #'
-#' @returns A `normal_prior`, which is a subclass of `ernest_prior` with
-#' an efficient implementation of the unit hypercube transformation.
+#' @returns A `normal_prior`, a subclass of `ernest_prior` with an efficient
+#' implementation of the unit hypercube transformation.
 #'
 #' @seealso
-#' * [create_prior()] for a richer explanation of the `ernest_prior`
-#' object.
-#' * [truncnorm::qtruncnorm()] for the implementation of the truncated normal
-#' quantile function.
-#' @family special priors
+#' * [create_prior()] for more on the `ernest_prior` object.
+#' * [truncnorm::qtruncnorm()] for the truncated normal quantile function.
+#' @family special_priors
 #' @importFrom vctrs vec_cast
 #' @export
 #' @examples
@@ -36,10 +28,10 @@ create_normal_prior <- function(
   lower = -Inf,
   upper = Inf
 ) {
-  mean <- vec_cast(mean, double())
-  sd <- vec_cast(sd, double())
+  mean <- vctrs::vec_cast(mean, double())
+  sd <- vctrs::vec_cast(sd, double())
   if (any(sd <= 0)) {
-    cli_abort("`sd` of a normal distribution must be non-negative.")
+    cli::cli_abort("`sd` of a normal distribution must be non-negative.")
   }
 
   params <- check_prior_params(n_dim, varnames %||% "", lower, upper)
@@ -100,20 +92,18 @@ create_normal_prior <- function(
   )
 }
 
-#' Specify a prior with Uniformly-distributed marginals
+#' Specify a prior with uniformly distributed marginals
 #'
-#' A specialization of [create_prior()], where the parameter space is
-#' described by independently distributed uniform marginals.
+#' A specialisation of [create_prior()] where the parameter space is
+#' described by independent uniform marginals.
 #'
 #' @inheritParams create_normal_prior
-#' @param lower,upper (Numeric vectors) The bounds of the distribution.
+#' @param lower,upper Double vectors. Bounds of the distribution.
 #'
-#' @returns A `uniform_prior`, which is a subclass of `ernest_prior` with
-#' an efficient implementation of the unit hypercube transformation.
+#' @returns A `uniform_prior`, a subclass of `ernest_prior` with an efficient
+#' implementation of the unit hypercube transformation.
 #'
-#' @inherit create_normal_prior seealso
-#'
-#' @family special priors
+#' @family special_priors
 #' @export
 #' @examples
 #' prior <- create_uniform_prior(2, lower = c(3, -2), upper = c(5, 4))
@@ -158,9 +148,12 @@ create_uniform_prior <- function(
   )
 }
 
-#' Wrap a special prior in type- and size-stability checks
-#' @param body The body of the function to wrap, as an expression.
-#' @returns A type- and size-stable prior transformation.
+#' Wrap a special prior in type- and size-stability checks.
+#'
+#' @param body The body of the function accepting a `unit` parameter, as an
+#' expression.
+#'
+#' @returns A type- and size-stable function.
 #' @noRd
 wrap_special_prior <- function(body) {
   unit <- NULL

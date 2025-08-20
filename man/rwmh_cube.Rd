@@ -7,15 +7,16 @@
 rwmh_cube(steps = 25, target_acceptance = 0.5)
 }
 \arguments{
-\item{steps}{(positive integer) Number of steps to take when generating a
+\item{steps}{Positive integer. Number of steps to take when generating a
 proposal point.}
 
-\item{target_acceptance}{(double between 0 and 1) The target acceptance rate
-for the sampler.}
+\item{target_acceptance}{Double between \code{1 / steps} and 1.0. The target
+acceptance rate for the proposed points.}
 }
 \value{
-A list, with class \code{c("rwmh_cube", "ernest_lrps")}. Can be used with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling run.
+A list with class \code{c("rwmh_cube", "ernest_lrps")}. Can be used with
+\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling
+run.
 }
 \description{
 Generate new live points by evolving a current live point through
@@ -23,20 +24,20 @@ a random walk with a fixed number of steps and an adaptive step
 size.
 }
 \details{
-Calling \code{\link[=update_lrps]{update_lrps()}} will build a new proposal distribution based on the
+Calling \code{\link[=update_lrps]{update_lrps()}} builds a new proposal distribution based on the
 acceptance rate of the previous run. The step size \eqn{\epsilon} is updated
 using a Newton-like method, where the current acceptance rate \eqn{a_{cur}}
 is used to target the acceptance rate \eqn{a^*}:
-\deqn{\epsilon_{new}=\epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
+\deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
 }
 \references{
 \itemize{
-\item Original implementation: Skilling, J. (2006). Nested Sampling for General
+\item Skilling, J. (2006). Nested Sampling for General
 Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
 \url{https://doi.org/10.1214/06-BA127}
-\item Adaptive step size implementation: Speagle, J. S. (2020). Dynesty: A
-Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and
-Evidences. Monthly Notices of the Royal Astronomical Society, 493, 3132–3158.
+\item Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
+Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+Royal Astronomical Society, 493, 3132–3158.
 \url{https://doi.org/10.1093/mnras/staa278}
 }
 }

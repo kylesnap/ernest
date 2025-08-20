@@ -3,67 +3,56 @@
 #' Use an R function to specify the prior distribution of parameters for a
 #' nested sampling run.
 #'
-#' @param fn,rowwise_fn (function) Pick one of `fn` or `rowwise_fn`:
-#' * `fn`: A function that takes in a vector of unit cube coordinates and
-#' returns a same-size vector of parameters.
-#' * `rowwise_fn`: A function that takes in a vector of unit cube coordinates
-#' and returns a matrix of parameters with identical dimensions.
-#' @param n_dim (positive integer) The dimensionality of the prior distribution.
-#' @param varnames (optional character vector) A character vector of names for
-#' the variables in the prior distribution.
-#' @param lower,upper (optional numeric vector) The expected bounds for the
-#' parameter vectors after hypercube transformation. Set to `-Inf` and `Inf`
-#' by default.
+#' @param fn,rowwise_fn Choose one of `fn` or `rowwise_fn`:
+#' * `fn`: A function. Takes a vector of unit cube coordinates and
+#'   returns a vector of parameters of the same length.
+#' * `rowwise_fn`: A function. Takes a matrix of unit cube coordinates
+#'   and returns a matrix of parameters with identical dimensions.
+#' @param n_dim A positive integer. The number of dimensions of the prior
+#' distribution.
+#' @param varnames An optional character vector. Names for the variables in the
+#' prior distribution.
+#' @param lower,upper Numeric vectors. Expected bounds for the
+#' parameter vectors after hypercube transformation.
 #' @inheritParams create_likelihood
 #'
-#' @returns A named list with class `ernest_prior`. The list contains the
-#' following:
+#' @returns A named list with class `ernest_prior`, containing:
 #' * `fn`: The prior transformation function.
-#' * `n_dim`: The number of dimensions in the prior space.
-#' * `varnames`: Names for the variables in the prior distribution, recycled to
-#' length `n_dim` and transformed by `make.unique()`.
-#' * `lower` and `upper`: Bounds for the prior distribution, recycled to length
-#' `n_dim`.
+#' * `n_dim`: Number of dimensions in the prior space.
+#' * `varnames`: Variable names, recycled to length `n_dim` and made unique.
+#' * `lower`, `upper`: Bounds for the prior distribution,
+#' recycled to length `n_dim`.
 #'
 #' @details
-#' The unit hypercube transformation encodes points within the parameter space
+#' The unit hypercube transformation encodes points in the parameter space
 #' as independent and identically distributed points within a unit hypercube.
-#' Implementations of nested sampling, including ernest, use this transformation
-#' to simplify likelihood-restricted prior sampling, avoiding uncessary
+#' Nested sampling implementations, including ernest, use this transformation
+#' to simplify likelihood-restricted prior sampling and avoid unnecessary
 #' rejection steps.
 #'
-#' `create_prior` allows you to specify your own prior distribution.
-#' This requires you to provide your own transformation
-#' function. In many cases, when the prior can be factorized, this function
-#' can simply be transforming a vector of values in (0, 1) and transforming
-#' them elementwise with inverse cumulative distribution function (CDF) of
-#' each parameter. In more complex cases, you can specify a hierarchical or
-#' conditionally-dependent prior (see Examples).
+#' `create_prior` allows you to specify your own prior distribution by providing
+#' a transformation function. For factorisable priors, this function can simply
+#' transform each value in (0, 1) using the inverse cumulative distribution
+#' function (CDF) for each parameter. For more complex cases, you can specify
+#' hierarchical or conditionally dependent priors (see Examples).
 #'
-#' `create_prior` will perform several regularity checks on your prior function.
-#' This intends to capture basic errors that may confound ernest's nested
-#' sampling implementation. To pass these checks, `fn` or `rowwise_fn` must:
-#' * return a finite double vector of length `n_dim` when provided
-#' `rep(0.5, n_dim)`,
-#' * return a finite double matrix of parameters with the same dimensions that
-#' all respect the bounds `lower` and `upper` (if provided) when provided
-#' random matrix with dimensions `c(5, n_dim)`.
+#' `create_prior` performs regularity checks on your prior function to catch
+#' basic errors that may affect nested sampling. To pass these checks, `fn` or
+#' `rowwise_fn` must:
+#' * Return a finite double vector of length `n_dim` when given
+#' `rep(0.5, n_dim)`;
+#' * Return a finite double matrix of parameters with the same dimensions, all
+#' within the bounds `lower` and `upper` (if provided), when given a random
+#' matrix of size `c(5, n_dim)`.
 #'
-#' Ernest will wrap `fn` so that it may take in a matrix of parameters. Should
-#' you have a more efficient implementation of your likelihood function that
-#' can handle vectors and matrices, then consider providing `rowwise_fn`
-#' instead.
+#' Ernest will wrap `fn` so it can accept a matrix of parameters. If you have a
+#' more efficient implementation that handles vectors and matrices, consider
+#' providing `rowwise_fn` instead.
 #'
-#' @srrstats {BS2.2, BS2.3} This function validates the boundary parameters
-#' placed on a user-provided prior, and tests the user's input to ensure
-#' the prior accepts and returns vectors and matrices of the expected dimensions
-#' as a distinct step before nested sampling.
-#'
-#' @srrstats {BS1.2, BS1.2c} Describes how to create prior functions for nested
-#' sampling.
+#' @srrstats {BS1.2, BS1.2c} Specifies how to design a prior in ernest, and
+#' provides examples.
 #'
 #' @aliases ernest_prior
-#'
 #' @examples
 #' # 3D uniform prior in the range [-10, 10]
 #' unif <- function(x) {
@@ -75,11 +64,10 @@
 #' mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
 #' prior$fn(mat)
 #'
-#' # A normal prior, with a parameterized mean and standard deviation
+#' # A normal prior with parameterised mean and standard deviation
 #' hier_f <- function(theta) {
 #'   mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
 #'   sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
-#'
 #'   x <- qnorm(theta[3], mu, sigma) # X ~ N(mu, sigma)
 #'   c(mu, sigma, x)
 #' }
@@ -90,20 +78,19 @@
 #'   lower = c(-Inf, 0, -Inf)
 #' )
 #'
-#' # Setting `auto_batch = FALSE` should be done with care
+#' # Using `rowwise_fn` should be done with care
 #' bb_p <- function(x) {
 #'   beta <- stats::qbeta(x[1], 5, 5)
 #'   bern <- stats::qbinom(x[2], size = 1, beta)
 #'   c(beta, bern)
 #' }
-#' try(
-#'  create_prior(
-#'   bb_p,
-#'   n_dim = 2,
-#'   varnames = c("beta", "bern"),
-#'   auto_batch = FALSE
-#'  )
-#' )
+#' try({
+#'   create_prior(
+#'     rowwise_fn = bb_p,
+#'     n_dim = 2,
+#'     varnames = c("beta", "bern")
+#'   )
+#' })
 #' create_prior(bb_p, n_dim = 2, varnames = c("beta", "bern"))
 #' @export
 create_prior <- function(

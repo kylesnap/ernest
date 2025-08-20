@@ -1,12 +1,12 @@
 #' Uniformly sample from the unconstrained prior distribution
 #'
 #' Generate new live points by performing rejection sampling across the entire
-#' prior distribution. This is horribly inefficient as an LRPS, but you might
-#' find this helpful for testing the behaviour of a nested sampling
-#' specification.
+#' prior distribution. This is highly inefficient as an LRPS, but may be useful
+#' for testing the behaviour of a nested sampling specification.
 #'
-#' @returns A list, with class `c("unif_cube", "ernest_lrps")`. Can be used with
-#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling run.
+#' @returns A list with class `c("unif_cube", "ernest_lrps")`. Can be used with
+#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
+#' run.
 #'
 #' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 #' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
@@ -23,10 +23,6 @@ unif_cube <- function() {
   )
 }
 
-#' Format method for unif_cube
-#' @param x A `unif_cube`
-#' @param ... Ignored.
-#' @returns A string
 #' @noRd
 #' @export
 format.unif_cube <- function(x, ...) {
@@ -41,9 +37,12 @@ format.unif_cube <- function(x, ...) {
 #'
 #' Internal constructor for the uniform unit cube LRPS.
 #'
-#' @param unit_log_fn,n_dim,max_loop,cache See [new_ernest_lrps].
+#' @param unit_log_fn Function for computing log-likelihood in unit space.
+#' @param n_dim Integer. Number of dimensions.
+#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param cache Optional cache environment.
 #'
-#' @returns An LRPS specification, a list with class
+#' @return An LRPS specification, a list with class
 #' `c("unif_cube", "ernest_lrps")`.
 #' @noRd
 new_unif_cube <- function(

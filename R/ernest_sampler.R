@@ -37,12 +37,23 @@
 #' * [create_prior()] describes the requriements of the `prior` parameter.
 #' * [ernest_lrps] describes the general requirements of likelihood-restricted
 #' * prior samplers.
+#'
+#' @srrstats {BS1.3, BS1.3b} Describes how to set different sampling techniques.
 #' @export
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
 #' sampler
+#'
+#' # Use a unit-cube LRPS (not recommended in practice)
+#' unit_sampler <- ernest_sampler(
+#'   ll_fn,
+#'   prior,
+#'   n_points = 100,
+#'   sampler = unif_cube
+#' )
+#' unit_sampler
 ernest_sampler <- function(
   log_lik,
   prior,

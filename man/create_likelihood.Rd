@@ -13,19 +13,19 @@ create_likelihood(
 )
 }
 \arguments{
-\item{fn, rowwise_fn}{Pick one of \code{fn} or \code{rowwise_fn}:
+\item{fn, rowwise_fn}{Choose one of \code{fn} or \code{rowwise_fn}:
 \itemize{
-\item \code{fn}: A function. Takes in vectors of parameters and returns a scalar
+\item \code{fn}: A function that takes a vector of parameters and returns a scalar
 likelihood value (either a finite double or \code{-Inf}).
-\item \code{rowwise_fn}: A function. Takes in a matrix of parameters and returns
-a vector of likelihood values (which are all finite doubles or \code{-Inf}).
+\item \code{rowwise_fn}: A function that takes a matrix of parameters and returns
+a vector of likelihood values (all finite doubles or \code{-Inf}).
 }}
 
 \item{...}{Named arguments to \code{fn} or \code{rowwise_fn} that should be partially
-applied (see \code{\link[purrr:partial]{purrr::partial()}}).}
+applied.}
 
 \item{.nonfinite_action}{(case-sensitive string) Action to perform when \code{fn}
-passes a value that is nonfinite and non-\code{-Inf} (e.g, \code{NaN}, \code{NA}, or \code{Inf}).
+returns a value that is non-finite and not \code{-Inf} (e.g., \code{NaN}, \code{NA}, \code{Inf}):
 \itemize{
 \item \code{"warn"}: Issue a warning and replace values with \code{-Inf}.
 \item \code{"quiet"}: Silently replace values with \code{-Inf}.
@@ -33,35 +33,36 @@ passes a value that is nonfinite and non-\code{-Inf} (e.g, \code{NaN}, \code{NA}
 }}
 }
 \value{
-A function with additional class \code{ernest_likelihood}. This function is
-wrapped in checks that promote type- and size-stability:
+A function with class \code{ernest_likelihood}. This function is
+wrapped in checks to ensure type and size stability:
 \itemize{
-\item If provided a vector of doubles, the function will return
-a scalar double, \code{-Inf}, or an error.
-\item If provided a matrix of doubles, the function will return
-a vector of doubles and \code{-Inf} equal to the number of matrix rows,
-or an error.
-\item If provided anything else, the function will throw an error.
+\item If provided a vector of doubles, returns a scalar double, \code{-Inf}, or an
+error.
+\item If provided a matrix of doubles, returns a vector of doubles and \code{-Inf}
+of length equal to the number of matrix rows, or an error.
+\item Otherwise, throws an error.
 }
 }
 \description{
-Creates a modified version of a log. likelihood function that always returns
-either a finite value or \code{-Inf} for each vector of parameters that is
-provided.
+Creates a modified version of a log-likelihood function that always returns
+either a finite value or \code{-Inf} for each vector of parameters provided.
 }
 \details{
-Model likelihoods should be provided as a log density function. The first
+Model likelihoods should be provided as a log-density function. The first
 argument of \code{fn} or \code{rowwise_fn} should be a vector or matrix of parameters,
-respectively. Other arguments can be forwarded by providing named arguments
-to \code{...} or through anonymous functions (see Examples).
+respectively.
 
-It is expected that \code{fn} returns a scalar finite doubles or \code{-Inf} for each
+If the model likelihood is conditional on some data, then incorporate this
+data into the likelihood function here. You can either build an anonymous
+function (see \code{\link[rlang:as_function]{rlang::as_function()}}), or use the \code{...} parameters to
+partially apply data to \code{fn} or \code{rowwise_fn} (see \code{\link[purrr:partial]{purrr::partial()}}).
+
+It is expected that \code{fn} returns a scalar finite double or \code{-Inf} for each
 parameter vector.
 
-Ernest will wrap \code{fn} so that it may take in a matrix of parameters. Should
-you have a more efficient implementation of your likelihood function that
-can handle vectors and matrices, then consider providing \code{rowwise_fn}
-instead.
+Ernest will wrap \code{fn} so it can accept a matrix of parameters. If you have
+a more efficient implementation of your likelihood function that can handle
+vectors and matrices, consider providing \code{rowwise_fn} instead.
 }
 \examples{
 # A 3D Gaussian likelihood function
@@ -78,10 +79,14 @@ fn <- function(theta) {
 log_lik <- create_likelihood(fn)
 log_lik(c(0, 0, 0))
 
-# As default, `log_lik` will loudly replace non-finite, non-`-Inf` values.
-try(log_lik(c(Inf, 0, 0)))
-
-# Silence warnings with `nonfinite_action = "pass"`
-quiet_lik <- create_likelihood(log_lik, nonfinite_action = "pass")
-quiet_lik(c(Inf, 0, 0))
+# Bind data to the likelihood function using dots or anonymous functions.
+y <- 100000000 * runif(11, min = 0.1, max = 0.3)
+log_lik <- function(theta, y) {
+  if (theta[2] <= 0) {
+    return(-Inf)
+  }
+  sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
+}
+create_likelihood(log_lik, y = !!y)
+create_likelihood(\(theta) log_lik(theta, y))
 }

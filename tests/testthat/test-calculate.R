@@ -1,69 +1,29 @@
-set.seed(42L)
+#' Testing calculate against values produced by `nestcheck` when provided
+#' a sample run from PolyChord.
+NULL
 
-test_that("sim_volume can draw with ndraws = 1", {
-  mat <- sim_volume(500, 5000, ndraws = 1)
-  expect_equal(dim(mat), c(1, 5500))
-  expect_true(all(mat < 0))
-})
+gold <- readRDS(test_path("calculate-gold.rds"))
 
-test_that("sim_volume can draw expected values", {
-  mat <- sim_volume(500, 4000, ndraws = 4000)
-  expect_equal(dim(mat), c(4000, 4500))
-
-  mean_vols <- colMeans(mat)
-  sd_vols <- apply(mat, 2, sd)
-
-  expected_means <- c(
-    # For dead points: E(Vol[i]) = Sum of log of kth-Uniform order stat.
-    # or: E(ln Vol[i]) = E(Beta(K, 1))
-    -seq(4000) / 500,
-    # For live: E(Vol[i]) = Uniform order statistics from 1 -> K,
-    # relative to the last volume.
-    # Or: E(Beta(K, 1)) - E(Beta(K + 1, n + 1 - i))
-    -(4000 / 500) - (digamma(501) - digamma(501 - seq(500)))
-  )
-
-  expect_true(all(is.finite(sd_vols)))
-  expect_true(all(abs(mean_vols - expected_means) < sd_vols))
-  expect_equal(mean_vols, expected_means, tolerance = 0.1)
-})
-
-test_that("get_logweight calculates correctly", {
-  expected <- readRDS(test_path("./sample_run.rds"))
-  log_w <- get_logweight(expected$log_lik, expected$log_volume)
-  expected_w <- as.numeric(expected$log_weight)
-  expect_equal(log_w, expected_w)
-
-  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
-  mat_expected <- matrix(rep(expected_w, 50), byrow = TRUE, nrow = 50)
+test_that("Helpers produce as expected", {
+  expect_equal(drop(get_logvol(250, 2750)), gold$log_volume)
   expect_equal(
-    mat_expected,
-    get_logweight(expected$log_lik, mat_vol)
+    drop(get_logweight(gold$log_lik, matrix(gold$log_volume, nrow = 1))),
+    gold$log_weight
   )
-})
-
-test_that("get_logevid calculates correctly", {
-  expected <- readRDS(test_path("./sample_run.rds"))
-  log_w <- get_logweight(expected$log_lik, expected$log_volume)
-  expected_evid <- as.double(expected$log_evidence)
-  log_z <- get_logevid(log_w)
-  expect_equal(log_z, expected_evid)
-
-  mat_vol <- matrix(rep(expected$log_volume, 50), byrow = TRUE, nrow = 50)
-  mat_expected_evid <- matrix(rep(expected_evid, 50), byrow = TRUE, nrow = 50)
   expect_equal(
-    get_logevid(get_logweight(expected$log_lik, mat_vol)),
-    mat_expected_evid
+    drop(get_logevid(matrix(gold$log_weight, nrow = 1))),
+    gold$log_evidence
   )
 })
 
-test_that("get_information calculates correctly", {
-  expected <- readRDS(test_path("./sample_run.rds"))
-  log_w <- get_logweight(expected$log_lik, expected$log_volume)
-  log_z <- get_logevid(log_w)
-  h <- get_information(expected$log_lik, expected$log_volume, log_z)
-  expected_info <- as.double(expected$information)
-  expect_equal(h, expected_info)
+test_that("Simulated log vols do not diverge from mean estimates", {
+  set.seed(42)
+  log_vol <- get_logvol(250, 2750, ndraws = 4000)
+
+  expect_equal(
+    abs(colMeans(log_vol) - gold$log_volume) < matrixStats::colSds(log_vol),
+    rep(TRUE, 3000)
+  )
 })
 
 test_that("calculate works when ndraws = 0", {

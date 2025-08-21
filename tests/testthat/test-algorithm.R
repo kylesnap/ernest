@@ -29,7 +29,7 @@ test_that("ernest produces expected results for 2D gaussian", {
 })
 
 #' Tests for convergence
-#' 
+#'
 #' @srrstats {BS4.6, BS4.7} Test checks that the NS converegence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.

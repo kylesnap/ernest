@@ -412,8 +412,8 @@ compute_integral <- function(log_lik, log_volume) {
       information = double(0)
     ))
   }
-  log_weight <- get_logweight(log_lik, log_volume)
-  log_evidence <- get_logevid(log_weight)
+  log_weight <- drop(get_logweight(log_lik, log_volume))
+  log_evidence <- drop(get_logevid(log_weight))
   information <- get_information(log_lik, log_volume, log_evidence)
 
   # Estimate the error around logz

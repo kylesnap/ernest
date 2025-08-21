@@ -57,7 +57,7 @@ new_ernest_run_ <- function(x, parsed) {
   )
   all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$n_iter)
 
-  log_vol <- cumsum(-1 * (all_samples$points**-1))
+  log_vol <- drop(get_logvol(x$n_points, n_iter = parsed$n_iter))
   integration <- compute_integral(all_samples$log_lik, log_vol)
 
   result_elem <- list2(

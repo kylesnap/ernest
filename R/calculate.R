@@ -26,9 +26,10 @@
 #'
 #' Each column is returned as an [posterior::rvar()] vector.
 #'
-#' @references Skilling, J. (2006). Nested Sampling for General
-#' Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
-#' <https://doi.org/10.1214/06-BA127>
+#' @references Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
+#' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
+#' of the Royal Astronomical Society, 483(2), 2044–2056.
+#' <https://doi.org/10.1093/mnras/sty3090>
 #'
 #' @examples
 #' # Load an example run
@@ -62,7 +63,7 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   }
 
   log_lik <- x$log_lik
-  log_volume <- sim_volume(x$n_points, x$n_iter, ndraws = ndraws)
+  log_volume <- get_logvol(x$n_points, x$n_iter, ndraws = ndraws)
   log_weight <- get_logweight(log_lik, log_volume)
   log_evidence <- get_logevid(log_weight)
 
@@ -109,31 +110,23 @@ print.ernest_estimate <- function(x, ...) {
 #'
 #' @param n_points Integer. The number of points in the prior space.
 #' @param n_iter Integer. The number of iterations in the nested sampling run.
-#' @param ndraws Integer. The number of draws to simulate for each volume.
+#' @param ndraws Integer. The number of draws to simulate for each volume, or
+#' NULL.
 #'
-#' @return A matrix of simulated log-volumes with dimensions `ndraws` by 
-#' `n_iter + n_points`.
+#' @return A matrix of simulated log-volumes with dimensions `ndraws` by
+#' `n_iter + n_points`. If ndraws is NULL, these are the expected values.
 #' @noRd
-sim_volume <- function(n_points, n_iter, ndraws) {
-  volumes <- matrix(nrow = ndraws, ncol = (n_points + n_iter))
-  volumes[, seq(1, to = n_iter)] <- stats::rbeta(n_iter, n_points, 1)
+get_logvol <- function(n_points, n_iter, ndraws = NULL) {
+  points <- vctrs::vec_c(rep(n_points, n_iter), seq(n_points, 1, -1))
 
-  bound <- c(n_iter, n_iter + n_points)
-  sn <- seq(n_points, 1)
-
-  y_arr <- matrix(
-    stats::rexp((n_points + 1) * ndraws, rate = 1.0),
-    nrow = ndraws
-  )
-  ycsum <- t(apply(y_arr, 1, cumsum))
-  ycsum <- ycsum / ycsum[, n_points + 1]
-  append <- c(n_points, sn - 1)
-  uorder <- ycsum[, append + 1, drop = FALSE]
-
-  rorder <- uorder[, -1, drop = FALSE] / uorder[, -ncol(uorder), drop = FALSE]
-  volumes[, (bound[1] + 1):bound[2]] <- rorder
-
-  matrixStats::rowCumsums(log(volumes))
+  if (is.null(ndraws)) {
+    vol <- -1 * (points^-1)
+    matrix(cumsum(vol), nrow = 1)
+  } else {
+    vol <- matrix(runif(ndraws * length(points)), nrow = ndraws)
+    vol <- log(vol)
+    matrixStats::rowCumsums(sweep(vol, 2, points, "/"))
+  }
 }
 
 #' Compute log weights for nested sampling
@@ -142,61 +135,57 @@ sim_volume <- function(n_points, n_iter, ndraws) {
 #' trapezoidal rule in log-space.
 #'
 #' @param log_lik Numeric vector of log-likelihoods from the run.
-#' @param log_volume Numeric vector or matrix of log-volume estimates.
+#' @param log_volume A matrix of log-volume estimates, with each row being a
+#' draw.
 #'
-#' @return A vector or matrix of log weights, matching the shape of
-#' `log_volume`.
+#' @return A matrix of log weights, matching the shape of `log_volume`.
 #' @noRd
 get_logweight <- function(log_lik, log_volume) {
-  is_matrix <- if (!is.matrix(log_volume)) {
-    log_volume <- matrix(log_volume, nrow = 1)
-    FALSE
-  } else {
-    TRUE
+  if (!is.matrix(log_volume)) {
+    dim(log_volume) <- c(1, length(log_volume))
   }
-  n <- ncol(log_volume)
+  ndraws <- nrow(log_volume)
+  ncol <- ncol(log_volume)
+  log_dvol <- matrix(0, nrow = nrow(log_volume), ncol = ncol(log_volume))
 
-  diff_volume <- cbind(
-    log_volume[, 1],
-    matrixStats::rowDiffs(log_volume)
-  )
-  vol_term <- log_volume - diff_volume + log(-expm1(diff_volume))
+  log_dvol_lead <- log_volume[, seq(1, ncol - 2), drop = FALSE]
+  log_dvol_lag <- log_volume[, seq(3, ncol), drop = FALSE]
+  log_dvol[, seq(2, ncol - 1)] <- logspace_sub(log_dvol_lead, log_dvol_lag) -
+    log(2)
 
-  log_lik <- c(-1e300, log_lik)
-  idx <- seq(2, length(log_lik))
-  lik_term <- matrixStats::rowLogSumExps(
-    c(log_lik[idx], log_lik[idx - 1]),
-    dim. = c(n, 2)
-  ) +
-    log(0.5)
+  log_dvol_lag <- matrixStats::rowLogSumExps(log_volume, cols = c(1, 2)) -
+    log(2)
+  log_dvol[, 1] <- logspace_sub(matrix(0, nrow = ndraws), log_dvol_lag)
 
-  vol_term <- sweep(vol_term, 2, lik_term, FUN = "+")
-  if (!is_matrix) {
-    vol_term <- drop(vol_term)
-  }
-  vol_term
+  log_dvol[, ncol] <- matrixStats::rowLogSumExps(
+    log_volume,
+    cols = c(ncol - 1, ncol)
+  ) -
+    log(2)
+  sweep(log_dvol, 2, log_lik, "+")
 }
 
 #' Compute cumulative log-evidence from log weights
 #'
 #' Calculates the cumulative log-evidence from log weights.
 #'
-#' @param log_weight Numeric vector or matrix of log weights.
+#' @param log_weight A matrix of log-weights, each row a draw from log_volume.
 #'
-#' @return A vector or matrix of cumulative log-evidence.
+#' @return A matrix of cumulative log-evidences, with the dimensions of
+#' `log_weight`.
 #' @noRd
 get_logevid <- function(log_weight) {
-  if (is.matrix(log_weight)) {
-    for (i in seq(2, ncol(log_weight))) {
-      log_weight[, i] <- matrixStats::rowLogSumExps(
-        log_weight,
-        cols = c(i - 1, i)
-      )
-    }
-    log_weight
-  } else {
-    logcumsumexp(log_weight)
+  if (!is.matrix(log_weight)) {
+    dim(log_weight) <- c(1, length(log_weight))
   }
+  log_z <- log_weight
+  for (i in seq(2, ncol(log_weight))) {
+    log_z[, i] <- matrixStats::rowLogSumExps(
+      log_z,
+      cols = c(i - 1, i)
+    )
+  }
+  log_z
 }
 
 #' Compute information (KL divergence) for nested sampling
@@ -223,4 +212,14 @@ get_information <- function(log_lik, log_volume, log_evidence) {
     exp1 * loglstar_pad[-1] + exp2 * loglstar_pad[-length(loglstar_pad)]
   )
   h_part1 - max_logz * exp(log_evidence - max_logz)
+}
+
+#' Log Subtract Helper
+#'
+#' @param a,b Matrices, where (elementwise) a > b.
+#'
+#' @returns LSE(a, b), or log(exp(a) + exp(b))
+#' @noRd
+logspace_sub <- function(a, b) {
+  a + log1p(-exp(b - a))
 }

@@ -65,6 +65,7 @@
 #'
 #' @srrstats {BS2.12} The `show_progress` indicator controls whether a simple
 #' spinner bar is shown during sampling.
+#' @srrstats {BS4.0} References the original nested sampling paper by Skilling.
 #'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)

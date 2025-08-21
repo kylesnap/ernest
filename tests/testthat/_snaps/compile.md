@@ -1,14 +1,10 @@
 # Informative error when prior or log. lik. fails completely.
 
-    Can't create live points.
-    Caused by error in `_fn`:
-    ! Bad Likelihood Job!
+    Bad Likelihood Job!
 
 ---
 
-    Can't create live points.
-    Caused by error in `_fn`:
-    ! Bad Prior Job!
+    Bad Prior Job!
 
 # check_live_set catches problems in the live_env
 

@@ -47,7 +47,7 @@ calculate.ernest_run <- function(x, ..., ndraws = NULL) {
   ndraws <- ndraws %||% getOption("posterior.rvar_ndraws", 4000L)
   check_number_whole(ndraws, lower = 0L)
 
-  if (ndraws == 0) {
+  if (ndraws == 0L) {
     return(tibble::new_tibble(
       list(
         "log_lik" = posterior::as_rvar(x$log_lik),

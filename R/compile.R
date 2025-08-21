@@ -133,11 +133,14 @@ create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
     propose(lrps, criteria = rep(-1e300, n_points)),
     error = function(cnd) {
-      cli::cli_abort(
-        "Can't create live points.",
-        parent = cnd,
-        call = call
-      )
+      cli::cli_abort(cnd$message, call = expr(compile()))
+    },
+    warning = function(cnd) {
+      if (grepl("object length is not a multiple", cnd$message)) {
+        cli::cli_abort(cnd$message, call = expr(compile()))
+      } else {
+        cli::cli_warn(cnd$message, call = expr(compile()))
+      }
     }
   )
 }

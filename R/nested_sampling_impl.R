@@ -21,6 +21,12 @@
 #'
 #' @return A list containing the dead points and their associated metadata,
 #' representing the updated state of the nested sampler.
+#' 
+#' @srrstats {BS4.3, BS4.4, BS4.5} Convergence in a nested sampling run is
+#' defined by the amount of evidence remaining in the unintegrated prior space,
+#' controlled by the `min_logz` parameter. In cases where convergence is not
+#' achieved, the sampler will stop when the maximum number of iterations or
+#' likelihood calls is reached, or when the log-likelihood plateau is detected.
 #' @noRd
 nested_sampling_impl <- function(
   x,

@@ -1,9 +1,7 @@
 # Zero-length likelihood fails
 
     <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't create live points.
-    Caused by error in `_fn`:
+    Caused by error in `compile()`:
     ! `log_lik(...)` must have size 1, not size 0.
 
 # Zero-length prior fails
@@ -26,9 +24,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't create live points.
-    Caused by error in `_fn`:
+    Caused by error in `compile()`:
     ! Can't convert `log_lik(...)` <character> to <double>.
 
 # Fails on complex types
@@ -41,9 +37,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't create live points.
-    Caused by error in `_fn`:
+    Caused by error in `compile()`:
     ! Can't convert `log_lik(...)` <complex> to <double>.
 
 # Missing values in the prior
@@ -55,17 +49,13 @@
 # Missing values in the log-likelihood
 
     <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't create live points.
-    Caused by error in `_fn`:
+    Caused by error in `compile()`:
     ! `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned NA.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
     <ernest_sampler> threw a warning during compilation
-    Caused by warning:
+    Caused by warning in `compile()`:
     ! Replacing `NA` with `-Inf`.
 
 # Ernest fails when ll is flat to begin with

@@ -1,11 +1,4 @@
-# ernest_lrps class initializes correctly
-
-    Code
-      obj
-    Output
-      ! An abstract LRPS sampler <ernest_lrps>
-
-# new_ernest_lrps throws errors for invalid arguments
+# new_ernest_lrps fails informativelys
 
     `unit_log_fn` must be a function or `NULL`, not the number 1.
 
@@ -24,6 +17,13 @@
 ---
 
     `getOption('ernest.max_loop')` must be a whole number, not `Inf`.
+
+# ernest_lrps class initializes correctly
+
+    Code
+      obj
+    Output
+      ! An abstract LRPS sampler <ernest_lrps>
 
 # propose.ernest_lrps errors if original is provided
 

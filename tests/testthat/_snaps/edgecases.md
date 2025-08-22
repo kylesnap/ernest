@@ -6,18 +6,18 @@
 
 # Zero-length prior fails
 
-    `n_dim` must be a whole number larger than or equal to 1, not the number 0.
+    `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
 
 ---
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `y` must have size 1, not size 0.
 
 # Fails on character types
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `prior(unit)` must always return a vector or matrix of doubles.
     x Instead, it returned a character vector.
 
@@ -30,7 +30,7 @@
 # Fails on complex types
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `prior(unit)` must always return a vector or matrix of doubles.
     x Instead, it returned a complex vector.
 
@@ -43,7 +43,7 @@
 # Missing values in the prior
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `prior(unit)` must never return `NA` or `NaN` values.
 
 # Missing values in the log-likelihood
@@ -87,7 +87,7 @@
       * Current Step Size: 1
       
       -- Results 
-      No. Iterations: 151
+      No. Iterations: 149
       No. Calls: 172
-      Log. Evidence: -0.302539095340251 (± 0.0638042975680375)
+      Log. Evidence: -0.2965 (± 0.0635)
 

@@ -7,10 +7,10 @@
     Code
       generate(sampler, max_iterations = 1, seed = 42L, show_progress = TRUE)
     Output
-      cli-69638-21 0/NA created
-      cli-69638-21 1/NA added
-      cli-69638-21 1/NA updated
-      cli-69638-21 2/NA terminated (done)
+      cli-line
+      cli-line
+      cli-line
+      cli-line
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500
       
@@ -24,17 +24,17 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -2.03419130597453 (± 0.785672016773844)
+      Log. Evidence: -6.003 (± 1.82)
 
 # Progress bar can be printed [ansi]
 
     Code
       generate(sampler, max_iterations = 1, seed = 42L, show_progress = TRUE)
     Output
-      cli-69638-60 0/NA created
-      cli-69638-60 1/NA added
-      cli-69638-60 1/NA updated
-      cli-69638-60 2/NA terminated (done)
+      cli-line
+      cli-line
+      cli-line
+      cli-line
       Nested sampling run [34m<ernest_run/ernest_sampler>[39m
       No. Points: 500
       
@@ -48,17 +48,17 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: [34m-2.03419130597453[39m (± [34m0.785672016773844[39m)
+      Log. Evidence: -6.003 (± 1.82)
 
 # Progress bar can be printed [unicode]
 
     Code
       generate(sampler, max_iterations = 1, seed = 42L, show_progress = TRUE)
     Output
-      cli-69638-99 0/NA created
-      cli-69638-99 1/NA added
-      cli-69638-99 1/NA updated
-      cli-69638-99 2/NA terminated (done)
+      cli-line
+      cli-line
+      cli-line
+      cli-line
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500
       
@@ -72,17 +72,17 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -2.03419130597453 (± 0.785672016773844)
+      Log. Evidence: -6.003 (± 1.82)
 
 # Progress bar can be printed [fancy]
 
     Code
       generate(sampler, max_iterations = 1, seed = 42L, show_progress = TRUE)
     Output
-      cli-69638-138 0/NA created
-      cli-69638-138 1/NA added
-      cli-69638-138 1/NA updated
-      cli-69638-138 2/NA terminated (done)
+      cli-line
+      cli-line
+      cli-line
+      cli-line
       Nested sampling run [34m<ernest_run/ernest_sampler>[39m
       No. Points: 500
       
@@ -96,7 +96,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: [34m-2.03419130597453[39m (± [34m0.785672016773844[39m)
+      Log. Evidence: -6.003 (± 1.82)
 
 # Fully-verbose output [plain]
 
@@ -114,12 +114,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.0981878434301509
+      * Current Step Size: 0.2165
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10984
-      Log. Evidence: -1.79587595132713 (± 0.378275783151236)
+      No. Calls: 10087
+      Log. Evidence: -6.896 (± 1.645)
 
 # Fully-verbose output [ansi]
 
@@ -137,12 +137,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.0981878434301509
+      * Current Step Size: 0.2165
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10984
-      Log. Evidence: [34m-1.79587595132713[39m (± [34m0.378275783151236[39m)
+      No. Calls: 10087
+      Log. Evidence: -6.896 (± 1.645)
 
 # Fully-verbose output [unicode]
 
@@ -160,12 +160,12 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.0981878434301509
+      • Current Step Size: 0.2165
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10984
-      Log. Evidence: -1.79587595132713 (± 0.378275783151236)
+      No. Calls: 10087
+      Log. Evidence: -6.896 (± 1.645)
 
 # Fully-verbose output [fancy]
 
@@ -183,10 +183,10 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.0981878434301509
+      • Current Step Size: 0.2165
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10984
-      Log. Evidence: [34m-1.79587595132713[39m (± [34m0.378275783151236[39m)
+      No. Calls: 10087
+      Log. Evidence: -6.896 (± 1.645)
 

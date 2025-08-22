@@ -1,32 +1,32 @@
-# generate method performs sampling
+# ernest_run object structure and content
 
     Code
-      result
+      example_run
     Output
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500
       
       -- Sampling Method 
       * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      * No. Dimensions: 2
+      * No. Dimensions: 3
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 1
+      * Current Step Size: 0.0209
       
       -- Results 
-      No. Iterations: 99
-      No. Calls: 112
-      Log. Evidence: -6.195 (± 1.849)
+      No. Iterations: 4658
+      No. Calls: 101853
+      Log. Evidence: -8.978 (± 0.1141)
 
----
+# summary.ernest_run run tibble columns
 
     Code
-      summary(result)
+      smry
     Output
       
       -- Nested sampling results <ernest_run> ----------------------------------------
       No. Points: 500
-      No. Iterations: 99
-      No. Lik. Calls: 112
-      Log. Evidence: -6.195 (± 1.849)
+      No. Iterations: 4658
+      No. Lik. Calls: 101853
+      Log. Evidence: -8.978 (± 0.1141)
 

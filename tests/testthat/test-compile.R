@@ -1,14 +1,13 @@
-gaussian_2 <- make_gaussian(2)
 sampler <- ernest_sampler(
-  log_lik = gaussian_2$log_lik,
-  prior = gaussian_2$prior
+  log_lik = gaussian_blobs$log_lik,
+  prior = gaussian_blobs$prior
 )
 
 test_that("create_live generates live points correctly", {
   result <- create_live(sampler$lrps, 10)
   expect_equal(dim(result$unit), c(10, 2))
   expect_equal(
-    apply(apply(result$unit, 1, gaussian_2$prior$fn), 2, gaussian_2$log_lik),
+    apply(apply(result$unit, 1, gaussian_blobs$prior$fn), 2, gaussian_blobs$log_lik),
     result$log_lik
   )
 })
@@ -17,7 +16,7 @@ test_that("Informative error when prior or log. lik. fails completely.", {
   bad_lik <- new_rwmh_cube(
     unit_log_fn = purrr::compose(
       \(x) stop("Bad Likelihood Job!"),
-      gaussian_2$prior$fn,
+      gaussian_blobs$prior$fn,
     ),
     n_dim = 2L
   )
@@ -25,7 +24,7 @@ test_that("Informative error when prior or log. lik. fails completely.", {
 
   bad_prior <- new_rwmh_cube(
     unit_log_fn = purrr::compose(
-      gaussian_2$log_lik,
+      gaussian_blobs$log_lik,
       \(x) stop("Bad Prior Job!")
     ),
     n_dim = 2L
@@ -111,9 +110,9 @@ test_that("compile method initializes live points", {
 
   expect_equal(dim(orig_units), c(500, 2))
   expected_log_lik <- apply(
-    t(apply(orig_units, 1, gaussian_2$prior$fn)),
+    t(apply(orig_units, 1, gaussian_blobs$prior$fn)),
     1,
-    gaussian_2$log_lik
+    gaussian_blobs$log_lik
   )
 
   expect_equal(orig_log_lik, expected_log_lik)

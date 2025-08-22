@@ -4,6 +4,7 @@ This outlines how to propose a change to ernest.
 For a detailed discussion on contributing to this and other tidyverse packages, please see the [development contributing guide](https://rstd.io/tidy-contrib) and our [code review principles](https://code-review.tidyverse.org/).
 
 ## Lifecycle
+
 Ernest is in an initially stable state of development, with a great deal of active subsequent development envisioned.
 
 ## Fixing typos
@@ -41,7 +42,9 @@ See our guide on [how to create a great issue](https://code-review.tidyverse.org
 *  We use [roxygen2](https://cran.r-project.org/package=roxygen2), with [Markdown syntax](https://cran.r-project.org/web/packages/roxygen2/vignettes/rd-formatting.html), for documentation.  
 
 *  We use [testthat](https://cran.r-project.org/package=testthat) for unit tests. 
-   Contributions with test cases included are easier to accept.  
+   Contributions with test cases included are easier to accept.
+
++  Some of ernest's can take a long time to run. Certain expensive tests can be skipped by setting the `ernest.extended_tests` option. This is currently set by `tests/testthat/setup.R`.
 
 ## Code of Conduct
 

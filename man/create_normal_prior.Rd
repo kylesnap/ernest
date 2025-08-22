@@ -5,27 +5,33 @@
 \title{Specify a prior with normally distributed marginals}
 \usage{
 create_normal_prior(
-  n_dim,
+  n_dim = NULL,
   mean = 0,
   sd = 1,
-  varnames = NULL,
   lower = -Inf,
-  upper = Inf
+  upper = Inf,
+  varnames = "Normal",
+  name_repair = c("unique", "universal", "check_unique")
 )
 }
 \arguments{
-\item{n_dim}{A positive integer. The number of dimensions of the prior
+\item{n_dim}{An optional positive integer. The number of dimensions of the
+prior distribution. If left \code{NULL}, this is inferred from the common length
+of the vector-valued parameters (see Note).}
+
+\item{mean}{Numeric vector of means.}
+
+\item{sd}{Numeric vector of standard deviations (must be strictly positive.)}
+
+\item{lower, upper}{Numeric vector of bounds for a truncated normal
 distribution.}
-
-\item{mean}{vector of means.}
-
-\item{sd}{vector of standard deviations.}
 
 \item{varnames}{An optional character vector. Names for the variables in the
 prior distribution.}
 
-\item{lower, upper}{Double vectors. Bounds for a truncated distribution.
-Recycled to length \code{n_dim}.}
+\item{name_repair}{An optional, case-sensitive string. How to repair
+\code{varnames}. Options are \code{"unique"} (default), \code{"universal"}, or
+\code{"check_unique"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
 }
 \value{
 A \code{normal_prior}, a subclass of \code{ernest_prior} with an efficient
@@ -35,8 +41,14 @@ implementation of the unit hypercube transformation.
 A specialisation of \code{\link[=create_prior]{create_prior()}} where the parameter space is
 described by independent normal variables, possibly truncated.
 }
+\note{
+The vector-valued parameters in this function are recycled to length
+\code{n_dim} if it is an integer, or to a common length if \code{n_dim = NULL}. See
+\link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
+recycling.
+}
 \examples{
-prior <- create_normal_prior(3)
+prior <- create_normal_prior(n_dim = 3)
 prior$fn(c(0.25, 0.5, 0.75))
 }
 \seealso{

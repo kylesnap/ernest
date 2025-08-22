@@ -1,5 +1,12 @@
-gaussian_2 <- make_gaussian(2)
-fn <- purrr::compose(gaussian_2$log_lik, gaussian_2$prior$fn)
+fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
+
+#' @ssrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
+#' error messages
+test_that("new_rwmh_cube errors on invalid arguments", {
+  expect_snapshot_error(new_rwmh_cube(fn, 2L, target_acceptance = 0))
+  expect_snapshot_error(new_rwmh_cube(fn, 2L, target_acceptance = 1))
+  expect_snapshot_error(new_rwmh_cube(fn, 2L, steps = 1))
+})
 
 test_that("rwmh_cube returns correct class and structure", {
   obj <- rwmh_cube()
@@ -22,44 +29,40 @@ test_that("new_rwmh_cube initializes correctly", {
   expect_equal(rwcube$steps, 25)
 })
 
-test_that("new_rwmh_cube errors on invalid arguments", {
-  expect_snapshot_error(new_rwmh_cube(fn, 2L, target_acceptance = 0))
-  expect_snapshot_error(new_rwmh_cube(fn, 2L, target_acceptance = 1))
-  expect_snapshot_error(new_rwmh_cube(fn, 2L, steps = 1))
-})
-
 rwcube <- new_rwmh_cube(fn, 2L)
-
 test_that("propose.rwmh_cube proposes a single new point", {
   result <- propose(rwcube, original = NULL, criteria = -Inf)
   expect_equal(dim(result$unit), c(1, 2))
   expect_equal(
-    gaussian_2$log_lik(gaussian_2$prior$fn(result$unit)),
+    gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik
   )
   expect_snapshot(rwcube)
 })
 
+test_val <- c(-920.9877, -772.8395, -870.9118, -772.8395, -920.9877)
 test_that("propose.rwmh_cube proposes multiple new points with criteria", {
-  test_val <- c(-37, -16, -9, -5, -3)
   result <- propose(rwcube, criteria = test_val)
   expect_equal(dim(result$unit), c(5, 2))
   expect_true(all(result$log_lik >= test_val))
   expect_equal(
-    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x))),
+    apply(result$unit, 1, \(x) {
+      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
+    }),
     result$log_lik
   )
   expect_snapshot(rwcube)
 })
 
 test_that("propose.rwmh_cube works with provided original points", {
-  test_val <- c(-10.311600, -6.412965, -5.113419, -6.412965, -10.311600)
   original <- matrix(seq(0, 1, length = 10), ncol = 2)
   result <- propose(rwcube, original, test_val)
   expect_equal(dim(result$unit), c(5, 2))
   expect_true(all(result$log_lik >= test_val))
   expect_equal(
-    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x))),
+    apply(result$unit, 1, \(x) {
+      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
+    }),
     result$log_lik
   )
   expect_equal(rwcube$cache$n_call, 125L)
@@ -72,7 +75,7 @@ test_that("propose.rwmh_cube returns original log_lik when criteria is Inf", {
   res <- propose(rwcube, original, criteria = test_val)
   expect_equal(
     res$log_lik,
-    apply(original, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x)))
+    apply(original, 1, \(x) gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x)))
   )
   expect_equal(rwcube$cache$n_call, 250L)
   expect_snapshot(rwcube)

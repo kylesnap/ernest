@@ -1,12 +1,12 @@
-# Gaussian shells: 2D
+# Eggbox
 
     Code
       smry
     Output
       
-      -- Nested Sampling Results from <ernest_run> -----------------------------------
+      -- Nested sampling results <ernest_run> ----------------------------------------
       No. Points: 500
-      No. Iterations: 3418
-      No. Lik. Calls: 71434
-      Log. Evidence: -1.745 (± 0.08602)
+      No. Iterations: 4953
+      No. Lik. Calls: 109727
+      Log. Evidence: 236.1 (± 0.1181)
 

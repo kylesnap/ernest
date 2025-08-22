@@ -1,3 +1,12 @@
+#' @ssrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
+#' error messages
+test_that("new_ernest_likelihood fails informatively", {
+  expect_snapshot_error(new_ernest_likelihood(
+    gaussian_blobs$log_lik,
+    .nonfinite_action = "loudly"
+  ))
+})
+
 test_that("create_likelihood with simple function", {
   test <- function(x) -sum((x - 1)^2)
   ll <- create_likelihood(test)

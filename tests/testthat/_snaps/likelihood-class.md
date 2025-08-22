@@ -1,3 +1,7 @@
+# new_ernest_likelihood fails informatively
+
+    `.nonfinite_action` must be one of "warn", "quiet", or "abort", not "loudly".
+
 # create_likelihood with simple function
 
     Code

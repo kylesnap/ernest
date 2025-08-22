@@ -8,11 +8,12 @@
 create_prior(
   fn,
   rowwise_fn,
-  n_dim,
   ...,
-  varnames = "X",
-  lower = -Inf,
-  upper = Inf
+  .n_dim = NULL,
+  .varnames = NULL,
+  .name_repair = c("unique", "universal", "check_unique"),
+  .lower = -Inf,
+  .upper = Inf
 )
 }
 \arguments{
@@ -24,16 +25,21 @@ returns a vector of parameters of the same length.
 and returns a matrix of parameters with identical dimensions.
 }}
 
-\item{n_dim}{A positive integer. The number of dimensions of the prior
-distribution.}
-
 \item{...}{Named arguments to \code{fn} or \code{rowwise_fn} that should be partially
 applied.}
 
-\item{varnames}{An optional character vector. Names for the variables in the
+\item{.n_dim}{An optional positive integer. The number of dimensions of the
+prior distribution. If left \code{NULL}, this is inferred from the common length
+of the vector-valued parameters (see Note).}
+
+\item{.varnames}{An optional character vector. Names for the variables in the
 prior distribution.}
 
-\item{lower, upper}{Numeric vectors. Expected bounds for the
+\item{.name_repair}{An optional, case-sensitive string. How to repair
+\code{varnames}. Options are \code{"unique"} (default), \code{"universal"}, or
+\code{"check_unique"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
+
+\item{.lower, .upper}{Numeric vectors. Expected bounds for the
 parameter vectors after hypercube transformation.}
 }
 \value{
@@ -41,10 +47,11 @@ A named list with class \code{ernest_prior}, containing:
 \itemize{
 \item \code{fn}: The prior transformation function.
 \item \code{n_dim}: Number of dimensions in the prior space.
-\item \code{varnames}: Variable names, recycled to length \code{n_dim} and made unique.
 \item \code{lower}, \code{upper}: Bounds for the prior distribution,
 recycled to length \code{n_dim}.
 }
+
+Additionally, the object has a \code{varnames} attribute.
 }
 \description{
 Use an R function to specify the prior distribution of parameters for a
@@ -78,13 +85,19 @@ Ernest will wrap \code{fn} so it can accept a matrix of parameters. If you have 
 more efficient implementation that handles vectors and matrices, consider
 providing \code{rowwise_fn} instead.
 }
+\note{
+The vector-valued parameters in this function are recycled to length
+\code{n_dim} if it is an integer, or to a common length if \code{n_dim = NULL}. See
+\link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
+recycling.
+}
 \examples{
 # 3D uniform prior in the range [-10, 10]
 unif <- function(x) {
    -10 + x * 20
 }
 
-prior <- create_prior(unif, n_dim = 3, lower = -10, upper = 10)
+prior <- create_prior(unif, .n_dim = 3, .lower = -10, .upper = 10)
 prior$fn(c(0.25, 0.5, 0.75))
 mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
 prior$fn(mat)
@@ -98,9 +111,8 @@ hier_f <- function(theta) {
 }
 create_prior(
   hier_f,
-  n_dim = 3,
-  varnames = c("mu", "sigma", "x"),
-  lower = c(-Inf, 0, -Inf)
+  .varnames = c("mu", "sigma", "x"),
+  .lower = c(-Inf, 0, -Inf)
 )
 
 # Using `rowwise_fn` should be done with care
@@ -112,9 +124,8 @@ bb_p <- function(x) {
 try({
   create_prior(
     rowwise_fn = bb_p,
-    n_dim = 2,
     varnames = c("beta", "bern")
   )
 })
-create_prior(bb_p, n_dim = 2, varnames = c("beta", "bern"))
+create_prior(bb_p, varnames = c("beta", "bern"))
 }

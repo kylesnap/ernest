@@ -1,7 +1,7 @@
 #' Paramter Recovery
 #'
 #' @srrstats {G5.0, G5.6, G5.6a, BS7.2} Use the NIST dataset `mcmc01` to test
-#' ernest's ability to recover the parameters of a normal distribution. Uses the
+#' ernest's ability to recover the parameters of a known distribution. Uses the
 #' certified 95% posterior quantile.
 NULL
 
@@ -30,7 +30,6 @@ log_lik <- function(theta) {
 }
 
 prior <- create_uniform_prior(
-  n_dim = 2L,
   lower = c(99999999, 0.01),
   upper = c(100000001, 1),
   varnames = c("mu", "sigma")

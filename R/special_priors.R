@@ -3,13 +3,17 @@
 #' A specialisation of [create_prior()] where the parameter space is
 #' described by independent normal variables, possibly truncated.
 #'
-#' @inheritParams create_prior
 #' @inheritParams stats::qnorm
-#' @param lower,upper Double vectors. Bounds for a truncated distribution.
-#' Recycled to length `n_dim`.
+#' @param mean Numeric vector of means.
+#' @param sd Numeric vector of standard deviations (must be strictly positive.)
+#' @param lower,upper Numeric vector of bounds for a truncated normal
+#' distribution.
+#' @inheritParams create_prior
 #'
 #' @returns A `normal_prior`, a subclass of `ernest_prior` with an efficient
 #' implementation of the unit hypercube transformation.
+#'
+#' @inherit create_prior note
 #'
 #' @srrstats {BS2.5} create_normal_prior performs checks to ensure that the sd
 #' parameter is strictly positive.
@@ -18,41 +22,39 @@
 #' * [create_prior()] for more on the `ernest_prior` object.
 #' * [truncnorm::qtruncnorm()] for the truncated normal quantile function.
 #' @family special_priors
-#' @importFrom vctrs vec_cast
 #' @export
 #' @examples
-#' prior <- create_normal_prior(3)
+#' prior <- create_normal_prior(n_dim = 3)
 #' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
-  n_dim,
+  n_dim = NULL,
   mean = 0,
   sd = 1,
-  varnames = NULL,
   lower = -Inf,
-  upper = Inf
+  upper = Inf,
+  varnames = "Normal",
+  name_repair = c("unique", "universal", "check_unique")
 ) {
   mean <- vctrs::vec_cast(mean, double())
   sd <- vctrs::vec_cast(sd, double())
   if (any(sd <= 0)) {
     cli::cli_abort("`sd` of a normal distribution must be non-negative.")
   }
-
-  params <- check_prior_params(n_dim, varnames %||% "", lower, upper)
+  prior <- new_ernest_prior(
+    prior_fn = \(x) NULL,
+    n_dim = n_dim,
+    lower = lower,
+    upper = upper,
+    varnames = varnames,
+    repair = name_repair
+  )
   dparams <- vctrs::vec_recycle_common(
     "mean" = mean,
     "sd" = sd,
-    .size = params$n_dim
+    .size = prior$n_dim
   )
-  if (is.null(varnames)) {
-    new_names <- sprintf(
-      "N(%s, %s)",
-      round(dparams$mean, 3),
-      round(dparams$sd^2, 3)
-    )
-    params$varnames <- make.unique(new_names)
-  }
 
-  truncated <- any(is.finite(params$lower)) || any(is.finite(params$lower))
+  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$lower))
   unit <- NULL
   fn_body <- if (truncated) {
     check_installed(
@@ -64,8 +66,8 @@ create_normal_prior <- function(
         t(unit),
         mean = !!dparams$mean,
         sd = !!dparams$sd,
-        a = !!params$lower,
-        b = !!params$upper
+        a = !!prior$lower,
+        b = !!prior$upper
       )
       if (is.null(rows <- nrow(unit))) {
         y
@@ -87,10 +89,10 @@ create_normal_prior <- function(
 
   new_ernest_prior(
     prior_fn = wrap_special_prior(fn_body),
-    n_dim = params$n_dim,
-    varnames = params$varnames,
-    lower = params$lower,
-    upper = params$upper,
+    n_dim = prior$n_dim,
+    varnames = attr(prior, "varnames"),
+    lower = prior$lower,
+    upper = prior$upper,
     class = "normal_prior"
   )
 }
@@ -100,53 +102,52 @@ create_normal_prior <- function(
 #' A specialisation of [create_prior()] where the parameter space is
 #' described by independent uniform marginals.
 #'
-#' @inheritParams create_normal_prior
-#' @param lower,upper Double vectors. Bounds of the distribution.
+#' @param lower,upper Numeric vector of bounds for the uniform distribution.
+#' @inheritParams create_prior
 #'
 #' @returns A `uniform_prior`, a subclass of `ernest_prior` with an efficient
 #' implementation of the unit hypercube transformation.
 #'
+#' @inherit create_prior note
+#'
 #' @family special_priors
 #' @export
 #' @examples
-#' prior <- create_uniform_prior(2, lower = c(3, -2), upper = c(5, 4))
+#' prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))
 #' prior$fn(c(0.33, 0.67))
 create_uniform_prior <- function(
-  n_dim,
+  n_dim = NULL,
   lower = 0,
   upper = 1,
-  varnames = NULL
+  varnames = "Uniform",
+  name_repair = c("unique", "universal", "check_unique")
 ) {
-  params <- check_prior_params(n_dim, varnames %||% "", lower, upper)
-  if (any(is.infinite(lower)) || any(is.infinite(upper))) {
-    cli::cli_abort("Lower and upper must be vectors of finite doubles.")
-  }
-  if (is.null(varnames)) {
-    new_names <- sprintf(
-      "U[%s, %s]",
-      round(params$lower, 3),
-      round(params$upper, 3)
-    )
-    params$varnames <- make.unique(new_names)
-  }
+  prior <- new_ernest_prior(
+    prior_fn = \(x) NULL,
+    n_dim = n_dim,
+    lower = lower,
+    upper = upper,
+    varnames = varnames,
+    repair = name_repair
+  )
 
-  diff <- params$upper - params$lower
+  diff <- prior$upper - prior$lower
   unit <- NULL
   body <- expr({
     if (is.matrix(unit)) {
       y <- sweep(unit, MARGIN = 2, !!diff, `*`)
-      sweep(y, MARGIN = 2, !!params$lower, `+`)
+      sweep(y, MARGIN = 2, !!prior$lower, `+`)
     } else {
-      !!params$lower + (unit * !!diff)
+      !!prior$lower + (unit * !!diff)
     }
   })
 
   new_ernest_prior(
     prior_fn = wrap_special_prior(body),
-    n_dim = params$n_dim,
-    varnames = params$varnames,
-    lower = params$lower,
-    upper = params$upper,
+    n_dim = prior$n_dim,
+    varnames = attr(prior, "varnames"),
+    lower = prior$lower,
+    upper = prior$upper,
     class = "uniform_prior"
   )
 }

@@ -1,7 +1,6 @@
-gaussian_2 <- make_gaussian(2L)
 sampler <- ernest_sampler(
-  log_lik = gaussian_2$log_lik,
-  prior = gaussian_2$prior
+  log_lik = gaussian_blobs$log_lik,
+  prior = gaussian_blobs$prior
 )
 
 test_that("Runs can be completed and resume", {
@@ -24,8 +23,8 @@ test_that("Runs can be completed and resume", {
 
 test_that("Throws errors when stop criteria are already passed", {
   sampler <- ernest_sampler(
-    log_lik = gaussian_2$log_lik,
-    prior = gaussian_2$prior
+    log_lik = gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior
   )
   run1 <- generate(sampler, max_iterations = 100, seed = 42L)
   expect_snapshot_error(generate(run1, max_iterations = 50))

@@ -1,7 +1,8 @@
 #' Edge Case Testing
 #'
-#' @srrstats {G5.8} These all test that nested_sampling/generate warns or fails
-#' gracefully when presented with certain likelihood structures.
+#' @srrstats {G5.8} These all test that ernest warns or fails
+#' gracefully when presented with poorly conditioned likelihood surfaces
+#' or priors.
 NULL
 
 #' Zero-Length Data
@@ -17,8 +18,8 @@ test_that("Zero-length likelihood fails", {
 
 test_that("Zero-length prior fails", {
   prior_fn <- \(theta) double(0)
-  expect_snapshot_error(create_prior(prior_fn, n_dim = 0))
-  expect_snapshot_error(create_prior(prior_fn, n_dim = 1))
+  expect_snapshot_error(create_prior(prior_fn, .n_dim = 0))
+  expect_snapshot_error(create_prior(prior_fn, .n_dim = 1))
 })
 
 #' Wrong types
@@ -28,7 +29,7 @@ NULL
 
 test_that("Fails on character types", {
   prior_fn <- \(theta) c("A", "B")
-  expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
+  expect_snapshot_error(create_prior(prior_fn, .n_dim = 2))
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
   expect_snapshot_error(ernest_sampler(ll, create_uniform_prior(2)))
@@ -36,7 +37,7 @@ test_that("Fails on character types", {
 
 test_that("Fails on complex types", {
   prior_fn <- \(theta) 0.15i * theta
-  expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
+  expect_snapshot_error(create_prior(prior_fn, .n_dim = 2))
 
   ll <- \(theta) sum(0.15i * length(theta))
   expect_snapshot_error(ernest_sampler(ll, create_uniform_prior(2)))
@@ -47,43 +48,46 @@ test_that("Fails on complex types", {
 #' @srrstats {G5.8c} ernest fails when NA are produced by a prior function.
 test_that("Missing values in the prior", {
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
-  expect_snapshot_error(create_prior(prior_fn, n_dim = 2))
+  expect_snapshot_error(create_prior(prior_fn, .n_dim = 2))
 })
 
 #' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
-#'
+#' @srrstats {G5.3} Ernest results do not contain NA even when log-lik produces
+#' NA values.
 NULL
 
 test_that("Missing values in the log-likelihood", {
-  ll_fn <- gaussian_shell(2L)
   ll_fn_missing <- \(theta) {
-    if (any(15 <= theta)) {
+    if (any(theta >= 0)) {
       return(NA)
     }
-    ll_fn(theta)
+    gaussian_blobs$log_lik(theta)
   }
-  prior <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
 
   expect_snapshot_error(
     ernest_sampler(
-      create_likelihood(ll_fn_missing, .nonfinite_action = "abort"),
-      prior
+      log_lik = create_likelihood(ll_fn_missing, .nonfinite_action = "abort"),
+      prior = gaussian_blobs$prior
     )
   )
 
   expect_no_message(
-    ernest_sampler(
+    quiet_na_sampler <- ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "quiet"),
-      prior
+      gaussian_blobs$prior
     )
   )
 
   expect_snapshot_warning(
     ernest_sampler(
       create_likelihood(ll_fn_missing, .nonfinite_action = "warn"),
-      prior
+      gaussian_blobs$prior
     )
   )
+
+  skip_if(getOption("ernest.extended_tests", FALSE))
+  run <- generate(quiet_na_sampler, seed = 42L)
+  expect_false(anyNA(run$log_lik))
 })
 
 #' Special tests: Perfectly flat and nearly flat likelihoods
@@ -96,16 +100,15 @@ test_that("Ernest fails when ll is flat to begin with", {
 })
 
 test_that("Ernest halts and warns when ll becomes flat during a run", {
-  ll <- make_gaussian(2L)
   ll_flat <- \(theta) {
     if (any(theta > 0)) {
       return(0)
     }
-    ll$log_lik(theta)
+    gaussian_blobs$log_lik(theta)
   }
 
   expect_warning(
-    sampler <- ernest_sampler(ll_flat, prior = ll$prior),
+    sampler <- ernest_sampler(ll_flat, prior = gaussian_blobs$prior),
     "`log_lik` may contain a likelihood plateau"
   )
   expect_snapshot(

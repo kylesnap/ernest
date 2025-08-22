@@ -1,5 +1,4 @@
-gaussian_2 <- make_gaussian(2)
-fn <- purrr::compose(gaussian_2$log_lik, gaussian_2$prior$fn)
+fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
 
 test_that("unif_cube returns correct class and structure", {
   obj <- unif_cube()
@@ -23,19 +22,21 @@ test_that("propose.unif_cube proposes a single new point", {
   result <- propose(uniform, original = NULL, criteria = -Inf)
   expect_equal(dim(result$unit), c(1, 2))
   expect_equal(
-    gaussian_2$log_lik(gaussian_2$prior$fn(result$unit)),
+    gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik
   )
   expect_snapshot(uniform)
 })
 
 test_that("propose.unif_cube proposes multiple new points with criteria", {
-  test_val <- c(-37, -16, -9, -5, -3)
+  test_val <- c(-100, -100, -100, -100, -100)
   result <- propose(uniform, criteria = test_val)
   expect_equal(dim(result$unit), c(5, 2))
   expect_true(all(result$log_lik >= test_val))
   expect_equal(
-    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x))),
+    apply(result$unit, 1, \(x) {
+      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
+    }),
     result$log_lik
   )
   expect_snapshot(uniform)
@@ -43,13 +44,17 @@ test_that("propose.unif_cube proposes multiple new points with criteria", {
 
 test_that("propose.unif_cube works with provided original points", {
   set.seed(42L)
-  test_val <- c(-37, -16, -9, -5, -3)
+  test_val <- c(-100, -100, -100, -100, -100)
   original <- matrix(runif(5 * 2), ncol = 2)
   result <- propose(uniform, original, test_val)
   expect_equal(dim(result$unit), c(5, 2))
   expect_true(all(result$log_lik >= test_val))
   expect_equal(
-    apply(result$unit, 1, \(x) gaussian_2$log_lik(gaussian_2$prior$fn(x))),
+    apply(
+      result$unit,
+      1,
+      \(x) gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
+    ),
     result$log_lik
   )
   n_call <- uniform$cache$n_call

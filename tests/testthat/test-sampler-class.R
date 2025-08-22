@@ -1,17 +1,17 @@
-gaussian_2 <- make_gaussian(2)
+wrapped_lik <- create_likelihood(rowwise_fn = gaussian_blobs$log_lik)
 
 test_that("ernest_sampler initializes correctly", {
   sampler <- new_ernest_sampler(
-    log_lik = gaussian_2$log_lik,
-    prior = gaussian_2$prior,
+    log_lik_fn = wrapped_lik,
+    prior = gaussian_blobs$prior,
     lrps = rwmh_cube(),
     n_points = 500,
     first_update = 200L,
     update_interval = 50L
   )
 
-  expect_identical(sampler$log_lik, gaussian_2$log_lik)
-  expect_identical(sampler$prior, gaussian_2$prior)
+  expect_identical(sampler$log_lik, wrapped_lik)
+  expect_identical(sampler$prior, gaussian_blobs$prior)
   expect_identical(sampler$n_points, 500L)
   expect_identical(sampler$first_update, 200L)
   expect_identical(sampler$update_interval, 50L)
@@ -21,13 +21,16 @@ test_that("ernest_sampler initializes correctly", {
 
 sampler_call <- call2(
   new_ernest_sampler,
-  log_lik_fn = gaussian_2$log_lik,
-  prior = gaussian_2$prior,
+  log_lik_fn = wrapped_lik,
+  prior = gaussian_blobs$prior,
   lrps = rwmh_cube(),
   n_points = 500,
   first_update = 200L,
   update_interval = 50L
 )
+
+#' @ssrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
+#' error messages
 test_that("invalid samplers are caught", {
   expect_no_error(bad_sampler <- eval(sampler_call))
 

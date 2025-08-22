@@ -5,6 +5,9 @@ unif_prior <- gaussian_blobs$prior
 
 result <- NULL
 smry_base <- NULL
+
+#' @srrstats {BS7.0, BS7.1} Checks that ernest outputs evidence estimates
+#' that are close to analytical results.
 test_that("ernest produces expected results for 2D gaussian", {
   sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
 
@@ -28,7 +31,11 @@ test_that("ernest produces expected results for 2D gaussian", {
   expect_equal(sum(weights), 1.0)
 })
 
-#' Tests for convergence
+#' Further algorithmic testing
+#'
+#' @srrstats {G5.7} These tests all demonstrate that change ernest's
+#' computational parameters changes the behaviour of the NS algorithm
+#' as expected.
 #'
 #' @srrstats {BS4.6, BS4.7} Test checks that the NS converegence criteria
 #' (min_logz) produce identical results to when the number of iterations
@@ -86,6 +93,8 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
   expect_lt(smry_01$n_iter, smry_base$n_iter)
 })
 
+#' @srrstats {BS7.3} The scale of the prior should impact the iterations
+#' needed for NS to converge an evidence estimate.
 test_that("increasing prior vol. increases iterations needed to converge", {
   skip_if(getOption("ernest.extended_tests", FALSE))
   wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)

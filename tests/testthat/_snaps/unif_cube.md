@@ -32,7 +32,7 @@
     Output
       Uniform Unit Cube LRPS <unif_cube/ernest_lrps>
       No. Dimensions: 2
-      No. Calls Since Update: 8
+      No. Calls Since Update: 71
 
 # propose.unif_cube errors when max_loop is reached
 

@@ -16,6 +16,7 @@ test_that("ernest_run object structure and content", {
   expect_equal(length(example_run$id), length(example_run$log_lik))
   expect_equal(dim(example_run$samples_unit)[1], length(example_run$log_lik))
   expect_equal(dim(example_run$samples)[1], length(example_run$log_lik))
+  expect_snapshot(example_run)
 })
 
 test_that("ernest_run log_lik and prior mapping", {
@@ -85,4 +86,5 @@ test_that("summary.ernest_run run tibble columns", {
   expect_type(smry$run$log_evidence, "double")
   expect_type(smry$run$log_evidence_err, "double")
   expect_type(smry$run$information, "double")
+  expect_snapshot(smry)
 })

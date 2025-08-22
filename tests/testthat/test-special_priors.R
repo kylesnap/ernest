@@ -9,7 +9,10 @@ test_that("create_normal_prior tests", {
 
   prior <- create_normal_prior(3L)
   expect_s3_class(prior, "ernest_prior")
-  expect_equal(prior$varnames, c("N(0, 1)", "N(0, 1).1", "N(0, 1).2"))
+  expect_equal(
+    attr(prior, "varnames"),
+    c("Normal...1", "Normal...2", "Normal...3")
+  )
   expect_equal(prior$n_dim, 3L)
 
   expect_equal(prior$fn(c(0.5, 0.5, 0.5)), c(0, 0, 0))
@@ -48,7 +51,10 @@ test_that("create_normal_prior tests", {
 test_that("create_uniform_prior returns correct object and values", {
   prior <- create_uniform_prior(3, lower = c(0, -1, -2), upper = c(1, 0, 1))
   expect_s3_class(prior, "ernest_prior")
-  expect_equal(prior$varnames, c("U[0, 1]", "U[-1, 0]", "U[-2, 1]"))
+  expect_equal(
+    attr(prior, "varnames"),
+    c("Uniform...1", "Uniform...2", "Uniform...3")
+  )
 
   expect_equal(
     prior$fn(c(0.5, 0.5, 0.5)),

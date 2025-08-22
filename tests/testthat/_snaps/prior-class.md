@@ -1,39 +1,58 @@
+# new_ernest_prior throws informative errors
+
+    `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
+
+---
+
+    Can't recycle `lower` (size 2) to size 3.
+
+---
+
+    Can't convert `lower` <character> to <double>.
+
+---
+
+    Can't recycle `lower` (size 2) to size 3.
+
+# new_ernest_prior errors if lower >= upper
+
+    `lower` must be strictly smaller than `upper`.
+    x Problem at index 2.
+
+---
+
+    `lower` must be strictly smaller than `upper`.
+    x Problem at indicies 1 and 2.
+
+# new_ernest_prior repairs names as specified
+
+    Names must be unique.
+    x These names are duplicated:
+      * "x" at locations 1 and 2.
+    i Use argument `name_repair` to specify repair strategy.
+
 # create_prior creates a custom rowwise prior
 
     Code
       prior
     Output
-      <ernest_prior>
-      X, X.1, and X.2
-
-# check_prior_params throws errors for improper inputs
-
-    `n_dim` must be a whole number larger than or equal to 1, not the number -1.
-
----
-
-    `n_dim` must be a whole number, not an integer vector.
-
----
-
-    Can't convert `varnames` <double> to <character>.
-
----
-
-    Can't recycle `varnames` (size 3) to size 2.
-
----
-
-    `lower` must be strictly smaller than `upper`.
+      Prior distribution <ernest_prior>
+      
+      Names: "...1", "...2", and "...3"
+      Bounds:
+      > Lower: -10, -10, and -10
+      > Upper: 10, 10, and 10
 
 # create_prior errors if prior function output length is wrong
 
-    `prior(rep(0.5, 2))` must be a double vector of size 2, not 3.
+    Can't validate `fn` as a valid prior.
+    Caused by error in `prior$fn()`:
+    ! `y` must have size 2, not size 3.
 
 ---
 
     Can't validate `rowwise_fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `prior(unit)` must return a matrix of equal dim. to `unit`.
     x Expected dim(y) = 10 x 2.
     x Returned dim(y) = 4 and 5.
@@ -41,16 +60,6 @@
 # create_prior errors if prior returns non-finite values
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `fn()`:
+    Caused by error in `prior$fn()`:
     ! `prior(unit)` must never return `NA` or `NaN` values.
-
-# create_prior errors with invalid bounds
-
-    `lower` must be strictly smaller than `upper`.
-
----
-
-    Can't validate `fn` as a valid prior.
-    Caused by error:
-    ! `prior(matrix(nrow = 10, ncol = 2))` must respect the lower boundary (-Inf and 1).
 

@@ -46,9 +46,9 @@ new_ernest_run.ernest_run <- function(x, results) {
 new_ernest_run_ <- function(x, parsed) {
   live_order <- order(x$live_points$log_lik)
   samples_unit <- rbind(parsed$unit, x$live_points$unit[live_order, ])
-  colnames(samples_unit) <- x$prior$varnames
+  colnames(samples_unit) <- attr(x$prior, "varnames")
   samples <- t(apply(samples_unit, 1, x$prior$fn))
-  colnames(samples) <- x$prior$varnames
+  colnames(samples) <- attr(x$prior, "varnames")
 
   live <- list(
     "log_lik" = x$live_points$log_lik[live_order],
@@ -91,8 +91,12 @@ new_ernest_run_ <- function(x, parsed) {
 #' @noRd
 #' @export
 format.ernest_run <- function(x, ...) {
-  log_z <- tail(x$log_evidence, 1)
-  log_z_sd <- sqrt(tail(x$log_evidence_var, 1))
+  log_z <- formatC(tail(x$log_evidence, 1), digits = 4, format = "fg")
+  log_z_sd <- formatC(
+    sqrt(tail(x$log_evidence_var, 1)),
+    digits = 4,
+    format = "fg"
+  )
   cli::cli_format_method({
     cli::cli_text("Nested sampling run {.cls {class(x)}}")
     cli::cli_text("No. Points: {x$n_points}")
@@ -101,7 +105,7 @@ format.ernest_run <- function(x, ...) {
     cli::cli_h3("Results")
     cli::cli_text("No. Iterations: {x$n_iter}")
     cli::cli_text("No. Calls: {x$n_calls}")
-    cli::cli_text("Log. Evidence: {.val {log_z}} (\U00B1 {.val {log_z_sd}})")
+    cli::cli_text("Log. Evidence: {log_z} (\U00B1 {log_z_sd})")
   })
 }
 
@@ -189,9 +193,8 @@ summary.ernest_run <- function(object, ...) {
 format.summary.ernest_run <- function(x, ...) {
   log_z <- formatC(x$log_evidence, digits = 4, format = "fg")
   log_z_sd <- formatC(x$log_evidence_err, digits = 4, format = "fg")
-
   cli::cli_format_method({
-    cli::cli_h1("Nested Sampling Results from {.cls ernest_run}")
+    cli::cli_h1("Nested sampling results {.cls ernest_run}")
     cli::cli_dl(c(
       "No. Points" = "{x$n_points}",
       "No. Iterations" = "{x$n_iter}",

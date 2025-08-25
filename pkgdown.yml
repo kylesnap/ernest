@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   more-ernest-runs: more-ernest-runs.html
   nested-sampling-with-ernest: nested-sampling-with-ernest.html
-last_built: 2025-08-25T22:37Z
+last_built: 2025-08-25T22:58Z
 urls:
   reference: https://kylesnap.github.io/ernest/reference
   article: https://kylesnap.github.io/ernest/articles

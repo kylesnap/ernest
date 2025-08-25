@@ -67,3 +67,14 @@ test_that("update_lrps resets and is idempotent for ernest_lrps", {
   newer_lrps <- update_lrps(new_lrps)
   expect_identical(new_lrps, newer_lrps)
 })
+
+test_that("Reproducible under seed", {
+  set.seed(42L)
+  lrps <- new_ernest_lrps(fn, 2L)
+  test_val <- c(-37, -16, -9, -5, -3)
+  result1 <- propose(lrps, criteria = test_val)
+
+  set.seed(42L)
+  result2 <- propose(lrps, criteria = test_val)
+  expect_identical(result1, result2)
+})

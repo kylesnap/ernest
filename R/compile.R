@@ -34,7 +34,7 @@
 #' sampling until the issue is resolved.
 #'
 #' @return A validated `object`, with a valid set of live points stored in its
-#' `live_points` environment.
+#' `run_env` environment.
 #'
 #' @seealso
 #' * [ernest_sampler()] for creating an `ernest_sampler` object.
@@ -48,7 +48,7 @@
 #'
 #' # Compile the sampler to add live points
 #' compile(sampler)
-#' head(sampler$live_points$unit)
+#' head(sampler$run_env$unit)
 #'
 #' # Continue a previous run
 #' # run <- data(example_run)
@@ -63,14 +63,14 @@
 compile.ernest_sampler <- function(object, ..., seed = NA) {
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
-  set_ernest_seed(seed, object$live_points)
+  set_ernest_seed(seed, object$run_env)
 
   # Fill live points
   cli::cli_inform("Creating new live points...")
   live <- create_live(object$lrps, object$n_points)
-  env_poke(object$live_points, "unit", live$unit, create = TRUE)
-  env_poke(object$live_points, "log_lik", live$log_lik, create = TRUE)
-  env_poke(object$live_points, "birth", rep(0L, object$n_points))
+  env_poke(object$run_env, "unit", live$unit, create = TRUE)
+  env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
+  env_poke(object$run_env, "birth", rep(0L, object$n_points))
 
   check_live_set(object)
   object
@@ -95,13 +95,16 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   }
 
   # Fill live points
-  cli::cli_inform("Restoring live points from a previous run...")
+  cli::cli_inform(c("v" = "Restoring live points from a previous run..."))
+  env_poke(object$run_env, "cache", attr(object, "seed"))
+  set_ernest_seed(seed, object$run_env)
+
   live_positions <- vctrs::vec_as_location(
     seq(object$n_iter),
     vctrs::vec_size(object$log_lik)
   )
   env_bind(
-    object$live_points,
+    object$run_env,
     unit = object$samples_unit[-live_positions, ],
     log_lik = object$log_lik[-live_positions],
     birth = object$birth[-live_positions]
@@ -127,11 +130,11 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
 #' @param n_points Integer. The number of live points to generate.
 #' @param call The calling environment for error handling.
 #'
-#' @return A list containing `unit`, `point`, and `log_lik` matrices or vectors.
+#' @return A list containing `unit` and `log_lik` matrices or vectors.
 #' @noRd
 create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
-    propose(lrps, criteria = rep(-1e300, n_points)),
+    live <- propose(lrps, criteria = rep(-1e300, n_points)),
     error = function(cnd) {
       cli::cli_abort(cnd$message, call = expr(compile()))
     },
@@ -142,6 +145,11 @@ create_live <- function(lrps, n_points, call = caller_env()) {
         cli::cli_warn(cnd$message, call = expr(compile()))
       }
     }
+  )
+  order_logl <- order(live$log_lik)
+  list(
+    "log_lik" = live$log_lik[order_logl],
+    "unit" = live$unit[order_logl, , drop = FALSE]
   )
 }
 
@@ -158,7 +166,7 @@ check_live_set <- function(sampler, call = caller_env()) {
   n_dim <- sampler$prior$n_dim
 
   # Live Point Check
-  unit <- env_get(sampler$live_points, "unit")
+  unit <- env_get(sampler$run_env, "unit")
   check_matrix(
     unit,
     nrow = n_points,
@@ -170,7 +178,7 @@ check_live_set <- function(sampler, call = caller_env()) {
   )
 
   # Log Lik Checks
-  log_lik <- env_get(sampler$live_points, "log_lik")
+  log_lik <- env_get(sampler$run_env, "log_lik")
   check_double(log_lik, size = n_points, arg = "log_lik", call = call)
 
   n_unique <- vctrs::vec_unique_count(log_lik)
@@ -194,10 +202,10 @@ check_live_set <- function(sampler, call = caller_env()) {
   }
 
   # Birth vector
-  birth <- env_get(sampler$live_points, "birth")
+  birth <- env_get(sampler$run_env, "birth")
   if (!is_bare_integer(birth, n = n_points)) {
     cli::cli_abort(
-      "`birth` vector cannot be missing from the `live_points` environment.",
+      "`birth` vector cannot be missing from the `run_env` environment.",
       call = call
     )
   }
@@ -213,18 +221,22 @@ check_live_set <- function(sampler, call = caller_env()) {
 #' @returns NULL, invisibly.
 #' @noRd
 set_ernest_seed <- function(seed, cache, call = caller_env()) {
-  if (is.null(seed) || !is.na(seed)) {
+  if (is.null(seed)) {
+    cli::cli_inform(c("v" = "Resetting the RNG state (`seed = NULL`)"))
+    set.seed(NULL)
+    env_unbind(cache, "seed")
+  } else if (!is.na(seed)) {
     check_number_whole(seed, allow_null = TRUE, call = call)
-    set.seed(seed)
-    env_poke(cache, "seed", .Random.seed)
+    env_poke(cache, "seed", seed)
   } else if (env_has(cache, "seed")) {
-    .Random.seed <- env_get(cache, "seed")
-    cli::cli_inform("Restored a previously saved RNG state.")
+    cli::cli_inform(c("v" = "Restored a previously saved RNG state."))
+  }
+  if (env_has(cache, "seed")) {
+    set.seed(seed)
   } else {
-    if (!exists(".Random.seed")) {
-      set.seed(NULL)
-    }
-    env_poke(cache, "seed", .Random.seed)
+    seed <- sample.int(999, size = 1)
+    set.seed(seed)
+    env_poke(cache, "seed", seed)
   }
   invisible(NULL)
 }

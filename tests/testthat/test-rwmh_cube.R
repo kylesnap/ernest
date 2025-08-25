@@ -93,3 +93,13 @@ test_that("update_lrps resets and is idempotent for rwmh_cube", {
   newer_rwcube <- update_lrps(new_rwcube)
   expect_identical(new_rwcube, newer_rwcube)
 })
+
+test_that("Reproducible under seed", {
+  set.seed(42L)
+  original <- matrix(seq(0, 1, length = 10), ncol = 2)
+  result1 <- propose(rwcube, original, test_val)
+
+  set.seed(42L)
+  result2 <- propose(rwcube, original, test_val)
+  expect_identical(result1, result2)
+})

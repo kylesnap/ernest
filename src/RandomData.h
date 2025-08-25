@@ -6,7 +6,6 @@
  * https://people.math.sc.edu/Burkardt/cpp_src/random_data/random_data.html
  */
 #include <vector>
-#include <iostream>
 
 #include <R_ext/BLAS.h>
 #include <R_ext/Lapack.h>
@@ -16,12 +15,6 @@
 #include "cpp11.hpp"
 
 namespace RandomData {
-
-// Scope guard to ensure PutRNGstate() is always called
-struct RNGScopeGuard {
-  RNGScopeGuard() { GetRNGstate(); }
-  ~RNGScopeGuard() { PutRNGstate(); }
-};
 
 // Fill R matrices with random data
 void uniform_in_cube(cpp11::writable::doubles_matrix<> &matrix);

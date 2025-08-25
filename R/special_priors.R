@@ -40,6 +40,16 @@ create_normal_prior <- function(
   if (any(sd <= 0)) {
     cli::cli_abort("`sd` of a normal distribution must be non-negative.")
   }
+
+  # Infer n_dim if NULL
+  n_dim <- n_dim %||%
+    vctrs::vec_size_common(
+      "mean" = mean,
+      "sd" = sd,
+      "lower" = lower,
+      "upper" = upper,
+      "varnames" = varnames
+    )
   prior <- new_ernest_prior(
     prior_fn = \(x) NULL,
     n_dim = n_dim,
@@ -51,7 +61,7 @@ create_normal_prior <- function(
   dparams <- vctrs::vec_recycle_common(
     "mean" = mean,
     "sd" = sd,
-    .size = prior$n_dim
+    .size = n_dim
   )
 
   truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$lower))

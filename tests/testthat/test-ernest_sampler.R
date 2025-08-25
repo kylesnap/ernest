@@ -23,7 +23,7 @@ cli::test_that_cli("Progress bar can be printed", {
   withr::local_options(cli.progress_handlers_only = "logger")
 
   expect_snapshot(
-    generate(sampler, max_iterations = 1, seed = 42L, show_progress = TRUE),
+    generate(sampler, max_iterations = 1, seed = 42, show_progress = TRUE),
     transform = \(lines) {
       gsub("^.+cli.+$", "cli-line", lines)
     }
@@ -39,6 +39,6 @@ cli::test_that_cli("Fully-verbose output", {
   withr::local_options(rlib_message_verbosity = "verbose")
 
   expect_snapshot(
-    generate(sampler, max_iterations = 1000, seed = 42L, show_progress = FALSE)
+    generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
   )
 })

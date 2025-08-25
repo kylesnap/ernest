@@ -232,7 +232,7 @@ set_ernest_seed <- function(seed, cache, call = caller_env()) {
     cli::cli_inform(c("v" = "Restored a previously saved RNG state."))
   }
   if (env_has(cache, "seed")) {
-    set.seed(seed)
+    set.seed(env_has(cache, "seed"))
   } else {
     seed <- sample.int(999, size = 1)
     set.seed(seed)

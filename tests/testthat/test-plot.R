@@ -21,6 +21,8 @@ test_that("plotting an ernest_run object", {
   )
 
   skip_extended_test()
+  skip_on_ci()
+  skip_on_covr()
   vdiffr::expect_doppelganger("ernest_run plot", plot(example_run))
 })
 
@@ -51,6 +53,8 @@ test_that("plotting an ernest_estimate object", {
   expect_equal(tbl_100$fill_name, "MCI")
 
   skip_extended_test()
+  skip_on_ci()
+  skip_on_covr()
   expect_warning(vdiffr::expect_doppelganger(
     "ernest_estimate(ndraws = 1)",
     plot(calculate(example_run, ndraws = 1))
@@ -71,6 +75,8 @@ test_that("ernest_run can be plotted after simulation", {
   data(example_run)
   set.seed(42)
   skip_extended_test()
+  skip_on_ci()
+  skip_on_covr()
   vdiffr::expect_doppelganger(
     "ernest_run(ndraws = 500)",
     plot(example_run, ndraws = 500)

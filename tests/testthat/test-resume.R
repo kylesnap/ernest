@@ -12,7 +12,7 @@ test_that("Resuming using an ernest_run", {
   expect_identical(run1$samples_unit[1:100, ], run2$samples_unit[1:100, ])
 
   skip_extended_test()
-  run3 <- generate(run2, min_logz = 0.5)
+  run3 <- generate(run2, min_logz = 0.5, seed = 42)
   expect_identical(run3$log_volume[1:1000], run2$log_volume[1:1000])
   expect_identical(run3$log_lik[1:1000], run2$log_lik[1:1000])
   expect_identical(run3$samples_unit[1:1000, ], run2$samples_unit[1:1000, ])

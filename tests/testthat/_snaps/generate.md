@@ -6,13 +6,13 @@
 
 ---
 
-    `max_calls` must be strictly larger than 113.
+    `max_calls` must be strictly larger than 112.
     x `x` already contains previously-generated samples.
     i Should you use `clear` to erase previous samples from `x`?
 
 ---
 
-    `min_logz` must be strictly smaller than 1085.0623.
+    `min_logz` must be strictly smaller than 997.9662.
     x `x` already contains previously-generated samples.
     i Should you use `clear` to erase previous samples from `x`?
 

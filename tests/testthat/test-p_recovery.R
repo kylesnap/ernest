@@ -10,7 +10,7 @@ test_that("Parameter recovery for a normal distribution", {
   )
 
   sampler <- ernest_sampler(log_l, prior, n_points = 100)
-  run <- generate(sampler, max_iterations = 1000)
+  run <- generate(sampler, max_iterations = 1000, seed = 42)
   draws <- as_draws(run) |> posterior::resample_draws()
   smry <- posterior::summarise_draws(
     draws,

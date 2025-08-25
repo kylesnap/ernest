@@ -15,11 +15,11 @@ on:
       - ropensci_submission
 
 jobs:
-  env:
-    ERNEST_EXTENDED_TESTS: ${{contains(github.event.head_commit.message, 'run-extended')}}
   pkgcheck:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
       - uses: ropensci-review-tools/pkgcheck-action@main
+    env:
+      ERNEST_EXTENDED_TESTS: ${{contains(github.event.head_commit.message, 'run-extended')}}

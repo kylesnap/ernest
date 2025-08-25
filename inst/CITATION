@@ -2,18 +2,6 @@ citHeader("To cite the nested sampling method, please use:")
 
 bibentry(
   bibtype  = "Article",
-  title    = "Nested Sampling Methods",
-  author   = person("Johannes", "Buchner"),
-  journal  = "Statistics Surveys",
-  year     = 2023,
-  volume   = "17",
-  number   = "none",
-  pages    = "169–215",
-  doi      = "10.1214/23-SS144"
-)
-
-bibentry(
-  bibtype  = "Article",
   title    = "Nested Sampling",
   author   = person("John", "Skilling"),
   journal  = "AIP Conference Proceedings",
@@ -35,5 +23,3 @@ bibentry(
   pages    = "833–859",
   doi      = "10.1214/06-BA127"
 )
-
-

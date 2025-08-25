@@ -19,9 +19,13 @@ library(ernest)
 ```
 
 ```{r, include = FALSE, echo = FALSE}
-#' @srrstats {G1.5} These examples are based on classical test problems for nested sampling, including tests for the dynesty NS package. These problems are additionally used within ernest's test suite to validate its behaviour.
-#' @srrstats {G5.1} Tests and test data are made available here for users to interact with.
-#' @srrstats {BS1.1} Provides an example on how to enter data through an anonymous function.
+#' @srrstats {G1.5} These examples are based on classical test problems for
+#' nested sampling, including tests for the dynesty NS package. These problems
+#' are additionally used within ernest's test suite to validate its behaviour.
+#' @srrstats {G5.1} Tests and test data are made available here for users to
+#' interact with.
+#' @srrstats {BS1.1} Provides an example on how to enter data through an
+#' anonymous function.
 ```
 
 This vignette demonstrates how to use the ernest package to solve several classical nested sampling problems. These examples are based on standard benchmarks from the literature and are also used in the package's test suite to validate correctness. You'll learn how to specify likelihoods and priors, run nested sampling, and interpret the results.
@@ -69,7 +73,7 @@ prior_2d <- create_uniform_prior(
 )
 
 sampler_2d <- ernest_sampler(log_lik_2d, prior_2d)
-run_2d <- generate(sampler_2d)
+run_2d <- generate(sampler_2d, show_progress = FALSE)
 run_2d
 ```
 
@@ -91,7 +95,7 @@ prior_5d <- create_uniform_prior(
 )
 
 sampler_5d <- ernest_sampler(log_lik_5d, prior_5d)
-run_5d <- generate(sampler_5d)
+run_5d <- generate(sampler_5d, show_progress = FALSE)
 run_5d
 ```
 
@@ -113,7 +117,7 @@ eggbox_loglik <- function(theta) {
 }
 prior_eggbox <- create_uniform_prior(n_dim = 2, upper = 10 * pi)
 sampler_eggbox <- ernest_sampler(eggbox_loglik, prior_eggbox)
-run_eggbox <- generate(sampler_eggbox)
+run_eggbox <- generate(sampler_eggbox, show_progress = FALSE)
 summary(run_eggbox)
 ```
 
@@ -158,7 +162,7 @@ sampler_norm <- ernest_sampler(
   log_lik = \(theta) log_lik_norm(theta, y = data),
   prior_norm
 )
-run_norm <- generate(sampler_norm)
+run_norm <- generate(sampler_norm, show_progress = FALSE)
 run_norm
 ```
 

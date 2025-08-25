@@ -17,9 +17,11 @@ knitr::opts_chunk$set(
 ```{r srr-tags, eval = FALSE, echo = FALSE}
 #' roxygen_block_name
 #' 
-#' @srrstats {G1.3} Vignette presents consistent statistical terminology to be used throughout ernest.
+#' @srrstats {G1.3} Vignette presents consistent statistical terminology to be
+#' used throughout ernest.
 #' @srrstats {BS1.2, BS1.2b} Contains examples for specifying priors.
-#' @srrstats {BS1.3, BS1.3a} Describes how to save and continue previous runs with `generate()`.
+#' @srrstats {BS1.3, BS1.3a} Describes how to save and continue previous runs
+#' with `generate()`.
 ```
 
 ```{r setup, message = FALSE}
@@ -82,7 +84,6 @@ In many cases, it is sufficient to define a prior with independently distributed
 The following defines a uniform prior over \([-10, 10)\) for each parameter in 3D space:
 ```{r}
 prior <- create_uniform_prior(
-  3,
   lower = -10,
   upper = 10,
   varnames = c("x", "y", "z")
@@ -117,8 +118,8 @@ five_dim <- function(u) {
 }
 create_prior(
   fn = five_dim,
-  n_dim = 5,
-  varnames = c("MVN", "MVN", "Beta", "Gamma", "Norm[2, 10]")
+  .n_dim = 5,
+  .varnames = c("MVN", "MVN", "Beta", "Gamma", "Norm[2, 10]")
 )
 ```
 For more sophisticated priors (such as those for hierarchical models), you will need to build more involved prior transformation functions.
@@ -135,9 +136,9 @@ hierarchical <- function(u) {
 }
 create_prior(
   fn = hierarchical,
-  n_dim = 3,
-  varnames = c("mu", "sigma", "x"),
-  lower = c(-Inf, 0, -Inf)
+  .n_dim = 3,
+  .varnames = c("mu", "sigma", "x"),
+  .lower = c(-Inf, 0, -Inf)
 )
 ```
 ### Likelihood Function
@@ -174,7 +175,7 @@ sampler
 Run nested sampling for a fixed number of iterations or until the evidence estimate converges:
 
 ```{r}
-run <- generate(sampler, max_iterations = 2000, seed = 123)
+run <- generate(sampler, max_iterations = 2000, seed = 123, show_progress = FALSE)
 run
 ```
 
@@ -186,7 +187,7 @@ saveRDS(run, tmp_name)
 
 continued_run <- readRDS(tmp_name)
 
-run2 <- generate(continued_run, min_logz = 0.01)
+run2 <- generate(continued_run, min_logz = 0.01, show_progress = FALSE)
 run2
 ```
 ```{r include = FALSE}

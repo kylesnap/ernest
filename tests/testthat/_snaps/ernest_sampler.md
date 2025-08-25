@@ -103,8 +103,8 @@
     Code
       generate(sampler, max_iterations = 1000, seed = 42L, show_progress = FALSE)
     Message
-      Creating new live points...
-      `max_iterations` reached (1000).
+      v Creating new live points.
+      v `max_iterations` reached (1000).
     Output
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500
@@ -126,8 +126,8 @@
     Code
       generate(sampler, max_iterations = 1000, seed = 42L, show_progress = FALSE)
     Message
-      [1m[22mCreating new live points...
-      [1m[22m`max_iterations` reached (1000).
+      [1m[22m[32mv[39m Creating new live points.
+      [1m[22m[32mv[39m `max_iterations` reached (1000).
     Output
       Nested sampling run [34m<ernest_run/ernest_sampler>[39m
       No. Points: 500
@@ -149,8 +149,8 @@
     Code
       generate(sampler, max_iterations = 1000, seed = 42L, show_progress = FALSE)
     Message
-      Creating new live points...
-      `max_iterations` reached (1000).
+      ✔ Creating new live points.
+      ✔ `max_iterations` reached (1000).
     Output
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500
@@ -172,8 +172,8 @@
     Code
       generate(sampler, max_iterations = 1000, seed = 42L, show_progress = FALSE)
     Message
-      [1m[22mCreating new live points...
-      [1m[22m`max_iterations` reached (1000).
+      [1m[22m[32m✔[39m Creating new live points.
+      [1m[22m[32m✔[39m `max_iterations` reached (1000).
     Output
       Nested sampling run [34m<ernest_run/ernest_sampler>[39m
       No. Points: 500

@@ -18,6 +18,16 @@ test_that("Resuming using an ernest_run", {
   expect_identical(run3$samples_unit[1:1000, ], run2$samples_unit[1:1000, ])
 })
 
+test_that("Reset an existing run", {
+  run1_restart <- generate(run1, max_iterations = 100, seed = 42, clear = TRUE)
+  expect_identical(run1$log_volume[1:100], run1_restart$log_volume[1:100])
+  expect_identical(run1$log_lik[1:100], run1_restart$log_lik[1:100])
+  expect_identical(
+    run1$samples_unit[1:100, ],
+    run1_restart$samples_unit[1:100, ]
+  )
+})
+
 test_that("Reproducing a ernest_sampler saved to disk", {
   withr::with_file("sampler.rds", {
     saveRDS(sampler, "sampler.rds")

@@ -31,14 +31,14 @@ simulated.
 The three \code{y} axes are:
 \itemize{
 \item \strong{Evidence:} Estimate with an error ribbon drawn from either
-the estimated standard error (if \code{ernest_run}) or from the highest density
-credible interval (HDCI) (if \code{ernest_estimate});
+the estimated standard error (if \code{ernest_run}) or from the median credible
+interval (MCI) (if \code{ernest_estimate});
 \item \strong{Normalised Likelihood:} The likelihood value of the criteria used
 to draw new points from the likelihood-restricted prior sampler, normalised
 by the maximum likelihood generated during the run;
 \item \strong{Posterior Weight:} The density of the posterior weights attributed to
 regions of volume within the prior. For \code{ernest_estimate} objects,
-an error ribbon is drawn with the HDCI of this estimate.
+an error ribbon is drawn with the MCI of this estimate.
 }
 }
 \description{
@@ -46,9 +46,7 @@ Shows the normalised likelihood, importance weights, and evidence as
 functions of log-volume.
 }
 \note{
-For \code{ernest_estimate}, \code{ndraws} must be sufficiently large to calculate
-the HDI. If HDI calculation fails, a warning is issued and an \code{ernest_run}
-plot is generated instead.
+For \code{ernest_estimate}, \code{ndraws} should be large enough to plot the
 }
 \examples{
 # Plot integration results from a run.

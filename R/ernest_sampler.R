@@ -71,7 +71,7 @@
 #'   ll_fn,
 #'   prior,
 #'   n_points = 100,
-#'   sampler = unif_cube
+#'   sampler = unif_cube()
 #' )
 #' unit_sampler
 ernest_sampler <- function(

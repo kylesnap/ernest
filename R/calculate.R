@@ -123,7 +123,7 @@ get_logvol <- function(n_points, n_iter, ndraws = NULL) {
     vol <- -1 * (points^-1)
     matrix(cumsum(vol), nrow = 1)
   } else {
-    vol <- matrix(runif(ndraws * length(points)), nrow = ndraws)
+    vol <- matrix(stats::runif(ndraws * length(points)), nrow = ndraws)
     vol <- log(vol)
     matrixStats::rowCumsums(sweep(vol, 2, points, "/"))
   }

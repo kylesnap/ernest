@@ -30,6 +30,15 @@ using a Newton-like method, where the current acceptance rate \eqn{a_{cur}}
 is used to target the acceptance rate \eqn{a^*}:
 \deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
 }
+\examples{
+data(example_run)
+lrps <- rwmh_cube()
+
+ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+
+# Change the default behaviour of the sampler:
+rwmh_cube(steps = 20, target_acceptance = 0.4)
+}
 \references{
 \itemize{
 \item Skilling, J. (2006). Nested Sampling for General

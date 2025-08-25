@@ -66,7 +66,7 @@ compile.ernest_sampler <- function(object, ..., seed = NA) {
   set_ernest_seed(seed, object$run_env)
 
   # Fill live points
-  cli::cli_inform("Creating new live points...")
+  cli::cli_inform(c("v" = "Creating new live points."))
   live <- create_live(object$lrps, object$n_points)
   env_poke(object$run_env, "unit", live$unit, create = TRUE)
   env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
@@ -95,7 +95,7 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   }
 
   # Fill live points
-  cli::cli_inform(c("v" = "Restoring live points from a previous run..."))
+  cli::cli_inform(c("v" = "Restoring live points from a previous run."))
   env_poke(object$run_env, "cache", attr(object, "seed"))
   set_ernest_seed(seed, object$run_env)
 

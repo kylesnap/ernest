@@ -96,13 +96,13 @@
 #'   bern <- stats::qbinom(x[2], size = 1, beta)
 #'   c(beta, bern)
 #' }
-#' try({
+#' try(
 #'   create_prior(
 #'     rowwise_fn = bb_p,
-#'     varnames = c("beta", "bern")
+#'     .varnames = c("beta", "bern")
 #'   )
-#' })
-#' create_prior(bb_p, varnames = c("beta", "bern"))
+#' )
+#' create_prior(bb_p, .varnames = c("beta", "bern"))
 #' @export
 create_prior <- function(
   fn,

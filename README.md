@@ -7,6 +7,7 @@
 
 [![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/kylesnap/ernest/branch/ropensci_submission/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
+
 <!-- badges: end -->
 
 ernest is a comprehensive toolkit for nested sampling (NS) in R,
@@ -53,12 +54,13 @@ one-dimensional approximation of the evidence integral. NS offers
 several advantages over other Bayesian methods such as Markov chain
 Monte Carlo (MCMC):
 
-1.  Global exploration of $`\pi(\theta)`$;
-2.  Robustness to complex or poorly conditioned distributions (e.g.,
-    multimodal or discontinuous);
-3.  Simultaneous estimation of the posterior distribution;
-4.  Natural stopping criteria—no need for burn-in or manual convergence
-    checks.
+1.  NS performs a global exploration of $`\pi(\theta)`$;
+2.  NS is robust to distributions that are poorly-conditioned (e.g.,
+    multiple modes or discontinuities);
+3.  NS can simultaneously estimate a model’s evidence and its posterior
+    distribution, and;
+4.  NS provides natural stopping criteria—no need for burn-in or manual
+    convergence checks.
 
 ## Nested Sampling in Ernest
 
@@ -118,8 +120,8 @@ dynesty:
 | [MultiNest](https://github.com/JohannesBuchner/MultiNest) | Farhan Feroz & Mike Hobson | Fortran, with R, Python, and C++ interfaces |
 | [perfectns](https://github.com/ejhigson/perfectns) | Edward Higson | Python |
 
-The nestcheck Python package provides routines for diagnosing nested
-sampling runs (Handley 2019).
+In addition, the nestcheck Python package provides routines for
+diagnosing nested sampling runs (Handley 2019).
 
 ### References
 

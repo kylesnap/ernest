@@ -39,7 +39,7 @@ calls between updates to the \code{sampler} object. If \code{NULL}, this is set 
 \value{
 An object of class \code{ernest_sampler}, which is a list containing the
 inputs used as arguments to this function, along with an environment
-\code{live_points} which is used to store the \code{n_points} live particles throughout
+\code{run_env} which is used to store the \code{n_points} live particles throughout
 a nested sampling run.
 }
 \description{
@@ -78,7 +78,7 @@ unit_sampler <- ernest_sampler(
   ll_fn,
   prior,
   n_points = 100,
-  sampler = unif_cube
+  sampler = unif_cube()
 )
 unit_sampler
 }

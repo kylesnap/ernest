@@ -31,7 +31,14 @@
 #'
 #' @srrstats {BS4.0} References the paper and software containing the sampling
 #' algorithm.
+#' @examples
+#' data(example_run)
+#' lrps <- rwmh_cube()
 #'
+#' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+#'
+#' # Change the default behaviour of the sampler:
+#' rwmh_cube(steps = 20, target_acceptance = 0.4)
 #' @export
 rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
   new_rwmh_cube(

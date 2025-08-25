@@ -64,6 +64,22 @@ test_that("new_ernest_prior recycles varnames, lower, upper", {
   expect_equal(attr(prior, "varnames"), c("x...1", "x...2", "x...3"))
 })
 
+test_that("create_prior can apply function arguments", {
+  fn <- function(x) x
+  prior <- create_prior(
+    fn = stats::qnorm,
+    mean = !!c(-1, 0, 1),
+    sd = !!c(1, 1, 1),
+    .n_dim = 3,
+    .varnames = "x"
+  )
+  expect_equal(attr(prior, "varnames"), c("x...1", "x...2", "x...3"))
+  expect_equal(
+    prior$fn(c(0.5, 0.5, 0.5)),
+    c(-1, 0, 1)
+  )
+})
+
 test_that("new_ernest_prior repairs names as specified", {
   fn <- function(x) x
   prior <- new_ernest_prior(

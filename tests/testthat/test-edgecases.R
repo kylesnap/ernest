@@ -7,8 +7,8 @@ NULL
 
 #' Zero-Length Data
 #'
-#' @srrstats {G5.8a} Tests for when likelihood and prior presented by user return
-#' zero-lengths.
+#' @srrstats {G5.8a} Tests for when likelihood and prior presented by user
+#' return zero-lengths.
 test_that("Zero-length likelihood fails", {
   ll <- \(theta) double(0)
   prior <- create_uniform_prior(2)

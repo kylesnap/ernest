@@ -16,6 +16,12 @@ Generate new live points by performing rejection sampling across the entire
 prior distribution. This is highly inefficient as an LRPS, but may be useful
 for testing the behaviour of a nested sampling specification.
 }
+\examples{
+data(example_run)
+lrps <- unif_cube()
+
+ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+}
 \references{
 Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the

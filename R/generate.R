@@ -118,7 +118,8 @@ generate.ernest_sampler <- function(
 }
 
 #' @method generate ernest_run
-#' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run from the last known set of live points.
+#' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
+#' from the last known set of live points.
 #' @export
 generate.ernest_run <- function(
   x,
@@ -132,6 +133,19 @@ generate.ernest_run <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
+  x <- compile(x, ...)
+  if (inherits_only(x, "ernest_sampler")) {
+    args <- list2(...)
+    return(generate(
+      x,
+      seed = args$seed,
+      max_iterations = max_iterations,
+      max_calls = max_calls,
+      min_logz = min_logz,
+      show_progress = show_progress
+    ))
+  }
+
   cur_iter <- x$n_iter
   cur_calls <- x$n_calls
   last_criterion <- x$log_lik[cur_iter]
@@ -147,7 +161,6 @@ generate.ernest_run <- function(
       cur_calls,
       d_logz
     )
-  x <- compile(x, ...)
 
   results <- nested_sampling_impl(
     x = x,

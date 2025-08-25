@@ -35,7 +35,7 @@ compiling. If \code{FALSE}, retains previous results and validates live points.}
 }
 \value{
 A validated \code{object}, with a valid set of live points stored in its
-\code{live_points} environment.
+\code{run_env} environment.
 }
 \description{
 Prepares an object for nested sampling by validating and (re)generating its
@@ -64,7 +64,7 @@ sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
 
 # Compile the sampler to add live points
 compile(sampler)
-head(sampler$live_points$unit)
+head(sampler$run_env$unit)
 
 # Continue a previous run
 # run <- data(example_run)

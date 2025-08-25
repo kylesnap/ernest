@@ -16,6 +16,11 @@
 #' @srrstats {BS4.0} References the software containing the sampling algorithm.
 #'
 #' @family ernest_lrps
+#' @examples
+#' data(example_run)
+#' lrps <- unif_cube()
+#'
+#' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 unif_cube <- function() {
   new_unif_cube(

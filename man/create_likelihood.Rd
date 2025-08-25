@@ -40,7 +40,7 @@ wrapped in checks to ensure type and size stability:
 error.
 \item If provided a matrix of doubles, returns a vector of doubles and \code{-Inf}
 of length equal to the number of matrix rows, or an error.
-\item Otherwise, throws an error.
+\item Otherwise, it throws an error.
 }
 }
 \description{
@@ -57,8 +57,10 @@ data into the likelihood function here. You can either build an anonymous
 function (see \code{\link[rlang:as_function]{rlang::as_function()}}), or use the \code{...} parameters to
 partially apply data to \code{fn} or \code{rowwise_fn} (see \code{\link[purrr:partial]{purrr::partial()}}).
 
-It is expected that \code{fn} returns a scalar finite double or \code{-Inf} for each
-parameter vector.
+It is expected that the log-likelihood function returns a scalar finite
+double or \code{-Inf} for each parameter vector. Non-finite values other than
+\code{-Inf}, such as \code{NaN}, \code{Inf}, or \code{NA} (i.e. missing values) are handled
+with the behavior of \code{.nonfinite_action}.
 
 Ernest will wrap \code{fn} so it can accept a matrix of parameters. If you have
 a more efficient implementation of your likelihood function that can handle

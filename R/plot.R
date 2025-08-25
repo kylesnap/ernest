@@ -70,7 +70,8 @@ plot.ernest_run <- function(x, ..., ndraws = 0) {
 
 #' Autoplot for Ernest Estimates
 #'
-#' Generates a ggplot object for an `ernest_estimate` object containing uncertainty simulations.
+#' Generates a ggplot object for an `ernest_estimate` object containing
+#' uncertainty simulations.
 #'
 #' @param object An `ernest_estimate` object containing uncertainty simulations.
 #' @param ... Additional arguments passed to the method.

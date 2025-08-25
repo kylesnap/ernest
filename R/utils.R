@@ -265,7 +265,7 @@ hdci <- function(object, width = 0.95, ...) {
   lower <- (1 - width) / 2
   upper <- (1 + width) / 2
 
-  q <- quantile(object, probs = c(lower, 0.5, upper)) |>
+  q <- stats::quantile(object, probs = c(lower, 0.5, upper)) |>
     t()
   colnames(q) <- c(".lower", ".var", ".upper")
   data.frame(q, ".width" = width)
@@ -414,6 +414,7 @@ compute_integral <- function(log_lik, log_volume) {
 #' @param x An object.
 #' @returns x, unless x is a number, in which case x is rounded to a set
 #' number of decimal places.
+#' @noRd
 pretty <- function(x) {
   if (!is.numeric(x)) {
     x

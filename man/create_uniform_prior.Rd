@@ -5,7 +5,7 @@
 \title{Specify a prior with uniformly distributed marginals}
 \usage{
 create_uniform_prior(
-  n_dim,
+  n_dim = NULL,
   lower = 0,
   upper = 1,
   varnames = "Uniform",

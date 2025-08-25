@@ -66,13 +66,15 @@ nested_sampling_impl <- function(
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
-      cli::cli_inform("`max_calls` surpassed ({call} > {max_calls}).")
+      cli::cli_inform(c("v" = "`max_calls` surpassed ({call} > {max_calls})."))
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      cli::cli_inform("`min_logz` reached ({pretty(d_log_z)} < {min_logz}).")
+      cli::cli_inform(c(
+        "v" = "`min_logz` reached ({pretty(d_log_z)} < {min_logz})."
+      ))
       break
     }
     if (show_progress) {
@@ -83,8 +85,8 @@ nested_sampling_impl <- function(
     worst_idx <- which_minn(live_env$log_lik)
     new_criterion <- live_env$log_lik[worst_idx[1]]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
-      cli::cli_alert_warning(
-        "Stopping run due to a likelihood plateau at {round(max_lik, 3)}."
+      cli::cli_warn(
+        "Stopping run due to a likelihood plateau at {pretty(max_lik)}."
       )
       break
     }
@@ -127,7 +129,7 @@ nested_sampling_impl <- function(
     call <- call + new_unit$n_call
   }
   if (i >= max_iterations) {
-    cli::cli_inform("`max_iterations` reached ({i}).")
+    cli::cli_inform(c("v" = "`max_iterations` reached ({i})."))
   }
 
   list(

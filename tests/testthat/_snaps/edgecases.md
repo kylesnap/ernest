@@ -73,8 +73,8 @@
       Warning in `compile()`:
       `log_lik` may contain a likelihood plateau; proceed with caution.
       ! Only 135/500 likelihood values are unique.
-    Message
-      ! Stopping run due to a likelihood plateau at 0.
+      Warning:
+      Stopping run due to a likelihood plateau at 0.
     Output
       Nested sampling run <ernest_run/ernest_sampler>
       No. Points: 500

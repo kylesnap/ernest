@@ -196,8 +196,8 @@ summary.ernest_run <- function(object, ...) {
 #' @noRd
 #' @export
 format.summary.ernest_run <- function(x, ...) {
-  log_z <- formatC(x$log_evidence, digits = 4, format = "fg")
-  log_z_sd <- formatC(x$log_evidence_err, digits = 4, format = "fg")
+  log_z <- pretty(x$log_evidence)
+  log_z_sd <- pretty(x$log_evidence_err)
   cli::cli_format_method({
     cli::cli_h1("Nested sampling results {.cls ernest_run}")
     cli::cli_dl(c(

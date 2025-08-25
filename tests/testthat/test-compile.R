@@ -7,7 +7,11 @@ test_that("create_live generates live points correctly", {
   result <- create_live(sampler$lrps, 10)
   expect_equal(dim(result$unit), c(10, 2))
   expect_equal(
-    apply(apply(result$unit, 1, gaussian_blobs$prior$fn), 2, gaussian_blobs$log_lik),
+    apply(
+      apply(result$unit, 1, gaussian_blobs$prior$fn),
+      2,
+      gaussian_blobs$log_lik
+    ),
     result$log_lik
   )
 })

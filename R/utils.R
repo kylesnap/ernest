@@ -258,39 +258,17 @@ list_c <- function(x) {
 #' @noRd
 hdci <- function(object, width = 0.95, ...) {
   if (!inherits(object, "rvar")) {
-    stop("Input must be of class 'rvar'.")
+    cli::cli_abort("`object` must be of class 'rvar'.")
   }
-  # Compute HDI for each element
-  hdis <- t(vapply(
-    object,
-    function(x) {
-      draws <- as.numeric(posterior::draws_of(x))
-      if (!is.numeric(draws)) {
-        return(c(NA, NA))
-      }
-      x_sorted <- sort.int(draws, method = "quick")
-      n <- length(x_sorted)
-      if (n < 3) {
-        return(vctrs::vec_recycle(x, size = 2L))
-      }
-      exclude <- n - floor(n * width)
-      lowest <- x_sorted[1:exclude]
-      largest <- x_sorted[(n - exclude + 1):n]
-      best <- which.min(largest - lowest)
-      if (length(best)) {
-        c(lowest[best], largest[best])
-      } else {
-        c(NA, NA)
-      }
-    },
-    numeric(2L)
-  ))
-  colnames(hdis) <- c(".lower", ".upper")
-  data.frame(
-    ".var" = stats::median(object),
-    hdis,
-    ".width" = width
-  )
+  check_number_decimal(width, min = 0, max = 1)
+
+  lower <- (1 - width) / 2
+  upper <- (1 + width) / 2
+
+  q <- quantile(object, probs = c(lower, 0.5, upper)) |>
+    t()
+  colnames(q) <- c(".lower", ".var", ".upper")
+  data.frame(q, ".width" = width)
 }
 
 #' Estimate the density of posterior weights across log-volumes

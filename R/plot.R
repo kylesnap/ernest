@@ -18,18 +18,16 @@
 #' The three `y` axes are:
 #'
 #' * **Evidence:** Estimate with an error ribbon drawn from either
-#'   the estimated standard error (if `ernest_run`) or from the highest density
-#'   credible interval (HDCI) (if `ernest_estimate`);
+#'   the estimated standard error (if `ernest_run`) or from the median credible
+#'   interval (MCI) (if `ernest_estimate`);
 #' * **Normalised Likelihood:** The likelihood value of the criteria used
 #'   to draw new points from the likelihood-restricted prior sampler, normalised
 #'   by the maximum likelihood generated during the run;
 #' * **Posterior Weight:** The density of the posterior weights attributed to
 #'   regions of volume within the prior. For `ernest_estimate` objects,
-#'   an error ribbon is drawn with the HDCI of this estimate.
+#'   an error ribbon is drawn with the MCI of this estimate.
 #'
-#' @note For `ernest_estimate`, `ndraws` must be sufficiently large to calculate
-#' the HDI. If HDI calculation fails, a warning is issued and an `ernest_run`
-#' plot is generated instead.
+#' @note For `ernest_estimate`, `ndraws` should be large enough to plot the
 #'
 #' @srrstats {BS6.1} Default plot for return object.
 #'
@@ -132,70 +130,49 @@ autoplot.ernest_run <- function(object, ...) {
 #' fallback data frame with variance estimates is returned instead.
 #' @noRd
 calc_hdi_tbl <- function(object) {
-  try_fetch(
-    {
-      max_log_z <- tail(object$log_evidence, 1)
-      w <- exp(object$log_weight - max_log_z)
-      density_draws <- get_density(object$log_volume, w)
-      log_volume <- density_draws$log_volume
+  if (attr(object, "ndraws") < 100) {
+    cli::cli_warn(
+      "`ndraws` should be above 100 to accurately plot credible intervals."
+    )
+  }
+  max_log_z <- tail(object$log_evidence, 1)
+  w <- exp(object$log_weight - max_log_z)
+  density_draws <- get_density(object$log_volume, w)
+  log_volume <- density_draws$log_volume
 
-      w_68 <- hdci(density_draws$density, width = 0.68)
-      w_95 <- hdci(density_draws$density, width = 0.95)
-      df_w <- vctrs::vec_rbind(w_68, w_95)
-      df_w$log_vol <- rep(log_volume, 2)
-      df_w$.label <- "Posterior Weight"
+  w_68 <- hdci(density_draws$density, width = 0.68)
+  w_95 <- hdci(density_draws$density, width = 0.95)
+  df_w <- vctrs::vec_rbind(w_68, w_95)
+  df_w$log_vol <- rep(log_volume, 2)
+  df_w$.label <- "Posterior Weight"
 
-      rvar_evid <- interpolate_evidence(
-        object$log_volume,
-        object$log_evidence,
-        log_volume
-      )
+  rvar_evid <- interpolate_evidence(
+    object$log_volume,
+    object$log_evidence,
+    log_volume
+  )
 
-      z_68 <- hdci(rvar_evid, width = 0.68)
-      z_95 <- hdci(rvar_evid, width = 0.95)
-      df_z <- vctrs::vec_rbind(z_68, z_95)
-      df_z$log_vol <- rep(log_volume, 2)
-      df_z$.label <- "Evidence"
+  z_68 <- hdci(rvar_evid, width = 0.68)
+  z_95 <- hdci(rvar_evid, width = 0.95)
+  df_z <- vctrs::vec_rbind(z_68, z_95)
+  df_z$log_vol <- rep(log_volume, 2)
+  df_z$.label <- "Evidence"
 
-      log_lik <- drop(posterior::draws_of(object$log_lik))
-      df_ll <- data.frame(
-        "log_vol" = mean(object$log_volume),
-        ".label" = "Normalized Likelihood",
-        ".var" = exp(log_lik - max(log_lik)),
-        ".lower" = NA,
-        ".upper" = NA,
-        ".width" = NA
-      )
-      list(
-        df = vctrs::vec_c(df_w, df_ll, df_z),
-        "fill_name" = "HDCI",
-        "fill_limits" = c(0.95, 0.68),
-        "fill_labels" = c("95%", "68%")
-      )
-    },
-    error = function(cnd) {
-      ndraws <- attr(object, "ndraws")
-      cli::cli_warn(
-        c(
-          "Could't calculate HDIs from `object`.",
-          "!" = "Returning a plot with evidence variance estimates instead.",
-          "i" = if (ndraws <= 100) {
-            "Is `ndraws` large enough to calculate HDIs?"
-          } else {
-            NULL
-          }
-        ),
-        parent = cnd
-      )
+  log_lik <- drop(posterior::draws_of(object$log_lik))
+  df_ll <- data.frame(
+    "log_vol" = mean(object$log_volume),
+    ".label" = "Normalized Likelihood",
+    ".var" = exp(log_lik - max(log_lik)),
+    ".lower" = NA,
+    ".upper" = NA,
+    ".width" = NA
+  )
 
-      calc_var_tbl(
-        log_volume = mean(object$log_volume),
-        log_evidence = mean(object$log_evidence),
-        log_evidence_var = posterior::sd(object$log_evidence) %|% 0.0,
-        log_weight = mean(object$log_weight),
-        log_lik = mean(object$log_lik)
-      )
-    }
+  list(
+    df = vctrs::vec_c(df_w, df_ll, df_z),
+    "fill_name" = "MCI",
+    "fill_limits" = c(0.95, 0.68),
+    "fill_labels" = c("95%", "68%")
   )
 }
 

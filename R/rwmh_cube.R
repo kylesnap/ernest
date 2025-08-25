@@ -48,7 +48,7 @@ format.rwmh_cube <- function(x, ...) {
     cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
     cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
     cli::cli_text("No. Accepted Since Update: {x$cache$n_acc %||% 0L}")
-    cli::cli_text("Current Step Size: {round(x$cache$epsilon %||% 1, 4)}")
+    cli::cli_text("Current Step Size: {pretty(x$cache$epsilon %||% 1)}")
   })
 }
 

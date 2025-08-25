@@ -29,8 +29,7 @@ test_that("Trace tables", {
 })
 
 test_that("Density plot", {
-  skip_on_cran()
-
+  skip_extended_test()
   set.seed(42)
   data(example_run)
   vdiffr::expect_doppelganger(
@@ -44,9 +43,7 @@ test_that("Density plot", {
 })
 
 test_that("Trace plot", {
-  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
-  skip_on_cran()
-
+  skip_extended_test()
   set.seed(42)
   data(example_run)
   vdiffr::expect_doppelganger(

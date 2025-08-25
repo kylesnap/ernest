@@ -1,7 +1,5 @@
 #' Testing calculate against values produced by `nestcheck` when provided
 #' a sample run from PolyChord.
-NULL
-
 gold <- readRDS(test_path("calculate-gold.rds"))
 
 test_that("Helpers produce as expected", {
@@ -63,7 +61,7 @@ test_that("calculate works when ndraws = 1", {
 })
 
 test_that("calculate works when ndraws = 4000 (default)", {
-  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
+  skip_extended_test()
   data(example_run)
   n_samp <- example_run$n_iter + example_run$n_points
 

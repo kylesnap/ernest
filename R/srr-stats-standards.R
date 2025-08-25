@@ -14,7 +14,7 @@
 #' @srrstats {G3.0} Ernest does not use `==` to make equality comparisons
 #' between non-integers.
 #' @srrstats {G5.10, G5.12} Extended tests are controlled with an environment
-#' option set in `setup.R`. A note has been added to `CONTRIBUTING.md`.
+#' variable. A note has been added to `CONTRIBUTING.md`.
 #' @srrstats {BS4.1} Ernest makes testing comparisons against Nestle. The
 #' package vignettes demonstrate how Ernest uses S3 methods to produce nested
 #' sampling run objects that work well with existing tools in R.

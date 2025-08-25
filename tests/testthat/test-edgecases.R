@@ -85,7 +85,7 @@ test_that("Missing values in the log-likelihood", {
     )
   )
 
-  skip_if(getOption("ernest.extended_tests", FALSE))
+  skip_extended_test()
   run <- generate(quiet_na_sampler, seed = 42L)
   expect_false(anyNA(run$log_lik))
 })

@@ -8,13 +8,15 @@ concurrency:
 on:
   # Manually trigger the Action under Actions/pkgcheck
   workflow_dispatch:
-  # Run on every push to main
+  # Run on every push to main and ropensci_submission
   push:
     branches:
       - main
       - ropensci_submission
 
 jobs:
+  env:
+    ERNEST_EXTENDED_TESTS: ${{contains(github.event.head_commit.message, 'run-extended')}}
   pkgcheck:
     runs-on: ubuntu-latest
     permissions:

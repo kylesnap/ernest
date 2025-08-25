@@ -44,7 +44,7 @@ See our guide on [how to create a great issue](https://code-review.tidyverse.org
 *  We use [testthat](https://cran.r-project.org/package=testthat) for unit tests. 
    Contributions with test cases included are easier to accept.
 
-+  Some of ernest's can take a long time to run. Certain expensive tests can be skipped by setting the `ernest.extended_tests` option. This is currently set by `tests/testthat/setup.R`.
++  Some of ernest's tests can take a while to run. These tests can be skipped by setting the `ERNEST_EXTENDED_TESTS` environment option to `false`.
 
 ## Code of Conduct
 

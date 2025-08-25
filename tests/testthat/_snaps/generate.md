@@ -1,32 +1,18 @@
-# generate method performs sampling
+# generate throws errors when stop criteria are already passed
 
-    Code
-      result
-    Output
-      Nested sampling run <ernest_run/ernest_sampler>
-      No. Points: 500
-      
-      -- Sampling Method 
-      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      * No. Dimensions: 2
-      * No. Calls Since Update: 0
-      * No. Accepted Since Update: 0
-      * Current Step Size: 1
-      
-      -- Results 
-      No. Iterations: 99
-      No. Calls: 112
-      Log. Evidence: -6.195 (± 1.849)
+    `max_iterations` must be strictly larger than 100.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
 
 ---
 
-    Code
-      summary(result)
-    Output
-      
-      -- Nested sampling results <ernest_run> ----------------------------------------
-      No. Points: 500
-      No. Iterations: 99
-      No. Lik. Calls: 112
-      Log. Evidence: -6.195 (± 1.849)
+    `max_calls` must be strictly larger than 113.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
+
+---
+
+    `min_logz` must be strictly smaller than 1085.0623.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
 

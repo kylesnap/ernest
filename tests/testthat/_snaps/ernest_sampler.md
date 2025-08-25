@@ -24,7 +24,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.003 (± 1.82)
+      Log. Evidence: -6.0032 (± 1.8201)
 
 # Progress bar can be printed [ansi]
 
@@ -48,7 +48,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.003 (± 1.82)
+      Log. Evidence: -6.0032 (± 1.8201)
 
 # Progress bar can be printed [unicode]
 
@@ -72,7 +72,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.003 (± 1.82)
+      Log. Evidence: -6.0032 (± 1.8201)
 
 # Progress bar can be printed [fancy]
 
@@ -96,7 +96,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.003 (± 1.82)
+      Log. Evidence: -6.0032 (± 1.8201)
 
 # Fully-verbose output [plain]
 
@@ -114,12 +114,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2165
+      * Current Step Size: 0.2205
       
       -- Results 
       No. Iterations: 1000
       No. Calls: 10087
-      Log. Evidence: -6.896 (± 1.645)
+      Log. Evidence: -6.6881 (± 1.5744)
 
 # Fully-verbose output [ansi]
 
@@ -137,12 +137,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2165
+      * Current Step Size: 0.2205
       
       -- Results 
       No. Iterations: 1000
       No. Calls: 10087
-      Log. Evidence: -6.896 (± 1.645)
+      Log. Evidence: -6.6881 (± 1.5744)
 
 # Fully-verbose output [unicode]
 
@@ -160,12 +160,12 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2165
+      • Current Step Size: 0.2205
       
       ── Results 
       No. Iterations: 1000
       No. Calls: 10087
-      Log. Evidence: -6.896 (± 1.645)
+      Log. Evidence: -6.6881 (± 1.5744)
 
 # Fully-verbose output [fancy]
 
@@ -183,10 +183,10 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2165
+      • Current Step Size: 0.2205
       
       ── Results 
       No. Iterations: 1000
       No. Calls: 10087
-      Log. Evidence: -6.896 (± 1.645)
+      Log. Evidence: -6.6881 (± 1.5744)
 

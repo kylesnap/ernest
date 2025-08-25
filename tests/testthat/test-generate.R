@@ -2,19 +2,16 @@ sampler <- ernest_sampler(
   log_lik = gaussian_blobs$log_lik,
   prior = gaussian_blobs$prior
 )
+run1 <- generate(sampler, max_iterations = 100, seed = 42)
 
-test_that("generate method performs sampling", {
-  result <- generate(sampler, max_iterations = 99, seed = 42)
-  expect_equal(result$n_iter, 99)
-  orig_units <- sampler$run_env$unit
-  orig_log_lik <- sampler$run_env$log_lik
+test_that("generate throws errors when stop criteria are already passed", {
+  cur_calls <- run1$n_call
+  cur_minlogz <- run1$n_minlogz
+  log_vol <- run1$log_volume[run1$n_iter]
+  log_z <- run1$log_evidence[run1$n_iter]
+  cur_minlogz <- logaddexp(0, max(run1$log_lik) + log_vol - log_z)
 
-  expect_equal(dim(orig_units), c(500, 2))
-  expected_log_lik <- apply(
-    t(apply(orig_units, 1, gaussian_blobs$prior$fn)),
-    1,
-    gaussian_blobs$log_lik
-  )
-  expect_snapshot(result)
-  expect_snapshot(summary(result))
+  expect_snapshot_error(generate(run1, max_iterations = 50))
+  expect_snapshot_error(generate(run1, max_calls = cur_calls))
+  expect_snapshot_error(generate(run1, min_logz = cur_minlogz + 0.1))
 })

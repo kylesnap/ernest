@@ -91,7 +91,7 @@ test_that("Parameter recovery (NIST mcmc01)", {
 #' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
 #' recovered under different seeds and with random noise added to `y`.
 test_that("Parameter recovery under a different seed", {
-  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
+  skip_extended_test()
   sampler <- ernest_sampler(
     log_lik,
     prior
@@ -110,7 +110,7 @@ test_that("Parameter recovery under a different seed", {
 })
 
 test_that("Parameter recovery with noisy y", {
-  skip_if(getOption("ernest.extended_tests", FALSE), "Skipping extended tests")
+  skip_extended_test()
   jitter_log_lik <- function(theta) {
     if (theta[2] <= 0) {
       return(-Inf)

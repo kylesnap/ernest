@@ -6,15 +6,28 @@ unif_prior <- gaussian_blobs$prior
 result <- NULL
 smry_base <- NULL
 
+start <- Sys.time()
 #' @srrstats {G5.7} These tests all demonstrate that change ernest's
 #' computational parameters changes the behaviour of the NS algorithm
 #' as expected.
-#'
+test_that("ernest outputs expected analytic results", {
+  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
+  result <<- generate(sampler, seed = 42)
+  smry_base <<- summary(result)
+
+  expect_lt(
+    abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
+    3.0 * smry_base$log_evidence_err
+  )
+  weights <- as_draws(result) |>
+    weights()
+  expect_equal(sum(weights), 1)
+})
+
 #' @srrstats {BS4.6} Test checks that the NS converegence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.
 test_that("iterations and min_logz produce near-identical results", {
-  skip_if(getOption("ernest.extended_tests", FALSE))
   sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
   result_iter <- generate(
     sampler,
@@ -35,7 +48,7 @@ test_that("iterations and min_logz produce near-identical results", {
 })
 
 test_that("`n_points` changes the iterations needed for convergence", {
-  skip_if(getOption("ernest.extended_tests", FALSE))
+  skip_extended_test()
   sampler_500 <- ernest_sampler(
     log_lik_fn,
     unif_prior,
@@ -54,7 +67,7 @@ test_that("`n_points` changes the iterations needed for convergence", {
 #' @srrstats {BS4.7} Test checks that the NS converegence criteria (min_logz)
 #' changes the number of iterations needed for the sampler to converge.
 test_that("increasing min_logz reduces the iterations needed to converge", {
-  skip_if(getOption("ernest.extended_tests", FALSE))
+  skip_extended_test()
   sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
   run_01 <- generate(sampler, min_logz = 0.1, seed = 42L)
   smry_01 <- summary(run_01)
@@ -69,7 +82,7 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
 #' @srrstats {BS7.3} The scale of the prior should impact the iterations
 #' needed for NS to converge an evidence estimate.
 test_that("increasing prior vol. increases iterations needed to converge", {
-  skip_if(getOption("ernest.extended_tests", FALSE))
+  skip_extended_test()
   wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
   sampler_wide <- ernest_sampler(log_lik_fn, wide_prior, n_points = 500)
   run_wide <- generate(sampler_wide, seed = 42L)

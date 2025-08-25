@@ -63,8 +63,6 @@ nested_sampling_impl <- function(
       spinner = TRUE
     )
   }
-  # DEBUG SEED
-  seed_hist <- vctrs::list_of(.ptype = integer())
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
@@ -74,7 +72,7 @@ nested_sampling_impl <- function(
     max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      cli::cli_inform("`min_logz` reached ({d_log_z} < {min_logz}).")
+      cli::cli_inform("`min_logz` reached ({pretty(d_log_z)} < {min_logz}).")
       break
     }
     if (show_progress) {
@@ -127,12 +125,10 @@ nested_sampling_impl <- function(
     live_env$birth[worst_idx] <- i + iter
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
-    seed_hist[[i]] <- tail(.Random.seed, 1)
   }
   if (i >= max_iterations) {
     cli::cli_inform("`max_iterations` reached ({i}).")
   }
-  env_poke(x$run_env, "seed_hist", list_c(seed_hist))
 
   list(
     "dead_unit" = dead_unit,

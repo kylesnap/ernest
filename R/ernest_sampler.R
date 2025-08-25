@@ -23,7 +23,7 @@
 #'
 #' @return An object of class `ernest_sampler`, which is a list containing the
 #' inputs used as arguments to this function, along with an environment
-#' `live_points` which is used to store the `n_points` live particles throughout
+#' `run_env` which is used to store the `n_points` live particles throughout
 #' a nested sampling run.
 #'
 #' @details
@@ -98,7 +98,7 @@ ernest_sampler <- function(
     {
       live <- create_live(obj$lrps, obj$n_points)
       env_bind(
-        obj$live_points,
+        obj$run_env,
         "unit" = live$unit,
         "log_lik" = live$log_lik,
         "birth" = rep(0L, obj$n_points)

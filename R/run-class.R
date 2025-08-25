@@ -1,7 +1,10 @@
 #' Create a new ernest run object
+#'
 #' @param x An `ernest_sampler` or `ernest_results` object used to produce a run
+#'
 #' @param results The list output from nested_sampling_impl.
-#' @returns A new ernest_run object.
+#'
+#' @returns A new ernest_run object (documented in generate)
 #' @noRd
 new_ernest_run <- function(x, results) {
   UseMethod("new_ernest_run")
@@ -44,16 +47,16 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return A new `ernest_run` object.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  live_order <- order(x$live_points$log_lik)
-  samples_unit <- rbind(parsed$unit, x$live_points$unit[live_order, ])
+  live_order <- order(x$run_env$log_lik)
+  samples_unit <- rbind(parsed$unit, x$run_env$unit[live_order, ])
   colnames(samples_unit) <- attr(x$prior, "varnames")
   samples <- t(apply(samples_unit, 1, x$prior$fn))
   colnames(samples) <- attr(x$prior, "varnames")
 
   live <- list(
-    "log_lik" = x$live_points$log_lik[live_order],
+    "log_lik" = x$run_env$log_lik[live_order],
     "id" = live_order,
-    "birth" = x$live_points$birth[live_order]
+    "birth" = x$run_env$birth[live_order]
   )
   all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$n_iter)
 
@@ -79,24 +82,23 @@ new_ernest_run_ <- function(x, parsed) {
     n_points = x$n_points,
     first_update = x$first_update,
     update_interval = x$update_interval,
-    live_points = x$live_points
+    run_env = x$run_env
   )
 
-  do.call(
+  obj <- do.call(
     new_ernest_sampler,
     list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
   )
+  attr(obj, "seed") <- env_get(x$run_env, "seed", default = NULL)
+  env_unbind(obj$run_env, c("unit", "log_lik", "birth", "seed"))
+  obj
 }
 
 #' @noRd
 #' @export
 format.ernest_run <- function(x, ...) {
-  log_z <- formatC(tail(x$log_evidence, 1), digits = 4, format = "fg")
-  log_z_sd <- formatC(
-    sqrt(tail(x$log_evidence_var, 1)),
-    digits = 4,
-    format = "fg"
-  )
+  log_z <- pretty(tail(x$log_evidence, 1))
+  log_z_sd <- pretty(sqrt(tail(x$log_evidence_var, 1)))
   cli::cli_format_method({
     cli::cli_text("Nested sampling run {.cls {class(x)}}")
     cli::cli_text("No. Points: {x$n_points}")
@@ -109,6 +111,7 @@ format.ernest_run <- function(x, ...) {
   })
 }
 
+#' @srrstats {BS6.0} Default print for return object.
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
@@ -149,7 +152,9 @@ print.ernest_run <- function(x, ...) {
 #' @seealso
 #' * [generate()] for details on the `ernest_run` object.
 #' * [as_draws()] for more information on `draws` objects.
+#'
 #' @srrstats {BS6.4} Summary method for results object.
+#'
 #' @export
 #' @examples
 #' # Load an example run

@@ -23,7 +23,7 @@
 #' error.
 #' * If provided a matrix of doubles, returns a vector of doubles and `-Inf`
 #'   of length equal to the number of matrix rows, or an error.
-#' * Otherwise, throws an error.
+#' * Otherwise, it throws an error.
 #'
 #' @details
 #' Model likelihoods should be provided as a log-density function. The first
@@ -35,15 +35,18 @@
 #' function (see [rlang::as_function()]), or use the `...` parameters to
 #' partially apply data to `fn` or `rowwise_fn` (see [purrr::partial()]).
 #'
-#' It is expected that `fn` returns a scalar finite double or `-Inf` for each
-#' parameter vector.
+#' It is expected that the log-likelihood function returns a scalar finite
+#' double or `-Inf` for each parameter vector. Non-finite values other than
+#' `-Inf`, such as `NaN`, `Inf`, or `NA` (i.e. missing values) are handled
+#' with the behavior of `.nonfinite_action`.
 #'
 #' Ernest will wrap `fn` so it can accept a matrix of parameters. If you have
 #' a more efficient implementation of your likelihood function that can handle
 #' vectors and matrices, consider providing `rowwise_fn` instead.
 #'
-#' @srrstats {BS1.1} Instructions on how to bind data to likelihood calculation
-#' provided here in text and in the example.
+#' @srrstats {BS1.1, BS3.0} Instructions on how to bind data to likelihood
+#' calculation provided here in text and in the example. Also explcitly
+#' documents how NA likelihood values are handled.
 #' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15, G2.16} create_likelihood
 #' controls the behaviour of the likelihood function when it returns a missing
 #' value (see `.nonfinite_action`). The same parameter also controls the

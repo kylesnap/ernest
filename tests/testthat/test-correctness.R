@@ -1,6 +1,6 @@
 #' Correctness Tests
 #'
-#' @srrstats {G5.4, G5.4b} Running correctness tests against
+#' @srrstats {G5.4, G5.4b, G5.5} Running correctness tests against
 #' results found by nestle with eggbox (see also test-algorithm for
 #' more correctness checks).
 test_that("Eggbox", {

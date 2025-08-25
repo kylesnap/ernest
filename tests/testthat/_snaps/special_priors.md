@@ -1,4 +1,8 @@
-# Print methods
+# create_normal_prior error handling
+
+    `sd` of a normal distribution must be non-negative.
+
+# create_normal_prior and create_uniform_prior: print methods
 
     Code
       create_normal_prior(1, mean = 0, sd = 1)

@@ -21,7 +21,12 @@
 #'
 #' @return A list containing the dead points and their associated metadata,
 #' representing the updated state of the nested sampler.
-#' 
+#'
+#' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
+#' colinearity, ernest examines whether it has reached a likelihood plateau
+#' in its sample of live points (a problem for estimating the log-volume
+#' cascade and interpreting NS results). Ernest reports this as a warning,
+#' and terminates the sampling early. This behaviour is tested.
 #' @srrstats {BS4.3, BS4.4, BS4.5} Convergence in a nested sampling run is
 #' defined by the amount of evidence remaining in the unintegrated prior space,
 #' controlled by the `min_logz` parameter. In cases where convergence is not
@@ -40,7 +45,7 @@ nested_sampling_impl <- function(
   call = 0L,
   show_progress = TRUE
 ) {
-  live_env <- x$live_points
+  live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
   d_log_vol <- log((x$n_points + 1) / x$n_points)
@@ -58,6 +63,8 @@ nested_sampling_impl <- function(
       spinner = TRUE
     )
   }
+  # DEBUG SEED
+  seed_hist <- vctrs::list_of(.ptype = integer())
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
@@ -120,10 +127,12 @@ nested_sampling_impl <- function(
     live_env$birth[worst_idx] <- i + iter
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
+    seed_hist[[i]] <- tail(.Random.seed, 1)
   }
   if (i >= max_iterations) {
     cli::cli_inform("`max_iterations` reached ({i}).")
   }
+  env_poke(x$run_env, "seed_hist", list_c(seed_hist))
 
   list(
     "dead_unit" = dead_unit,

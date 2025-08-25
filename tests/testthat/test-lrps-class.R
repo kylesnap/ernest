@@ -1,6 +1,6 @@
 fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
 
-#' @ssrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
+#' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages
 test_that("new_ernest_lrps fails informativelys", {
   expect_snapshot_error(new_ernest_lrps(unit_log_fn = 1))

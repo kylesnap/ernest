@@ -29,6 +29,9 @@
 #'   Royal Astronomical Society, 493, 3132–3158.
 #'   <https://doi.org/10.1093/mnras/staa278>
 #'
+#' @srrstats {BS4.0} References the paper and software containing the sampling
+#' algorithm.
+#'
 #' @export
 rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
   new_rwmh_cube(

@@ -1,8 +1,33 @@
-#' Paramter Recovery
-#'
+#' @srrstats {BS7.0, BS7.1} Parameter recovery for a normal distribution,
+#' without any additional information beyond the normal log-likelihood dist.
+test_that("Parameter recovery for a normal distribution", {
+  prior <- create_normal_prior(mean = c(0, 0))
+  log_l <- create_likelihood(
+    LaplacesDemon::dmvn,
+    mu = !!c(0, 0),
+    Sigma = !!diag(2),
+    log = TRUE
+  )
+
+  sampler <- ernest_sampler(log_l, prior, n_points = 100)
+  run <- generate(sampler, max_iterations = 1000)
+  draws <- as_draws(run) |> posterior::resample_draws()
+  smry <- posterior::summarise_draws(
+    draws,
+    \(x) quantile(x, probs = c(0.05, 0.95))
+  )
+
+  expect_lte(-1.644854, smry[1, 2])
+  expect_gte(1.644854, smry[1, 3])
+  expect_lte(-1.644854, smry[2, 2])
+  expect_gte(1.644854, smry[2, 3])
+})
+
 #' @srrstats {G5.0, G5.6, G5.6a, BS7.2} Use the NIST dataset `mcmc01` to test
 #' ernest's ability to recover the parameters of a known distribution. Uses the
 #' certified 95% posterior quantile.
+#' @srrstats {BS7.4, BS7.4a} Also test to ensure that ernest's output behaves on
+#' the same scale as input data wrapped in the likelihood function.
 NULL
 
 # From: https://www.itl.nist.gov/div898/strd/mcmc/mcmc01_cv.html

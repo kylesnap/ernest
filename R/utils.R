@@ -431,17 +431,14 @@ compute_integral <- function(log_lik, log_volume) {
   )
 }
 
-#' Estimate log-volume for live points
+#' CLI formatter for doubles
 #'
-#' Estimates the log-volume for live points given the log-volumes of dead
-#' points.
-#'
-#' @param dead_log_vol Numeric vector of log-volumes for dead points.
-#' @param n_points Integer. The number of live points to estimate.
-#'
-#' @return A numeric vector of log-volumes for the live points.
-#' @noRd
-get_live_vol <- function(dead_log_vol, n_points) {
-  last_vol <- dead_log_vol[[vctrs::vec_size(dead_log_vol)]]
-  last_vol + log1p((-1 - n_points)^(-1) * seq_len(n_points))
+#' @param x An object.
+#' @returns x, unless x is a number, in which case x is rounded to a set
+#' number of decimal places.
+pretty <- function(x) {
+  if (!is.numeric(x)) {
+    x
+  }
+  round(x, digits = max(3L, getOption("digits") - 3L))
 }

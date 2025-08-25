@@ -13,6 +13,8 @@
 #' Royal Astronomical Society, 493, 3132–3158.
 #' <https://doi.org/10.1093/mnras/staa278>
 #'
+#' @srrstats {BS4.0} References the software containing the sampling algorithm.
+#'
 #' @family ernest_lrps
 #' @export
 unif_cube <- function() {
@@ -41,7 +43,7 @@ format.unif_cube <- function(x, ...) {
 #' @param n_dim Integer. Number of dimensions.
 #' @param max_loop Integer. Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
-#' 
+#'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate inputs.
 #'

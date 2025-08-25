@@ -19,11 +19,13 @@
 #'
 #' @seealso [plot()] for visualising evidence estimates from an
 #'   `ernest_run`.
-#' 
+#'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
 #' error message is provided when the user provides an invalid value for
 #' `type`.
-#' 
+#' @srrstats {BS6.2, BS6.3} Plot method for posterior samples and sequences of
+#' samples.
+#'
 #' @examples
 #' # Load example run
 #' library(ggdist)

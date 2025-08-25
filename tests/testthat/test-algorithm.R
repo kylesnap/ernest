@@ -6,38 +6,11 @@ unif_prior <- gaussian_blobs$prior
 result <- NULL
 smry_base <- NULL
 
-#' @srrstats {BS7.0, BS7.1} Checks that ernest outputs evidence estimates
-#' that are close to analytical results.
-test_that("ernest produces expected results for 2D gaussian", {
-  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
-
-  result <<- generate(sampler, seed = 42L)
-  smry_base <<- summary(result)
-  expect_lt(
-    abs(smry_base$log_evidence - gaussian_blobs$raster_z),
-    3.0 * smry_base$log_evidence_err
-  )
-  expect_lt(
-    abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
-    3.0 * smry_base$log_evidence_err
-  )
-  expect_lt(
-    abs(smry_base$log_evidence - gaussian_blobs$estimated_z),
-    3.0 * smry_base$log_evidence_err
-  )
-
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1.0)
-})
-
-#' Further algorithmic testing
-#'
 #' @srrstats {G5.7} These tests all demonstrate that change ernest's
 #' computational parameters changes the behaviour of the NS algorithm
 #' as expected.
 #'
-#' @srrstats {BS4.6, BS4.7} Test checks that the NS converegence criteria
+#' @srrstats {BS4.6} Test checks that the NS converegence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.
 test_that("iterations and min_logz produce near-identical results", {

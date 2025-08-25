@@ -11,7 +11,7 @@
 #' @param n_points Integer. Number of live points to use in the sampler.
 #' @param first_update Integer. Iteration at which to perform the first update.
 #' @param update_interval Integer. Number of iterations between updates.
-#' @param live_points (Optional) An environment for storing live points. If not
+#' @param run_env (Optional) An environment for storing live points. If not
 #' provided, a new environment is created.
 #' @param ... Additional parameters for children of ernest_sampler.
 #' @param .class The subclass inheriting from ernest_sampler.
@@ -29,7 +29,7 @@ new_ernest_sampler <- function(
   n_points = NULL,
   first_update = NULL,
   update_interval = NULL,
-  live_points = NULL,
+  run_env = NULL,
   ...,
   .class = NULL,
   .call = caller_env()
@@ -58,7 +58,7 @@ new_ernest_sampler <- function(
     allow_infinite = FALSE,
     call = .call
   )
-  check_environment(live_points, allow_null = TRUE, call = .call)
+  check_environment(run_env, allow_null = TRUE, call = .call)
 
   lrps$unit_log_fn <- purrr::compose(log_lik_fn, prior$fn)
   lrps$n_dim <- prior$n_dim
@@ -71,7 +71,7 @@ new_ernest_sampler <- function(
     n_points = as.integer(n_points),
     first_update = as.integer(first_update),
     update_interval = as.integer(update_interval),
-    live_points = live_points %||% new_environment()
+    run_env = run_env %||% new_environment()
   )
 
   new_elems <- dots_list(..., .homonyms = "error")

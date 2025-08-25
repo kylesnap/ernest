@@ -15,7 +15,7 @@ test_that("ernest_sampler initializes correctly", {
   expect_identical(sampler$n_points, 500L)
   expect_identical(sampler$first_update, 200L)
   expect_identical(sampler$update_interval, 50L)
-  expect_identical(env_depth(sampler$live_points), 1L)
+  expect_identical(env_depth(sampler$run_env), 1L)
   expect_snapshot(sampler)
 })
 
@@ -29,7 +29,7 @@ sampler_call <- call2(
   update_interval = 50L
 )
 
-#' @ssrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
+#' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages
 test_that("invalid samplers are caught", {
   expect_no_error(bad_sampler <- eval(sampler_call))

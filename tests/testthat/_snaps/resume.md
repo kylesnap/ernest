@@ -1,12 +1,18 @@
-# Runs can be completed and resume
-
-    `min_logz` must be a number between 0 and 0.498239297031471, not the number 0.5.
-
 # Throws errors when stop criteria are already passed
 
-    `max_iterations` must be a whole number larger than or equal to 101 or `NULL`, not the number 50.
+    `max_iterations` must be strictly larger than 100.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
 
 ---
 
-    `max_calls` must be a whole number larger than or equal to 1003 or `NULL`, not the number 500.
+    `max_calls` must be strictly larger than 113.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
+
+---
+
+    `min_logz` must be strictly smaller than 1085.0623.
+    x `x` already contains previously-generated samples.
+    i Should you use `clear` to erase previous samples from `x`?
 

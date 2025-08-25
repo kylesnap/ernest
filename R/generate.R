@@ -65,7 +65,10 @@
 #'
 #' @srrstats {BS2.12} The `show_progress` indicator controls whether a simple
 #' spinner bar is shown during sampling.
-#' @srrstats {BS4.0} References the original nested sampling paper by Skilling.
+#' @srrstats {BS4.0} References the paper containing the sampling algorithm.
+#' @srrstats {BS5.0, BS5.1, BS5.2} Seed value stored as an attribute. Return
+#' values contain the objects used to generate a run, including the prior
+#' specification.
 #'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
@@ -130,7 +133,7 @@ generate.ernest_run <- function(
   }
   check_bool(show_progress)
   cur_iter <- x$n_iter
-  cur_cls <- x$n_calls
+  cur_calls <- x$n_calls
   last_criterion <- x$log_lik[cur_iter]
   log_z <- x$log_evidence[cur_iter]
   log_vol <- x$log_volume[cur_iter]
@@ -141,7 +144,7 @@ generate.ernest_run <- function(
       max_calls,
       min_logz,
       cur_iter,
-      cur_cls,
+      cur_calls,
       d_logz
     )
   x <- compile(x, ...)
@@ -155,7 +158,7 @@ generate.ernest_run <- function(
     log_vol = log_vol,
     log_z = log_z,
     iter = cur_iter,
-    call = cur_cls,
+    call = cur_calls,
     show_progress = show_progress
   )
   new_ernest_run(x, results)
@@ -179,21 +182,21 @@ check_stopping_criteria <- function(
   max_iterations,
   max_calls,
   min_logz,
-  cur_it = 0,
-  cur_cls = 0,
+  cur_it = NULL,
+  cur_calls = NULL,
   d_logz = NULL,
   call = caller_env()
 ) {
   check_number_whole(
     max_iterations,
-    min = cur_it + 1,
+    min = 1,
     allow_null = TRUE,
     allow_infinite = FALSE,
     call = call
   )
   check_number_whole(
     max_calls,
-    min = cur_cls + 1,
+    min = 1,
     allow_null = TRUE,
     allow_infinite = FALSE,
     call = call
@@ -201,9 +204,46 @@ check_stopping_criteria <- function(
   check_number_decimal(
     min_logz,
     min = 0,
-    max = (d_logz %||% Inf) - .Machine$double.eps,
+    allow_infinite = FALSE,
     call = call
   )
+
+  if (!is.null(cur_it) & !is.null(max_iterations)) {
+    if (cur_it >= max_iterations) {
+      cli::cli_abort(
+        c(
+          "`max_iterations` must be strictly larger than {cur_it}.",
+          "x" = "`x` already contains previously-generated samples.",
+          "i" = "Should you use `clear` to erase previous samples from `x`?"
+        ),
+        call = call
+      )
+    }
+  }
+  if (!is.null(cur_calls) & !is.null(max_calls)) {
+    if (cur_calls >= max_calls) {
+      cli::cli_abort(
+        c(
+          "`max_calls` must be strictly larger than {cur_calls}.",
+          "x" = "`x` already contains previously-generated samples.",
+          "i" = "Should you use `clear` to erase previous samples from `x`?"
+        ),
+        call = call
+      )
+    }
+  }
+  if (!is.null(d_logz) & !is.null(min_logz)) {
+    if (min_logz >= d_logz) {
+      cli::cli_abort(
+        c(
+          "`min_logz` must be strictly smaller than {pretty(d_logz)}.",
+          "x" = "`x` already contains previously-generated samples.",
+          "i" = "Should you use `clear` to erase previous samples from `x`?"
+        ),
+        call = call
+      )
+    }
+  }
 
   no_stopping <- isTRUE(all.equal(
     c(max_iterations, max_calls, min_logz),
@@ -219,11 +259,9 @@ check_stopping_criteria <- function(
     )
   }
 
-  max_iterations <- max_iterations %||% .Machine$integer.max
-  max_calls <- max_calls %||% .Machine$integer.max
   c(
-    "max_iterations" = as.integer(max_iterations),
-    "max_calls" = as.integer(max_calls),
+    "max_iterations" = as.integer(max_iterations %||% .Machine$integer.max),
+    "max_calls" = as.integer(max_calls %||% .Machine$integer.max),
     "min_logz" = as.double(min_logz)
   )
 }

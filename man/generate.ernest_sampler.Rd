@@ -2,59 +2,119 @@
 % Please edit documentation in R/generate.R
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
-\title{Perform nested sampling}
+\alias{ernest_run}
+\title{Run nested sampling to estimate Bayesian evidence}
 \usage{
 \method{generate}{ernest_sampler}(
   x,
   ...,
-  max_iterations = Inf,
-  max_calls = Inf,
+  max_iterations = NULL,
+  max_calls = NULL,
   min_logz = 0.05,
-  verbose = FALSE
+  show_progress = NULL
 )
 }
 \arguments{
-\item{x}{An object of class \code{ernest_sampler}.}
+\item{x}{An object of class \code{ernest_sampler} or \code{ernest_run}.}
 
-\item{...}{These dots are for future extensions and must be empty.}
+\item{...}{
+  Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
+  \describe{
+    \item{\code{seed}}{An integer, \code{NULL}, or \code{NA}. Controls the random number
+generator:
+\itemize{
+\item Integer or \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, reinitializes the
+generator as if no seed has yet been set.
+\item \code{NA}: Makes no changes to the current seed. If \code{compile()} has been
+called on \code{object} before, \code{NA} ensures the seed remains identical
+between runs.
+}}
+    \item{\code{clear}}{Logical. If \code{TRUE}, clears results from previous runs before
+compiling. If \code{FALSE}, retains previous results and validates live points.}
+  }}
 
-\item{max_iterations}{The maximum number of iterations to perform. If set to
-\code{Inf}, this stopping criterion is ignored.}
+\item{max_iterations}{Optional positive integer. The maximum number of
+iterations to perform. If \code{NULL}, this criterion is ignored.}
 
-\item{max_calls}{The maximum number of calls to the likelihood function.
-If set to \code{Inf}, this stopping criterion is ignored.}
+\item{max_calls}{Optional positive integer. The maximum number of calls to
+the likelihood function. If \code{Inf}, this criterion is ignored.}
 
-\item{min_logz}{The minimum log-evidence value to achieve. Must be a number
-equal to or larger than zero.}
+\item{min_logz}{Non-negative double. The minimum log-ratio between the
+current estimated evidence and the remaining evidence. If zero, this
+criterion is ignored.}
 
-\item{verbose}{Whether to print updates on the sampler's progress.}
+\item{show_progress}{Logical. If \code{TRUE}, displays a progress spinner and
+iteration counter during sampling. If \code{NULL}, then the parameter is inferred
+based on the value of the \code{rlib_message_verbosity} option.}
 }
 \value{
-An object of class \linkS4class{ernest_run}, containing the results of the
-nested sampling run.
+An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},
+with additional components:
+\itemize{
+\item \code{n_iter}: Integer. Number of iterations.
+\item \code{n_calls}: Integer. Total number of likelihood function calls.
+\item \code{log_lik}: \code{double(n_iter + n_points)}. Log-likelihoods for each sample.
+\item \code{log_volume}: \code{double(n_iter + n_points)}. Estimated log-prior volumes at
+each iteration.
+\item \code{log_weight}: \code{double(n_iter + n_points)}. Unnormalised log-weights for
+each sample.
+\item \code{log_evidence}: \code{double(n_iter + n_points)}. Cumulative log-evidence
+estimates at each iteration.
+\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. Variance of the
+log-evidence estimate at each iteration.
+\item \code{information}: \code{double(n_iter + n_points)}. KL divergence between the prior
+and posterior, estimated at each iteration.
+\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+values for each sample.
+\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+values for each sample in unit hypercube representation.
+\item \code{id}: \code{integer(n_iter + n_points)}. Unique integer identifiers for each
+sample from the live set (ranging from 1 to \code{n_points}).
+\item \code{points}: \code{integer(n_iter + n_points)}. Number of live points present at
+each iteration.
+\item \code{calls}: \code{integer(n_iter + n_points)}. Number of calls used to generate a
+new live point at each iteration.
+\item \code{birth}: \code{integer(n_iter + n_points)}. Iteration at which each sample was
+first created (ranging from 0 to \code{n_iter}).
+}
 }
 \description{
-Execute the nested sampling loop. Iteratively replaces the worst live point
-in a set with a point drawn from a likelihood-restricted prior sampler,
-until a provided stopping criterion is met.
+Executes the nested sampling algorithm, iteratively replacing the worst live
+point with a new sample from a likelihood-restricted prior until a stopping
+criterion is met.
 }
 \details{
-Before starting the sampling loop, \code{generate} calls \code{\link[=compile]{compile()}} to
-check the internal state of the sampler.
+At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz} must
+specify a valid stopping criterion. Setting \code{min_logz} to zero while leaving
+\code{max_iterations} and \code{max_calls} at their defaults will result in an error.
+
+If \code{x} is an \code{ernest_run} object, the stopping criteria are checked against
+the current state of the run. An error is thrown if the stopping criteria
+have already been satisfied by \code{x}.
+
+The \code{min_logz} parameter controls the relative tolerance for the remaining
+evidence in the unexplored parameter space. Sampling stops when the estimated
+remaining evidence is sufficiently small compared to the accumulated
+evidence.
 }
 \examples{
 prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 ll_fn <- function(x) -sum(x^2)
-sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 sampler
 
-# Stop sampling after a set number of iterations or calls to the lik. func.
+# Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
 
-# The final number of calls may be larger than `max_calls`, as `generate`
+# The final number of calls may exceed `max_calls`, as `generate`
 # only checks the number of calls when removing a live point.
 generate(sampler, max_calls = 2600)
 
 # Use the default stopping criteria
 \dontrun{ generate(sampler) }
+}
+\references{
+Skilling, J. (2006). Nested Sampling for General Bayesian
+Computation. Bayesian Analysis, 1(4), 833–859.
+\url{https://doi.org/10.1214/06-BA127}
 }

@@ -1,29 +1,33 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# ernest: Nested Sampling in R
+# A Toolkit for Nested Sampling
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/kylesnap/ernest/branch/ropensci_submission/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
+
 <!-- badges: end -->
 
-ernest provides a toolkit for performing the nested sampling algorithm
-to estimate the marginal likelihood (i.e., evidence) and posterior
-distributions of statistical models. To this end, ernest aims to
-accomplish two different goals:
+ernest is a comprehensive toolkit for nested sampling (NS) in R,
+enabling estimation of Bayesian evidence and posterior distributions for
+statistical models. Alongside an original R-based implementation of the
+algorithm described by Skilling (2006), ernest provides:
 
-1.  If you’re unfamiliar with nested sampling, ernest and its
-    documentation will allow you to learn how nested sampling works and
-    how you might incorporate it within your analyses.
-2.  If you’re already familiar with nested sampling, ernest provides a
-    powerful and reliable implementation of the algorithm and different
-    likelihood-restricted prior samplers, allowing you to complete and
-    analyse runs with existing tools offered by
-    [ggplot](https://CRAN.R-project.org/package=ggplot2) and
-    [posterior](https://CRAN.R-project.org/package=posterior).
+1.  S3 objects and methods for defining model likelihoods and prior
+    parameter distributions;
+2.  Methods for simulating, reporting, and visualising uncertainty in NS
+    estimates;
+3.  S3 generics for developers to implement custom likelihood-restricted
+    prior samplers.
+
+ernest’s API is inspired by the Python package nestle (Barbary 2015),
+which also influenced dynesty (Speagle 2020).
 
 ## Installation
 
-You can install the development version of ernest from
+Install the development version of ernest from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -31,47 +35,130 @@ You can install the development version of ernest from
 devtools::install_github("kylesnap/ernest")
 ```
 
-## Status
+## Nested Sampling in a Nutshell
 
-`ernest` is still quite experimental, and additional features are
-intended to be added in the future. While we hope to avoid them, this
-does mean that certain components of ernest may be subject to breaking
-changes.
+Nested sampling (NS) is a Bayesian algorithm for evaluating model
+plausibility, measured as the *Bayesian evidence* or *marginal
+likelihood* ($`\mathcal{Z}`$). The evidence normalises the posterior
+distribution; by reorganising Bayes’ theorem, we see that
+$`\mathcal{Z}`$ is the probability of the observed data across all
+possible parameter values $`\theta`$:
+``` math
 
-If you encounter any issues or have any suggestions, please feel free to
-open an issue.
+\mathcal{Z} = \int_{\forall \theta} L(\theta) \pi(\theta) d\theta
+```
+For most models, this integral cannot be solved analytically. NS
+addresses this by dividing the prior space $`\pi(\theta)`$ into a nested
+sequence of small volumes, sorted by likelihood, to form a
+one-dimensional approximation of the evidence integral. NS offers
+several advantages over other Bayesian methods such as Markov chain
+Monte Carlo (MCMC):
 
-## Acknowledgements
+1.  NS performs a global exploration of $`\pi(\theta)`$;
+2.  NS is robust to distributions that are poorly-conditioned (e.g.,
+    multiple modes or discontinuities);
+3.  NS can simultaneously estimate a model’s evidence and its posterior
+    distribution, and;
+4.  NS provides natural stopping criteria—no need for burn-in or manual
+    convergence checks.
 
-The nested sampling algorithm was first developed and introduced by J.
-Skilling across two major papers:
+## Nested Sampling in Ernest
 
-- Skilling, J. (2004). Nested sampling. In R. Fischer and R. Preuss
-  and U. V. Toussaint (Eds.), *Bayesian Inference and Maximum Entropy
-  Methods in Science and Engineering* (pp. 395-405). AIP.
-  [10.1063/1.1835238](https://doi.org/10.1063/1.1835238)
-- Skilling, J. (2006). Nested sampling for general Bayesian computation.
-  *Bayesian Analysis*, 1(4), 833-859.
-  [10.1214/06-BA127](https://doi.org/10.1214/06-BA127)
+ernest provides a native R and C++11 implementation of nested sampling,
+with an API designed for R users.
 
-ernest’s design takes much inspiration from from the well-documented
-[dynesty](https://dynesty.readthedocs.io/en/stable/index.html) package:
+To begin, specify a likelihood function and a prior space. For example:
 
-- Speagle, J. S. (2020). DYNESTY: A dynamic nested sampling package for
-  estimating Bayesian posteriors and evidences. *Monthly Notices of the
-  Royal Astronomical Society*, 493(3), 3132-3158.
-  [10.1093/mnras/staa278](https://doi.org/10.1093/mnras/staa278)
-- Koposov, S., Speagle, J. S., Barbary, K., Ashton, G., Bennett, E.,
-  Buchner, J., Scheffler, C., Cook, B., Talbot, C., Guillochon, J.,
-  Cubillos, P., Ramos, A. A., Dartiailh, M., Ilya., Tollerud, E., Lang,
-  D., Johnson, B., jtmendel, Higson, E., … Goldstein, D. (2021).
-  *dynesty* (Version 1.1.1.) \[Python package\].
-  [10.5281/zenodo.4543937](https://doi.org/10.5281/zenodo.4543937)
+``` r
+library(ernest)
+library(LaplacesDemon)
 
-In addition, the
-[nestle](https://github.com/kbarbary/nestle/tree/master) python package
-and an article from J. Buchner provide consistent and clear terminology
-to describe and organize components of the nested sampling algorithm:
+# Uniform prior over [-10, 10) for three parameters
+prior <- create_uniform_prior(
+  3,
+  lower = -10,
+  upper = 10,
+  varnames = c("x", "y", "z")
+)
 
-- Buchner, J. (2023). Nested sampling methods. *Statistics Surveys*, 17,
-  169-215. [10.1214/23-SS144](https://doi.org/10.1214/23-SS144)
+# Multivariate normal log-likelihood
+mu <- c(0, 0, 0)
+C <- diag(1, 3)
+C[C == 0] <- 0.95
+loglike <- create_likelihood(
+  rowwise_fn = dmvn,
+  mu = !!mu,
+  Sigma = !!C,
+  log = TRUE
+)
+
+# Set up and run the sampler
+sampler <- ernest_sampler(
+  log_lik = loglike,
+  prior = prior,
+  n_points = 500
+)
+run <- generate(sampler, max_iterations = 2000, seed = 123)
+
+# Summarise and visualise results
+summary(run)
+plot(run)
+visualize(run, type = "density")
+```
+
+For advanced usage, including custom priors and hierarchical models, see
+the package vignette.
+
+## Prior Art
+
+Below are selected packages that implement NS, in addition to nestle and
+dynesty:
+
+| Package | Author | Languages |
+|:---|:--:|:--:|
+| [polychord](https://github.com/PolyChord/PolyChordLite) | Will Handley, Mike Hobson, & Anthony Lasenby | Fortran, with Python and C/C++ interfaces |
+| [MultiNest](https://github.com/JohannesBuchner/MultiNest) | Farhan Feroz & Mike Hobson | Fortran, with R, Python, and C++ interfaces |
+| [perfectns](https://github.com/ejhigson/perfectns) | Edward Higson | Python |
+
+In addition, the nestcheck Python package provides routines for
+diagnosing nested sampling runs (Handley 2019).
+
+### References
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-barbary2015" class="csl-entry">
+
+Barbary, Kyle. 2015. “Nestle: Pure Python, MIT-Licensed Implementation
+of Nested Sampling Algorithms for Evaluating Bayesian Evidence.”
+<https://github.com/kbarbary/nestle>.
+
+</div>
+
+<div id="ref-anesthetic" class="csl-entry">
+
+Handley, Will. 2019. “Anesthetic: Nested Sampling Visualisation.” *The
+Journal of Open Source Software* 4 (37): 1414.
+<https://doi.org/10.21105/joss.01414>.
+
+</div>
+
+<div id="ref-skilling2006" class="csl-entry">
+
+Skilling, John. 2006. “Nested Sampling for General Bayesian
+Computation.” *Bayesian Analysis* 1 (4): 833–59.
+<https://doi.org/10.1214/06-BA127>.
+
+</div>
+
+<div id="ref-speagle2020" class="csl-entry">
+
+Speagle, Joshua S. 2020. “DYNESTY: A Dynamic Nested Sampling Package for
+Estimating Bayesian Posteriors and Evidences.” *Monthly Notices of the
+Royal Astronomical Society* 493 (April): 3132–58.
+<https://doi.org/10.1093/mnras/staa278>.
+
+</div>
+
+</div>

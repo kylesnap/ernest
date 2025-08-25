@@ -1,0 +1,362 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "identifier": "ernest",
+  "description": "Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.",
+  "name": "ernest: The Nested Sampling Toolkit",
+  "codeRepository": "https://kylesnap.github.io/ernest/",
+  "issueTracker": "https://github.com/kylesnap/ernest/issues/",
+  "license": "https://spdx.org/licenses/GPL-3.0",
+  "version": "0.0.0.9000",
+  "programmingLanguage": {
+    "@type": "ComputerLanguage",
+    "name": "R",
+    "url": "https://r-project.org"
+  },
+  "runtimePlatform": "R version 4.3.2 (2023-10-31)",
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Kyle",
+      "familyName": "Dewsnap",
+      "email": "kyle.dewsnap@ubc.ca",
+      "@id": "https://orcid.org/0000-0003-2132-8083"
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Person",
+      "givenName": "Kyle",
+      "familyName": "Dewsnap",
+      "email": "kyle.dewsnap@ubc.ca",
+      "@id": "https://orcid.org/0000-0003-2132-8083"
+    }
+  ],
+  "softwareSuggestions": [
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "ggdist",
+      "name": "ggdist",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=ggdist"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "knitr",
+      "name": "knitr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=knitr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "LaplacesDemon",
+      "name": "LaplacesDemon",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=LaplacesDemon"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "rmarkdown",
+      "name": "rmarkdown",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=rmarkdown"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "testthat",
+      "name": "testthat",
+      "version": ">= 3.0.0",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=testthat"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "tidyselect",
+      "name": "tidyselect",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=tidyselect"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "truncnorm",
+      "name": "truncnorm",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=truncnorm"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "vdiffr",
+      "name": "vdiffr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=vdiffr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "xml2",
+      "name": "xml2",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=xml2"
+    }
+  ],
+  "softwareRequirements": {
+    "1": {
+      "@type": "SoftwareApplication",
+      "identifier": "R",
+      "name": "R",
+      "version": ">= 2.10"
+    },
+    "2": {
+      "@type": "SoftwareApplication",
+      "identifier": "cli",
+      "name": "cli",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=cli"
+    },
+    "3": {
+      "@type": "SoftwareApplication",
+      "identifier": "generics",
+      "name": "generics",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=generics"
+    },
+    "4": {
+      "@type": "SoftwareApplication",
+      "identifier": "ggplot2",
+      "name": "ggplot2",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=ggplot2"
+    },
+    "5": {
+      "@type": "SoftwareApplication",
+      "identifier": "glue",
+      "name": "glue",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=glue"
+    },
+    "6": {
+      "@type": "SoftwareApplication",
+      "identifier": "matrixStats",
+      "name": "matrixStats",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=matrixStats"
+    },
+    "7": {
+      "@type": "SoftwareApplication",
+      "identifier": "posterior",
+      "name": "posterior",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=posterior"
+    },
+    "8": {
+      "@type": "SoftwareApplication",
+      "identifier": "purrr",
+      "name": "purrr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=purrr"
+    },
+    "9": {
+      "@type": "SoftwareApplication",
+      "identifier": "rlang",
+      "name": "rlang",
+      "version": ">= 1.1.0",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=rlang"
+    },
+    "10": {
+      "@type": "SoftwareApplication",
+      "identifier": "tibble",
+      "name": "tibble",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=tibble"
+    },
+    "11": {
+      "@type": "SoftwareApplication",
+      "identifier": "utils",
+      "name": "utils"
+    },
+    "12": {
+      "@type": "SoftwareApplication",
+      "identifier": "vctrs",
+      "name": "vctrs",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=vctrs"
+    },
+    "SystemRequirements": null
+  },
+  "fileSize": "11630.537KB",
+  "citation": [
+    {
+      "@type": "ScholarlyArticle",
+      "datePublished": "2023",
+      "author": [
+        {
+          "@type": "Person",
+          "givenName": "Johannes",
+          "familyName": "Buchner"
+        }
+      ],
+      "name": "Nested Sampling Methods",
+      "identifier": "10.1214/23-SS144",
+      "pagination": "169–215",
+      "@id": "https://doi.org/10.1214/23-SS144",
+      "sameAs": "https://doi.org/10.1214/23-SS144",
+      "isPartOf": {
+        "@type": "PublicationIssue",
+        "issueNumber": "none",
+        "datePublished": "2023",
+        "isPartOf": {
+          "@type": ["PublicationVolume", "Periodical"],
+          "volumeNumber": "17",
+          "name": "Statistics Surveys"
+        }
+      }
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "datePublished": "2004",
+      "author": [
+        {
+          "@type": "Person",
+          "givenName": "John",
+          "familyName": "Skilling"
+        }
+      ],
+      "name": "Nested Sampling",
+      "identifier": "10.1063/1.1835238",
+      "pagination": "395–405",
+      "@id": "https://doi.org/10.1063/1.1835238",
+      "sameAs": "https://doi.org/10.1063/1.1835238",
+      "isPartOf": {
+        "@type": "PublicationIssue",
+        "issueNumber": "1",
+        "datePublished": "2004",
+        "isPartOf": {
+          "@type": ["PublicationVolume", "Periodical"],
+          "volumeNumber": "735",
+          "name": "AIP Conference Proceedings"
+        }
+      }
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "datePublished": "2006",
+      "author": [
+        {
+          "@type": "Person",
+          "givenName": "John",
+          "familyName": "Skilling"
+        }
+      ],
+      "name": "Nested Sampling for General Bayesian Computation",
+      "identifier": "10.1214/06-BA127",
+      "pagination": "833–859",
+      "@id": "https://doi.org/10.1214/06-BA127",
+      "sameAs": "https://doi.org/10.1214/06-BA127",
+      "isPartOf": {
+        "@type": "PublicationIssue",
+        "issueNumber": "4",
+        "datePublished": "2006",
+        "isPartOf": {
+          "@type": ["PublicationVolume", "Periodical"],
+          "volumeNumber": "1",
+          "name": "Bayesian Analysis"
+        }
+      }
+    }
+  ]
+}

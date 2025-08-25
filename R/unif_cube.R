@@ -1,0 +1,89 @@
+#' Uniformly sample from the unconstrained prior distribution
+#'
+#' Generate new live points by performing rejection sampling across the entire
+#' prior distribution. This is highly inefficient as an LRPS, but may be useful
+#' for testing the behaviour of a nested sampling specification.
+#'
+#' @returns A list with class `c("unif_cube", "ernest_lrps")`. Can be used with
+#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
+#' run.
+#'
+#' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
+#' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+#' Royal Astronomical Society, 493, 3132–3158.
+#' <https://doi.org/10.1093/mnras/staa278>
+#'
+#' @srrstats {BS4.0} References the software containing the sampling algorithm.
+#'
+#' @family ernest_lrps
+#' @examples
+#' data(example_run)
+#' lrps <- unif_cube()
+#'
+#' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+#' @export
+unif_cube <- function() {
+  new_unif_cube(
+    unit_log_fn = NULL,
+    n_dim = NULL,
+    max_loop = getOption("ernest.max_loop", 1e6L)
+  )
+}
+
+#' @noRd
+#' @export
+format.unif_cube <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_text("Uniform Unit Cube LRPS {.cls {class(x)}}")
+    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
+    cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
+  })
+}
+
+#' Create a new unif_cube LRPS
+#'
+#' Internal constructor for the uniform unit cube LRPS.
+#'
+#' @param unit_log_fn Function for computing log-likelihood in unit space.
+#' @param n_dim Integer. Number of dimensions.
+#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param cache Optional cache environment.
+#'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages for univariate inputs.
+#'
+#' @return An LRPS specification, a list with class
+#' `c("unif_cube", "ernest_lrps")`.
+#' @noRd
+new_unif_cube <- function(
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = 1e6L,
+  cache = NULL
+) {
+  new_ernest_lrps(
+    unit_log_fn = unit_log_fn,
+    n_dim = n_dim,
+    max_loop = max_loop,
+    cache = cache,
+    .class = "unif_cube"
+  )
+}
+
+#' @rdname propose
+#' @export
+propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
+  if (is.null(original)) {
+    NextMethod()
+  } else {
+    cur_call <- env_cache(x$cache, "n_call", 0)
+    res <- UniformCube(
+      criteria = criteria,
+      unit_log_lik = x$unit_log_fn,
+      num_dim = x$n_dim,
+      max_loop = x$max_loop
+    )
+    env_poke(x$cache, "n_call", cur_call + res$n_call)
+    res
+  }
+}

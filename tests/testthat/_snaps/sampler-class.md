@@ -2,39 +2,58 @@
 
     Code
       sampler
-    Message
-      An <ernest_sampler>: 500 points x 0 iter. x 0 lik. calls
+    Output
+      Nested sampling specification <ernest_sampler>
+      No. Points: 500
+      
+      -- Sampling Method 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
 
-# compile method initializes live points
+# invalid samplers are caught
 
-    Code
-      sampler
-    Message
-      An <ernest_sampler>: 500 points x 0 iter. x 0 lik. calls
-
-# generate method performs sampling
-
-    Code
-      sampler
-    Message
-      An <ernest_sampler>: 500 points x 99 iter. x 2475 lik. calls
+    `n_points` must be a whole number larger than or equal to 1, not the number 0.
 
 ---
 
-    Code
-      summary(result)
-    Output
-      
-      -- Nested Sampling Results from <ernest_run> -----------------------------------
-      No. Points: 500
-      No. Iterations: 99
-      No. Lik. Calls: 2475
-      Log. Evidence: -4.774 (± 0.542)
-      
-      -- Weighted Posterior Distribution 
-      # A tibble: 2 x 7
-        variable          mean median    sd   mad     q5   q95
-        <chr>            <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl>
-      1 Uniform(-5, 5)   -1.09  -1.13 0.960 0.879 -2.87  0.456
-      2 Uniform(-5, 5).1  1.08   1.02 1.04  1.14  -0.738 2.80 
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `first_update` must be a whole number larger than or equal to 0, not the number -1.
+
+---
+
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `update_interval` must be a whole number larger than or equal to 0, not the number -1.
+
+---
+
+    `n_points` must be a whole number, not `Inf`.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not an empty list.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+
+---
+
+    `prior` must be an object with class ernest_prior, not an empty list.
+
+---
+
+    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+
+---
+
+    `lrps` must be an object with class ernest_lrps, not an empty list.
 

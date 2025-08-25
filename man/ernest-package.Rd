@@ -4,14 +4,15 @@
 \name{ernest-package}
 \alias{ernest}
 \alias{ernest-package}
-\title{ernest: The R Nested Sampling Toolkit}
+\title{ernest: The Nested Sampling Toolkit}
 \description{
-A complete implementation of the nested sampling algorithm for R, allowing users to estimate the evidence and posterior of a statistical model.
+Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://kylesnap.github.io/ernest/}
+  \item Report bugs at \url{https://github.com/kylesnap/ernest/issues/}
 }
 
 }

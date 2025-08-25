@@ -1,46 +1,62 @@
 # Informative error when prior or log. lik. fails completely.
 
-    Can't create live points.
-    Caused by error:
-    ! Can't calculate the log. likelihood.
-    x Bad Likelihood Job!
+    Bad Likelihood Job!
 
 ---
 
-    Can't create live points.
-    Caused by error:
-    ! Can't calculate the prior transformation.
-    x Bad prior job!
+    Bad Prior Job!
 
-# check_live validates live points correctly
+# check_live_set catches problems in the live_env
 
-    Unit points must be stored as a matrix with dim. `c(5, 4)`.
+    `unit` must be a matrix, not a double vector.
 
 ---
 
-    Unit points must be stored as a matrix.
+    `unit` must have dimensions 500 x 2.
+    x `unit` instead has dimensions 250 x 4
 
 ---
 
-    Unit points must be stored as a matrix with dim. `c(5, 4)`.
+    `unit` must not contain missing or `NaN` values.
 
 ---
 
-    Unit points must contain only finite values.
+    `unit` must respect the lower boundary (0).
 
 ---
 
-    Unit points must contain values within [0, 1].
+    `log_lik` must be a double vector of size 500, not 499.
 
 ---
 
-    Couldn't avoid calculating non-finite log-likelihood values.
-    i Log-likelihood values can only be finite or `-Inf`.
-    x There is 1 non-finite, non-`-Inf` value.
+    `log_lik` must not contain missing, `NaN`, or `Inf` values.
 
 ---
 
-    Couldn't generate unique log-likelihood values for each point.
-    x Every point had a calculated log-lik. value of -10.
-    i This generally indicates an error within a log. lik. function.
+    `log_lik` must not contain missing, `NaN`, or `Inf` values.
+
+---
+
+    `log_lik` must contain a range of likelihood values.
+    x `log_lik` currently contains one unique value (-10).
+
+---
+
+    `log_lik` may contain a likelihood plateau; proceed with caution.
+    ! Only 250/500 likelihood values are unique.
+
+# compile method initializes live points
+
+    Code
+      sampler
+    Output
+      Nested sampling specification <ernest_sampler>
+      No. Points: 500
+      
+      -- Sampling Method 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1
 

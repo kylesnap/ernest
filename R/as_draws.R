@@ -1,79 +1,121 @@
 #' Transform nested sampling runs to `draws` objects
 #'
-#' Try to transform an [ernest_run-class] to a format supported by the
+#' Convert an [ernest_run] to a format supported by the
 #' [posterior][posterior::posterior-package] package.
 #'
-#' @param x An `ernest_run` object.
+#' @param x An [ernest_run] object.
+#' @param units Case-sensitive string. The scale for the sampled points:
+#' * `"original"`: Points are on the scale of the prior space.
+#' * `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
+#' @param radial Logical. If `TRUE`, returns an additional column `.radial`
+#' containing the radial coordinate (i.e., the Euclidean norm) for each
+#' sampled point.
 #' @inheritParams rlang::args_dots_empty
-#' @param units Which units to express the sampled points. If `"original"`,
-#' points are expressed on the scale of the prior space. If `"unit_cube"`,
-#' points are expressed on the scale of the (0-1)-unit hypercube.
-#' @param radial Whether to return an additional column `.radial`, containing
-#' the radial coordinate (i.e., the squared sum of squares) for each sampled
-#' point.
 #'
 #' @returns
-#' A [draws][posterior::as_draws()] object, containing the posterior samples
-#' from the nested sampling run. Each samples are also bound to their importance
-#' weight (in log. units).
+#' A [draws][posterior::as_draws()] object containing posterior samples
+#' from the nested sampling run, with importance weights (in log units).
 #'
-#' The exact type of the returned object depends on the function used:
+#' The returned object type depends on the function used:
 #' * For `as_draws` and `as_draws_matrix`, a [posterior::draws_matrix()]
-#' object, which has classes `c("draws_matrix", "draws", "matrix")`.
-#' * For `as_draws_rvars`, a [posterior::draws_rvars()] object, which has
-#' classes `c("draws_rvars", "draws", "list")`.
+#'   object (class `c("draws_matrix", "draws", "matrix")`).
+#' * For `as_draws_rvars`, a [posterior::draws_rvars()] object (class
+#'   `c("draws_rvars", "draws", "list")`).
+#' 
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
+#' error message is provided when the user provides an invalid value for
+#' `radial`.
 #'
+#' @seealso
+#' * [posterior::as_draws()] for details on the `draws` object.
+#' * [posterior::resample_draws()] uses the log weights from ernest's output
+#'   to produce a weighted posterior sample.
 #' @examples
 #' # Load example run
 #' library(posterior)
-#' data(ernest_run_example)
+#' data(example_run)
 #'
 #' # View importance weights
-#' dm <- as_draws(ernest_run_example)
+#' dm <- as_draws(example_run)
 #' weights(dm) |> head()
 #'
-#' # Summarize points after resampling
+#' # Summarise points after resampling
 #' dm |>
-#'  resample_draws() |>
-#'  summarize_draws()
+#'   resample_draws() |>
+#'   summarize_draws()
 #'
-#' # View the radial coordinate in the unit-space over the run
-#' dm_rad <- as_draws_rvars(ernest_run_example, units = "unit_cube", radial = TRUE)
+#' # View the radial coordinate in unit space over the run
+#' dm_rad <- as_draws_rvars(
+#'   example_run,
+#'   units = "unit_cube",
+#'   radial = TRUE
+#' )
 #' plot(
-#'   x = ernest_run_example$log_volume,
+#'   x = example_run$log_volume,
 #'   y = draws_of(dm_rad$.radial),
-#'   xlab = "Log volume",
+#'   xlab = "Log-volume",
 #'   ylab = "Radial coordinate"
 #' )
-#' @rdname as_draws.ernest
-#' @method as_draws ernest_run
+#' @rdname as_draws
 #' @export
-as_draws.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   as_draws_matrix.ernest_run(x, ..., units = units, radial = radial)
 }
 
-#' @rdname as_draws.ernest
+#' @rdname as_draws
 #' @method as_draws_matrix ernest_run
 #' @export
-as_draws_matrix.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws_matrix.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   as_draws_matrix_(x, ..., units = units, radial = radial)
 }
 
-#' @rdname as_draws.ernest
-#' @method as_draws_rvars ernest_run
+#' @rdname as_draws
 #' @export
-as_draws_rvars.ernest_run <- function(x, ..., units = c("original", "unit_cube"), radial = FALSE) {
+as_draws_rvars.ernest_run <- function(
+  x,
+  ...,
+  units = c("original", "unit_cube"),
+  radial = FALSE
+) {
   posterior::as_draws_rvars(
     as_draws_matrix(x, ..., units = units, radial = radial)
   )
 }
 
-#' Internal function for `as_draws_matrix` conversion
+#' Convert an ernest_run to a weighted draws matrix
+#'
+#' Converts an [ernest_run] object to a weighted draws matrix suitable for use
+#' with the posterior package.
+#'
+#' @param x An [ernest_run] object.
+#' @param ... Additional arguments (currently unused).
+#' @param units Character. The scale for the sampled points: `"original"` or
+#' `"unit_cube"`.
+#' @param radial Logical. If TRUE, includes a `.radial` column with the
+#' Euclidean norm for each sample.
+#' @param call Environment to use for error reporting.
+#'
+#' @return A weighted draws matrix of class `draws_matrix`, with log weights
+#' attached.
 #' @noRd
-as_draws_matrix_ <- function(x, ..., units, radial, error_call = caller_env()) {
-  check_dots_empty(call = error_call)
-  units <- arg_match0(units, values = c("original", "unit_cube"), error_call)
-  check_bool(radial, error_call = error_call)
+as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
+  check_dots_empty(call = call)
+  units <- arg_match0(
+    units,
+    values = c("original", "unit_cube"),
+    error_call = call
+  )
+  check_bool(radial, call = call)
 
   points <- if (units == "original") x$samples else x$samples_unit
   if (radial) {

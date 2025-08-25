@@ -26,13 +26,13 @@ cpp11::list UniformCube(const cpp11::doubles criteria,
                         cpp11::function unit_log_lik,
                         const int num_dim,
                         const int max_loop)  {
-  RandomData::RNGScopeGuard rng_guard;
-  cpp11::writable::doubles_matrix<> out(criteria.size(), num_dim); 
+  cpp11::writable::doubles_matrix<> out(criteria.size(), num_dim);
   cpp11::writable::doubles_matrix<> nxt(criteria.size(), num_dim);
   cpp11::writable::doubles nxt_lik(criteria.size());
   std::vector<bool> is_valid(criteria.size(), false);
   int n_call = 0;
 
+  GetRNGstate();
   while (n_call < max_loop) {
     // Generate a new set of random points in the unit cube.
     RandomData::uniform_in_cube(nxt);
@@ -59,9 +59,13 @@ cpp11::list UniformCube(const cpp11::doubles criteria,
       break;
     }
   }
+  PutRNGstate();
 
   if (n_call >= max_loop) {
-    cpp11::stop("Maximum number of attempts (%d) reached without finding valid samples.", max_loop);
+    cpp11::stop(
+      "Maximum number of attempts (%d) reached without finding valid samples.",
+      max_loop
+    );
   }
 
   using namespace cpp11::literals;

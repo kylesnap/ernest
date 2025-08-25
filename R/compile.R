@@ -1,132 +1,242 @@
-#' Prepare an `ernest_sampler` object for nested sampling
+#' Compile a set of live points for nested sampling
 #'
-#' Create a new set of live points/particles for a new nested sampling run, or
-#' check the current state of the live points before continuing a previous run.
+#' Prepares an object for nested sampling by validating and (re)generating its
+#' set of live points. This ensures the sampler is viable before new live points
+#' are generated during the nested sampling algorithm.
 #'
-#' @param object An object of class `ernest_sampler`.
+#' @param object An [ernest_sampler] or [ernest_run] object.
+#'   * For `ernest_sampler`: Prepares a new sampler with a fresh set of live
+#'     points.
+#'   * For `ernest_run`: Regenerates live points from previous results, unless
+#'     `clear = TRUE`.
 #' @inheritParams rlang::args_dots_empty
-#' @param clear A logical value indicating whether to reload `object` before
-#' creating new live points. If `TRUE`, former results from the sampler are
-#' removed from the object. If `FALSE`, the sampler will not drop prior results,
-#' and continue using live points from the last sampling iteration performed.
+#' @param seed An integer, `NULL`, or `NA`. Controls the random number
+#' generator:
+#'   * Integer or `NULL`: Passed to [set.seed()]. If `NULL`, reinitializes the
+#'     generator as if no seed has yet been set.
+#'   * `NA`: Makes no changes to the current seed. If `compile()` has been
+#'     called on `object` before, `NA` ensures the seed remains identical
+#'     between runs.
+#' @param clear Logical. If `TRUE`, clears results from previous runs before
+#' compiling. If `FALSE`, retains previous results and validates live points.
 #'
-#' @details
-#' `compile` checks whether the live points within a nested sampler are
-#' of the expected structure (e.g., the matrix contains the proper dimensions,
-#' every live point is described with finite values, and likelihood values are
-#' either finite or `-Inf`). If these checks fail, or if `clear = TRUE`, the
-#' sampler is reset and a new set of live points is generated.
+#' @details `compile()` validates the set of live points in the sampler or run,
+#' ensuring:
 #'
-#' @returns `object`, invisibly.
+#' * Each live point is within the unit hypercube.
+#' * The likelihood function returns valid values (finite double or `-Inf`) for
+#'   each point.
+#' * The set of live points is not a perfect plateau (all points sharing the
+#'   same likelihood). A warning is issued if more than 25% of points share the
+#'   same likelihood value.
+#'
+#' If validation fails, the set of live points is removed, preventing further
+#' sampling until the issue is resolved.
+#'
+#' @return A validated `object`, with a valid set of live points stored in its
+#' `run_env` environment.
+#'
+#' @seealso
+#' * [ernest_sampler()] for creating an `ernest_sampler` object.
+#' * [generate()] for running nested sampling and details on the `ernest_run`
+#'   object.
+#'
 #' @examples
 #' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
-#' sampler <- nested_sampling(ll_fn, prior, n_point = 100)
+#' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
 #'
-#' # Add live points to the sampler
+#' # Compile the sampler to add live points
 #' compile(sampler)
-#' head(sampler$live_points$unit)
+#' head(sampler$run_env$unit)
 #'
-#' # Check the status of the sampler with `clear = FALSE`
-#' compile(sampler, clear = FALSE)
-#' head(sampler$live_points$unit)
+#' # Continue a previous run
+#' # run <- data(example_run)
+#' # sampler_2 <- compile(example_run)
+#' # sampler_2
 #'
-#' # Reset the sampler with new live points with `clear = TRUE`
-#' compile(sampler, clear = TRUE)
-#' head(sampler$live_points$unit)
-#' @method compile ernest_sampler
+#' # Make a new sampler from a previous run
+#' sampler_3 <- compile(example_run, clear = TRUE)
+#' sampler_3
+#' @rdname compile
 #' @export
-compile.ernest_sampler <- function(object, ..., clear = FALSE) {
+compile.ernest_sampler <- function(object, ..., seed = NA) {
   check_dots_empty()
-  object$compile(clear)
+  object <- refresh_ernest_sampler(object)
+  set_ernest_seed(seed, object$run_env)
+
+  # Fill live points
+  cli::cli_inform(c("v" = "Creating new live points."))
+  live <- create_live(object$lrps, object$n_points)
+  env_poke(object$run_env, "unit", live$unit, create = TRUE)
+  env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
+  env_poke(object$run_env, "birth", rep(0L, object$n_points))
+
+  check_live_set(object)
+  object
 }
 
-#' Create a live sample with `n` live points.
-#'
-#' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param n_points The number of live points to generate.
-#' @param call The calling environment for error handling.
-#' @return A list containing `unit`, `point`, and `log_lik` matrices/vectors.
-#' @noRd
-create_live <- function(lrps, n_points, call = caller_env()) {
-  rlang::try_fetch(
-    lrps$propose_uniform(criteria = rep(-1e300, n_points)),
+#' @rdname compile
+#' @export
+compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
+  check_dots_empty()
+  check_bool(clear)
+
+  if (clear) {
+    object <- list(
+      log_lik_fn = object$log_lik_fn,
+      prior = object$prior,
+      lrps = object$lrps,
+      n_points = object$n_points,
+      first_update = object$first_update,
+      update_interval = object$update_interval
+    )
+    return(compile.ernest_sampler(object, ..., seed = seed))
+  }
+
+  # Fill live points
+  cli::cli_inform(c("v" = "Restoring live points from a previous run."))
+  env_poke(object$run_env, "cache", attr(object, "seed"))
+  set_ernest_seed(seed, object$run_env)
+
+  live_positions <- vctrs::vec_as_location(
+    seq(object$n_iter),
+    vctrs::vec_size(object$log_lik)
+  )
+  env_bind(
+    object$run_env,
+    unit = object$samples_unit[-live_positions, ],
+    log_lik = object$log_lik[-live_positions],
+    birth = object$birth[-live_positions]
+  )
+  try_fetch(
+    check_live_set(object),
     error = function(cnd) {
       cli::cli_abort(
-        "Can't create live points.",
+        c(
+          "Can't create live points from the previous run.",
+          "i" = "Do you need to set `clear`?"
+        ),
         parent = cnd
       )
     }
   )
+  object
 }
 
-#' Validate an existing nested sample for correctness.
+#' Create a live sample with n_points live points
 #'
-#' @param live A list containing live points (`unit`, `point`, `log_lik`).
-#' @param n_points The expected number of live points.
-#' @param n_var The expected number of dimensions for each point.
+#' @param lrps An object containing the likelihood-restricted prior sampler.
+#' @param n_points Integer. The number of live points to generate.
 #' @param call The calling environment for error handling.
 #'
-#' @return Throws an error or warning if validation fails; otherwise, returns
-#' NULL.
+#' @return A list containing `unit` and `log_lik` matrices or vectors.
 #' @noRd
-check_live <- function(unit, log_lik, n_points, n_var, call = caller_env()) {
-  tmplate <- matrix(nrow = n_points, ncol = n_var)
-  # unit: Must be a matrix of points with dim [n_points, n_var],
-  # all points must be finite and within [0, 1]
-  if (!is.matrix(unit)) {
-    abort(
-      "Unit points must be stored as a matrix.",
-      call = call
-    )
-  }
-  if (!identical(dim(unit), dim(tmplate))) {
+create_live <- function(lrps, n_points, call = caller_env()) {
+  try_fetch(
+    live <- propose(lrps, criteria = rep(-1e300, n_points)),
+    error = function(cnd) {
+      cli::cli_abort(cnd$message, call = expr(compile()))
+    },
+    warning = function(cnd) {
+      if (grepl("object length is not a multiple", cnd$message)) {
+        cli::cli_abort(cnd$message, call = expr(compile()))
+      } else {
+        cli::cli_warn(cnd$message, call = expr(compile()))
+      }
+    }
+  )
+  order_logl <- order(live$log_lik)
+  list(
+    "log_lik" = live$log_lik[order_logl],
+    "unit" = live$unit[order_logl, , drop = FALSE]
+  )
+}
+
+#' Validate a set of live points for correctness
+#'
+#' @param sampler The `ernest_sampler` object undergoing validation.
+#' @param call The calling environment for error handling.
+#'
+#' @return Returns NULL invisibly if validation passes, otherwise throws an
+#' error or warning.
+#' @noRd
+check_live_set <- function(sampler, call = caller_env()) {
+  n_points <- sampler$n_points
+  n_dim <- sampler$prior$n_dim
+
+  # Live Point Check
+  unit <- env_get(sampler$run_env, "unit")
+  check_matrix(
+    unit,
+    nrow = n_points,
+    ncol = n_dim,
+    lower = 0,
+    upper = 1,
+    arg = "unit",
+    call = call
+  )
+
+  # Log Lik Checks
+  log_lik <- env_get(sampler$run_env, "log_lik")
+  check_double(log_lik, size = n_points, arg = "log_lik", call = call)
+
+  n_unique <- vctrs::vec_unique_count(log_lik)
+  if (n_unique == 1L) {
     cli::cli_abort(
-      "Unit points must be stored as a matrix with dim. `c({n_points}, {n_var})`.",
+      c(
+        "`log_lik` must contain a range of likelihood values.",
+        "x" = "`log_lik` currently contains one unique value ({log_lik[1]})."
+      ),
       call = call
     )
   }
-  if (any(!is.finite(unit))) {
-    abort("Unit points must contain only finite values.", call = call)
-  }
-  if (any(unit < 0) || any(unit > 1)) {
-    abort("Unit points must contain values within [0, 1].", call = call)
-  }
-  # loglik: Must be numeric vector of length n_points. Must contain only values
-  # that are either finite or -Inf. Abort if log_lik contains no
-  # unique values, warn if 10% of the values are duplicates.
-  vctrs::vec_check_size(log_lik, size = n_points, call = caller_env)
-  idx <- intersect(which(!is.finite(log_lik)), which(log_lik != -Inf))
-  if (length(idx) > 0L) {
-    len <- length(idx)
-    cli::cli_abort(c(
-      "Couldn't avoid calculating non-finite log-likelihood values.",
-      "i" = "Log-likelihood values can only be finite or `-Inf`.",
-      "x" = "There {?is/are} {len} non-finite, non-`-Inf` value{?s}."
-    ), call = call)
-  }
-  idx <- which(log_lik == -Inf)
-  if (length(idx) > 0L) {
-    len <- length(idx)
+  if (n_unique < (n_points * 0.75)) {
     cli::cli_warn(
-      "Found {len} log-likelihood value{?s} equal to `-Inf`.", call = call
+      c(
+        "`log_lik` may contain a likelihood plateau; proceed with caution.",
+        "!" = "Only {n_unique}/{n_points} likelihood values are unique."
+      ),
+      call = call
     )
   }
-  unique_logl <- unique(log_lik)
-  if (length(unique_logl) == 1) {
-    cli::cli_abort(c(
-      "Couldn't generate unique log-likelihood values for each point.",
-      "x" = "Every point had a calculated log-lik. value of {unique_logl}.",
-      "i" = "This generally indicates an error within a log. lik. function."
-    ), call = call)
+
+  # Birth vector
+  birth <- env_get(sampler$run_env, "birth")
+  if (!is_bare_integer(birth, n = n_points)) {
+    cli::cli_abort(
+      "`birth` vector cannot be missing from the `run_env` environment.",
+      call = call
+    )
   }
-  if (length(unique_logl) < length(log_lik) * 0.25) {
-    perc <- prettyNum(length(unique_logl) / length(log_lik))
-    cli::cli_warn(c(
-      "Suspected flatness in the log-likelihood surface.",
-      "x" = "Only {perc}% of the live points have unique log-lik. values.",
-      "i" = "Consider reviewing your model or adjusting your prior."
-    ), call = call)
+
+  invisible(NULL)
+}
+
+#' Set a seed for nested sampling.
+#'
+#' @param seed An integer, `NULL`, or `NA`.
+#' @param cache The cache from `object`, used to detect previous seeds.
+#'
+#' @returns NULL, invisibly.
+#' @noRd
+set_ernest_seed <- function(seed, cache, call = caller_env()) {
+  if (is.null(seed)) {
+    cli::cli_inform(c("v" = "Resetting the RNG state (`seed = NULL`)"))
+    set.seed(NULL)
+    env_unbind(cache, "seed")
+  } else if (!is.na(seed)) {
+    check_number_whole(seed, allow_null = TRUE, call = call)
+    env_poke(cache, "seed", seed)
+  } else if (env_has(cache, "seed")) {
+    cli::cli_inform(c("v" = "Restored a previously saved RNG state."))
   }
-  NULL
+  if (env_has(cache, "seed")) {
+    set.seed(env_has(cache, "seed"))
+  } else {
+    seed <- sample.int(999, size = 1)
+    set.seed(seed)
+    env_poke(cache, "seed", seed)
+  }
+  invisible(NULL)
 }

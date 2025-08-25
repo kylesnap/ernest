@@ -9,39 +9,51 @@
 \arguments{
 \item{x}{An \link{ernest_run} object.}
 
-\item{...}{Arguments passed to \code{\link[=as_draws_rvars]{as_draws_rvars()}}.}
+\item{...}{
+  Arguments passed on to \code{\link[=as_draws.ernest_run]{as_draws.ernest_run}}
+  \describe{
+    \item{\code{units}}{Case-sensitive string. The scale for the sampled points:
+\itemize{
+\item \code{"original"}: Points are on the scale of the prior space.
+\item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
+}}
+    \item{\code{radial}}{Logical. If \code{TRUE}, returns an additional column \code{.radial}
+containing the radial coordinate (i.e., the Euclidean norm) for each
+sampled point.}
+  }}
 
-\item{type}{The type of plot to create. Either \code{"density"}, which shows
-the posterior density of each distribution, or \code{"trace"}, which shows the
-distribution of points along estimates of the log prior volume.}
+\item{type}{Case-sensitive string. The type of plot to create:
+\itemize{
+\item \code{"density"}: Shows the posterior density of each parameter.
+\item \code{"trace"}: Shows the distribution of points along estimates of the log
+prior volume.
+}}
 
-\item{vars}{A character vector of variable names to plot.}
+\item{vars}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> Variables to
+plot from the run. If \code{NULL}, all variables are plotted.}
 
-\item{plot}{Logical, whether to return a \code{ggplot} of the visualization, or
-a \code{tibble} of the data used to create the plot.}
+\item{plot}{Logical. If \code{TRUE}, returns a \code{ggplot} of the visualisation;
+if \code{FALSE}, returns a \code{tibble} of the data used to create the plot.}
 }
 \value{
-Either a \code{ggplot} object if \code{plot = TRUE}, or a \code{tibble}.
+A \code{ggplot} object if \code{plot = TRUE}, otherwise a \code{tibble}.
 }
 \description{
 Create a plot of the posterior distributions from a nested sampling run,
-or trace the evolution of the discarded live points along the log prior
+or trace the evolution of discarded live points along the log prior
 volume.
-}
-\note{
-This method requires the \code{ggdist} package for plotting the posterior.
 }
 \examples{
 # Load example run
 library(ggdist)
-data(ernest_run_example)
+data(example_run)
 
 # Plot posterior distributions of the parameters
-visualize(ernest_run_example, type = "density")
+visualize(example_run, type = "density")
 
 # Plot the trace of the radial coordinate in unit scale
 visualize(
-  ernest_run_example,
+  example_run,
   type = "trace",
   vars = ".radial",
   units = "unit_cube",
@@ -49,5 +61,6 @@ visualize(
 )
 }
 \seealso{
-\code{\link[=plot]{plot()}} for visualizing the evidence estimates from an \code{ernest_run}.
+\code{\link[=plot]{plot()}} for visualising evidence estimates from an
+\code{ernest_run}.
 }

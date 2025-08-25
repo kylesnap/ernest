@@ -40,7 +40,6 @@ void RandomData::uniform_in_sphere(cpp11::writable::doubles_matrix<> &matrix) {
     for (auto &val : v) {
       val /= norm;
     }
-    
 
     // Scale the point to a random radius in the unit sphere.
     double r = unif_rand();

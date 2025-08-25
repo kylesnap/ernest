@@ -1,292 +1,160 @@
-#' Likelihood-Restricted Prior Samplers (Internal)
+#' Create a new likelihood-restricted prior sampler (LRPS)
 #'
-#' Internal R6 class for likelihood-restricted prior sampling (LRPS).
-#' Provides a base for subclasses implementing specific LRPS strategies.
+#' @description
+#' Nested sampling relies on generating a series of points in the prior space
+#' with increasing log-likelihood values. This is accomplished using a
+#' likelihood-restricted prior sampler (LRPS), which generates independent and
+#' identically distributed points from the prior, subject to a hard likelihood
+#' constraint.
 #'
-#' @param log_lik_fn Function computing log-likelihood at a point.
-#' @param prior_fn Function mapping unit cube to prior space.
-#' @param n_dim Number of dimensions.
+#' To create your own LRPS, subclass `new_ernest_lrps` and provide S3 methods
+#' for [propose()] and [update_lrps()] for your subclass.
+#'
+#' @param unit_log_fn,n_dim Provided when [ernest_sampler()] is called with a
+#'   given `ernest_lrps`:
+#'   * `unit_log_fn` (function, optional): Takes a matrix of points in the unit
+#'     cube and returns a numeric vector of log-likelihood values.
+#'   * `n_dim` (integer, optional): Number of dimensions of the prior space.
+#' @param max_loop Positive integer. Maximum number of attempts to generate
+#'   points via region-based sampling. Usually hidden from users, but can be set
+#'   via the `ernest.max_loop` option.
+#' @param cache (environment, optional) Environment for caching values. If
+#'   `NULL`, a new environment is created.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Name-value pairs for
+#'   additional elements for subclasses of this LRPS.
+#' @param .class (character vector, optional) Subclasses of this LRPS.
+#' @inheritParams rlang::check_exclusive
+#'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages.
+#'
+#' @returns An LRPS specification: a list containing the input arguments, with a
+#' class specific to the LRPS type.
+#' @aliases ernest_lrps
 #' @keywords internal
-#' @noRd
-ernest_lrps <- R6Class(
-  "ernest_lrps",
-  class = FALSE,
-  portable = FALSE,
-  lock_class = TRUE,
-  public = list(
-    initialize = function(log_lik_fn, prior_fn, n_dim) {
-      check_function(log_lik_fn)
-      check_function(prior_fn)
-      check_number_whole(n_dim, min = 1, allow_null = FALSE)
-      private$log_lik_fn <- log_lik_fn
-      private$prior_fn <- prior_fn
-      private$n_dim <- n_dim
-      private$unit_log_lik <- function(unit) {
-        point <- try_fetch(private$prior_fn(unit), error = function(cnd) {
-          cli::cli_abort(c(
-            "Can't calculate the prior transformation.",
-            "x" = cnd_message(cnd)
-          ), parent = NA)
-        })
-        try_fetch(
-          private$log_lik_fn(point),
-          error = function(cnd) {
-            cli::cli_abort(c(
-              "Can't calculate the log. likelihood.",
-              "x" = cnd_message(cnd)
-            ), parent = NA)
-          }
-        )
-      }
-    },
-
-    clear = function() {
-      n_call <<- 0L
-      n_iter <<- 0L
-      hist_length <<- 0L
-      hist_iter <<- vctrs::list_of(.ptype = integer())
-      hist_call <<- vctrs::list_of(.ptype = integer())
-      invisible(self)
-    },
-
-    update = function(...) {
-      n_call <<- 0L
-      return(self)
-    },
-
-    find_point = function(unit) {
-      point <- prior_fn(unit)
-      log_lik <- log_lik_fn(point)
-      list("unit" = drop(unit), "point" = point, "log_lik" = log_lik)
-    },
-
-    propose_uniform = function(criteria) {
-      res <- UniformCube(
-        criteria,
-        unit_log_lik,
-        n_dim,
-        max_loop
-      )
-      res
-    },
-
-    as_string = function() {
-      cli::cli_fmt({
-        cli::cli_text("Abstract LRPS Sampler")
-      })
-    }
-  ),
-  private = list(
-    # Parameters
-    log_lik_fn = NULL,
-    prior_fn = NULL,
-    n_dim = NULL,
-    unit_log_lik = NULL,
-    max_loop = max(
-      as.integer(getOption("ernest.max_loop", 1e6L)),
-      2L
-    ),
-
-    # Counters
-    n_call = 0L,
-    n_iter = 0L,
-    hist_length = 0L,
-
-    # History
-    hist_iter = vctrs::list_of(.ptype = integer()),
-    hist_call = vctrs::list_of(.ptype = integer()),
-
-    # Helpers
-    increment = function(res) {
-      n_call <<- n_call + res$n_call
-      n_iter <<- n_iter + vctrs::vec_size(res$log_lik)
-      hist_length <<- hist_length + 1L
-      hist_iter[[hist_length]] <<- n_iter
-      hist_call[[hist_length]] <<- n_call
-      invisible(self)
-    }
-  ),
-  active = list(
-    history = function() {
-      vctrs::df_list(
-        "n_iter" = list_c(private$hist_iter) %||% integer(0L),
-        "n_call" = list_c(private$hist_call) %||% integer(0L)
-      )
-    },
-
-    since_update = function() {
-      private$n_call
-    }
+#' @export
+new_ernest_lrps <- function(
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = getOption("ernest.max_loop", 1e6L),
+  cache = NULL,
+  ...,
+  .class = NULL,
+  .call = caller_env()
+) {
+  check_function(unit_log_fn, allow_null = TRUE, call = .call)
+  check_number_whole(n_dim, min = 1, allow_null = TRUE, call = .call)
+  check_number_whole(
+    max_loop,
+    min = 1,
+    allow_infinite = FALSE,
+    arg = "getOption('ernest.max_loop')",
+    call = .call
   )
-)
+  check_environment(cache, allow_null = TRUE, call = .call)
 
-#' Uniform LRPS Sampler (Internal)
+  elem <- list(
+    unit_log_fn = unit_log_fn,
+    n_dim = if (is.null(n_dim)) NULL else as.integer(n_dim),
+    max_loop = as.integer(max_loop),
+    cache = cache %||% new_environment()
+  )
+
+  new_elem <- list2(...)
+  check_unique_names(elem, new_elem)
+  structure(
+    c(elem, new_elem),
+    class = c(.class, "ernest_lrps")
+  )
+}
+
+#' @noRd
+#' @export
+format.ernest_lrps <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_alert_warning("An abstract LRPS sampler {.cls {class(x)}}")
+  })
+}
+
+#' @noRd
+#' @export
+print.ernest_lrps <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+#' Generate a new point using LRPS
 #'
-#' Internal R6 subclass for uniform sampling in the unit cube under a likelihood constraint.
+#' @description
+#' Developer-facing function, used when creating your own [ernest_lrps]
+#' subclass.
+#'
+#' When specifying your subclass, you must implement this method to define how
+#' your sampler generates new points that satisfy the likelihood constraint.
+#'
+#' @param x An `ernest_lrps` object.
+#' @param original (double vector or matrix, optional) Points in the prior space
+#'   used to start the proposal process. If `NULL`, a new point is generated by
+#'   sampling from the unconstrained unit cube (see [unif_cube()]).
+#' @param criteria (double vector) Log-likelihood values that proposed points
+#'   must satisfy.
+#' @param ... Additional arguments passed to subclass methods.
+#'
+#' @returns A list with:
+#' * `unit`: Matrix of proposed points in the prior space.
+#' * `log_lik`: Numeric vector of log-likelihood values for the proposed
+#' points.
+#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
 #'
 #' @keywords internal
+#' @export
+propose <- function(x, original = NULL, criteria = NULL, ...) {
+  UseMethod("propose")
+}
+
 #' @noRd
-uniform_lrps <- R6Class(
-  "uniform_lrps",
-  inherit = ernest_lrps,
-  class = FALSE,
-  portable = FALSE,
-  lock_class = TRUE,
-  public = list(
-    initialize = function(log_lik_fn, prior_fn, n_dim) {
-      super$initialize(log_lik_fn, prior_fn, n_dim)
-    },
+#' @export
+propose.ernest_lrps <- function(x, original = NULL, criteria = NULL, ...) {
+  if (is.null(original)) {
+    UniformCube(
+      criteria = criteria,
+      unit_log_lik = x$unit_log_fn,
+      num_dim = x$n_dim,
+      max_loop = x$max_loop
+    )
+  } else {
+    cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")
+  }
+}
 
-    clear = function() {
-      super$clear()
-    },
-
-    update = function(...) {
-      super$update(...)
-    },
-
-    propose_live = function(original, criteria) {
-      res <- self$propose_uniform(criteria)
-      super$increment(res)
-      res
-    },
-
-    as_string = function() {
-      cli::cli_fmt({
-        cli::cli_text("Uniform Sampling in Unit Cube")
-        cli::cli_dl(c(
-          "No. Iter" = "{private$n_iter}",
-          "No. Call" = "{private$n_call}"
-        ))
-      })
-    }
-  )
-)
-
-#' Random Walk LRPS Sampler (Internal)
+#' Update an LRPS
 #'
-#' Internal R6 subclass for random walk sampling in the unit cube with adaptive step size.
+#' @description
+#' During a nested sampling run, you may wish to update the internal parameters
+#' of the LRPS based on sampler performance or other criteria. The frequency of
+#' these updates is set by the `first_update` and `update_interval` arguments of
+#' [ernest_sampler()].
 #'
-#' @param steps Number of random walk steps.
-#' @param epsilon Initial step size.
+#' If you are creating your own [ernest_lrps] subclass, implement this method to
+#' specify any special update behaviour. The default method reconstructs the
+#' LRPS with current parameters and resets the likelihood call counter in the
+#' cache.
+#'
+#' @param x An `ernest_lrps` object.
+#'
+#' @returns An updated `ernest_lrps` object with the same class as `x`, possibly
+#' with updated parameters.
 #' @keywords internal
+#' @export
+update_lrps <- function(x) {
+  UseMethod("update_lrps")
+}
+
 #' @noRd
-rwcube_lrps <- R6::R6Class(
-  "rwcube_lrps",
-  inherit = ernest_lrps,
-  class = FALSE,
-  portable = FALSE,
-  lock_class = TRUE,
-  public = list(
-    initialize = function(
-      log_lik_fn,
-      prior_fn,
-      n_dim,
-      steps = 25L,
-      target_acceptance = 0.5
-    ) {
-      super$initialize(log_lik_fn, prior_fn, n_dim)
-      check_number_whole(steps, min = 2)
-      check_number_decimal(target_acceptance, max = 1)
-      if (target_acceptance < 1 / steps) {
-        cli::cli_abort("Target acceptance must be at least 1/{steps}.")
-      }
-      private$steps <- as.integer(steps)
-      private$target_acceptance <- as.double(target_acceptance)
-    },
-
-    clear = function() {
-      cur_epsilon <<- 1.0
-      n_accept <<- 0L
-      hist_accept <<- vctrs::list_of(.ptype = integer())
-      hist_epsilon <<- vctrs::list_of(.ptype = double())
-      super$clear()
-    },
-
-    update = function() {
-      acc_ratio <- n_accept / private$n_call
-      # Newton-Like Update to Target 0.5 Acceptance Ratio
-      cur_epsilon <<- cur_epsilon *
-        exp((acc_ratio - target_acceptance) / n_dim / target_acceptance)
-      n_accept <<- 0L
-      super$update()
-    },
-
-    propose_live = function(original, criteria) {
-      if (!is.matrix(original)) {
-        dim(original) <- c(1, private$n_dim)
-      }
-      res <- RandomWalkMetropolis(
-        original,
-        criteria,
-        private$unit_log_lik,
-        private$n_dim,
-        private$steps,
-        private$cur_epsilon
-      )
-      if (any(is.na(res$log_lik))) {
-        no_swaps <- which(is.na(res$log_lik))
-        res$log_lik[no_swaps] <- apply(
-          original[no_swaps, , drop = FALSE],
-          1,
-          private$unit_log_lik
-        )
-      }
-      private$increment(res)
-      res
-    },
-
-    as_string = function() {
-      cli::cli_fmt({
-        cli::cli_text("Random-Walk in Unit Cube with Adaptive Step Size")
-        cli::cli_dl(c(
-          "No. Iter" = "{private$n_iter}",
-          "No. Call" = "{private$n_call}",
-          "No. Steps" = "{private$steps}",
-          "Epsilon" = "{private$cur_epsilon}"
-        ))
-      })
-    }
-  ),
-  private = list(
-    # Parameters
-    steps = NULL,
-    target_acceptance = NULL,
-    cur_epsilon = 1.0,
-
-    # Counters
-    n_accept = 0L,
-
-    # History
-    hist_accept = vctrs::list_of(.ptype = integer()),
-    hist_epsilon = vctrs::list_of(.ptype = double()),
-
-    # Helpers
-    increment = function(res) {
-      super$increment(res)
-      private$n_accept <- private$n_accept + res$n_accept
-      private$hist_epsilon[[private$hist_length]] <- private$cur_epsilon
-      private$hist_accept[[private$hist_length]] <- private$n_accept
-    }
-  ),
-  active = list(
-    history = function() {
-      vctrs::df_list(
-        !!!super$history,
-        "n_accept" = list_c(private$hist_accept) %||% integer(0L),
-        "epsilon" = list_c(private$hist_epsilon) %||% double(0L)
-      )
-    },
-
-    epsilon = function() {
-      private$cur_epsilon
-    },
-
-    acceptance_ratio = function() {
-      if (private$n_call == 0L) {
-        return(NA_real_)
-      }
-      private$n_accept / private$n_call
-    }
-  )
-)
+#' @export
+update_lrps.ernest_lrps <- function(x) {
+  if (env_has(x$cache, "n_call")) {
+    x$cache$n_call <- 0L
+  }
+  do.call(new_ernest_lrps, as.list(x))
+}

@@ -1,34 +1,42 @@
 #' Plot the posterior distribution of an `ernest_run`
 #'
 #' Create a plot of the posterior distributions from a nested sampling run,
-#' or trace the evolution of the discarded live points along the log prior
+#' or trace the evolution of discarded live points along the log prior
 #' volume.
 #'
 #' @param x An [ernest_run] object.
-#' @param ... Arguments passed to [as_draws_rvars()].
-#' @param type The type of plot to create. Either `"density"`, which shows
-#' the posterior density of each distribution, or `"trace"`, which shows the
-#' distribution of points along estimates of the log prior volume.
-#' @param vars A character vector of variable names to plot.
-#' @param plot Logical, whether to return a `ggplot` of the visualization, or
-#' a `tibble` of the data used to create the plot.
+#' @param type Case-sensitive string. The type of plot to create:
+#' * `"density"`: Shows the posterior density of each parameter.
+#' * `"trace"`: Shows the distribution of points along estimates of the log
+#' prior volume.
+#' @param vars <[`tidy-select`][dplyr::dplyr_tidy_select]> Variables to
+#' plot from the run. If `NULL`, all variables are plotted.
+#' @param plot Logical. If `TRUE`, returns a `ggplot` of the visualisation;
+#' if `FALSE`, returns a `tibble` of the data used to create the plot.
+#' @inheritDotParams as_draws.ernest_run units radial
 #'
-#' @returns Either a `ggplot` object if `plot = TRUE`, or a `tibble`.
+#' @returns A `ggplot` object if `plot = TRUE`, otherwise a `tibble`.
 #'
-#' @note This method requires the `ggdist` package for plotting the posterior.
-#' @seealso [plot()] for visualizing the evidence estimates from an `ernest_run`.
+#' @seealso [plot()] for visualising evidence estimates from an
+#'   `ernest_run`.
+#'
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
+#' error message is provided when the user provides an invalid value for
+#' `type`.
+#' @srrstats {BS6.2, BS6.3} Plot method for posterior samples and sequences of
+#' samples.
 #'
 #' @examples
 #' # Load example run
 #' library(ggdist)
-#' data(ernest_run_example)
+#' data(example_run)
 #'
 #' # Plot posterior distributions of the parameters
-#' visualize(ernest_run_example, type = "density")
+#' visualize(example_run, type = "density")
 #'
 #' # Plot the trace of the radial coordinate in unit scale
 #' visualize(
-#'   ernest_run_example,
+#'   example_run,
 #'   type = "trace",
 #'   vars = ".radial",
 #'   units = "unit_cube",
@@ -36,11 +44,15 @@
 #' )
 #' @method visualize ernest_run
 #' @export
-visualize.ernest_run <- function(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE) {
+visualize.ernest_run <- function(
+  x,
+  ...,
+  type = c("density", "trace"),
+  vars = NULL,
+  plot = TRUE
+) {
   check_dots_used()
-  if (plot) {
-    check_installed("ggdist", reason = "Plot posterior distributions.")
-  }
+  rlang::check_installed(c("ggdist", "tidyselect"))
   type <- arg_match(type)
 
   draws <- as_draws_rvars(x, ...)
@@ -55,6 +67,17 @@ visualize.ernest_run <- function(x, ..., type = c("density", "trace"), vars = NU
   }
 }
 
+#' Visualize posterior density for selected variables
+#'
+#' Generates a tibble or ggplot of posterior densities for selected variables
+#' from a nested sampling run.
+#'
+#' @param draws A draws_rvars object containing posterior samples.
+#' @param cols Named integer vector of columns to visualize.
+#' @param plot Logical. If TRUE, returns a ggplot; if FALSE, returns a tibble.
+#'
+#' @return A ggplot object or a tibble, depending on `plot`.
+#' @noRd
 visualize_density_ <- function(draws, cols, plot) {
   resamp <- posterior::resample_draws(draws)
 
@@ -63,18 +86,32 @@ visualize_density_ <- function(draws, cols, plot) {
     ".dist" = list_c(resamp[cols])
   )
 
-  if (!plot) return(df)
+  if (!plot) {
+    return(df)
+  }
 
   df |>
-    ggplot() +
-    ggdist::stat_halfeye(mapping = aes(xdist = .data[[".dist"]])) +
+    ggplot2::ggplot() +
+    ggdist::stat_halfeye(mapping = ggplot2::aes(xdist = .data[[".dist"]])) +
     ggplot2::facet_wrap(~ .data[[".var"]], scales = "free_x") +
-    scale_x_continuous("Value") +
-    scale_y_continuous("Density")
+    ggplot2::scale_x_continuous("Value") +
+    ggplot2::scale_y_continuous("Density")
 }
 
+#' Visualize trace of variables along log prior volume
+#'
+#' Generates a tibble or ggplot showing the evolution of selected variables
+#' along log prior volume.
+#'
+#' @param draws A draws_rvars object containing posterior samples.
+#' @param cols Named integer vector of columns to visualize.
+#' @param log_vol Numeric vector of log prior volumes.
+#' @param plot Logical. If TRUE, returns a ggplot; if FALSE, returns a tibble.
+#'
+#' @return A ggplot object or a tibble, depending on `plot`.
+#' @noRd
 visualize_trace_ <- function(draws, cols, log_vol, plot) {
-  points <- map(draws[cols], posterior::draws_of)
+  points <- lapply(draws[cols], posterior::draws_of)
 
   df <- tibble::tibble(
     ".var" = rep(names(cols), each = posterior::ndraws(draws)),
@@ -82,17 +119,22 @@ visualize_trace_ <- function(draws, cols, log_vol, plot) {
     ".log_volume" = rep(log_vol, length(cols)),
     ".weight" = rep(stats::weights(draws), length(cols))
   )
-  if (!plot) return(df)
+  if (!plot) {
+    return(df)
+  }
 
   df |>
-    ggplot(aes(
+    ggplot2::ggplot(ggplot2::aes(
       x = .data[[".log_volume"]],
       y = .data[[".point"]],
       colour = .data[[".weight"]]
     )) +
     ggplot2::geom_point() +
-    facet_grid(rows = ggplot2::vars(.data[[".var"]]), scales = "free_y") +
-    scale_x_continuous("Log Volume") +
-    scale_y_continuous("Value") +
+    ggplot2::facet_grid(
+      rows = ggplot2::vars(.data[[".var"]]),
+      scales = "free_y"
+    ) +
+    ggplot2::scale_x_continuous("Log-volume") +
+    ggplot2::scale_y_continuous("Value") +
     ggplot2::scale_colour_viridis_c("Weight")
 }

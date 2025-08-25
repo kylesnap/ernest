@@ -2,48 +2,57 @@
 % Please edit documentation in R/calculate.R
 \name{calculate.ernest_run}
 \alias{calculate.ernest_run}
+\alias{ernest_estimate}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
-\method{calculate}{ernest_run}(x, ..., ndraws = FALSE)
+\method{calculate}{ernest_run}(x, ..., ndraws = NULL)
 }
 \arguments{
 \item{x}{An \code{ernest_run} object.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{A positive integer or a boolean. If \code{FALSE}, the log volumes
-will be derived from their expected values. If not \code{FALSE}, the log volumes
-will be simulated using \code{ndraws} samples from each volume's
-joint distribution.}
+\item{ndraws}{An optional positive integer. The number of log-volume
+sequences to simulate. If equal to zero, no simulations will be made, and a
+one draw vector of log-volumes are produced from the estimates contained in
+\code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
 }
 \value{
-A tibble, containing \code{run$n_iter + run$n_points} rows and the
-following columns:
+A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{n_iter + n_points} rows
+and several columns:
 \itemize{
 \item \code{log_lik}: The log-likelihood of the model.
-\item \code{log_volume}: The log volume of the prior space.
+\item \code{log_volume}: The log-volume of the prior space.
 \item \code{log_weight}: The log weights of the live points.
-\item \code{log_evidence}: The log evidence of the model.
-\item \code{log_evidence.err}: The standard error of the log evidence (only available
+\item \code{log_evidence}: The log-evidence of the model.
+\item \code{log_evidence_err}: The standard error of the log-evidence (only available
 when \code{ndraws = 0}).
 }
 
-The tibble has the additional class \code{ernest_estimates}, which has its own
-\link[=plot.ernest_estimates]{plot} method.
+The tibble has the additional class \code{ernest_estimate}, which has its own
+\link[=plot.ernest_estimate]{plot} method.
 
 Each column is returned as an \code{\link[posterior:rvar]{posterior::rvar()}} vector.
 }
 \description{
-Estimate Evidence using a Nested Sampling Run
+Computes evidence and related quantities from a nested
+sampling run, optionally by simulating the volumes of each nested
+likelihood shell.
 }
 \examples{
 # Load an example run
-data(ernest_run_example)
+data(example_run)
 
 # View results as a tibble with `ndraws = FALSE` (the default).
-calculate(ernest_run_example)
+calculate(example_run)
 
-# Generate 100 simulated log volume values for each iteration.
-calculate(ernest_run_example, ndraws = 100)
+# Generate 100 simulated log-volume values for each iteration.
+calculate(example_run, ndraws = 100)
 
+}
+\references{
+Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
+Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
+of the Royal Astronomical Society, 483(2), 2044–2056.
+\url{https://doi.org/10.1093/mnras/sty3090}
 }

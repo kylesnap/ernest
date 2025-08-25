@@ -1,0 +1,25 @@
+citHeader("To cite the nested sampling method, please use:")
+
+bibentry(
+  bibtype  = "Article",
+  title    = "Nested Sampling",
+  author   = person("John", "Skilling"),
+  journal  = "AIP Conference Proceedings",
+  year     = 2004,
+  volume   = "735",
+  number   = "1",
+  pages    = "395–405",
+  doi      = "10.1063/1.1835238"
+)
+
+bibentry(
+  bibtype  = "Article",
+  title    = "Nested Sampling for General Bayesian Computation",
+  author   = person("John", "Skilling"),
+  journal  = "Bayesian Analysis",
+  year     = 2006,
+  volume   = "1",
+  number   = "4",
+  pages    = "833–859",
+  doi      = "10.1214/06-BA127"
+)

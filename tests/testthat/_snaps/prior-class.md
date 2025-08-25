@@ -1,73 +1,65 @@
-# create_prior errors if n_dim < 1
+# new_ernest_prior throws informative errors
 
-    `n_dim` must be a whole number larger than or equal to 1, not the number 0.
+    `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
+
+---
+
+    Can't recycle `lower` (size 2) to size 3.
+
+---
+
+    Can't convert `lower` <character> to <double>.
+
+---
+
+    Can't recycle `lower` (size 2) to size 3.
+
+# new_ernest_prior errors if lower >= upper
+
+    `lower` must be strictly smaller than `upper`.
+    x Problem at index 2.
+
+---
+
+    `lower` must be strictly smaller than `upper`.
+    x Problem at indicies 1 and 2.
+
+# new_ernest_prior repairs names as specified
+
+    Names must be unique.
+    x These names are duplicated:
+      * "x" at locations 1 and 2.
+    i Use argument `name_repair` to specify repair strategy.
+
+# create_prior creates a custom rowwise prior
+
+    Code
+      prior
+    Output
+      Prior distribution <ernest_prior>
+      
+      Names: "...1", "...2", and "...3"
+      Bounds:
+      > Lower: -10, -10, and -10
+      > Upper: 10, 10, and 10
 
 # create_prior errors if prior function output length is wrong
 
-    <ernest_prior> failed validation checks.
-    x Failure at this input: 0.935637236107141 and 0.229094626381993
-    x Failed with this output: 0.935637236107141, 0.229094626381993, and 4.08406452339504
-    Caused by error in `validate_prior()`:
-    ! `fn` must always return a double vector of length 2.
+    Can't validate `fn` as a valid prior.
+    Caused by error in `prior$fn()`:
+    ! `y` must have size 2, not size 3.
+
+---
+
+    Can't validate `rowwise_fn` as a valid prior.
+    Caused by error in `prior$fn()`:
+    ! `prior(unit)` must return a matrix of equal dim. to `unit`.
+    x Expected dim(y) = 10 x 2.
+    x Returned dim(y) = 4 and 5.
 
 # create_prior errors if prior returns non-finite values
 
-    <ernest_prior> failed validation checks.
-    x Failure at this input: 0.647276502801105 and 0.853123272769153
-    x Failed with this output: NaN and NaN
-    Caused by error in `validate_prior()`:
-    ! `fn` must always return finite values for every vector in [0, 1).
-
-# create_prior errors if lower > min(prior)
-
-    <ernest_prior> failed validation checks.
-    x Failure at this input: 0.871139647904783 and 0.435637243324891
-    x Failed with this output: 0 and 0
-    Caused by error in `validate_prior()`:
-    ! `fn` must return values greater than or equal to the lower bound.
-    i Lower bounds: 1 and 1
-
-# create_prior errors if lower >= upper
-
-    <ernest_prior> failed validation checks.
-    x Failure at this input: 0.503341236151755 and 0.361691718222573
-    x Failed with this output: -1 and -1
-    Caused by error in `validate_prior()`:
-    ! `fn` must return values greater than or equal to the lower bound.
-    i Lower bounds: 1 and 1
-
-# Print methods
-
-    Code
-      create_normal_prior(1, mean = 0, sd = 1)
-    Output
-      An <ernest_prior>: 1 variable
-
----
-
-    Code
-      create_t_prior(1, df = 1)
-    Output
-      An <ernest_prior>: 1 variable
-
----
-
-    Code
-      create_cauchy_prior(1, location = 0, scale = 1)
-    Output
-      An <ernest_prior>: 1 variable
-
----
-
-    Code
-      create_uniform_prior(1, lower = 0, upper = 1)
-    Output
-      An <ernest_prior>: 1 variable
-
----
-
-    Code
-      create_prior(function(x) x, n_dim = 1, varnames = "x")
-    Output
-      An <ernest_prior>: 1 variable
+    Can't validate `fn` as a valid prior.
+    Caused by error in `prior$fn()`:
+    ! `prior(unit)` must never return `NA` or `NaN` values.
 

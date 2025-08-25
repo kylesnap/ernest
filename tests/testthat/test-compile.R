@@ -1,76 +1,141 @@
-gaussian_2 <- make_gaussian(2)
+sampler <- ernest_sampler(
+  log_lik = gaussian_blobs$log_lik,
+  prior = gaussian_blobs$prior
+)
+
 test_that("create_live generates live points correctly", {
-
-  lrps <- rwcube_lrps$new(
-    log_lik_fn = gaussian_2$log_lik,
-    prior_fn = gaussian_2$prior$fn,
-    n_dim = 2L
-  )
-
-  result <- create_live(lrps, 10)
+  result <- create_live(sampler$lrps, 10)
   expect_equal(dim(result$unit), c(10, 2))
   expect_equal(
-    apply(apply(result$unit, 1, gaussian_2$prior$fn), 2, gaussian_2$log_lik),
+    apply(
+      apply(result$unit, 1, gaussian_blobs$prior$fn),
+      2,
+      gaussian_blobs$log_lik
+    ),
     result$log_lik
   )
 })
 
 test_that("Informative error when prior or log. lik. fails completely.", {
-  bad_lik <- rwcube_lrps$new(
-    log_lik_fn = \(x) stop("Bad Likelihood Job!"),
-    prior_fn = gaussian_2$prior$fn,
+  bad_lik <- new_rwmh_cube(
+    unit_log_fn = purrr::compose(
+      \(x) stop("Bad Likelihood Job!"),
+      gaussian_blobs$prior$fn,
+    ),
     n_dim = 2L
   )
-  bad_prior <- rwcube_lrps$new(
-    log_lik_fn = gaussian_2$log_lik,
-    prior_fn = \(x) stop("Bad prior job!"),
-    n_dim = 2L
-  )
-
   expect_snapshot_error(create_live(bad_lik, 10))
+
+  bad_prior <- new_rwmh_cube(
+    unit_log_fn = purrr::compose(
+      gaussian_blobs$log_lik,
+      \(x) stop("Bad Prior Job!")
+    ),
+    n_dim = 2L
+  )
   expect_snapshot_error(create_live(bad_prior, 10))
 })
 
-test_that("check_live validates live points correctly", {
-  # Test case: Valid live points
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_silent(check_live(unit, log_lik, n_points = 5, n_var = 4))
+#' @srrstats {BS2.1a} check_set_live() ensures that log_lik produces an expected
+#' output given some output from the prior transformation, ensuring the two
+#' are commensurate. It is run by compile and by ernest_sampler.
+env_bind(
+  sampler$run_env,
+  unit = matrix(runif(1000), nrow = 500, ncol = 2),
+  log_lik = seq(-10, -1, length.out = 500),
+  birth = rep(0L, 500)
+)
 
-  # Test case: Empty live points
-  unit <- matrix(numeric(0))
-  log_lik <- numeric(0)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+test_that("check_live_set catches problems in the live_env", {
+  # Valid case: correct matrix and log_lik
+  expect_silent(check_live_set(sampler))
 
-  # Test case: live$unit is not a matrix
-  unit <- runif(20)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  # Error: unit is not a matrix
+  env_bind(sampler$run_env, unit = runif(20))
+  expect_snapshot_error(check_live_set(sampler))
+  env_bind(
+    sampler$run_env,
+    unit = matrix(runif(1000), nrow = 250, ncol = 4)
+  )
+  expect_snapshot_error(check_live_set(sampler))
+  trick_mat <- matrix(runif(1000), nrow = 500, ncol = 2)
+  trick_mat[5, 2] <- NaN
+  env_bind(
+    sampler$run_env,
+    unit = trick_mat
+  )
+  expect_snapshot_error(check_live_set(sampler))
+  trick_mat[5, 2] <- 0.5
+  trick_mat[500, 1] <- 0
+  env_bind(sampler$run_env, unit = trick_mat)
+  expect_snapshot_error(check_live_set(sampler))
 
-  # Test case: live$unit dimensions do not match
-  unit <- matrix(runif(15, 0, 1), nrow = 3, ncol = 5)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  # Log_lik problems
+  too_short <- seq(-10, -1, length.out = 499)
+  env_bind(
+    sampler$run_env,
+    unit = matrix(runif(1000), nrow = 500, ncol = 2),
+    log_lik = too_short
+  )
+  expect_snapshot_error(check_live_set(sampler))
+  nonfinite <- seq(-10, -1, length.out = 500)
+  nonfinite[5] <- NaN
+  env_bind(
+    sampler$run_env,
+    log_lik = nonfinite
+  )
+  expect_snapshot_error(check_live_set(sampler))
+  nonfinite[5] <- Inf
+  env_bind(
+    sampler$run_env,
+    log_lik = nonfinite
+  )
+  expect_snapshot_error(check_live_set(sampler))
+  nonfinite[5] <- -Inf
+  env_bind(sampler$run_env, log_lik = nonfinite)
+  expect_no_error(check_live_set(sampler))
 
-  # Test case: live$unit contains non-finite values
-  unit <- matrix(c(runif(19, 0, 1), Inf), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  # Error: log_lik is a plateau (all values identical)
+  log_lik_plateau <- rep(-10, 500L)
+  env_bind(sampler$run_env, log_lik = log_lik_plateau)
+  expect_snapshot_error(check_live_set(sampler))
 
-  # Test case: live$unit contains values outside [0, 1]
-  unit <- matrix(c(runif(19, 0, 1), 1.5), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, -0.5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  # Warning: log_lik has repeated values but not all identical
+  log_lik_repeats <- seq(-10, -1, length.out = 500)
+  log_lik_repeats[250:500] <- log_lik_repeats[250]
+  env_bind(sampler$run_env, log_lik = log_lik_repeats)
+  expect_snapshot_warning(check_live_set(sampler))
+})
 
-  # Test case: live$log_lik contains non-finite values
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- c(-10, -5, -3, -1, Inf)
-  expect_snapshot_error(
-    check_live(unit, log_lik, n_points = 5, n_var = 4)
+test_that("compile method initializes live points", {
+  sampler <- compile(sampler)
+  orig_units <- sampler$run_env$unit
+  orig_log_lik <- sampler$run_env$log_lik
+
+  expect_equal(dim(orig_units), c(500, 2))
+  expected_log_lik <- apply(
+    t(apply(orig_units, 1, gaussian_blobs$prior$fn)),
+    1,
+    gaussian_blobs$log_lik
   )
 
-  # Test case: live$log_lik contains only one unique value
-  unit <- matrix(runif(20, 0, 1), nrow = 5, ncol = 4)
-  log_lik <- rep(-10, 5)
-  expect_snapshot_error(check_live(unit, log_lik, n_points = 5, n_var = 4))
+  expect_equal(orig_log_lik, expected_log_lik)
+  expect_equal(sampler$run_env$birth, rep(0L, 500))
+  expect_snapshot(sampler)
+})
+
+test_that("Seed setting with ints produces expected matrices", {
+  sampler <- compile(sampler, seed = 42L)
+  matrix1 <- env_get(sampler$run_env, "unit")
+  env_unbind(sampler$run_env, "unit")
+
+  sampler <- compile(sampler, seed = 42L)
+  matrix2 <- env_get(sampler$run_env, "unit")
+  env_unbind(sampler$run_env, "unit")
+  expect_identical(matrix1, matrix2)
+
+  sampler <- compile(sampler, seed = NULL)
+  matrix3 <- env_get(sampler$run_env, "unit")
+  env_unbind(sampler$run_env, "unit")
+  expect_false(identical(matrix1, matrix3))
 })

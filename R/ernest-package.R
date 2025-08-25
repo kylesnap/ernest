@@ -2,17 +2,12 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @import rlang
 #' @importFrom generics generate
 #' @importFrom glue glue
-#' @importFrom lifecycle deprecated
-#' @importFrom rlang %@%
-#' @importFrom rlang %@%<-
-#' @importFrom rlang %|%
-#' @importFrom rlang %||%
 #' @importFrom tibble tibble
 #' @importFrom utils head
 #' @importFrom utils tail
+#' @import rlang
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL

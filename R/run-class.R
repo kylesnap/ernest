@@ -1,173 +1,167 @@
-#' Results from nested sampling runs
+#' Create a new ernest run object
 #'
-#' The `ernest_run` object contains the results of a nested sampling run. It has
-#' methods for summary, plotting, and for simulating the uncertainty around the
-#' run's estimates.
+#' @param x An `ernest_sampler` or `ernest_results` object used to produce a run
 #'
-#' @name ernest_run-class
-#' @aliases ernest_run
-#' @docType class
+#' @param results The list output from nested_sampling_impl.
 #'
-#' @slot n_iter Total number of iterations performed.
-#' @slot n_points Number of points drawn into the live set.
-#' @slot n_calls Number of calls to the log likelihood function.
-#' @slot log_lik A vector of log likelihood values associated with each point
-#' generated during the run.
-#' @slot log_volume A vector of the estimated prior volumes associated with the
-#' removal of each point from the live set.
-#' @slot log_weight A vector of unnormalized posterior weights for each point.
-#' @slot log_evidence A vector of log. evidence estimates, generated after the
-#' removal of each point.
-#' @slot log_evidence_var A vector of uncertainty values associated with each
-#' entry in `log_evidence`. 1.
-#' @slot information A vector of the estimated KL-divergence (or information)
-#' between the prior and posterior distributions.
-#' @slot id The index of each point within the live set.
-#' @slot points The number of live points associated with each point's removal.
-#' @slot calls The number of likelihood calls made when generating a replacement
-#' live point.
-#' @slot birth The iteration at which the point was created and added to the live
-#' set.
-#' @slot samples A matrix of the sampled points, expressed in the units of the
-#' prior space.
-#' @slot samples_unit Identical to `samples`, but expressed in the units of the
-#' 0-1 hypercube.
-#'
-#' @details
-#' The `ernest_run` object is returned by running a nested sampling procedure
-#' in the `ernest` package. It can be used for posterior analysis, evidence
-#' estimation, and diagnostic plotting.
-#'
-#' @seealso [ernest_run_example] for an example object, and [generate()] for how to
-#' create a new `ernest_run` object. [plot()] and [calculate()] on how to use
-#' `ernest_run` objects to examine uncertainty in the log volume estimates.
-NULL
-
-#' Internal method for cosntructing the ernest_run object using an ernest_sampler
-#' @importFrom vctrs vec_c vec_size
+#' @returns A new ernest_run object (documented in generate)
 #' @noRd
-compile_results <- function(
-  self,
-  private,
-  dead_unit,
-  dead_log_lik,
-  dead_id,
-  dead_calls,
-  dead_birth
-) {
-  prev <- private$results
-  live_loc <- -1 * attr(prev, "live_loc")
-  dead_unit <- rbind(
-    prev$samples_unit[live_loc, ],
-    do.call(rbind, dead_unit)
-  )
-  dead_log_lik <- c(prev$log_lik[live_loc], list_c(dead_log_lik))
-  dead_id <- c(prev$id[live_loc], list_c(dead_id))
-  dead_calls <- c(prev$calls[live_loc], list_c(dead_calls))
-  dead_birth <- c(prev$birth[live_loc], list_c(dead_birth))
-  n_dead <- vec_size(dead_log_lik)
-
-  live_order <- order(private$live_log_lik)
-  n_live <- vec_size(live_order)
-
-  samples_unit <- rbind(dead_unit, private$live_unit[live_order, ])
-  colnames(samples_unit) <- private$prior$varnames
-  samples <- t(apply(samples_unit, 1, private$prior$fn))
-  colnames(samples) <- private$prior$varnames
-
-  log_lik <- vec_c(
-    dead_log_lik,
-    private$live_log_lik[live_order],
-    .ptype = double()
-  )
-  id <- vec_c(dead_id, live_order, .ptype = integer())
-  points <- vec_c(
-    rep(private$n_points, n_dead),
-    seq(private$n_points, 1, -1),
-    .ptype = integer()
-  )
-  calls <- vec_c(dead_calls, rep(0L, n_live), .ptype = integer())
-  birth <- vec_c(dead_birth, private$live_birth[live_order], .ptype = integer())
-
-  res <- vctrs::df_list(
-    "samples" = samples,
-    "samples_unit" = samples_unit,
-    "log_lik" = log_lik,
-    "id" = id,
-    "points" = points,
-    "calls" = calls,
-    "birth" = birth
-  )
-
-  new_ernest_run(res, n_live, n_dead, live_order)
-}
-
-new_ernest_run <- function(res, n_live, n_dead, live_order) {
-  log_vol <- cumsum(-1 * (res$points ** -1))
-  integration <- compute_integral(res$log_lik, log_vol)
-  live_loc <- live_order + n_dead
-
-  structure(
-    list2(
-      "n_iter" = n_dead,
-      "n_points" = n_live,
-      "n_calls" = sum(res$calls),
-      !!!integration,
-      "id" = res$id,
-      "points" = res$points,
-      "calls" = res$calls,
-      "birth" = res$birth,
-      "samples" = res$samples,
-      "samples_unit" = res$samples_unit
-    ),
-    "live_loc" = live_loc,
-    class = "ernest_run"
-  )
+new_ernest_run <- function(x, results) {
+  UseMethod("new_ernest_run")
 }
 
 #' @export
+#' @noRd
+new_ernest_run.ernest_sampler <- function(x, results) {
+  parsed <- parse_results(results)
+  new_ernest_run_(x, parsed)
+}
+
+#' @export
+#' @noRd
+new_ernest_run.ernest_run <- function(x, results) {
+  prev_iter <- x$n_iter
+  old_idx <- vctrs::vec_as_location(
+    seq(prev_iter),
+    vctrs::vec_size(x$log_lik)
+  )
+  parsed <- parse_results(results)
+
+  parsed$unit <- rbind(x$samples_unit[old_idx, ], parsed$unit)
+  parsed$log_lik <- vctrs::vec_c(x$log_lik[old_idx], parsed$log_lik)
+  parsed$id <- vctrs::vec_c(x$id[old_idx], parsed$id)
+  parsed$calls <- vctrs::vec_c(x$calls[old_idx], parsed$calls)
+  parsed$birth <- vctrs::vec_c(x$birth[old_idx], parsed$birth)
+  parsed$n_iter <- x$n_iter + parsed$n_iter
+  new_ernest_run_(x, parsed)
+}
+
+#' Form the new_ernest_run from samples from the current and previous runs
+#'
+#' Combines parsed results and live points to construct a new `ernest_run`
+#' object.
+#'
+#' @param x The `ernest_run` or `ernest_sampler` object.
+#' @param parsed A list with the previous dead points from the run.
+#'
+#' @return A new `ernest_run` object.
+#' @noRd
+new_ernest_run_ <- function(x, parsed) {
+  live_order <- order(x$run_env$log_lik)
+  samples_unit <- rbind(parsed$unit, x$run_env$unit[live_order, ])
+  colnames(samples_unit) <- attr(x$prior, "varnames")
+  samples <- t(apply(samples_unit, 1, x$prior$fn))
+  colnames(samples) <- attr(x$prior, "varnames")
+
+  live <- list(
+    "log_lik" = x$run_env$log_lik[live_order],
+    "id" = live_order,
+    "birth" = x$run_env$birth[live_order]
+  )
+  all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$n_iter)
+
+  log_vol <- drop(get_logvol(x$n_points, n_iter = parsed$n_iter))
+  integration <- compute_integral(all_samples$log_lik, log_vol)
+
+  result_elem <- list2(
+    "n_iter" = parsed$n_iter,
+    "n_calls" = sum(all_samples$calls),
+    !!!integration,
+    "id" = all_samples$id,
+    "points" = all_samples$points,
+    "calls" = all_samples$calls,
+    "birth" = all_samples$birth,
+    "samples" = samples,
+    "samples_unit" = samples_unit
+  )
+
+  sampler_elem <- list(
+    log_lik_fn = x$log_lik_fn,
+    prior = x$prior,
+    lrps = x$lrps,
+    n_points = x$n_points,
+    first_update = x$first_update,
+    update_interval = x$update_interval,
+    run_env = x$run_env
+  )
+
+  obj <- do.call(
+    new_ernest_sampler,
+    list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
+  )
+  attr(obj, "seed") <- env_get(x$run_env, "seed", default = NULL)
+  env_unbind(obj$run_env, c("unit", "log_lik", "birth", "seed"))
+  obj
+}
+
+#' @noRd
+#' @export
 format.ernest_run <- function(x, ...) {
-  smry <- summary(x)
+  log_z <- pretty(tail(x$log_evidence, 1))
+  log_z_sd <- pretty(sqrt(tail(x$log_evidence_var, 1)))
   cli::cli_format_method({
-    cli::cli_div(theme = list(.val = list(digits = 3)))
-    cli::cli_bullets(c(
-      "An {.cls ernest_run}: {x$n_points} points x {x$n_iter} iter x {x$n_calls} lik. calls",
-      ">" = "Log. Evidence: {.val {smry$log_evidence}} \U00B1 {.val {smry$log_evidence_err}}"
-    ))
+    cli::cli_text("Nested sampling run {.cls {class(x)}}")
+    cli::cli_text("No. Points: {x$n_points}")
+    cli::cli_h3("Sampling Method")
+    cli::cat_bullet(format(x$lrps))
+    cli::cli_h3("Results")
+    cli::cli_text("No. Iterations: {x$n_iter}")
+    cli::cli_text("No. Calls: {x$n_calls}")
+    cli::cli_text("Log. Evidence: {log_z} (\U00B1 {log_z_sd})")
   })
 }
 
+#' @srrstats {BS6.0} Default print for return object.
+#' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
 }
 
-#' Summarise a nested sampling run
+#' Summarize a nested sampling run
 #'
-#' Provides a summary of an `ernest_run` object.
+#' Provides a summary of an `ernest_run` object, including key statistics and a
+#' tibble of results for each iteration.
 #'
 #' @param object An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @return An object of class `summary.ernest_run`, a list with:
-#' * `n_iter`: Number of iterations (number of dead points).
-#' * `n_points`: Number of live points at the end of the run.
-#' * `log_volume`, `log_evidence`, `log_evidence_err`: The final estimates of the
-#' quantities performed by the run that generated `object`.
-#' * `run`, A tibble with `n_iter + n_points` rows, containing the vectors
-#'  `call`, `log_lik`, `log_volume`, `log_weight`, `log_evidence`,
-#'  `log_evidence_err`, and `information`.
+#' @returns
+#' A list of class `summary.ernest_run` with the following components:
 #'
-#' @seealso [ernest_run-class] for the `ernest_run` object. [as_draws()] for
-#' how to summarize the posterior distribution generated by nested sampling.
+#' * `n_iter`: Integer. Number of iterations performed.
+#' * `n_points`: Integer. Number of live points used in the run.
+#' * `n_calls`: Integer. Total number of likelihood function calls.
+#' * `log_volume`: Double. Final estimated log-prior volume.
+#' * `log_evidence`: Double. Final log-evidence estimate.
+#' * `log_evidence_err`: Double. Standard deviation of the log-evidence
+#' estimate.
+#' * `draws`: Posterior draws as returned by [as_draws()].
+#' * `run` A [tibble::tibble].
+#'
+#' `run` stores the state of the run at each iteration with these columns:
+#' * `call`: Cumulative number of likelihood calls.
+#' * `log_lik`: Log-likelihood for each sample.
+#' * `log_volume`: Estimated log-prior volume.
+#' * `log_weight`: Unnormalized log-weights (relative to evidence).
+#' * `log_evidence`: Cumulative log-evidence.
+#' * `log_evidence_err`: Standard deviation of log-evidence.
+#' * `information`: Estimated KL divergence at each iteration.
+#'
+#' @seealso
+#' * [generate()] for details on the `ernest_run` object.
+#' * [as_draws()] for more information on `draws` objects.
+#'
+#' @srrstats {BS6.4} Summary method for results object.
+#'
 #' @export
 #' @examples
 #' # Load an example run
-#' data(ernest_run_example)
+#' data(example_run)
 #'
-#' # Summarise the run and view a tibble of its results.
-#' run_sm <- summary(ernest_run_example)
+#' # Summarize the run and view a tibble of its results.
+#' run_sm <- summary(example_run)
 #' run_sm
 #' run_sm$run
 summary.ernest_run <- function(object, ...) {
@@ -199,29 +193,80 @@ summary.ernest_run <- function(object, ...) {
   )
 }
 
+#' @noRd
 #' @export
 format.summary.ernest_run <- function(x, ...) {
-  log_z <- formatC(x$log_evidence, digits = 4, format = "fg")
-  log_z_sd <- formatC(x$log_evidence_err, digits = 4, format = "fg")
-
+  log_z <- pretty(x$log_evidence)
+  log_z_sd <- pretty(x$log_evidence_err)
   cli::cli_format_method({
-    cli::cli_h1("Nested Sampling Results from {.cls ernest_run}")
+    cli::cli_h1("Nested sampling results {.cls ernest_run}")
     cli::cli_dl(c(
       "No. Points" = "{x$n_points}",
       "No. Iterations" = "{x$n_iter}",
       "No. Lik. Calls" = "{x$n_call}",
       "Log. Evidence" = "{log_z} (\U00B1 {log_z_sd})"
     ))
-    cli::cli_h3("Weighted Posterior Distribution")
-    cli::cat_print(posterior::summarise_draws(
-      posterior::resample_draws(x$draws),
-      posterior::default_summary_measures()
-    ))
   })
 }
 
+#' @noRd
 #' @export
 print.summary.ernest_run <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
+}
+
+# HELPERS FOR ERNEST_RUN-----
+
+#' Parse the results from nested_sampling_impl into a list
+#'
+#' Converts the output from `nested_sampling_impl` into a structured list of
+#' vectors.
+#'
+#' @param results Output from `nested_sampling_impl`.
+#'
+#' @return A named list of vectors and the number of iterations.
+#' @noRd
+parse_results <- function(results) {
+  dead_unit <- do.call(rbind, results$dead_unit)
+  dead_log_lik <- list_c(results$dead_log_lik)
+  dead_id <- list_c(results$dead_id)
+  dead_calls <- list_c(results$dead_calls)
+  dead_birth <- list_c(results$dead_birth)
+  n_iter <- vctrs::vec_size(dead_log_lik)
+  list(
+    "unit" = dead_unit,
+    "log_lik" = dead_log_lik,
+    "id" = dead_id,
+    "calls" = dead_calls,
+    "birth" = dead_birth,
+    "n_iter" = n_iter
+  )
+}
+
+#' Merge dead and live samples together
+#'
+#' Combines dead and live sample information into a single data frame list.
+#'
+#' @param dead The list object from `parse_results`.
+#' @param live The log-likelihood, id, and birth vectors from the current live
+#' points.
+#' @param n_iter Number of iterations used for the run.
+#' @param n_points Number of live points used for the run.
+#'
+#' @return A data frame list of vectors, all of length `n_points + n_iter`.
+#' @noRd
+bind_dead_live <- function(dead, live, n_points, n_iter) {
+  vctrs::df_list(
+    "log_lik" = vctrs::vec_c(dead$log_lik, live$log_lik, .ptype = double()),
+    "id" = vctrs::vec_c(dead$id, live$id, .ptype = integer()),
+    # TODO points should be collected as a list of int during the run.
+    "points" = vctrs::vec_c(
+      rep(n_points, n_iter),
+      seq(n_points, 1),
+      .ptype = integer()
+    ),
+    "calls" = vctrs::vec_c(dead$calls, rep(0L, n_points), .ptype = integer()),
+    "birth" = vctrs::vec_c(dead$birth, live$birth, .ptype = integer())
+  )
 }

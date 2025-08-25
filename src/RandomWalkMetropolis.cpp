@@ -32,8 +32,7 @@ cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit,
                                  const int num_dim,
                                  const int steps,
                                  const double epsilon)  {
-  RandomData::RNGScopeGuard rng_guard;
-  cpp11::writable::doubles_matrix<> cur(criteria.size(), num_dim); 
+  cpp11::writable::doubles_matrix<> cur(criteria.size(), num_dim);
   cpp11::writable::doubles_matrix<> nxt(criteria.size(), num_dim);
   cpp11::writable::doubles_matrix<> shift(criteria.size(), num_dim);
   cpp11::writable::doubles cur_lik(criteria);
@@ -46,6 +45,7 @@ cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit,
   // Copy the original points into the cur matrix.
   dcopy_(&num_el, REAL(unit.data()), &inc, REAL(cur.data()), &inc);
 
+  GetRNGstate();
   for (int s = 0; s < steps; ++s) {
     RandomData::uniform_in_sphere(shift);
     dcopy_(&num_el, REAL(cur.data()), &inc, REAL(nxt.data()), &inc);
@@ -72,13 +72,14 @@ cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit,
       }
     }
   }
+  PutRNGstate();
   for (int i = 0; i < criteria.size(); ++i) {
     if (!swapped[i]) {
       // If no swap occurred, keep the original point.
       cur_lik[i] = NA_REAL;
     }
   }
-  
+
   using namespace cpp11::literals;
   return cpp11::writable::list({
     "unit"_nm = cur,

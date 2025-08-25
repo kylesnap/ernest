@@ -10,3 +10,5 @@
 .lintr
 ^doc$
 ^Meta$
+^codemeta\.json$
+^data-raw$

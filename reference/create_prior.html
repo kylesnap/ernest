@@ -21,7 +21,7 @@ nested sampling run."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
-    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -49,11 +49,12 @@ nested sampling run.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_prior</span><span class="op">(</span></span>
 <span>  <span class="va">fn</span>,</span>
 <span>  <span class="va">rowwise_fn</span>,</span>
-<span>  <span class="va">n_dim</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="st">"X"</span>,</span>
-<span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
-<span>  upper <span class="op">=</span> <span class="cn">Inf</span></span>
+<span>  .n_dim <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  .varnames <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  .name_repair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"unique"</span>, <span class="st">"universal"</span>, <span class="st">"check_unique"</span><span class="op">)</span>,</span>
+<span>  .lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
+<span>  .upper <span class="op">=</span> <span class="cn">Inf</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -62,68 +63,77 @@ nested sampling run.</p>
 
 
 <dl><dt id="arg-fn-rowwise-fn">fn, rowwise_fn<a class="anchor" aria-label="anchor" href="#arg-fn-rowwise-fn"></a></dt>
-<dd><p>(function) Pick one of <code>fn</code> or <code>rowwise_fn</code>:</p><ul><li><p><code>fn</code>: A function that takes in a vector of unit cube coordinates and
-returns a same-size vector of parameters.</p></li>
-<li><p><code>rowwise_fn</code>: A function that takes in a vector of unit cube coordinates
+<dd><p>Choose one of <code>fn</code> or <code>rowwise_fn</code>:</p><ul><li><p><code>fn</code>: A function. Takes a vector of unit cube coordinates and
+returns a vector of parameters of the same length.</p></li>
+<li><p><code>rowwise_fn</code>: A function. Takes a matrix of unit cube coordinates
 and returns a matrix of parameters with identical dimensions.</p></li>
 </ul></dd>
 
 
-<dt id="arg-n-dim">n_dim<a class="anchor" aria-label="anchor" href="#arg-n-dim"></a></dt>
-<dd><p>(positive integer) The dimensionality of the prior distribution.</p></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Named arguments to <code>fn</code> or <code>rowwise_fn</code> that should be partially
-applied (see <code><a href="https://purrr.tidyverse.org/reference/partial.html" class="external-link">purrr::partial()</a></code>).</p></dd>
+applied.</p></dd>
 
 
-<dt id="arg-varnames">varnames<a class="anchor" aria-label="anchor" href="#arg-varnames"></a></dt>
-<dd><p>(optional character vector) A character vector of names for
-the variables in the prior distribution.</p></dd>
+<dt id="arg--n-dim">.n_dim<a class="anchor" aria-label="anchor" href="#arg--n-dim"></a></dt>
+<dd><p>An optional positive integer. The number of dimensions of the
+prior distribution. If left <code>NULL</code>, this is inferred from the common length
+of the vector-valued parameters (see Note).</p></dd>
 
 
-<dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
-<dd><p>(optional numeric vector) The expected bounds for the
-parameter vectors after hypercube transformation. Set to <code>-Inf</code> and <code>Inf</code>
-by default.</p></dd>
+<dt id="arg--varnames">.varnames<a class="anchor" aria-label="anchor" href="#arg--varnames"></a></dt>
+<dd><p>An optional character vector. Names for the variables in the
+prior distribution.</p></dd>
+
+
+<dt id="arg--name-repair">.name_repair<a class="anchor" aria-label="anchor" href="#arg--name-repair"></a></dt>
+<dd><p>An optional, case-sensitive string. How to repair
+<code>varnames</code>. Options are <code>"unique"</code> (default), <code>"universal"</code>, or
+<code>"check_unique"</code>. See <code><a href="https://vctrs.r-lib.org/reference/vec_as_names.html" class="external-link">vctrs::vec_as_names()</a></code> for details.</p></dd>
+
+
+<dt id="arg--lower-upper">.lower, .upper<a class="anchor" aria-label="anchor" href="#arg--lower-upper"></a></dt>
+<dd><p>Numeric vectors. Expected bounds for the
+parameter vectors after hypercube transformation.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named list with class <code>ernest_prior</code>. The list contains the
-following:</p><ul><li><p><code>fn</code>: The prior transformation function.</p></li>
-<li><p><code>n_dim</code>: The number of dimensions in the prior space.</p></li>
-<li><p><code>varnames</code>: Names for the variables in the prior distribution, recycled to
-length <code>n_dim</code> and transformed by <code><a href="https://rdrr.io/r/base/make.unique.html" class="external-link">make.unique()</a></code>.</p></li>
-<li><p><code>lower</code> and <code>upper</code>: Bounds for the prior distribution, recycled to length
-<code>n_dim</code>.</p></li>
-</ul></div>
+    <p>A named list with class <code>ernest_prior</code>, containing:</p><ul><li><p><code>fn</code>: The prior transformation function.</p></li>
+<li><p><code>n_dim</code>: Number of dimensions in the prior space.</p></li>
+<li><p><code>lower</code>, <code>upper</code>: Bounds for the prior distribution,
+recycled to length <code>n_dim</code>.</p></li>
+</ul><p>Additionally, the object has a <code>varnames</code> attribute.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The unit hypercube transformation encodes points within the parameter space
+    <p>The unit hypercube transformation encodes points in the parameter space
 as independent and identically distributed points within a unit hypercube.
-Implementations of nested sampling, including ernest, use this transformation
-to simplify likelihood-restricted prior sampling, avoiding uncessary
+Nested sampling implementations, including ernest, use this transformation
+to simplify likelihood-restricted prior sampling and avoid unnecessary
 rejection steps.</p>
-<p><code>create_prior</code> allows you to specify your own prior distribution.
-This requires you to provide your own transformation
-function. In many cases, when the prior can be factorized, this function
-can simply be transforming a vector of values in (0, 1) and transforming
-them elementwise with inverse cumulative distribution function (CDF) of
-each parameter. In more complex cases, you can specify a hierarchical or
-conditionally-dependent prior (see Examples).</p>
-<p><code>create_prior</code> will perform several regularity checks on your prior function.
-This intends to capture basic errors that may confound ernest's nested
-sampling implementation. To pass these checks, <code>fn</code> or <code>rowwise_fn</code> must:</p><ul><li><p>return a finite double vector of length <code>n_dim</code> when provided
-<code>rep(0.5, n_dim)</code>,</p></li>
-<li><p>return a finite double matrix of parameters with the same dimensions that
-all respect the bounds <code>lower</code> and <code>upper</code> (if provided) when provided
-random matrix with dimensions <code>c(5, n_dim)</code>.</p></li>
-</ul><p>Ernest will wrap <code>fn</code> so that it may take in a matrix of parameters. Should
-you have a more efficient implementation of your likelihood function that
-can handle vectors and matrices, then consider providing <code>rowwise_fn</code>
-instead.</p>
+<p><code>create_prior</code> allows you to specify your own prior distribution by providing
+a transformation function. For factorisable priors, this function can simply
+transform each value in (0, 1) using the inverse cumulative distribution
+function (CDF) for each parameter. For more complex cases, you can specify
+hierarchical or conditionally dependent priors (see Examples).</p>
+<p><code>create_prior</code> performs regularity checks on your prior function to catch
+basic errors that may affect nested sampling. To pass these checks, <code>fn</code> or
+<code>rowwise_fn</code> must:</p><ul><li><p>Return a finite double vector of length <code>n_dim</code> when given
+<code>rep(0.5, n_dim)</code>;</p></li>
+<li><p>Return a finite double matrix of parameters with the same dimensions, all
+within the bounds <code>lower</code> and <code>upper</code> (if provided), when given a random
+matrix of size <code>c(5, n_dim)</code>.</p></li>
+</ul><p>Ernest will wrap <code>fn</code> so it can accept a matrix of parameters. If you have a
+more efficient implementation that handles vectors and matrices, consider
+providing <code>rowwise_fn</code> instead.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
+    <p>The vector-valued parameters in this function are recycled to length
+<code>n_dim</code> if it is an integer, or to a common length if <code>n_dim = NULL</code>. See
+<a href="https://vctrs.r-lib.org/reference/theory-faq-recycling.html" class="external-link">vctrs::vector_recycling_rules</a> for additional information on
+recycling.</p>
     </div>
 
     <div class="section level2">
@@ -133,7 +143,11 @@ instead.</p>
 <span class="r-in"><span>   <span class="op">-</span><span class="fl">10</span> <span class="op">+</span> <span class="va">x</span> <span class="op">*</span> <span class="fl">20</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu">create_prior</span><span class="op">(</span><span class="va">unif</span>, n_dim <span class="op">=</span> <span class="fl">3</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu">create_prior</span><span class="op">(</span><span class="va">unif</span>, .n_dim <span class="op">=</span> <span class="fl">3</span>, .lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, .upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `` -&gt; `...1`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `` -&gt; `...2`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `` -&gt; `...3`</span>
 <span class="r-in"><span><span class="va">prior</span><span class="op">$</span><span class="fu">fn</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -5  0  5</span>
 <span class="r-in"><span><span class="va">mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
@@ -142,44 +156,47 @@ instead.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]   -5    0    5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,]   -8   -6   -4</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># A normal prior, with a parameterized mean and standard deviation</span></span></span>
+<span class="r-in"><span><span class="co"># A normal prior with parameterised mean and standard deviation</span></span></span>
 <span class="r-in"><span><span class="va">hier_f</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, mean <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># mu ~ N(5, 1)</span></span></span>
 <span class="r-in"><span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">10</span> <span class="op">^</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">qunif</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># log10(sigma) ~ U[-1, 1]</span></span></span>
-<span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span> <span class="co"># X ~ N(mu, sigma)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">sigma</span>, <span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="fu">create_prior</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">hier_f</span>,</span></span>
-<span class="r-in"><span>  n_dim <span class="op">=</span> <span class="fl">3</span>,</span></span>
-<span class="r-in"><span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span>, <span class="st">"x"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  .varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span>, <span class="st">"x"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  .lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> mu, sigma, and x</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Prior distribution <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names: <span style="color: #0000BB;">"mu"</span>, <span style="color: #0000BB;">"sigma"</span>, and <span style="color: #0000BB;">"x"</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Bounds:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> → Lower: -Inf, 0, and -Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> → Upper: Inf, Inf, and Inf</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Setting `auto_batch = FALSE` should be done with care</span></span></span>
+<span class="r-in"><span><span class="co"># Using `rowwise_fn` should be done with care</span></span></span>
 <span class="r-in"><span><span class="va">bb_p</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">beta</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">qbeta</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">bern</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">qbinom</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, size <span class="op">=</span> <span class="fl">1</span>, <span class="va">beta</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">bern</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="fu">create_prior</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="va">bb_p</span>,</span></span>
-<span class="r-in"><span>  n_dim <span class="op">=</span> <span class="fl">2</span>,</span></span>
-<span class="r-in"><span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"bern"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  auto_batch <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span> <span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">create_prior</span><span class="op">(</span></span></span>
+<span class="r-in"><span>    rowwise_fn <span class="op">=</span> <span class="va">bb_p</span>,</span></span>
+<span class="r-in"><span>    .varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"bern"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Error in create_prior(bb_p, n_dim = 2, varnames = c("beta", "bern"), auto_batch = FALSE) : </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Can't validate `fn` as a valid prior.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error in `fn()`:</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> unused argument (auto_batch = FALSE)</span>
-<span class="r-in"><span><span class="fu">create_prior</span><span class="op">(</span><span class="va">bb_p</span>, n_dim <span class="op">=</span> <span class="fl">2</span>, varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"bern"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> beta and bern</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Error in create_prior(rowwise_fn = bb_p, .varnames = c("beta", "bern")) : </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Can't validate `rowwise_fn` as a valid prior.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error in `prior$fn()`:</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> `prior(unit)` must return a matrix of equal dim. to `unit`.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Expected dim(y) = 10 x 2.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Returned dim(y) = .</span>
+<span class="r-in"><span><span class="fu">create_prior</span><span class="op">(</span><span class="va">bb_p</span>, .varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"bern"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Prior distribution <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Names: <span style="color: #0000BB;">"beta"</span> and <span style="color: #0000BB;">"bern"</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

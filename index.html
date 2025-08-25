@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>The R Nested Sampling Toolkit • ernest</title>
+<title>The Nested Sampling Toolkit • ernest</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="The R Nested Sampling Toolkit">
-<meta name="description" content="TODO.">
-<meta property="og:description" content="TODO.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="The Nested Sampling Toolkit">
+<meta name="description" content="Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.">
+<meta property="og:description" content="Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -36,7 +36,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/more-ernest-runs.html">More Ernest Runs</a></li>
-    <li><a class="dropdown-item" href="articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+    <li><a class="dropdown-item" href="articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
   </ul>
 </li>
       </ul>
@@ -53,77 +53,86 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="tools-for-nested-sampling">Tools for Nested Sampling<a class="anchor" aria-label="anchor" href="#tools-for-nested-sampling"></a>
+<div class="page-header"><h1 id="a-toolkit-for-nested-sampling">A Toolkit for Nested Sampling<a class="anchor" aria-label="anchor" href="#a-toolkit-for-nested-sampling"></a>
 </h1></div>
 <!-- badges: start -->
 
-<p>The best place to start learning about NS would be this paper, surveying modern applications and implementations of the algorithm. Much of ernest was developed based on this paper’s description of NS:</p>
-<ul>
-<li>Buchner, J. (2023). Nested Sampling Methods. Statistics Surveys, 17, 169–215. <a href="https://doi.org/10.1214/23-SS144" class="external-link uri">https://doi.org/10.1214/23-SS144</a>
-</li>
-</ul>
-<p>To read the original papers describing NS’s development, see:</p>
-<ul>
-<li>Skilling, J. (2004). Nested Sampling. <em>AIP Conference Proceedings</em>, 735(1), 395–405. <a href="https://doi.org/10.1063/1.1835238" class="external-link uri">https://doi.org/10.1063/1.1835238</a>
-</li>
-<li>Skilling, J. (2006). Nested Sampling for General Bayesian Computation. <em>Bayesian Analysis</em>, 1(4), 833–859. <a href="https://doi.org/10.1214/06-BA127" class="external-link uri">https://doi.org/10.1214/06-BA127</a>
-</li>
-</ul>
+<!-- badges: end -->
+<p>ernest is a comprehensive toolkit for nested sampling (NS) in R, enabling estimation of Bayesian evidence and posterior distributions for statistical models. Alongside an original R-based implementation of the algorithm described by Skilling (2006), ernest provides:</p>
+<ol style="list-style-type: decimal">
+<li>S3 objects and methods for defining model likelihoods and prior parameter distributions;</li>
+<li>Methods for simulating, reporting, and visualising uncertainty in NS estimates;</li>
+<li>S3 generics for developers to implement custom likelihood-restricted prior samplers.</li>
+</ol>
+<p>ernest’s API is inspired by the Python package nestle (Barbary 2015), which also influenced dynesty (Speagle 2020).</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of ernest from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>Install the development version of ernest from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kylesnap/ernest"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="why-use-nested-sampling">Why Use Nested Sampling?<a class="anchor" aria-label="anchor" href="#why-use-nested-sampling"></a>
+<h2 id="nested-sampling-in-a-nutshell">Nested Sampling in a Nutshell<a class="anchor" aria-label="anchor" href="#nested-sampling-in-a-nutshell"></a>
 </h2>
-<p>Nested Sampling (NS) is a Bayesian algorithm developed for evaluating the plausibility of a statistical model. In Bayesian statistics, we describe our knowledge of a model’s unknown parameters using probabilities. We use Bayes’ theorem to represent how new data can be used to update our beliefs about a model’s parameters (<span class="math inline">$`\theta`$</span>):</p>
-<pre class="math"><code>
-P(\theta) = \frac{L(\theta) \pi(\theta)}{\mathcal{Z}} </code></pre>
-<p>Here, the <em>prior</em> <span class="math inline">$`\pi(\theta)`$</span> reflects what we know about parameters before seeing the data, the <em>likelihood</em> <span class="math inline">$`l(\theta)`$</span> encodes the likelihood of the parameters given the data, and the <em>posterior</em> <span class="math inline">$`P(\theta)`$</span> reflects our updated beliefs about <span class="math inline">$`\theta`$</span> after learning from the data.</p>
-<p>The quantity <span class="math inline">$`\mathcal{Z}`$</span>, called the <em>model evidence</em> or <em>marginal likelihood</em>, has a special interpretation in Bayesian inference. If we reorganize Bayes’ theorem, we notice that <span class="math inline">$`\mathcal{Z}`$</span> represents the probability of generating the observed sample for all possible values of <span class="math inline">$`\theta`$</span>:</p>
+<p>Nested sampling (NS) is a Bayesian algorithm for evaluating model plausibility, measured as the <em>Bayesian evidence</em> or <em>marginal likelihood</em> (<span class="math inline">$`\mathcal{Z}`$</span>). The evidence normalises the posterior distribution; by reorganising Bayes’ theorem, we see that <span class="math inline">$`\mathcal{Z}`$</span> is the probability of the observed data across all possible parameter values <span class="math inline">$`\theta`$</span>:</p>
 <pre class="math"><code>
 \mathcal{Z} = \int_{\forall \theta} L(\theta) \pi(\theta) d\theta</code></pre>
-<p>This allows us to use <span class="math inline">$`\mathcal{Z}`$</span> to represent the overall plausibility of a model given some observed data. This leads to Bayesian model comparison, where ratios of <span class="math inline">$`\mathcal{Z}`$</span> are used to make nuanced comparisons between different models based on their plausibility.</p>
-<p>Aside from simple models and data, this evidence integral cannot be solved analytically. To address this, NS was developed as a method to estimate <span class="math inline">$`\mathcal{Z}`$</span> while also producing an estimate of <span class="math inline">$`P(\theta)`$</span>. In basic terms, NS works by dividing the prior space into a nested sequence of very small volumes or shells. By then sorting these shells according to their worst likelihood value, they can then be used to form an unidimensional approximation of the evidence integral that can be solved using numerical methods. In addition to providing estimates of <span class="math inline">$`\mathcal{Z}`$</span> and <span class="math inline">$`P(\theta)`$</span>, NS has the following desirable qualities over other Bayesian methods such as Markov-chain Monte Carlo (MCMC):</p>
+<p>For most models, this integral cannot be solved analytically. NS addresses this by dividing the prior space <span class="math inline">$`\pi(\theta)`$</span> into a nested sequence of small volumes, sorted by likelihood, to form a one-dimensional approximation of the evidence integral. NS offers several advantages over other Bayesian methods such as Markov chain Monte Carlo (MCMC):</p>
 <ol style="list-style-type: decimal">
-<li>NS conducts a global exploration of <span class="math inline">$`\pi(\theta)`$</span>;</li>
-<li>NS can more easily traverse complicated or poorly-conditioned distributions, such as those with multiple modes or discontinuities, and;</li>
-<li>NS defines natural stopping criteria, such that it does not require burn-in runs nor does it require supervised testing across convergence or termination conditions.</li>
+<li>NS performs a global exploration of <span class="math inline">$`\pi(\theta)`$</span>;</li>
+<li>NS is robust to distributions that are poorly-conditioned (e.g., multiple modes or discontinuities);</li>
+<li>NS can simultaneously estimate a model’s evidence and its posterior distribution, and;</li>
+<li>NS provides natural stopping criteria—no need for burn-in or manual convergence checks.</li>
 </ol>
 </div>
 <div class="section level2">
-<h2 id="why-use-ernest">Why Use Ernest?<a class="anchor" aria-label="anchor" href="#why-use-ernest"></a>
+<h2 id="nested-sampling-in-ernest">Nested Sampling in Ernest<a class="anchor" aria-label="anchor" href="#nested-sampling-in-ernest"></a>
 </h2>
-<p>Other NS implementations, such as MultiNest, do provide R interfaces to nested sampling algorithms originally developed in other languages (e.g., Python, Fortran). The goal of Ernest is to provide a complete, native R implementation of the nested sampling algorithm, designed specifically for the resources and packages already used by R programmers.</p>
-<div class="section level3">
-<h3 id="ernest-helps-you-specify-prior-distributions">Ernest Helps You Specify Prior Distributions<a class="anchor" aria-label="anchor" href="#ernest-helps-you-specify-prior-distributions"></a>
-</h3>
-<p>Nested sampling in ernest works by drawing samples from the unit hypercube—a <span class="math inline">$`d`$</span>-dimensional space where each coordinate is in <span class="math inline">$`[0, 1)`$</span>. The “hypercube transformation” maps these coordinates to the actual parameter space using the inverse cumulative distribution function (CDF) of each marginal prior. This approach ensures efficient sampling and avoids rejection steps.</p>
-<p>Ernest allows you to encode common priors as S3 objects with convenience functions, like <code><a href="reference/create_uniform_prior.html">create_uniform_prior()</a></code> and <code><a href="reference/create_normal_prior.html">create_normal_prior()</a></code>. Advanced prior transformations can be provided as functions to <code>create_prior</code>, which will validate a prior specification before a run is performed.</p>
-</div>
-<div class="section level3">
-<h3 id="ernest-can-start-and-continue-previous-nested-sampling-runs">Ernest Can Start and Continue Previous Nested Sampling Runs<a class="anchor" aria-label="anchor" href="#ernest-can-start-and-continue-previous-nested-sampling-runs"></a>
-</h3>
-<p>Ernest allows you to start a new nested sampling run or continue an existing one using the same sampler object. When you call <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> on a sampler, it performs nested sampling and stores the results in an <code>ernest_run</code> object. If you call <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> again on the same sampler, Ernest will resume the run from where it left off, retaining all previously collected points and evidence estimates. This makes it easy to refine your results by increasing the number of iterations or adjusting stopping criteria without losing previous work.</p>
-</div>
-<div class="section level3">
-<h3 id="ernest-can-simulate-the-uncertainty-within-evidence-estimates">Ernest Can Simulate the Uncertainty within Evidence Estimates<a class="anchor" aria-label="anchor" href="#ernest-can-simulate-the-uncertainty-within-evidence-estimates"></a>
-</h3>
-<p>The <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> function in ernest is a powerful tool for quantifying uncertainty in evidence estimates produced by nested sampling. By default, it computes deterministic estimates of evidence and related quantities. However, you can also use <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code> to simulate the impact of uncertainty in the log volume estimates. This allows you to generates multiple realizations of the nested sampling process, allowing you to assess the variability and robustness of your evidence estimates. The results are returned as S3 objects with their own <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> methods.</p>
-</div>
+<p>ernest provides a native R and C++11 implementation of nested sampling, with an API designed for R users.</p>
+<p>To begin, specify a likelihood function and a prior space. For example:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/LaplacesDemonR/LaplacesDemon" class="external-link">LaplacesDemon</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Uniform prior over [-10, 10) for three parameters</span></span>
+<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span></span>
+<span>  <span class="fl">3</span>,</span>
+<span>  lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>,</span>
+<span>  upper <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Multivariate normal log-likelihood</span></span>
+<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">C</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">C</span><span class="op">[</span><span class="va">C</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.95</span></span>
+<span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_likelihood.html">create_likelihood</a></span><span class="op">(</span></span>
+<span>  rowwise_fn <span class="op">=</span> <span class="va">dmvn</span>,</span>
+<span>  mu <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">mu</span>,</span>
+<span>  Sigma <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">C</span>,</span>
+<span>  log <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set up and run the sampler</span></span>
+<span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span></span>
+<span>  log_lik <span class="op">=</span> <span class="va">loglike</span>,</span>
+<span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
+<span>  n_points <span class="op">=</span> <span class="fl">500</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">2000</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Summarise and visualise results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
+<p>For advanced usage, including custom priors and hierarchical models, see the package vignette.</p>
 </div>
 <div class="section level2">
 <h2 id="prior-art">Prior Art<a class="anchor" aria-label="anchor" href="#prior-art"></a>
 </h2>
-<p>In addition to the citations provided, Ernest’s API was informed by the excellent <a href="https://dynesty.readthedocs.io/en/v2.1.5/index.html" class="external-link">dynesty</a> python package.</p>
-<ul>
-<li>Speagle, J. (2020). DYNESTY: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences. <em>Monthly Notices of the Royal Astronomical Society</em>, 493(3), 3132–3158. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link uri">https://doi.org/10.1093/mnras/staa278</a>.</li>
-</ul>
-<p>Beyond dynesty, there exist several other nested sampling implementations for popular, non-R programming languages. The implementations listed below are popular, well-maintained, and well-documented.</p>
+<p>Below are selected packages that implement NS, in addition to nestle and dynesty:</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -139,12 +148,12 @@ P(\theta) = \frac{L(\theta) \pi(\theta)}{\mathcal{Z}} </code></pre>
 <tr class="odd">
 <td align="left"><a href="https://github.com/PolyChord/PolyChordLite" class="external-link">polychord</a></td>
 <td align="center">Will Handley, Mike Hobson, &amp; Anthony Lasenby</td>
-<td align="center">Fortran, with interfaces for Python and C/C++</td>
+<td align="center">Fortran, with Python and C/C++ interfaces</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="https://github.com/JohannesBuchner/MultiNest" class="external-link">MultiNest</a></td>
 <td align="center">Farhan Feroz &amp; Mike Hobson</td>
-<td align="center">Fortran, with interfaces for R, Python, and C++</td>
+<td align="center">Fortran, with R, Python, and C++ interfaces</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="https://github.com/ejhigson/perfectns" class="external-link">perfectns</a></td>
@@ -153,11 +162,25 @@ P(\theta) = \frac{L(\theta) \pi(\theta)}{\mathcal{Z}} </code></pre>
 </tr>
 </tbody>
 </table>
-<p>In addition, the <a href="https://nestcheck.readthedocs.io/en/latest/" class="external-link">nestcheck</a> python package provides methods for creating diagnostic plots for nested sampling runs.</p>
-<ul>
-<li>Higson, E., Handley, W., Hobson, M., &amp; Lasenby, A. (2019). nestcheck: Diagnostic Tests for Nested Sampling Calculations. <em>Monthly Notices of the Royal Astronomical Society</em>, 483(2), 2044–2056. <a href="https://doi.org/10.1093/mnras/sty3090" class="external-link uri">https://doi.org/10.1093/mnras/sty3090</a>
-</li>
-</ul>
+<p>In addition, the nestcheck Python package provides routines for diagnosing nested sampling runs (Handley 2019).</p>
+<div class="section level3">
+<h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h3>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-barbary2015" class="csl-entry">
+Barbary, Kyle. 2015. “Nestle: Pure Python, MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating Bayesian Evidence.” <a href="https://github.com/kbarbary/nestle" class="external-link uri">https://github.com/kbarbary/nestle</a>.
+</div>
+<div id="ref-anesthetic" class="csl-entry">
+Handley, Will. 2019. “Anesthetic: Nested Sampling Visualisation.” <em>The Journal of Open Source Software</em> 4 (37): 1414. <a href="https://doi.org/10.21105/joss.01414" class="external-link uri">https://doi.org/10.21105/joss.01414</a>.
+</div>
+<div id="ref-skilling2006" class="csl-entry">
+Skilling, John. 2006. “Nested Sampling for General Bayesian Computation.” <em>Bayesian Analysis</em> 1 (4): 833–59. <a href="https://doi.org/10.1214/06-BA127" class="external-link uri">https://doi.org/10.1214/06-BA127</a>.
+</div>
+<div id="ref-speagle2020" class="csl-entry">
+Speagle, Joshua S. 2020. “DYNESTY: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences.” <em>Monthly Notices of the Royal Astronomical Society</em> 493 (April): 3132–58. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link uri">https://doi.org/10.1093/mnras/staa278</a>.
+</div>
+</div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

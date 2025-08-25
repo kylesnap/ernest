@@ -23,7 +23,7 @@ size."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
-    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">A Nested Sampling Crash Course with Ernest</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -57,40 +57,66 @@ size.</p>
 
 
 <dl><dt id="arg-steps">steps<a class="anchor" aria-label="anchor" href="#arg-steps"></a></dt>
-<dd><p>(positive integer) Number of steps to take when generating a
+<dd><p>Positive integer. Number of steps to take when generating a
 proposal point.</p></dd>
 
 
 <dt id="arg-target-acceptance">target_acceptance<a class="anchor" aria-label="anchor" href="#arg-target-acceptance"></a></dt>
-<dd><p>(double between 0 and 1) The target acceptance rate
-for the sampler.</p></dd>
+<dd><p>Double between <code>1 / steps</code> and 1.0. The target
+acceptance rate for the proposed points.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list, with class <code>c("rwmh_cube", "ernest_lrps")</code>. Can be used with
-<code><a href="ernest_sampler.html">ernest_sampler()</a></code> to specify the sampling behaviour of a nested sampling run.</p>
+    <p>A list with class <code>c("rwmh_cube", "ernest_lrps")</code>. Can be used with
+<code><a href="ernest_sampler.html">ernest_sampler()</a></code> to specify the sampling behaviour of a nested sampling
+run.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Calling <code><a href="update_lrps.html">update_lrps()</a></code> will build a new proposal distribution based on the
+    <p>Calling <code><a href="update_lrps.html">update_lrps()</a></code> builds a new proposal distribution based on the
 acceptance rate of the previous run. The step size \(\epsilon\) is updated
 using a Newton-like method, where the current acceptance rate \(a_{cur}\)
 is used to target the acceptance rate \(a^*\):
-$$\epsilon_{new}=\epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))$$</p>
+$$\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))$$</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
 
-<ul><li><p>Original implementation: Skilling, J. (2006). Nested Sampling for General
+<ul><li><p>Skilling, J. (2006). Nested Sampling for General
 Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
 <a href="https://doi.org/10.1214/06-BA127" class="external-link">https://doi.org/10.1214/06-BA127</a></p></li>
-<li><p>Adaptive step size implementation: Speagle, J. S. (2020). Dynesty: A
-Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and
-Evidences. Monthly Notices of the Royal Astronomical Society, 493, 3132–3158.
+<li><p>Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
+Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+Royal Astronomical Society, 493, 3132–3158.
 <a href="https://doi.org/10.1093/mnras/staa278" class="external-link">https://doi.org/10.1093/mnras/staa278</a></p></li>
 </ul></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">lrps</span> <span class="op">&lt;-</span> <span class="fu">rwmh_cube</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">$</span><span class="va">log_lik_fn</span>, <span class="va">example_run</span><span class="op">$</span><span class="va">prior</span>, sampler <span class="op">=</span> <span class="va">lrps</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Change the default behaviour of the sampler:</span></span></span>
+<span class="r-in"><span><span class="fu">rwmh_cube</span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">20</span>, target_acceptance <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Dimensions: Uninitialized</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls Since Update: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Accepted Since Update: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Current Step Size: 1</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

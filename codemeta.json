@@ -2,7 +2,7 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "identifier": "ernest",
-  "description": "Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.",
+  "description": "Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.",
   "name": "ernest: The Nested Sampling Toolkit",
   "codeRepository": "https://kylesnap.github.io/ernest/",
   "issueTracker": "https://github.com/kylesnap/ernest/issues/",
@@ -129,6 +129,18 @@
         "url": "https://cran.r-project.org"
       },
       "sameAs": "https://CRAN.R-project.org/package=vdiffr"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "identifier": "withr",
+      "name": "withr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=withr"
     },
     {
       "@type": "SoftwareApplication",
@@ -278,34 +290,8 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "11630.537KB",
+  "fileSize": "12103.301KB",
   "citation": [
-    {
-      "@type": "ScholarlyArticle",
-      "datePublished": "2023",
-      "author": [
-        {
-          "@type": "Person",
-          "givenName": "Johannes",
-          "familyName": "Buchner"
-        }
-      ],
-      "name": "Nested Sampling Methods",
-      "identifier": "10.1214/23-SS144",
-      "pagination": "169–215",
-      "@id": "https://doi.org/10.1214/23-SS144",
-      "sameAs": "https://doi.org/10.1214/23-SS144",
-      "isPartOf": {
-        "@type": "PublicationIssue",
-        "issueNumber": "none",
-        "datePublished": "2023",
-        "isPartOf": {
-          "@type": ["PublicationVolume", "Periodical"],
-          "volumeNumber": "17",
-          "name": "Statistics Surveys"
-        }
-      }
-    },
     {
       "@type": "ScholarlyArticle",
       "datePublished": "2004",

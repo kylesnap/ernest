@@ -262,4 +262,3 @@ For more details on nested sampling, please refer to ernest's documentation.
 ------------------------------------------------------------------------
 
 \emph{References}
-

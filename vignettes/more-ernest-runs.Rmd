@@ -2,7 +2,7 @@
 title: "More Nested Sampling Runs with Ernest"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{More Ernest Runs}
+  %\VignetteIndexEntry{More Nested Sampling Runs with Ernest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -10,8 +10,6 @@
 
 <!-- badges: end -->
 
-## A Toolkit for Nested Sampling
-
 **ernest** is a comprehensive toolkit for [nested
 sampling](https://en.wikipedia.org/wiki/Nested_sampling_algorithm) (NS),
 an algorithm for estimating a statistical model’s Bayesian evidence and

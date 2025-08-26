@@ -1,10 +1,10 @@
 Package: ernest
 Title: The Nested Sampling Toolkit
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2132-8083"))
-Description:Bayesian evidence estimation and posterior inference with the
+Description: Bayesian evidence estimation and posterior inference with the
     nested sampling algorithm, along with S3 methods for simulating
     uncertainty and creating visualisations.
 License: GPL (>= 3)

@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>More Ernest Runs • ernest</title>
+<title>More Nested Sampling Runs with Ernest • ernest</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="More Ernest Runs">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="More Nested Sampling Runs with Ernest">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -33,7 +33,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+<li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Nested Sampling Runs with Ernest</a></li>
     <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
   </ul>
 </li>
@@ -56,7 +56,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>More Ernest Runs</h1>
+      <h1>More Nested Sampling Runs with Ernest</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/main/vignettes/more-ernest-runs.Rmd" class="external-link"><code>vignettes/more-ernest-runs.Rmd</code></a></small>
@@ -67,247 +67,168 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span></code></pre></div>
-<p>This vignette demonstrates how to use the ernest package to solve
-several classical nested sampling problems. These examples are based on
-standard benchmarks from the literature and are also used in the
-package’s test suite to validate correctness. You’ll learn how to
-specify likelihoods and priors, run nested sampling, and interpret the
-results.</p>
+<p>ernest uses comprehensive tests to verify its sampling behaviour
+against the Python package <a href="https://github.com/kbarbary/nestle/blob/master/" class="external-link">nestle</a>. This
+vignette describes some of these tests and demonstrates how to construct
+likelihood functions for ernest.</p>
 <div class="section level2">
-<h2 id="gaussian-shells">1. Gaussian Shells<a class="anchor" aria-label="anchor" href="#gaussian-shells"></a>
+<h2 id="two-gaussian-blobs">Two Gaussian “Blobs”<a class="anchor" aria-label="anchor" href="#two-gaussian-blobs"></a>
 </h2>
-<p>The “Gaussian shells” problem is a standard test for nested sampling
-algorithms, as they illustrate the ability of nested sampling to deal
-with oddly-shaped distributions that can be difficult to traverse with
-traditional random-walk MCMC methods.</p>
-<p>We will solve the shells problem in 2 and 5 dimensions. To make this
-easier, we’ll build a function factory to specify the log-likelihood of
-two Gaussian shells in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>-dimensional
-space, with one shell offset in the first dimension by 3.5.</p>
+<p>We estimate the Bayesian evidence for a simple two-dimensional
+problem with two well-separated Gaussian modes—a classical nested
+sampling test problem, as the evidence can be solved analytically.</p>
+<p>Define the log-likelihood and prior:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">gaussian_shell</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n_dim</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">c_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">n_dim</span><span class="op">)</span> <span class="co"># Center of shell 1</span></span>
-<span>  <span class="va">c_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="va">n_dim</span><span class="op">)</span> <span class="co"># Center of shell 2</span></span>
-<span>  <span class="va">c_1</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">3.5</span> <span class="co"># 1D of the first shell is off-center</span></span>
+<code class="sourceCode R"><span><span class="co"># Log-likelihood for two Gaussian blobs</span></span>
+<span><span class="va">gaussian_blobs_loglik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span>  <span class="va">mu1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="va">mu2</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>  <span class="va">sigma_inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="va">sigma</span><span class="op">^</span><span class="fl">2</span></span>
 <span></span>
-<span>  <span class="va">r</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="co"># Radius</span></span>
-<span>  <span class="va">w</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="co"># Shell width</span></span>
-<span>  <span class="va">const</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">w</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">is.matrix</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">dx1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="va">mu1</span><span class="op">)</span></span>
+<span>  <span class="va">dx2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">2</span>, <span class="va">mu2</span><span class="op">)</span></span>
+<span>  <span class="va">val1</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="op">(</span><span class="va">dx1</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">sigma_inv</span><span class="op">)</span> <span class="op">*</span> <span class="va">dx1</span><span class="op">)</span></span>
+<span>  <span class="va">val2</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="op">(</span><span class="va">dx2</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">sigma_inv</span><span class="op">)</span> <span class="op">*</span> <span class="va">dx2</span><span class="op">)</span></span>
+<span>  <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/rowLogSumExps.html" class="external-link">rowLogSumExps</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">val1</span>, <span class="va">val2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
-<span>  <span class="co"># Single-shell log-likelihood</span></span>
-<span>  <span class="va">log_lik_shell</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">c</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">theta</span> <span class="op">-</span> <span class="va">c</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">const</span> <span class="op">-</span> <span class="op">(</span><span class="va">d</span> <span class="op">-</span> <span class="va">r</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">w</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># log-likelihood of two shells</span></span>
-<span>  <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="fu">matrixStats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/matrixStats/man/logSumExp.html" class="external-link">logSumExp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>      <span class="fu">log_lik_shell</span><span class="op">(</span><span class="va">theta</span>, <span class="va">c_1</span><span class="op">)</span>,</span>
-<span>      <span class="fu">log_lik_shell</span><span class="op">(</span><span class="va">theta</span>, <span class="va">c_2</span><span class="op">)</span></span>
-<span>    <span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="shells-in-2d">1.1. Shells in 2D<a class="anchor" aria-label="anchor" href="#shells-in-2d"></a>
-</h3>
+<span><span class="co"># Uniform prior over [-5, 5] in each dimension</span></span>
+<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>, upper <span class="op">=</span> <span class="fl">5</span>, varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Set up the sampler and run nested sampling:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">log_lik_2d</span> <span class="op">&lt;-</span> <span class="fu">gaussian_shell</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">prior_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span></span>
-<span>  n_dim <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  lower <span class="op">=</span> <span class="op">-</span><span class="fl">6</span>,</span>
-<span>  upper <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sampler_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">log_lik_2d</span>, <span class="va">prior_2d</span><span class="op">)</span></span>
-<span><span class="va">run_2d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_2d</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">gaussian_blobs_loglik</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499 &lt; 0.05).</span></span>
-<span><span class="va">run_2d</span></span>
-<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
-<span><span class="co">#&gt; • No. Dimensions: 2</span></span>
-<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
-<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
-<span><span class="co">#&gt; • Current Step Size: 0.0146</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Results </span></span>
-<span><span class="co">#&gt; No. Iterations: 3439</span></span>
-<span><span class="co">#&gt; No. Calls: 72103</span></span>
-<span><span class="co">#&gt; Log. Evidence: -1.7871 (± 0.0864)</span></span></code></pre></div>
-<p>We can review the results with more detail using
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>:</p>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0497 &lt; 0.05).</span></span></code></pre></div>
+<p>For this distribution, the analytical evidence is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒵</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mn>2</mn><mn>2</mn></msup><mo>*</mo><mi>π</mi><mo>*</mo><msup><mn>0.1</mn><mn>2</mn></msup><mi>/</mi><mn>100</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mo>−</mo><mn>6.679</mn></mrow><annotation encoding="application/x-tex">\mathcal{Z} = \log(2^2 * \pi * 0.1^2 / 100) \approx -6.679</annotation></semantics></math>.
+Use <code>summary</code> to extract the log-evidence
+(<code>log_evidence</code>) and its uncertainty
+(<code>log_evidence_err</code>):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run_2d</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">smry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
+<span><span class="va">smry</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested sampling results </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 3439</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 72103</span></span>
-<span><span class="co">#&gt; Log. Evidence: -1.7871 (± 0.0864)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="shells-in-5d">1.2. Shells in 5D<a class="anchor" aria-label="anchor" href="#shells-in-5d"></a>
-</h3>
+<span><span class="co">#&gt; No. Points: 100</span></span>
+<span><span class="co">#&gt; No. Iterations: 948</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 20902</span></span>
+<span><span class="co">#&gt; Log. Evidence: -6.4384 (± 0.2592)</span></span></code></pre></div>
+<p>Plot the progress of the evidence estimate:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">log_lik_5d</span> <span class="op">&lt;-</span> <span class="fu">gaussian_shell</span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
-<span><span class="va">prior_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span></span>
-<span>  n_dim <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  lower <span class="op">=</span> <span class="op">-</span><span class="fl">6</span>,</span>
-<span>  upper <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sampler_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">log_lik_5d</span>, <span class="va">prior_5d</span><span class="op">)</span></span>
-<span><span class="va">run_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_5d</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499 &lt; 0.05).</span></span>
-<span><span class="va">run_5d</span></span>
-<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
-<span><span class="co">#&gt; • No. Dimensions: 5</span></span>
-<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
-<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
-<span><span class="co">#&gt; • Current Step Size: 0.001</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Results </span></span>
-<span><span class="co">#&gt; No. Iterations: 5374</span></span>
-<span><span class="co">#&gt; No. Calls: 120077</span></span>
-<span><span class="co">#&gt; Log. Evidence: -5.6695 (± 0.1295)</span></span></code></pre></div>
-<p>If we wanted to ensure ourselves that our prior was behaving as
-expected, we can use the <code>posterior</code> package to examine our
-recorded samples.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/posterior/" class="external-link">posterior</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; This is posterior version 1.6.1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'posterior'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     mad, sd, var</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     %in%, match</span></span>
-<span><span class="va">draws_5d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">run_5d</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/extract_variable.html" class="external-link">extract_variable</a></span><span class="op">(</span><span class="va">draws_5d</span>, <span class="st">"A"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.959388  5.988438</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/extract_variable.html" class="external-link">extract_variable</a></span><span class="op">(</span><span class="va">draws_5d</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.997989  5.936839</span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
+<p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="the-eggbox-distribution">2. The Eggbox distribution<a class="anchor" aria-label="anchor" href="#the-eggbox-distribution"></a>
+<h2 id="example-estimating-the-evidence-for-the-eggbox-problem">Example: Estimating the Evidence for the Eggbox Problem<a class="anchor" aria-label="anchor" href="#example-estimating-the-evidence-for-the-eggbox-problem"></a>
 </h2>
-<p>The eggbox is a highly multimodal likelihood surface, used as another
-classical example in nested sampling.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">eggbox_loglik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="op">(</span><span class="fl">2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">5</span></span>
+<p>The “eggbox” problem is a challenging test case for nested sampling
+due to its highly multimodal likelihood surface. Define the
+log-likelihood and prior:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">eggbox_loglik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">tmax</span> <span class="op">&lt;-</span> <span class="fl">5.0</span> <span class="op">*</span> <span class="va">pi</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">is.matrix</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="fl">2.0</span> <span class="op">*</span> <span class="va">tmax</span> <span class="op">*</span> <span class="va">x</span>, <span class="fl">2</span>, <span class="va">tmax</span>, <span class="st">"-"</span><span class="op">)</span></span>
+<span>  <span class="op">(</span><span class="fl">2.0</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">t</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2.0</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">t</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">/</span> <span class="fl">2.0</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">5.0</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">prior_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">2</span>, upper <span class="op">=</span> <span class="fl">10</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span>
-<span><span class="co">#&gt; New names:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...1`</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...2`</span></span>
-<span><span class="va">sampler_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">prior_eggbox</span><span class="op">)</span></span>
-<span><span class="va">run_eggbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_eggbox</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Uniform prior over [0, 1] in each dimension</span></span>
+<span><span class="va">eggbox_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Visualize the likelihood surface:</p>
+<p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p>Run the sampler and compare the estimated log-evidence to the nestle
+result
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>235.895</mn></mrow><annotation encoding="application/x-tex">\approx 235.895</annotation></semantics></math>):</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">eggbox_prior</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499 &lt; 0.05).</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run_eggbox</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span>
+<span><span class="va">smry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
+<span><span class="va">smry</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested sampling results </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 5029</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 111555</span></span>
-<span><span class="co">#&gt; Log. Evidence: 235.966 (± 0.1193)</span></span></code></pre></div>
-<p>We can plot the run to examine how our evidence estimates changed
-over time:</p>
+<span><span class="co">#&gt; No. Iterations: 5046</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 111977</span></span>
+<span><span class="co">#&gt; Log. Evidence: 235.9308 (± 0.1198)</span></span></code></pre></div>
+<p>Plot the posterior distribution:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run_eggbox</span><span class="op">)</span></span></code></pre></div>
-<p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
-<p>Additionally, we can use <code>calculate</code> to simulate
-uncertainty around our log-volume estimates. As a shortcut, we can use
-<code>plot</code> with a non-zero <code>ndraws</code> argument.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run_eggbox</span>, ndraws <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="working-with-data">3. Working with Data<a class="anchor" aria-label="anchor" href="#working-with-data"></a>
+<h2 id="adding-data">Adding Data<a class="anchor" aria-label="anchor" href="#adding-data"></a>
 </h2>
-<p>To use data within an ernest run, you’ll have to incorporate it
-within your log-likelihood function. In many cases, this can be done
-through using an anonymous function: If <code>f</code> is a function
-that takes in parameters <code>theta</code> and data <code>y</code>,
-then you can pass data through to ernest by using the syntax
-<code>\(theta) f(theta, y)</code>.</p>
-<p>As a demonstration, consider how ernest performs posterior estimation
-for <a href="https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html" class="external-link">this</a>
-dataset from the National Institutte of Science and Technology.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># NIST dataset</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<p>Often, the likelihood depends on observed data. In ernest, you must
+incorporate the data within your likelihood function. Here, we show how
+to supply data using both <code><a href="../reference/create_likelihood.html">create_likelihood()</a></code> and an
+anonymous function, with a certified dataset from the U.S. National
+Institute of Science and Technology (<a href="https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html" class="external-link">NIST</a>).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Sample data: vector of observations</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fl">100000000.2</span>, <span class="fl">100000000.1</span>, <span class="fl">100000000.3</span>, <span class="fl">100000000.1</span>, <span class="fl">100000000.3</span>,</span>
 <span>  <span class="fl">100000000.1</span>, <span class="fl">100000000.3</span>, <span class="fl">100000000.1</span>, <span class="fl">100000000.3</span>, <span class="fl">100000000.1</span>, <span class="fl">100000000.3</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">log_lik_norm</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
+<span><span class="co"># Model likelihood: Y ~ N(mu, sd)</span></span>
+<span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">data</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="fl">0</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, mean <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Note: <code>log_lik</code> returns <code>-Inf</code> for non-positive
+standard deviations, explicitly censoring impossible parameter
+values.</p>
+<p>Supply data using either an anonymous function or the dots argument
+of <code>create_likelihood</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Anonymous function</span></span>
+<span><span class="va">anon_log_lik</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, data <span class="op">=</span> <span class="va">y</span><span class="op">)</span> </span>
 <span></span>
-<span><span class="va">prior_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_normal_prior.html">create_normal_prior</a></span><span class="op">(</span></span>
-<span>  n_dim <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100000000</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>  sd <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"sd"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="co"># Using dots for create_likelihood</span></span>
+<span><span class="va">partial_log_lik</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_likelihood.html">create_likelihood</a></span><span class="op">(</span>fn <span class="op">=</span> <span class="va">log_lik</span>, data <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">y</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sampler_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span></span>
-<span>  log_lik <span class="op">=</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik_norm</span><span class="op">(</span><span class="va">theta</span>, y <span class="op">=</span> <span class="va">data</span><span class="op">)</span>,</span>
-<span>  <span class="va">prior_norm</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">run_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler_norm</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span>
-<span><span class="va">run_norm</span></span>
-<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
-<span><span class="co">#&gt; • No. Dimensions: 2</span></span>
-<span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
-<span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
-<span><span class="co">#&gt; • Current Step Size: 5e-04</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Results </span></span>
-<span><span class="co">#&gt; No. Iterations: 7023</span></span>
-<span><span class="co">#&gt; No. Calls: 161301</span></span>
-<span><span class="co">#&gt; Log. Evidence: -0.7788 (± 0.1605)</span></span></code></pre></div>
-<p>To examine the posterior, we need to first call
-<code><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">posterior::resample_draws()</a></code> on the <code>draws</code>
-arugment produced from an <code>ernest_run</code>. This is because
-<code>ernest</code> binds the log-importance posterior weights to the
-<code>as_draws</code> object as a hidden variable.</p>
-<p>Once this is done, we can use the <code>posterior</code> package to
-examine the posterior distribution</p>
+<span><span class="va">expected_mean</span> <span class="op">&lt;-</span> <span class="fl">100000000.200000000000000</span></span>
+<span><span class="va">expected_sd</span> <span class="op">&lt;-</span> <span class="fl">0.108372230793914</span></span>
+<span><span class="fu">anon_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">expected_mean</span>, <span class="va">expected_sd</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 10.0784</span></span>
+<span><span class="fu">partial_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">expected_mean</span>, <span class="va">expected_sd</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 10.0784</span></span></code></pre></div>
+<p>Define the prior for the mean and standard deviation, then run the
+sampler. The prior is constrained near the expected posterior values:
+the number of iterations required is proportional to the product of the
+number of live points (<code>n_points</code>) and the <a href="https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence" class="external-link">KL
+divergence</a> between prior and posterior.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">draws_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">run_norm</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarize_draws</a></span><span class="op">(</span><span class="va">draws_norm</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 10</span></span></span>
-<span><span class="co">#&gt;   variable    mean  median     sd    mad      q5     q95  rhat ess_bulk ess_tail</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mean     1.00<span style="color: #949494;">e</span>+8 1.00<span style="color: #949494;">e</span>+8 0.035<span style="text-decoration: underline;">9</span> 0.032<span style="text-decoration: underline;">5</span> 1.00<span style="color: #949494;">e</span>+8 1.00<span style="color: #949494;">e</span>+8  1.37  <span style="text-decoration: underline;">2</span>286.       12.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sd       1.15<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 1.09<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span> 0.031<span style="text-decoration: underline;">2</span> 0.025<span style="text-decoration: underline;">4</span> 7.63<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span> 1.70<span style="color: #949494;">e</span><span style="color: #BB0000;">-1</span>  1.26     4.48     10.9</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span></span>
+<span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">99999999</span>, <span class="fl">0.01</span><span class="op">)</span>,</span>
+<span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100000001</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">partial_log_lik</span>, <span class="va">prior</span><span class="op">)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span></code></pre></div>
+<p>Examine the estimated posterior distribution:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Summarize the posterior for each parameter (e.g., median and 95%
+interval):</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarise_draws</a></span><span class="op">(</span></span>
+<span>  <span class="va">draws</span>,</span>
+<span>  \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
+<span><span class="co">#&gt;   variable    `5%`         `50%`         `95%`</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.62<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.109         0.173</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

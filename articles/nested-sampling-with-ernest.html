@@ -33,7 +33,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Ernest Runs</a></li>
+<li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Nested Sampling Runs with Ernest</a></li>
     <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
   </ul>
 </li>
@@ -75,22 +75,21 @@
 <h2 id="nested-sampling-with-ernest">Nested Sampling with Ernest<a class="anchor" aria-label="anchor" href="#nested-sampling-with-ernest"></a>
 </h2>
 <p>This vignette provides a hands-on introduction to nested sampling
-using the <code>ernest</code> package. You will learn how to:</p>
+(NS) using the <code>ernest</code> package. You will learn how to:</p>
 <ul>
 <li>Understand the role of model evidence in Bayesian inference and why
 it is difficult to compute.</li>
-<li>Use prior transforms to define parameter spaces for nested
-sampling.</li>
+<li>Use prior transforms to define parameter spaces for NS.</li>
 <li>Set up and run a nested sampling analysis in R with ernest.</li>
-<li>Inspect, summarise, and visualise results, including evidence and
-posterior samples.</li>
+<li>Inspect, summarise, and visualise results from an NS run, including
+the evidence estimates and posterior samples.</li>
 </ul>
 <div class="section level3">
 <h3 id="bayesian-model-evidence-and-nested-sampling">Bayesian Model Evidence and Nested Sampling<a class="anchor" aria-label="anchor" href="#bayesian-model-evidence-and-nested-sampling"></a>
 </h3>
 <p>In Bayesian inference, we use probabilities to represent our current
-beliefs about a model’s unobservable parameters. When we gather new
-data, we update these beliefs using Bayes’ theorem:
+beliefs about a model’s unobservable parameters <span class="citation">(Ashton et al. 2022)</span>. When we gather new data,
+we update these beliefs using Bayes’ theorem:
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>π</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mi>Z</mi></mfrac></mrow><annotation encoding="application/x-tex">
 P(\theta) = \frac{L(\theta)\pi(\theta)}{Z}
 </annotation></semantics></math> where
@@ -120,17 +119,18 @@ possible values of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>:
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><msub><mo>∫</mo><mrow><mo>∀</mo><mi>θ</mi></mrow></msub><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>π</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>θ</mi></mrow><annotation encoding="application/x-tex">
 Z = \int_{\forall \theta} L(\theta) \pi(\theta) d\theta
-</annotation></semantics></math> This allows us to use
+</annotation></semantics></math>This allows us to use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Z</mi><annotation encoding="application/x-tex">Z</annotation></semantics></math>
 as a parameter-independent measure of a model’s overall plausibility
 given some data. When comparing two models, the ratio of their
-respective evidences (called the <a href="https://en.wikipedia.org/wiki/Bayes_factor" class="external-link">Bayes factor</a>)
-shows how much more the data support one model over the other, which
-forms the foundation of Bayesian model selection.</p>
+respective evidences (called the Bayes factor) shows how much more the
+data support one model over the other, which forms the foundation of
+Bayesian model selection.</p>
 <p>For most data and models, the evidence integral cannot be solved
 directly. Instead, researchers rely on estimation methods. Nested
 sampling (NS), introduced by <span class="citation">Skilling
-(2006)</span>, is designed to estimate
+(2004)</span> and <span class="citation">Skilling (2006)</span>, is
+designed to estimate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Z</mi><annotation encoding="application/x-tex">Z</annotation></semantics></math>
 even when the posterior distribution is poorly conditioned (e.g., if
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">L(\theta)</annotation></semantics></math>
@@ -160,7 +160,8 @@ Z = \int_0^1 V^{-1}(L^*) dV
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>V</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>V</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>L</mi><mo>*</mo></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>L</mi><mo>*</mo></msup></mrow><annotation encoding="application/x-tex">V^{-1}(V(L^*)) = L^*</annotation></semantics></math>
 exists. This requires us to estimate the volume of each shell
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math>,
-which we can do <span class="citation">(Speagle 2020)</span>.</p>
+which we can do using the properties of the uniform order statistics
+<span class="citation">(Speagle 2020)</span>.</p>
 <p>NS generates this sequence of shells by generating a set number of
 live points within the prior space, then replacing the worst of these
 points with a new point from
@@ -176,9 +177,10 @@ distribution.</p>
 <div class="section level3">
 <h3 id="nested-sampling-with-ernest-1">Nested Sampling with ernest<a class="anchor" aria-label="anchor" href="#nested-sampling-with-ernest-1"></a>
 </h3>
-<p>Here, we use an example from the <a href="https://dynesty.readthedocs.io/en/v2.1.5/crashcourse.html" class="external-link">dynesty</a>
-documentation to demonstrate how to use ernest to design, perform, and
-report nested sampling runs.</p>
+<p>Here, we use an example from the documentation for the python NS
+package dynesty <span class="citation">(Speagle 2020)</span> to
+demonstrate how to use ernest to design, perform, and report nested
+sampling runs.</p>
 <div class="section level4">
 <h4 id="defining-priors">Defining Priors<a class="anchor" aria-label="anchor" href="#defining-priors"></a>
 </h4>
@@ -289,8 +291,8 @@ functions.</p>
 <div class="section level4">
 <h4 id="likelihood-function">Likelihood Function<a class="anchor" aria-label="anchor" href="#likelihood-function"></a>
 </h4>
-<p>Model log-likelihoods are represented by R functions. These functions
-are expected to return a single scalar value for each possible
+<p>Model log-likelihoods are represented in ernest with functions. These
+functions are expected to return a single scalar value for each possible
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
 within the prior space. If, for any reason,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi(\theta)</annotation></semantics></math>
@@ -317,8 +319,9 @@ multivariate normal distribution:</p>
 <h4 id="setting-up-and-running-the-sampler">Setting Up and Running the Sampler<a class="anchor" aria-label="anchor" href="#setting-up-and-running-the-sampler"></a>
 </h4>
 <p>Initialise the sampler with your likelihood and prior. The number of
-live points (<code>n_points</code>) controls the resolution (more points
-= higher accuracy, slower run).</p>
+live points (<code>n_points</code>) controls the resolution of the
+sampling, with more points leading to more accurate estimates in
+exchange for longer run times.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span></span>
 <span>  log_lik <span class="op">=</span> <span class="va">loglike</span>,</span>
@@ -338,7 +341,12 @@ live points (<code>n_points</code>) controls the resolution (more points
 <p>Run nested sampling for a fixed number of iterations or until the
 evidence estimate converges:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">2000</span>, seed <span class="op">=</span> <span class="fl">123</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span></span>
+<span>  <span class="va">sampler</span>, </span>
+<span>  max_iterations <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span>, </span>
+<span>  show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `max_iterations` reached (2000).</span></span>
 <span><span class="va">run</span></span>
@@ -357,9 +365,8 @@ evidence estimate converges:</p>
 <span><span class="co">#&gt; No. Calls: 35578</span></span>
 <span><span class="co">#&gt; Log. Evidence: -8.9122 (± 1.6336)</span></span></code></pre></div>
 <p><code>generate</code> produces an <code>ernest_run</code> object that
-can be saved to disk. You can continue a run by calling
-<code>generate</code> on a previously created
-<code>ernest_run</code>:</p>
+can be saved. You can continue a run by calling <code>generate</code> on
+a previously created <code>ernest_run</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tmp_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="st">"ernest_run.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">run</span>, <span class="va">tmp_name</span><span class="op">)</span></span>
@@ -415,11 +422,11 @@ evidence estimates, posterior samples, and diagnostics as a tidy
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">907.</span>     -<span style="color: #BB0000;">0.02</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">904.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">913.</span>                0           0</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,189 more rows</span></span></span></code></pre></div>
 <p>The <code>posterior</code> package offers methods for inspecting the
-points generated during a run.</p>
+points generated during a run:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/posterior/" class="external-link">posterior</a></span><span class="op">)</span></span>
 <span><span class="va">unweighted_post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span></code></pre></div>
-<p>You can view the importance weight of each point and reweight the
+<p>You can view the importance weight of each point and re-weight the
 sample to estimate the posterior distribution:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/weights.html" class="external-link">weights</a></span><span class="op">(</span><span class="va">unweighted_post</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -437,8 +444,8 @@ sample to estimate the posterior distribution:</p>
 <div class="section level4">
 <h4 id="visualising-results">Visualising Results<a class="anchor" aria-label="anchor" href="#visualising-results"></a>
 </h4>
-<p>Ernest provides plotting utilities for evidence, posterior, and
-diagnostics.</p>
+<p>Ernest provides plotting utilities for evidence estimates and the
+posterior distribution.</p>
 <div class="section level5">
 <h5 id="evidence-evolution">Evidence evolution<a class="anchor" aria-label="anchor" href="#evidence-evolution"></a>
 </h5>
@@ -465,9 +472,8 @@ diagnostics.</p>
 <h4 id="uncertainty-and-resampling">Uncertainty and Resampling<a class="anchor" aria-label="anchor" href="#uncertainty-and-resampling"></a>
 </h4>
 <p>You can simulate the uncertainty of an NS run by generating random
-draws of the log-volume estimate at each iteration (see <span class="citation">Skilling (2006)</span> for the mathematical rationale
-of the log-volume estimates). You can further visualise this uncertainty
-with the <code>plot</code> method.</p>
+draws of the log-volume estimate at each iteration <span class="citation">Higson et al. (2019)</span>. You can then visualise
+this uncertainty with the estimate’s <code>plot</code> method.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">calc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run2</span>, ndraws <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="va">calc_sim</span></span>
@@ -493,20 +499,35 @@ with the <code>plot</code> method.</p>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 <hr>
 <p>For more details on nested sampling, please refer to ernest’s
-documentation or the following references:</p>
+documentation.</p>
+<hr>
+<p></p>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-ashton2022" class="csl-entry">
+Ashton, Greg, Noam Bernstein, Johannes Buchner, Xi Chen, Gábor Csányi,
+Farhan Feroz, Andrew Fowlie, et al. 2022. <span>“Nested Sampling for
+Physical Scientists.”</span> <em>Nature Reviews Methods Primers</em> 2
+(1). <a href="https://doi.org/10.1038/s43586-022-00121-x" class="external-link">https://doi.org/10.1038/s43586-022-00121-x</a>.
+</div>
+<div id="ref-higson2019" class="csl-entry">
+Higson, Edward, Will Handley, Michael Hobson, and Anthony Lasenby. 2019.
+<span>“Nestcheck: Diagnostic Tests for Nested Sampling
+Calculations.”</span> <em>Monthly Notices of the Royal Astronomical
+Society</em> 483 (2): 2044–56. <a href="https://doi.org/10.1093/mnras/sty3090" class="external-link">https://doi.org/10.1093/mnras/sty3090</a>.
+</div>
+<div id="ref-skilling2004" class="csl-entry">
+Skilling, John. 2004. <span>“Nested Sampling.”</span> <em>AIP Conference
+Proceedings</em> 735 (1): 395–405. <a href="https://doi.org/10.1063/1.1835238" class="external-link">https://doi.org/10.1063/1.1835238</a>.
+</div>
 <div id="ref-skilling2006" class="csl-entry">
-Skilling, John. 2006. <span>“Nested <span>Sampling</span> for
-<span>General</span> <span>Bayesian</span>
-<span>Computation</span>.”</span> <em>Bayesian Analysis</em> 1 (4):
-833–59. <a href="https://doi.org/10.1214/06-BA127" class="external-link">https://doi.org/10.1214/06-BA127</a>.
+———. 2006. <span>“Nested Sampling for General Bayesian
+Computation.”</span> <em>Bayesian Analysis</em> 1 (4): 833–59. <a href="https://doi.org/10.1214/06-BA127" class="external-link">https://doi.org/10.1214/06-BA127</a>.
 </div>
 <div id="ref-speagle2020" class="csl-entry">
-Speagle, Joshua S. 2020. <span>“<span>DYNESTY</span>: <span>A</span>
-<span>Dynamic</span> <span>Nested</span> <span>Sampling</span>
-<span>Package</span> for <span>Estimating</span> <span>Bayesian</span>
-<span>Posteriors</span> and <span>Evidences</span>.”</span> <em>Monthly
-Notices of the Royal Astronomical Society</em> 493 (April): 3132–58. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link">https://doi.org/10.1093/mnras/staa278</a>.
+Speagle, Joshua S. 2020. <span>“DYNESTY: A Dynamic Nested Sampling
+Package for Estimating Bayesian Posteriors and Evidences.”</span>
+<em>Monthly Notices of the Royal Astronomical Society</em> 493 (April):
+3132–58. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link">https://doi.org/10.1093/mnras/staa278</a>.
 </div>
 </div>
 </div>

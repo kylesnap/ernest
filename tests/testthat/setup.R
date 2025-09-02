@@ -5,6 +5,11 @@ withr::local_options(
   .local_envir = teardown_env()
 )
 
+withr::local_envvar(
+  list(ERNEST_EXTENDED_TESTS = "false"),
+  .local_envir = teardown_env()
+)
+
 #' Skip extended tests using the "ERNEST_EXTENDED_TESTS" variable.
 skip_extended_test <- function() {
   skip_on_cran()

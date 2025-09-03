@@ -32,36 +32,14 @@
       No. Accepted Since Update: 0
       Current Step Size: 1
 
-# propose.rwmh_cube proposes multiple new points with criteria
+# propose.rwmh_cube proposes a single point under a likelihood constraint
 
     Code
       rwcube
     Output
       Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
       No. Dimensions: 2
-      No. Calls Since Update: 0
+      No. Calls Since Update: 25
       No. Accepted Since Update: 0
-      Current Step Size: 1
-
-# propose.rwmh_cube works with provided original points
-
-    Code
-      rwcube
-    Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      No. Dimensions: 2
-      No. Calls Since Update: 125
-      No. Accepted Since Update: 0
-      Current Step Size: 1
-
-# propose.rwmh_cube returns original log_lik when criteria is Inf
-
-    Code
-      rwcube
-    Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      No. Dimensions: 2
-      No. Calls Since Update: 250
-      No. Accepted Since Update: 0
-      Current Step Size: 1
+      Current Step Size: 0.1
 

@@ -74,16 +74,33 @@ new_unif_cube <- function(
 #' @export
 propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
   if (is.null(original)) {
-    NextMethod()
+    NextMethod(x, original, criteria)
   } else {
-    cur_call <- env_cache(x$cache, "n_call", 0)
-    res <- UniformCube(
-      criteria = criteria,
-      unit_log_lik = x$unit_log_fn,
-      num_dim = x$n_dim,
-      max_loop = x$max_loop
-    )
-    env_poke(x$cache, "n_call", cur_call + res$n_call)
+    res <- propose_in_cube(x, criteria)
+    env_poke(x$cache, "n_call", env_cache(x$cache, "n_call", 0) + res$n_call)
     res
   }
+}
+
+#' Uniform sample inside of a uniform cube
+#'
+#' @param criteria The criterion to generate points within.
+#' @param x The `ernest_lrps` used for sampling.
+#'
+#' @return A list, with `unit`, `log_lik`, and `ncall` components.
+#' @noRd
+propose_in_cube <- function(x, criteria) {
+  for (i in seq(x$max_loop)) {
+    proposal <- runif(x$n_dim)
+    log_lik <- x$unit_log_fn(proposal)
+    if (log_lik >= criteria) {
+      dim(proposal) <- c(1, x$n_dim)
+      return(list(
+        "unit" = proposal,
+        "log_lik" = log_lik,
+        "n_call" = i
+      ))
+    }
+  }
+  list("n_call" = x$max_loop)
 }

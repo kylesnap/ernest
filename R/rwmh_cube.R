@@ -111,24 +111,41 @@ propose.rwmh_cube <- function(x, original = NULL, criteria = NULL, ...) {
   if (is.null(original)) {
     NextMethod()
   } else {
-    cur_call <- env_cache(x$cache, "n_call", 0)
-    cur_accept <- env_cache(x$cache, "n_accept", 0)
-    res <- RandomWalkMetropolis(
-      unit = original,
-      criteria = criteria,
-      unit_log_lik = x$unit_log_fn,
-      num_dim = x$n_dim,
-      steps = x$steps,
-      epsilon = env_cache(x$cache, "epsilon", 1.0)
+    res <- random_walk(x, original, criteria)
+    env_poke(x$cache, "n_call", env_cache(x$cache, "n_call", 0) + res$n_call)
+    env_poke(
+      x$cache,
+      "n_accept",
+      env_cache(x$cache, "n_accept", 0) + res$n_accept
     )
-    if (any(is.na(res$log_lik))) {
-      no_swaps <- which(is.na(res$log_lik))
-      res$log_lik[no_swaps] <- x$unit_log_fn(original[no_swaps, ])
-    }
-    env_poke(x$cache, "n_call", cur_call + res$n_call)
-    env_poke(x$cache, "n_accept", cur_accept + res$n_accept)
     res
   }
+}
+
+#' @noRd
+random_walk <- function(x, original, criteria) {
+  n_accept <- 0L
+  n_call <- 0L
+  for (i in seq(x$steps)) {
+    n_call <- n_call + 1L
+    proposal <- original +
+      env_cache(x$cache, "epsilon", 1.0) * (2.0 * runif(x$n_dim) - 1.)
+    dim(proposal) <- c(1, x$n_dim)
+    if (any(proposal < 0 | proposal > 1)) {
+      next
+    }
+    log_lik <- x$unit_log_fn(proposal)
+    if (log_lik >= criteria) {
+      original <- proposal
+      n_accept <- n_accept + 1L
+    }
+  }
+  list(
+    "unit" = original,
+    "log_lik" = x$unit_log_fn(proposal),
+    "n_call" = n_call,
+    "n_accept" = n_accept
+  )
 }
 
 #' @rdname update_lrps

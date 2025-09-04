@@ -118,7 +118,7 @@ nested_sampling_impl <- function(
       copy <- sample(available_idx, length(worst_idx), replace = FALSE)
       propose(
         x$lrps,
-        original = live_env$unit[copy, , drop = FALSE],
+        original = live_env$unit[copy, ],
         criteria = live_env$log_lik[worst_idx]
       )
     }

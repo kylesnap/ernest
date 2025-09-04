@@ -29,7 +29,7 @@ test_that("update_lrps resets and is idempotent for unif_cube", {
 
 test_that("propose.unif_cube proposes a single new point", {
   result <- propose(uniform, original = NULL, criteria = -Inf)
-  expect_equal(dim(result$unit), c(1, 2))
+  expect_length(result$unit, 2)
   expect_equal(
     gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik
@@ -44,7 +44,7 @@ test_that("propose.unif_cube evolves a single point", {
     original = c(0.5, 0.5),
     criteria = -99.3068
   )
-  expect_equal(dim(result$unit), c(1, 2))
+  expect_length(result$unit, 2)
   expect_equal(
     gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik

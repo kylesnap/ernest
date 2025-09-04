@@ -35,7 +35,7 @@ test_that("new_rwmh_cube initializes correctly", {
 rwcube <- new_rwmh_cube(fn, 2L, cov_fn = as_closure(stats::cov))
 test_that("propose.rwmh_cube proposes a single new point", {
   result <- propose(rwcube, original = NULL, criteria = -Inf)
-  expect_equal(dim(result$unit), c(1, 2))
+  expect_length(result$unit, 2L)
   expect_equal(
     gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik

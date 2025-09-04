@@ -17,12 +17,16 @@
 # new_ernest_prior errors if lower >= upper
 
     `lower` must be strictly smaller than `upper`.
-    x Problem at index 2.
+    x Problem at location 2:
+    > `$lower`: 2.
+    > `$upper`: 2.
 
 ---
 
     `lower` must be strictly smaller than `upper`.
-    x Problem at indicies 1 and 2.
+    x Problem at locations 1 and 2:
+    > `$lower`: 2 and 2.
+    > `$upper`: 1 and 1.
 
 # new_ernest_prior repairs names as specified
 
@@ -31,7 +35,12 @@
       * "x" at locations 1 and 2.
     i Use argument `name_repair` to specify repair strategy.
 
-# create_prior creates a custom rowwise prior
+# create_prior warns about depreciated rowwise_fn
+
+    The `rowwise_fn` argument of `create_prior()` is deprecated as of ernest 1.1.0.
+    i Please use the `fn` argument instead.
+
+---
 
     Code
       prior
@@ -47,19 +56,11 @@
 
     Can't validate `fn` as a valid prior.
     Caused by error in `prior$fn()`:
-    ! `y` must have size 2, not size 3.
-
----
-
-    Can't validate `rowwise_fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! `prior(unit)` must return a matrix of equal dim. to `unit`.
-    x Expected dim(y) = 10 x 2.
-    x Returned dim(y) = 4 and 5.
+    ! `prior$fn(x)` must have size 2, not size 3.
 
 # create_prior errors if prior returns non-finite values
 
     Can't validate `fn` as a valid prior.
     Caused by error in `prior$fn()`:
-    ! `prior(unit)` must never return `NA` or `NaN` values.
+    ! Priors must only contain finite values, not NaN and NaN.
 

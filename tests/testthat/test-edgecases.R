@@ -47,6 +47,7 @@ test_that("Fails on complex types", {
 #'
 #' @srrstats {G5.8c} ernest fails when NA are produced by a prior function.
 test_that("Missing values in the prior", {
+  set.seed(42)
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
   expect_snapshot_error(create_prior(prior_fn, .n_dim = 2))
 })

@@ -7,18 +7,21 @@
     Code
       ll
     Output
-      
-      -- <ernest_likelihood> 
+      Log-likelihood function <ernest_likelihood>
       function (x) 
       -sum((x - 1)^2)
 
-# create_likelihood with rowwise_fn
+# create_likelihood warns when rowwise_fn is used
+
+    The `rowwise_fn` argument of `create_likelihood()` is deprecated as of ernest 1.1.0.
+    i Please use the `fn` argument instead.
+
+---
 
     Code
       ll
     Output
-      
-      -- <ernest_likelihood> 
+      Log-likelihood function <ernest_likelihood>
       function (x) 
       {
           LaplacesDemon::dmvn(x, mu = c(-1, 1), Sigma = diag(0.95, 
@@ -33,59 +36,35 @@
 
     `.nonfinite_action` must be one of "warn", "quiet", or "abort", not "blob".
 
----
-
-    Exactly one of `fn` or `rowwise_fn` must be supplied.
-
 # create_likelihood can forward arguments
 
     Code
       ll
     Output
-      
-      -- <ernest_likelihood> 
+      Log-likelihood function <ernest_likelihood>
       <partialised>
       function (...) 
-      ~rowwise_fn(mu = ~c(-1, 1), Sigma = c(0.95, 0, 0, 0.95), ...)
+      ~fn(mu = ~c(-1, 1), Sigma = c(0.95, 0, 0, 0.95), ...)
       <environment ADDRESS>
 
 # non_finite action options
 
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned NaN.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
-
----
-
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned NaN.
+    log-lik. values must be either finite or `-Inf`, not NaN.
     i Did you set `.nonfinite_action` with `create_likelihood()`)?
 
 ---
 
     Replacing `NaN` with `-Inf`.
 
----
+# fn fails if a non-double is returned
 
-    Replacing `NaN` with `-Inf`.
-
-# nonfinite_action options with auto_batch = FALSE
-
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned Inf.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
+    log-lik. values must be scalar doubles, not the string "NA".
 
 ---
 
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned Inf.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
+    log-lik. values must be scalar doubles, not the string "NA".
 
 ---
 
-    Replacing `Inf` with `-Inf`.
-
----
-
-    Replacing `Inf` with `-Inf`.
+    log-lik. values must be scalar doubles, not the string "NA".
 

@@ -94,7 +94,6 @@ propose_in_cube <- function(x, criteria) {
     proposal <- stats::runif(x$n_dim)
     log_lik <- x$unit_log_fn(proposal)
     if (log_lik >= criteria) {
-      dim(proposal) <- c(1, x$n_dim)
       return(list(
         "unit" = proposal,
         "log_lik" = log_lik,

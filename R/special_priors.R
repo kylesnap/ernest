@@ -41,68 +41,55 @@ create_normal_prior <- function(
     cli::cli_abort("`sd` of a normal distribution must be non-negative.")
   }
 
-  # Infer n_dim if NULL
-  n_dim <- n_dim %||%
-    vctrs::vec_size_common(
-      "mean" = mean,
-      "sd" = sd,
-      "lower" = lower,
-      "upper" = upper,
-      "varnames" = varnames
-    )
-  prior <- new_ernest_prior(
-    prior_fn = \(x) NULL,
-    n_dim = n_dim,
+  params <- vctrs::vec_recycle_common(
+    mean = mean,
+    sd = sd,
     lower = lower,
     upper = upper,
     varnames = varnames,
-    repair = name_repair
-  )
-  dparams <- vctrs::vec_recycle_common(
-    "mean" = mean,
-    "sd" = sd,
     .size = n_dim
   )
+  n_dim <- n_dim %||% vctrs::vec_size(params$lower)
 
-  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$lower))
-  unit <- NULL
-  fn_body <- if (truncated) {
+  bounds <- vctrs::vec_cast_common(
+    lower = params$lower,
+    upper = params$upper,
+    .to = double()
+  )
+
+  truncated <- any(is.finite(bounds$lower)) || any(is.finite(bounds$upper))
+  x <- NULL
+  body <- if (truncated) {
     check_installed(
       "truncnorm",
       "To calculate the quantile function of the truncated normal distribution."
     )
-    expr({
-      y <- truncnorm::qtruncnorm(
-        t(unit),
-        mean = !!dparams$mean,
-        sd = !!dparams$sd,
-        a = !!prior$lower,
-        b = !!prior$upper
+    expr(
+      (!!truncnorm::qtruncnorm)(
+        x,
+        mean = !!params$mean,
+        sd = !!params$sd,
+        a = !!bounds$lower,
+        b = !!bounds$upper
       )
-      if (is.null(rows <- nrow(unit))) {
-        y
-      } else {
-        matrix(y, byrow = TRUE, nrow = rows)
-      }
-    })
+    )
   } else {
-    expr({
-      y <- stats::qnorm(t(unit), mean = !!dparams$mean, sd = !!dparams$sd)
-      if (!is.matrix(unit)) {
-        dim(y) <- NULL
-        y
-      } else {
-        t(y)
-      }
-    })
+    expr((!!stats::qnorm)(x, mean = !!params$mean, sd = !!params$sd))
   }
 
+  fn <- new_function(
+    exprs(x = ),
+    expr(!!body),
+    env = empty_env()
+  )
+
   new_ernest_prior(
-    prior_fn = wrap_special_prior(fn_body),
-    n_dim = prior$n_dim,
-    varnames = attr(prior, "varnames"),
-    lower = prior$lower,
-    upper = prior$upper,
+    fn = fn,
+    n_dim = n_dim,
+    varnames = params$varnames,
+    lower = params$lower,
+    upper = params$upper,
+    repair = name_repair,
     class = "normal_prior"
   )
 }
@@ -133,7 +120,7 @@ create_uniform_prior <- function(
   name_repair = c("unique", "universal", "check_unique")
 ) {
   prior <- new_ernest_prior(
-    prior_fn = \(x) NULL,
+    fn = \(x) NULL,
     n_dim = n_dim,
     lower = lower,
     upper = upper,
@@ -142,42 +129,18 @@ create_uniform_prior <- function(
   )
 
   diff <- prior$upper - prior$lower
-  unit <- NULL
-  body <- expr({
-    if (is.matrix(unit)) {
-      y <- sweep(unit, MARGIN = 2, !!diff, `*`)
-      sweep(y, MARGIN = 2, !!prior$lower, `+`)
-    } else {
-      !!prior$lower + (unit * !!diff)
-    }
-  })
+  x <- NULL
+  fn <- new_function(
+    exprs(x = ),
+    expr(!!prior$lower + (x * !!diff))
+  )
 
   new_ernest_prior(
-    prior_fn = wrap_special_prior(body),
+    fn = fn,
     n_dim = prior$n_dim,
     varnames = attr(prior, "varnames"),
     lower = prior$lower,
     upper = prior$upper,
     class = "uniform_prior"
-  )
-}
-
-#' Wrap a special prior in type- and size-stability checks.
-#'
-#' @param body The body of the function accepting a `unit` parameter, as an
-#' expression.
-#'
-#' @returns A type- and size-stable function.
-#' @noRd
-wrap_special_prior <- function(body) {
-  unit <- NULL
-  new_function(
-    exprs(unit = ),
-    expr({
-      if (!is.numeric(unit)) {
-        stop_input_type(unit, "a numeric vector or matrix")
-      }
-      !!body
-    })
   )
 }

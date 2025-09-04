@@ -30,7 +30,7 @@ test_that("ernest_lrps class initializes correctly", {
 test_that("propose.ernest_lrps proposes a single new point", {
   lrps <- new_ernest_lrps(fn, 2L)
   result <- propose(lrps, original = NULL, criteria = -Inf)
-  expect_equal(dim(result$unit), c(1, 2))
+  expect_length(result$unit, 2)
   expect_equal(
     gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik

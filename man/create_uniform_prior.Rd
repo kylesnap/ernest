@@ -36,7 +36,7 @@ described by independent uniform marginals.
 }
 \note{
 The vector-valued parameters in this function are recycled to length
-\code{n_dim} if it is an integer, or to a common length if \code{n_dim = NULL}. See
+\code{.n_dim} if it is an integer, or to a common length if \code{.n_dim = NULL}. See
 \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
 recycling.
 }

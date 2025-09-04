@@ -2,7 +2,7 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! `log_lik(...)` must have size 1, not size 0.
+    ! log-lik. values must be scalar doubles, not an empty numeric vector.
 
 # Zero-length prior fails
 
@@ -12,45 +12,43 @@
 
     Can't validate `fn` as a valid prior.
     Caused by error in `prior$fn()`:
-    ! `y` must have size 1, not size 0.
+    ! `prior$fn(x)` must have size 1, not size 0.
 
 # Fails on character types
 
     Can't validate `fn` as a valid prior.
     Caused by error in `prior$fn()`:
-    ! `prior(unit)` must always return a vector or matrix of doubles.
-    x Instead, it returned a character vector.
+    ! Can't convert `y` <character> to <double>.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! Can't convert `log_lik(...)` <character> to <double>.
+    ! log-lik. values must be scalar doubles, not the string "U".
 
 # Fails on complex types
 
     Can't validate `fn` as a valid prior.
     Caused by error in `prior$fn()`:
-    ! `prior(unit)` must always return a vector or matrix of doubles.
-    x Instead, it returned a complex vector.
+    ! Can't convert `y` <complex> to <double>.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! Can't convert `log_lik(...)` <complex> to <double>.
+    ! log-lik. values must be scalar doubles, not the complex number 0+0.3i.
 
 # Missing values in the prior
 
     Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! `prior(unit)` must never return `NA` or `NaN` values.
+    Caused by error in `FUN()`:
+    ! Priors must only contain finite values, not 0.914806043496355 and NaN.
 
 # Missing values in the log-likelihood
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! `lik(x)` must always return finite double values or `-Inf`.
+    ! log-lik. values must be either finite or `-Inf`, not NA.
 
 ---
 

@@ -7,7 +7,7 @@
 \usage{
 create_prior(
   fn,
-  rowwise_fn,
+  rowwise_fn = deprecated(),
   ...,
   .n_dim = NULL,
   .varnames = NULL,
@@ -17,16 +17,13 @@ create_prior(
 )
 }
 \arguments{
-\item{fn, rowwise_fn}{Choose one of \code{fn} or \code{rowwise_fn}:
-\itemize{
-\item \code{fn}: A function. Takes a vector of unit cube coordinates and
-returns a vector of parameters of the same length.
-\item \code{rowwise_fn}: A function. Takes a matrix of unit cube coordinates
-and returns a matrix of parameters with identical dimensions.
-}}
+\item{fn}{A function. Takes a vector of unit cube coordinates and
+returns a vector of parameters of the same length.}
 
-\item{...}{Named arguments to \code{fn} or \code{rowwise_fn} that should be partially
-applied.}
+\item{rowwise_fn}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} No longer supported;
+instead, use \code{fn} to provide a prior-transformation function.}
+
+\item{...}{Named arguments to be partially applied to \code{fn}.}
 
 \item{.n_dim}{An optional positive integer. The number of dimensions of the
 prior distribution. If left \code{NULL}, this is inferred from the common length
@@ -47,11 +44,15 @@ A named list with class \code{ernest_prior}, containing:
 \itemize{
 \item \code{fn}: The prior transformation function.
 \item \code{n_dim}: Number of dimensions in the prior space.
-\item \code{lower}, \code{upper}: Bounds for the prior distribution,
-recycled to length \code{n_dim}.
+\item \code{lower}, \code{upper}: Bounds for the prior distribution, recycled to length
+\code{n_dim}.
 }
 
 Additionally, the object has a \code{varnames} attribute.
+
+When provided a vector from the unit hypercube, \code{fn} either a length-\code{n_dim}
+vector of doubles, containing transformed model parameters, or an error
+message.
 }
 \description{
 Use an R function to specify the prior distribution of parameters for a
@@ -71,23 +72,13 @@ function (CDF) for each parameter. For more complex cases, you can specify
 hierarchical or conditionally dependent priors (see Examples).
 
 \code{create_prior} performs regularity checks on your prior function to catch
-basic errors that may affect nested sampling. To pass these checks, \code{fn} or
-\code{rowwise_fn} must:
-\itemize{
-\item Return a finite double vector of length \code{n_dim} when given
-\code{rep(0.5, n_dim)};
-\item Return a finite double matrix of parameters with the same dimensions, all
-within the bounds \code{lower} and \code{upper} (if provided), when given a random
-matrix of size \code{c(5, n_dim)}.
-}
-
-Ernest will wrap \code{fn} so it can accept a matrix of parameters. If you have a
-more efficient implementation that handles vectors and matrices, consider
-providing \code{rowwise_fn} instead.
+basic errors that may affect nested sampling. To pass these checks, \code{fn} must
+be able to take in a vector of points (each between 0 and 1) and return
+a vector of the same length which contains only finite values.
 }
 \note{
 The vector-valued parameters in this function are recycled to length
-\code{n_dim} if it is an integer, or to a common length if \code{n_dim = NULL}. See
+\code{.n_dim} if it is an integer, or to a common length if \code{.n_dim = NULL}. See
 \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
 recycling.
 }
@@ -99,8 +90,6 @@ unif <- function(x) {
 
 prior <- create_prior(unif, .n_dim = 3, .lower = -10, .upper = 10)
 prior$fn(c(0.25, 0.5, 0.75))
-mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
-prior$fn(mat)
 
 # A normal prior with parameterised mean and standard deviation
 hier_f <- function(theta) {
@@ -114,18 +103,4 @@ create_prior(
   .varnames = c("mu", "sigma", "x"),
   .lower = c(-Inf, 0, -Inf)
 )
-
-# Using `rowwise_fn` should be done with care
-bb_p <- function(x) {
-  beta <- stats::qbeta(x[1], 5, 5)
-  bern <- stats::qbinom(x[2], size = 1, beta)
-  c(beta, bern)
-}
-try(
-  create_prior(
-    rowwise_fn = bb_p,
-    .varnames = c("beta", "bern")
-  )
-)
-create_prior(bb_p, .varnames = c("beta", "bern"))
 }

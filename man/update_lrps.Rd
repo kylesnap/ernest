@@ -5,12 +5,15 @@
 \alias{update_lrps.rwmh_cube}
 \title{Update an LRPS}
 \usage{
-update_lrps(x)
+update_lrps(x, unit = NULL)
 
-\method{update_lrps}{rwmh_cube}(x)
+\method{update_lrps}{rwmh_cube}(x, unit = NULL)
 }
 \arguments{
 \item{x}{An \code{ernest_lrps} object.}
+
+\item{unit}{A matrix of live points within the sampler. If NULL, no LRPS
+updates based on the state of the live points will be made.}
 }
 \value{
 An updated \code{ernest_lrps} object with the same class as \code{x}, possibly

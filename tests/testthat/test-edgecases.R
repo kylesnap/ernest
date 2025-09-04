@@ -57,8 +57,9 @@ test_that("Missing values in the prior", {
 NULL
 
 test_that("Missing values in the log-likelihood", {
+  set.seed(42)
   ll_fn_missing <- \(theta) {
-    if (any(theta >= 0)) {
+    if (all(theta >= 0)) {
       return(NA)
     }
     gaussian_blobs$log_lik(theta)

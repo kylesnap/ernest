@@ -72,7 +72,7 @@
     Condition
       Warning in `compile()`:
       `log_lik` may contain a likelihood plateau; proceed with caution.
-      ! Only 142/500 likelihood values are unique.
+      ! Only 130/500 likelihood values are unique.
       Warning:
       Stopping run due to a likelihood plateau at 0.
     Output
@@ -87,7 +87,7 @@
       * Current Step Size: 1
       
       -- Results 
-      No. Iterations: 163
-      No. Calls: 196
-      Log. Evidence: -0.3244 (± 0.0664)
+      No. Iterations: 149
+      No. Calls: 179
+      Log. Evidence: -0.2973 (± 0.0636)
 

@@ -62,7 +62,7 @@ new_ernest_sampler <- function(
 
   lrps$unit_log_fn <- purrr::compose(log_lik_fn, prior$fn)
   lrps$n_dim <- prior$n_dim
-  lrps <- update_lrps(lrps)
+  lrps <- update_lrps(lrps, unit = NULL)
 
   elems <- list(
     log_lik_fn = log_lik_fn,

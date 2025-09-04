@@ -4,7 +4,7 @@
 \alias{rwmh_cube}
 \title{Random walk over the unconstrained prior distribution}
 \usage{
-rwmh_cube(steps = 25, target_acceptance = 0.5)
+rwmh_cube(steps = 25, target_acceptance = 0.5, cov_fn = stats::cov)
 }
 \arguments{
 \item{steps}{Positive integer. Number of steps to take when generating a
@@ -12,6 +12,11 @@ proposal point.}
 
 \item{target_acceptance}{Double between \code{1 / steps} and 1.0. The target
 acceptance rate for the proposed points.}
+
+\item{cov_fn}{An optional function. If provided, \code{cov_fn} should
+be able to return the variance-covariance matrix for a set of live points
+in the sampler. This is used to scale the steps during sampling. If set to
+\code{NULL}, sampling steps will ignore the covariance of the live points.}
 }
 \value{
 A list with class \code{c("rwmh_cube", "ernest_lrps")}. Can be used with

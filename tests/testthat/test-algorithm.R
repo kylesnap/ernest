@@ -6,7 +6,6 @@ unif_prior <- gaussian_blobs$prior
 result <- NULL
 smry_base <- NULL
 
-start <- Sys.time()
 #' @srrstats {G5.7} These tests all demonstrate that change ernest's
 #' computational parameters changes the behaviour of the NS algorithm
 #' as expected.

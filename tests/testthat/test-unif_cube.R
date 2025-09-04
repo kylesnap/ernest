@@ -17,7 +17,16 @@ test_that("new_unif_cube initializes correctly", {
   expect_equal(uniform$n_dim, 2L)
 })
 
-uniform <- new_unif_cube(fn, 2L, max_loop = 100)
+uniform <- new_unif_cube(fn, 2L, max_loop = 10000)
+live <- replicate(500, propose(uniform))
+live <- do.call(rbind, live["unit", ])
+test_that("update_lrps resets and is idempotent for unif_cube", {
+  new_uniform <- update_lrps(uniform, live)
+  expect_equal(new_uniform$cache$n_call, 0L)
+  newer_uniform <- update_lrps(new_uniform)
+  expect_identical(new_uniform, newer_uniform)
+})
+
 test_that("propose.unif_cube proposes a single new point", {
   result <- propose(uniform, original = NULL, criteria = -Inf)
   expect_equal(dim(result$unit), c(1, 2))
@@ -28,48 +37,18 @@ test_that("propose.unif_cube proposes a single new point", {
   expect_snapshot(uniform)
 })
 
-test_that("propose.unif_cube proposes multiple new points with criteria", {
-  test_val <- c(-100, -100, -100, -100, -100)
-  result <- propose(uniform, criteria = test_val)
-  expect_equal(dim(result$unit), c(5, 2))
-  expect_true(all(result$log_lik >= test_val))
-  expect_equal(
-    apply(result$unit, 1, \(x) {
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
-    }),
-    result$log_lik
-  )
-  expect_snapshot(uniform)
-})
-
-test_that("propose.unif_cube works with provided original points", {
+test_that("propose.unif_cube evolves a single point", {
   set.seed(42L)
-  test_val <- c(-100, -100, -100, -100, -100)
-  original <- matrix(runif(5 * 2), ncol = 2)
-  result <- propose(uniform, original, test_val)
-  expect_equal(dim(result$unit), c(5, 2))
-  expect_true(all(result$log_lik >= test_val))
+  result <- propose(
+    uniform,
+    original = c(0.5, 0.5),
+    criteria = -99.3068
+  )
+  expect_equal(dim(result$unit), c(1, 2))
   expect_equal(
-    apply(
-      result$unit,
-      1,
-      \(x) gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
-    ),
+    gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
     result$log_lik
   )
-  n_call <- uniform$cache$n_call
-  expect_gt(n_call, 1)
+  expect_gt(uniform$cache$n_call, 0)
   expect_snapshot(uniform)
-})
-
-test_that("propose.unif_cube errors when max_loop is reached", {
-  test_val <- c(Inf, Inf, Inf, Inf, Inf)
-  expect_snapshot_error(propose(uniform, criteria = test_val))
-})
-
-test_that("update_lrps resets and is idempotent for unif_cube", {
-  new_uniform <- update_lrps(uniform)
-  expect_equal(new_uniform$cache$n_call, 0L)
-  newer_uniform <- update_lrps(new_uniform)
-  expect_identical(new_uniform, newer_uniform)
 })

@@ -10,6 +10,10 @@
 
     `steps` must be a whole number larger than or equal to 2, not the number 1.
 
+---
+
+    `cov_fn` must be an R function or `NULL`, not the string "fizz".
+
 # rwmh_cube returns correct class and structure
 
     Code
@@ -41,5 +45,11 @@
       No. Dimensions: 2
       No. Calls Since Update: 25
       No. Accepted Since Update: 0
-      Current Step Size: 0.1
+      Current Step Size: 1
+
+# update_lrps warns when chol_cov can't be calculated
+
+    Using an identity matrix after failed.
+    Caused by error in `chol.default()`:
+    ! the leading minor of order 1 is not positive
 

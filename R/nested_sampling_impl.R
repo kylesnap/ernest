@@ -82,18 +82,18 @@ nested_sampling_impl <- function(
     }
 
     # 2. Identify and log the worst points in the sampler
-    worst_idx <- which_minn(live_env$log_lik)
-    new_criterion <- live_env$log_lik[worst_idx[1]]
+    worst_idx <- which.min(live_env$log_lik)
+    new_criterion <- live_env$log_lik[worst_idx]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
       cli::cli_warn(
         "Stopping run due to a likelihood plateau at {pretty(max_lik)}."
       )
       break
     }
-    dead_unit[[i]] <- live_env$unit[worst_idx[1], ]
-    dead_log_lik[[i]] <- live_env$log_lik[worst_idx[1]]
-    dead_birth[[i]] <- live_env$birth[worst_idx[1]]
-    dead_id[[i]] <- worst_idx[1]
+    dead_unit[[i]] <- live_env$unit[worst_idx, ]
+    dead_log_lik[[i]] <- live_env$log_lik[worst_idx]
+    dead_birth[[i]] <- live_env$birth[worst_idx]
+    dead_id[[i]] <- worst_idx
 
     # 3. Update the integration
     log_vol <- log_vol - d_log_vol
@@ -107,7 +107,7 @@ nested_sampling_impl <- function(
       call > x$first_update &&
         env_cache(x$lrps$cache, "n_call", 0L) > x$update_interval
     ) {
-      x$lrps <- update_lrps(x$lrps)
+      x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
     }
 
     # 4. Replace the worst points in live with new points

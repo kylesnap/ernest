@@ -5,18 +5,11 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
-// RandomWalkMetropolis.cpp
-cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit, const cpp11::doubles criteria, cpp11::function unit_log_lik, const int num_dim, const int steps, const double epsilon);
-extern "C" SEXP _ernest_RandomWalkMetropolis(SEXP unit, SEXP criteria, SEXP unit_log_lik, SEXP num_dim, SEXP steps, SEXP epsilon) {
+// random_walks.cpp
+cpp11::list rwmh(cpp11::doubles original, cpp11::function log_lik_fn, double criterion, int steps, double epsilon, cpp11::doubles_matrix<> chol_cov);
+extern "C" SEXP _ernest_rwmh(SEXP original, SEXP log_lik_fn, SEXP criterion, SEXP steps, SEXP epsilon, SEXP chol_cov) {
   BEGIN_CPP11
-    return cpp11::as_sexp(RandomWalkMetropolis(cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles_matrix<>>>(unit), cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles>>(criteria), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_lik), cpp11::as_cpp<cpp11::decay_t<const int>>(num_dim), cpp11::as_cpp<cpp11::decay_t<const int>>(steps), cpp11::as_cpp<cpp11::decay_t<const double>>(epsilon)));
-  END_CPP11
-}
-// UniformCube.cpp
-cpp11::list UniformCube(const cpp11::doubles criteria, cpp11::function unit_log_lik, const int num_dim, const int max_loop);
-extern "C" SEXP _ernest_UniformCube(SEXP criteria, SEXP unit_log_lik, SEXP num_dim, SEXP max_loop) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(UniformCube(cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles>>(criteria), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_lik), cpp11::as_cpp<cpp11::decay_t<const int>>(num_dim), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
+    return cpp11::as_sexp(rwmh(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(log_lik_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_cov)));
   END_CPP11
 }
 // utils.cpp
@@ -39,11 +32,10 @@ extern "C" {
 extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_RandomWalkMetropolis", (DL_FUNC) &_ernest_RandomWalkMetropolis, 6},
-    {"_ernest_UniformCube",          (DL_FUNC) &_ernest_UniformCube,          4},
-    {"_ernest_logaddexp",            (DL_FUNC) &_ernest_logaddexp,            2},
-    {"_ernest_logcumsumexp",         (DL_FUNC) &_ernest_logcumsumexp,         1},
-    {"run_testthat_tests",           (DL_FUNC) &run_testthat_tests,           1},
+    {"_ernest_logaddexp",    (DL_FUNC) &_ernest_logaddexp,    2},
+    {"_ernest_logcumsumexp", (DL_FUNC) &_ernest_logcumsumexp, 1},
+    {"_ernest_rwmh",         (DL_FUNC) &_ernest_rwmh,         6},
+    {"run_testthat_tests",   (DL_FUNC) &run_testthat_tests,   1},
     {NULL, NULL, 0}
 };
 }

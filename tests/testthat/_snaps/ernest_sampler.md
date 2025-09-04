@@ -24,7 +24,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [ansi]
 
@@ -48,7 +48,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [unicode]
 
@@ -72,7 +72,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [fancy]
 
@@ -96,7 +96,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Fully-verbose output [plain]
 
@@ -114,12 +114,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2167
+      * Current Step Size: 1.4496
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 10651
+      Log. Evidence: -6.7576 (± 1.6826)
 
 # Fully-verbose output [ansi]
 
@@ -137,12 +137,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2167
+      * Current Step Size: 1.4496
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 10651
+      Log. Evidence: -6.7576 (± 1.6826)
 
 # Fully-verbose output [unicode]
 
@@ -160,12 +160,12 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2167
+      • Current Step Size: 1.4496
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 10651
+      Log. Evidence: -6.7576 (± 1.6826)
 
 # Fully-verbose output [fancy]
 
@@ -183,10 +183,10 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2167
+      • Current Step Size: 1.4496
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 10651
+      Log. Evidence: -6.7576 (± 1.6826)
 

@@ -13,13 +13,13 @@ test_that("new_ernest_lrps fails informativelys", {
   expect_snapshot_error(new_ernest_lrps(fn, n_dim = 2))
 })
 
-
 test_that("ernest_lrps class initializes correctly", {
   lrps <- new_ernest_lrps(fn, 2L)
   expect_s3_class(lrps, "ernest_lrps", exact = TRUE)
   expect_identical(lrps$unit_log_fn, fn)
   expect_equal(lrps$max_loop, 1e6L)
   expect_equal(lrps$n_dim, 2L)
+  expect_equal(lrps$cache$n_call, 0L)
 
   local_options("ernest.max_loop" = 100L)
   obj <- new_ernest_lrps(fn, 2L)
@@ -37,25 +37,11 @@ test_that("propose.ernest_lrps proposes a single new point", {
   )
 })
 
-test_that("propose.ernest_lrps proposes multiple new points with criteria", {
-  lrps <- new_ernest_lrps(fn, 2L)
-  test_val <- c(-37, -16, -9, -5, -3)
-  result <- propose(lrps, criteria = test_val)
-  expect_equal(dim(result$unit), c(5, 2))
-  expect_true(all(result$log_lik >= test_val))
-  expect_equal(
-    apply(result$unit, 1, \(x) {
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
-    }),
-    result$log_lik
-  )
-})
-
 test_that("propose.ernest_lrps errors if original is provided", {
   lrps <- new_ernest_lrps(fn, 2L)
   original <- matrix(runif(5 * 2), ncol = 2)
   expect_snapshot_error(
-    propose(lrps, original, c(-1, -1, -1, -1, -1))
+    propose(lrps, original, -1)
   )
 })
 
@@ -71,10 +57,9 @@ test_that("update_lrps resets and is idempotent for ernest_lrps", {
 test_that("Reproducible under seed", {
   set.seed(42L)
   lrps <- new_ernest_lrps(fn, 2L)
-  test_val <- c(-37, -16, -9, -5, -3)
-  result1 <- propose(lrps, criteria = test_val)
+  result1 <- propose(lrps, criteria = -37)
 
   set.seed(42L)
-  result2 <- propose(lrps, criteria = test_val)
+  result2 <- propose(lrps, criteria = -37)
   expect_identical(result1, result2)
 })

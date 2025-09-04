@@ -16,11 +16,18 @@
 
 namespace RandomData {
 
-// Fill R matrices with random data
-void uniform_in_cube(cpp11::writable::doubles_matrix<> &matrix);
-void uniform_in_sphere(cpp11::writable::doubles_matrix<> &matrix);
+struct RandomEngine{
+  RandomEngine() { GetRNGstate(); };
+  ~RandomEngine() { PutRNGstate(); };
+};
 
-void unif_rand_n(int n, double *vec);
-void norm_rand_n(int n, double *vec);
+void reflect(cpp11::writable::doubles &vec);
+
+// Fill R matrices with random data
+// void uniform_in_cube(cpp11::writable::doubles_matrix<> &matrix);
+// void uniform_in_sphere(cpp11::writable::doubles_matrix<> &matrix);
+
+void unif_rand_n(cpp11::writable::doubles &vec);
+void norm_rand_n(cpp11::writable::doubles &vec);
 
 } // namespace RandomData

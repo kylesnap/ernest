@@ -72,12 +72,12 @@ new_unif_cube <- function(
 
 #' @rdname propose
 #' @export
-propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
+propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
   if (is.null(original)) {
-    NextMethod(x, original, criteria)
+    NextMethod(x, criteria)
   } else {
     res <- propose_in_cube(x, criteria)
-    env_poke(x$cache, "n_call", env_cache(x$cache, "n_call", 0) + res$n_call)
+    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
 }
@@ -91,7 +91,7 @@ propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
 #' @noRd
 propose_in_cube <- function(x, criteria) {
   for (i in seq(x$max_loop)) {
-    proposal <- runif(x$n_dim)
+    proposal <- stats::runif(x$n_dim)
     log_lik <- x$unit_log_fn(proposal)
     if (log_lik >= criteria) {
       dim(proposal) <- c(1, x$n_dim)

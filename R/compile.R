@@ -134,7 +134,14 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
 #' @noRd
 create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
-    live <- propose(lrps, criteria = rep(-1e300, n_points)),
+    {
+      live <- replicate(n_points, propose(lrps))
+      live <- list(
+        "unit" = do.call(rbind, live["unit", ]),
+        "log_lik" = list_c(live["log_lik", ])
+      )
+      live
+    },
     error = function(cnd) {
       cli::cli_abort(cnd$message, call = expr(compile()))
     },

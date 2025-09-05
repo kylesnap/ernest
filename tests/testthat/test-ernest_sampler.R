@@ -42,3 +42,18 @@ cli::test_that_cli("Fully-verbose output", {
     generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
   )
 })
+
+test_that("Logging works", {
+  withr::local_options(ernest_logging = TRUE)
+  expect_message(
+    {
+      sampler <- ernest_sampler(
+        gaussian_blobs$log_lik,
+        gaussian_blobs$prior,
+        n_points = 500
+      )
+    }
+  )
+  expect_s3_class(sampler$lrps$cache$logger, "logger")
+  expect_match(sampler$lrps$cache$logfile, "log$")
+})

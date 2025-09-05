@@ -326,3 +326,49 @@ pretty <- function(x) {
   }
   round(x, digits = max(3L, getOption("digits") - 3L))
 }
+
+#' Enable logging individual LRPS points
+#'
+#' @param cache An enviroment, usually the `cache` of an LRPS.
+#'
+#' @returns TRUE or FALSE. If TRUE, a logger instance has
+#' been bound within `cache`.
+#' @noRd
+set_logging <- function(cache) {
+  # Check logging package and parameters.
+  if (env_has(cache, "logger")) {
+    return(FALSE)
+  }
+  check_installed("log4r", reason = "for logging LRPS performance")
+  dest <- getOption("ernest_log_dest", tempdir())
+  if (!dir.exists(dest) && !dir.create(dest)) {
+    cli::cli_warn(c(
+      "`getOption('ernest_log_dest')` is not a valid path.",
+      "!" = "Using {.fn tempdir} instead."
+    ))
+    dest <- tempdir()
+  }
+
+  # Set-up logging.
+  logfile <- tempfile(pattern = "proposals", tmpdir = dest, fileext = ".log")
+  env_poke(
+    cache,
+    "logger",
+    log4r::logger(
+      threshold = "DEBUG",
+      appenders = log4r::file_appender(
+        logfile,
+        append = FALSE,
+        layout = log4r::json_log_layout()
+      )
+    )
+  )
+  logfile
+}
+
+#' @noRd
+#' @export
+update_lrps.ernest_lrps <- function(x, unit = NULL) {
+  env_poke(x$cache, "n_call", 0L)
+  do.call(new_unif_cube, as.list(x))
+}

@@ -9,7 +9,7 @@ cpp11::list rwmh(cpp11::doubles original, cpp11::function log_lik_fn,
   RandomData::RandomEngine rand_engine;
 
   // Setups
-  cpp11::writable::doubles prev_draw(original.data());
+  cpp11::writable::doubles prev_draw(original);
   cpp11::writable::doubles next_draw(n_dim);
   cpp11::writable::doubles rand_vec(n_dim);
   size_t n_accept = 0;

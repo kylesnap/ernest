@@ -77,6 +77,15 @@ propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
     NextMethod(x, criteria)
   } else {
     res <- propose_in_cube(x, criteria)
+    if (isTRUE(getOption("ernest_logging", FALSE))) {
+      log4r::debug(
+        x$cache$logger,
+        method = "unif",
+        original = original,
+        new = res$unit,
+        ncall = res$n_call
+      )
+    }
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }

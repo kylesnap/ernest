@@ -60,7 +60,13 @@ new_ernest_lrps <- function(
     cache = cache %||% new_environment()
   )
   env_cache(elem$cache, "n_call", 0L)
-  # set_logging(elem$cache)
+  if (isTRUE(getOption("ernest_logging", FALSE))) {
+    logfile <- set_logging(elem$cache)
+    if (!isFALSE(logfile)) {
+      env_poke(elem$cache, "logfile", logfile)
+      cli::cli_alert_success("Log file at {.file {logfile}}.")
+    }
+  }
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)
@@ -118,7 +124,17 @@ propose <- function(x, original = NULL, criteria = -Inf) {
 #' @export
 propose.ernest_lrps <- function(x, original = NULL, criteria = -Inf) {
   if (is.null(original)) {
-    propose_in_cube(x, criteria)
+    res <- propose_in_cube(x, criteria)
+    if (isTRUE(getOption("ernest_logging", FALSE))) {
+      log4r::debug(
+        x$cache$logger,
+        method = "unif",
+        original = -1,
+        new = res$unit,
+        ncall = res$n_call
+      )
+    }
+    res
   } else {
     cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")
   }

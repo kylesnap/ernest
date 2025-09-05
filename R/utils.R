@@ -65,14 +65,18 @@ check_matrix <- function(
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  check_number_whole(nrow, min = 1, call = "check_matrix")
-  check_number_whole(ncol, min = 1, call = "check_matrix")
-  bounds <- vctrs::vec_recycle_common(lower, upper, .size = ncol)
+  check_number_whole(nrow, min = 1, call = call)
+  check_number_whole(ncol, min = 1, call = call)
+  bounds <- vctrs::vec_recycle_common(
+    "lower" = lower,
+    "upper" = upper,
+    .size = ncol
+  )
 
-  if (!is.matrix(x) || !is_double(x)) {
+  if (!is.double(x) || !is.matrix(x)) {
     stop_input_type(
       x,
-      "a matrix",
+      "a double matrix",
       ...,
       allow_na = FALSE,
       allow_null = FALSE,
@@ -86,6 +90,7 @@ check_matrix <- function(
         "`{arg}` must have dimensions {nrow} x {ncol}.",
         "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
       ),
+      arg = arg,
       call = call
     )
   }
@@ -97,13 +102,13 @@ check_matrix <- function(
         call = call
       )
     }
-    if (any(x[i, ] <= lower)) {
+    if (any(x[i, ] <= bounds$lower)) {
       cli::cli_abort(
         "`{arg}` must respect the lower boundary ({lower}).",
         call = call
       )
     }
-    if (any(x[i, ] >= upper)) {
+    if (any(x[i, ] >= bounds$upper)) {
       cli::cli_abort(
         "`{arg}` must respect the upper boundary ({upper}).",
         call = call
@@ -111,85 +116,6 @@ check_matrix <- function(
     }
   }
   invisible(NULL)
-}
-
-#' Check that an object is a double vector
-#'
-#' Validates that an object is a double vector of a specified length and value
-#' constraints.
-#'
-#' @param x An object to check.
-#' @param size Expected length of the vector.
-#' @param allow_neg_inf Logical. If FALSE, `-Inf` values are not allowed.
-#' @param ... Additional arguments passed to error handlers.
-#' @param arg Argument name for error messages.
-#' @param call Call environment for error messages.
-#'
-#' @return Returns NULL invisibly if `x` is a valid double vector, otherwise
-#' throws an informative error.
-#' @noRd
-check_double <- function(
-  x,
-  size,
-  allow_neg_inf = TRUE,
-  ...,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  check_number_whole(size, min = 0, call = "check_vector")
-
-  if (!is_bare_double(x)) {
-    stop_input_type(
-      x,
-      glue::glue("a double vector"),
-      ...,
-      allow_na = FALSE,
-      allow_null = FALSE,
-      arg = arg,
-      call = call
-    )
-  }
-  if (vctrs::vec_size(x) != size) {
-    act <- vctrs::vec_size(x)
-    cli::cli_abort("`{arg}` must be a double vector of size {size}, not {act}.")
-  }
-  if (size == 0L) {
-    return(invisible(NULL))
-  }
-
-  if (any(is.na(x) | is.nan(x) | x == Inf)) {
-    cli::cli_abort("`{arg}` must not contain missing, `NaN`, or `Inf` values.")
-  }
-  if (!allow_neg_inf && any(x == -Inf)) {
-    cli::cli_abort("`{arg}` must not contain `-Inf` values.")
-  }
-  invisible(NULL)
-}
-
-#' Transform a function for rowwise application
-#'
-#' Converts a function so it can be applied rowwise to a matrix or directly to
-#' a vector.
-#'
-#' @param fn A function to transform.
-#'
-#' @return A function that applies `fn` to each row of a matrix or to a vector.
-#' @noRd
-as_rowwise_fn <- function(fn) {
-  x <- NULL
-  new_function(
-    exprs(x = ),
-    expr({
-      if (is.vector(x)) {
-        (!!fn)(x)
-      } else if (is.matrix(x)) {
-        tmp <- apply(x, 1, (!!fn))
-        if (is.matrix(tmp)) t(tmp) else tmp
-      } else {
-        stop_input_type(x, "a double vector or matrix", arg = "x")
-      }
-    })
-  )
 }
 
 #' Check that a list has unique, non-empty names
@@ -343,27 +269,6 @@ interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
     double(128L)
   )
   posterior::rvar(t(interp))
-}
-
-# Helpers for generating and validating the live points -----
-
-# Helpers for running nested sampling ---
-
-#' Find indices of the smallest n values in a vector
-#'
-#' Returns the indices of the smallest `n` values in a numeric vector.
-#'
-#' @param x A numeric vector to search.
-#' @param n Integer. The number of smallest values to find.
-#'
-#' @return An integer vector of indices corresponding to the smallest values.
-#' @noRd
-which_minn <- function(x, n = 1L) {
-  if (n == 1L) {
-    which.min(x)
-  } else {
-    order(x)[seq_len(min(n, length(x)))]
-  }
 }
 
 # Helpers for computing and reporting results -----

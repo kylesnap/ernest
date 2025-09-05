@@ -7,7 +7,3 @@ rwmh <- function(original, log_lik_fn, criterion, steps, epsilon, chol_cov) {
 logaddexp <- function(x, y) {
   .Call(`_ernest_logaddexp`, x, y)
 }
-
-logcumsumexp <- function(x) {
-  .Call(`_ernest_logcumsumexp`, x)
-}

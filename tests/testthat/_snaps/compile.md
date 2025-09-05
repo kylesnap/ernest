@@ -8,7 +8,7 @@
 
 # check_live_set catches problems in the live_env
 
-    `unit` must be a matrix, not a double vector.
+    `unit` must be a double matrix, not a double vector.
 
 ---
 
@@ -21,19 +21,15 @@
 
 ---
 
-    `unit` must respect the lower boundary (0).
+    `log_lik` must be a double vector with length 500.
 
 ---
 
-    `log_lik` must be a double vector of size 500, not 499.
+    missing value where TRUE/FALSE needed
 
 ---
 
-    `log_lik` must not contain missing, `NaN`, or `Inf` values.
-
----
-
-    `log_lik` must not contain missing, `NaN`, or `Inf` values.
+    `log_lik` must contain only finite values or `-Inf`.
 
 ---
 

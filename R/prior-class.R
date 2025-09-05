@@ -119,11 +119,14 @@ create_prior <- function(
     check_prior(prior),
     error = function(cnd) {
       cli::cli_abort(
-        "Can't validate `fn` as a valid prior.",
-        parent = cnd
+        c(
+          "`fn` could not be validated as a prior transformation function.",
+          "x" = cnd_message(cnd)
+        )
       )
     }
   )
+
   prior
 }
 
@@ -152,14 +155,6 @@ create_prior <- function(
 #' @importFrom cli cli_warn
 #' @noRd
 check_prior <- function(prior, n_tests = 10, call = caller_env()) {
-  result <- prior$fn(rep(0.5, prior$n_dim))
-  check_double(
-    result,
-    size = prior$n_dim,
-    arg = glue::glue("prior$fn"),
-    call = call
-  )
-
   test <- matrix(stats::runif(n_tests * prior$n_dim), nrow = n_tests)
   result <- apply(test, 1, prior$fn) |> t()
   check_matrix(
@@ -168,7 +163,7 @@ check_prior <- function(prior, n_tests = 10, call = caller_env()) {
     ncol = prior$n_dim,
     lower = prior$lower,
     upper = prior$upper,
-    arg = glue::glue("prior$fn"),
+    arg = "fn(x)",
     call = call
   )
   invisible(NULL)
@@ -239,20 +234,31 @@ new_ernest_prior <- function(
   }
 
   x <- NULL
-  safely <- if (is.null(fn)) {
-    NULL
+  safely_expr <- if (is.null(fn)) {
+    expr(cli::cli_abort("`fn` is currently set to `NULL`."))
   } else {
-    function(x) {
+    expr({
       y <- fn(x)
-      y <- vctrs::vec_cast(y, double())
-      vctrs::vec_check_size(y, size = n_dim, arg = "prior$fn(x)")
+      y <- vctrs::vec_cast(y, double(), x_arg = "fn(x)")
+      vctrs::vec_check_size(y, size = n_dim, arg = "fn(x)")
       if (any(!is.finite(y))) {
-        unique_nonfinite <- unique(y[!is.finite(y)])
-        cli::cli_abort("Priors must only contain finite values, not {y}.")
+        cli::cli_abort("`fn(x)` must return a vector of finite values.")
       }
       y
-    }
+    })
   }
+  safely <- new_function(
+    exprs(x = ),
+    expr(try_fetch(
+      expr = !!safely_expr,
+      error = function(cnd) {
+        cli::cli_abort(
+          "{.cls ernest_prior}: {cnd_message(cnd)}",
+          parent = NA
+        )
+      }
+    ))
+  )
 
   structure(
     list(

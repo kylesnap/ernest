@@ -134,8 +134,9 @@ new_ernest_likelihood <- function(
     expr({
       y <- fn(x)
       if (!is_scalar_double(y) && !isTRUE(is.na(y))) {
+        y_str <- obj_type_friendly(y)
         cli::cli_abort(
-          "log-lik. values must be scalar doubles, not {obj_type_friendly(y)}."
+          "{.cls ernest_likelihood}: `fn(x)` must return a double, not {y_str}."
         )
       }
       if (y == Inf || is.na(y) || is.nan(y)) {

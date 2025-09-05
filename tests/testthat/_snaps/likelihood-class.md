@@ -58,13 +58,13 @@
 
 # fn fails if a non-double is returned
 
-    log-lik. values must be scalar doubles, not the string "NA".
+    <ernest_likelihood>: `fn(x)` must return a double, not the string "NA".
 
 ---
 
-    log-lik. values must be scalar doubles, not the string "NA".
+    <ernest_likelihood>: `fn(x)` must return a double, not the string "NA".
 
 ---
 
-    log-lik. values must be scalar doubles, not the string "NA".
+    <ernest_likelihood>: `fn(x)` must return a double, not the string "NA".
 

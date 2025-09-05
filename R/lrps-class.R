@@ -60,6 +60,7 @@ new_ernest_lrps <- function(
     cache = cache %||% new_environment()
   )
   env_cache(elem$cache, "n_call", 0L)
+  # set_logging(elem$cache)
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)

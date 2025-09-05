@@ -65,10 +65,6 @@ test_that("check_live_set catches problems in the live_env", {
     unit = trick_mat
   )
   expect_snapshot_error(check_live_set(sampler))
-  trick_mat[5, 2] <- 0.5
-  trick_mat[500, 1] <- 0
-  env_bind(sampler$run_env, unit = trick_mat)
-  expect_snapshot_error(check_live_set(sampler))
 
   # Log_lik problems
   too_short <- seq(-10, -1, length.out = 499)

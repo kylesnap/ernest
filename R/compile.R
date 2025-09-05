@@ -186,7 +186,18 @@ check_live_set <- function(sampler, call = caller_env()) {
 
   # Log Lik Checks
   log_lik <- env_get(sampler$run_env, "log_lik")
-  check_double(log_lik, size = n_points, arg = "log_lik", call = call)
+  if (!is_bare_double(log_lik, n = n_points)) {
+    cli::cli_abort(
+      "`log_lik` must be a double vector with length {n_points}.",
+      call = call
+    )
+  }
+  if (any(!is.finite(log_lik) & log_lik != -Inf)) {
+    cli::cli_abort(
+      "`log_lik` must contain only finite values or `-Inf`.",
+      call = call
+    )
+  }
 
   n_unique <- vctrs::vec_unique_count(log_lik)
   if (n_unique == 1L) {

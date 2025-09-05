@@ -33,29 +33,9 @@ test_that("check_matrix works as expected", {
   )
 })
 
-test_that("check_double works as expected", {
-  expect_invisible(check_double(c(1, 2, 3), size = 3))
-  expect_snapshot_error(check_double(c(1, 2, 3), size = 2))
-  expect_error(check_double(c(1, NaN), size = 2), "missing")
-  expect_error(check_double(c(1, Inf), size = 2), "Inf")
-  expect_invisible(check_double(numeric(0), size = 0))
-  expect_invisible(check_double(c(1, -Inf), size = 2, allow_neg_inf = TRUE))
-  expect_error(
-    check_double(c(1, -Inf), size = 2, allow_neg_inf = FALSE),
-    "-Inf"
-  )
-  expect_error(check_double(list(1, 2), size = 2), "double vector")
-})
-
 test_that("check_unique_names works as expected", {
   expect_invisible(check_unique_names(list(a = 1, b = 2)))
   expect_snapshot_error(check_unique_names(list(a = 1, a = 2)))
   expect_error(check_unique_names(list(1, 2)), "unique names")
   expect_error(check_unique_names(list(a = 1, 2)), "unique names")
-})
-
-test_that("which_minn works correctly", {
-  x <- c(10, 20, 5, 15)
-  expect_equal(which_minn(x, 1), 3)
-  expect_equal(which_minn(x, 2), c(3, 1))
 })

@@ -19,23 +19,15 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
     return cpp11::as_sexp(logaddexp(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y)));
   END_CPP11
 }
-// utils.cpp
-cpp11::doubles logcumsumexp(cpp11::doubles x);
-extern "C" SEXP _ernest_logcumsumexp(SEXP x) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(logcumsumexp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(x)));
-  END_CPP11
-}
 
 extern "C" {
 /* .Call calls */
 extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_logaddexp",    (DL_FUNC) &_ernest_logaddexp,    2},
-    {"_ernest_logcumsumexp", (DL_FUNC) &_ernest_logcumsumexp, 1},
-    {"_ernest_rwmh",         (DL_FUNC) &_ernest_rwmh,         6},
-    {"run_testthat_tests",   (DL_FUNC) &run_testthat_tests,   1},
+    {"_ernest_logaddexp",  (DL_FUNC) &_ernest_logaddexp,  2},
+    {"_ernest_rwmh",       (DL_FUNC) &_ernest_rwmh,       6},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };
 }

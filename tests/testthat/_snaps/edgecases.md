@@ -2,7 +2,7 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! log-lik. values must be scalar doubles, not an empty numeric vector.
+    ! <ernest_likelihood>: `fn(x)` must return a double, not an empty numeric vector.
 
 # Zero-length prior fails
 
@@ -10,39 +10,35 @@
 
 ---
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! `prior$fn(x)` must have size 1, not size 0.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: `fn(x)` must have size 1, not size 0.
 
 # Fails on character types
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! Can't convert `y` <character> to <double>.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: Can't convert `fn(x)` <character> to <double>.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! log-lik. values must be scalar doubles, not the string "U".
+    ! <ernest_likelihood>: `fn(x)` must return a double, not the string "U".
 
 # Fails on complex types
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! Can't convert `y` <complex> to <double>.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: Can't convert `fn(x)` <complex> to <double>.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! log-lik. values must be scalar doubles, not the complex number 0+0.3i.
+    ! <ernest_likelihood>: `fn(x)` must return a double, not the complex number 0+0.3i.
 
 # Missing values in the prior
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `FUN()`:
-    ! Priors must only contain finite values, not 0.914806043496355 and NaN.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: `fn(x)` must return a vector of finite values.
 
 # Missing values in the log-likelihood
 

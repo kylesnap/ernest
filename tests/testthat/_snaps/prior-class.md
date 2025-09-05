@@ -54,13 +54,11 @@
 
 # create_prior errors if prior function output length is wrong
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! `prior$fn(x)` must have size 2, not size 3.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: `fn(x)` must have size 2, not size 3.
 
 # create_prior errors if prior returns non-finite values
 
-    Can't validate `fn` as a valid prior.
-    Caused by error in `prior$fn()`:
-    ! Priors must only contain finite values, not NaN and NaN.
+    `fn` could not be validated as a prior transformation function.
+    x <ernest_prior>: `fn(x)` must return a vector of finite values.
 

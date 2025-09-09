@@ -18,15 +18,6 @@ test_that("new_unif_cube initializes correctly", {
 })
 
 uniform <- new_unif_cube(fn, 2L, max_loop = 10000)
-live <- replicate(500, propose(uniform))
-live <- do.call(rbind, live["unit", ])
-test_that("update_lrps resets and is idempotent for unif_cube", {
-  new_uniform <- update_lrps(uniform, live)
-  expect_equal(new_uniform$cache$n_call, 0L)
-  newer_uniform <- update_lrps(new_uniform)
-  expect_identical(new_uniform, newer_uniform)
-})
-
 test_that("propose.unif_cube proposes a single new point", {
   result <- propose(uniform, original = NULL, criteria = -Inf)
   expect_length(result$unit, 2)
@@ -36,6 +27,16 @@ test_that("propose.unif_cube proposes a single new point", {
   )
   expect_snapshot(uniform)
 })
+
+live <- replicate(500, propose(uniform))
+live <- do.call(rbind, live["unit", ])
+test_that("update_lrps resets and is idempotent for unif_cube", {
+  new_uniform <- update_lrps(uniform, live)
+  expect_equal(new_uniform$cache$n_call, 0L)
+  newer_uniform <- update_lrps(new_uniform)
+  expect_identical(new_uniform, newer_uniform)
+})
+
 
 test_that("propose.unif_cube evolves a single point", {
   set.seed(42L)

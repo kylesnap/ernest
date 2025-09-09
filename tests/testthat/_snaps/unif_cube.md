@@ -23,5 +23,5 @@
     Output
       Uniform Unit Cube LRPS <unif_cube/ernest_lrps>
       No. Dimensions: 2
-      No. Calls Since Update: 3
+      No. Calls Since Update: 2
 

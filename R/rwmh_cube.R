@@ -132,7 +132,7 @@ propose.rwmh_cube <- function(x, original = NULL, criteria = NULL) {
   if (is.null(original)) {
     NextMethod()
   } else {
-    res <- rwmh(
+    res <- RandomWalkImpl(
       original = original,
       log_lik_fn = x$unit_log_fn,
       criterion = criteria,
@@ -184,7 +184,7 @@ update_lrps.rwmh_cube <- function(x, unit = NULL) {
       },
       error = function(cnd) {
         cli::cli_warn(
-          "Using an identity matrix after  failed.",
+          "Using an identity matrix after failed.",
           parent = cnd
         )
         diag(x$n_dim)

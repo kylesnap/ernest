@@ -76,7 +76,12 @@ propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
   if (is.null(original)) {
     NextMethod(x, criteria)
   } else {
-    res <- propose_in_cube(x, criteria)
+    res <- CubeImpl(
+      n_dim = x$n_dim,
+      unit_log_fn = x$unit_log_fn,
+      criterion = criteria,
+      max_loop = x$max_loop
+    )
     if (isTRUE(getOption("ernest_logging", FALSE))) {
       log4r::debug(
         x$cache$logger,
@@ -89,26 +94,4 @@ propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
-}
-
-#' Uniform sample inside of a uniform cube
-#'
-#' @param criteria The criterion to generate points within.
-#' @param x The `ernest_lrps` used for sampling.
-#'
-#' @return A list, with `unit`, `log_lik`, and `ncall` components.
-#' @noRd
-propose_in_cube <- function(x, criteria) {
-  for (i in seq(x$max_loop)) {
-    proposal <- stats::runif(x$n_dim)
-    log_lik <- x$unit_log_fn(proposal)
-    if (log_lik >= criteria) {
-      return(list(
-        "unit" = proposal,
-        "log_lik" = log_lik,
-        "n_call" = i
-      ))
-    }
-  }
-  list("n_call" = x$max_loop)
 }

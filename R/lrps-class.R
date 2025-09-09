@@ -124,7 +124,12 @@ propose <- function(x, original = NULL, criteria = -Inf) {
 #' @export
 propose.ernest_lrps <- function(x, original = NULL, criteria = -Inf) {
   if (is.null(original)) {
-    res <- propose_in_cube(x, criteria)
+    res <- CubeImpl(
+      n_dim = x$n_dim,
+      unit_log_fn = x$unit_log_fn,
+      criterion = criteria,
+      max_loop = x$max_loop
+    )
     if (isTRUE(getOption("ernest_logging", FALSE))) {
       log4r::debug(
         x$cache$logger,

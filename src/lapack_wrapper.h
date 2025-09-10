@@ -101,6 +101,19 @@ inline void dtrmv(cpp11::doubles_matrix<>& A, cpp11::writable::doubles& x) {
 }
 
 /**
+ * @brief Solve a system of equations with a triangular matrix.
+ *
+ * @param A An upper triangular matrix.
+ * @param x Vector containing solutions.
+ */
+inline void dtrsv(cpp11::doubles_matrix<>& A, cpp11::writable::doubles& x) {
+  const int n = A.nrow();
+  const int lda = A.nrow();
+  dtrsv_(&kUpperTriangular, &kNoTranspose, &kNonUnitDiagonal, &n, GetPointer(A),
+         &lda, GetPointer(x), &kIncX FCONE FCONE FCONE);
+}
+
+/**
  * @brief Symmetric matrix-vector multiplication.
  *
  * @param alpha Scalar multiplier for A*x.

@@ -26,6 +26,7 @@ Imports:
     utils,
     vctrs
 Suggests: 
+    cluster,
     ggdist,
     knitr,
     LaplacesDemon,

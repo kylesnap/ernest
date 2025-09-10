@@ -4,16 +4,16 @@ CubeImpl <- function(n_dim, unit_log_fn, criterion, max_loop) {
   .Call(`_ernest_CubeImpl`, n_dim, unit_log_fn, criterion, max_loop)
 }
 
-EllipsoidImpl <- function(unit_log_fn, criterion, axes, loc, max_loop) {
-  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, axes, loc, max_loop)
+EllipsoidImpl <- function(unit_log_fn, criterion, chol_precision, loc, d2, max_loop) {
+  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, chol_precision, loc, d2, max_loop)
 }
 
 RandomWalkImpl <- function(original, log_lik_fn, criterion, steps, epsilon, chol_cov) {
   .Call(`_ernest_RandomWalkImpl`, original, log_lik_fn, criterion, steps, epsilon, chol_cov)
 }
 
-test_ellipsoid <- function(axes) {
-  .Call(`_ernest_test_ellipsoid`, axes)
+test_ellipsoid <- function(chol_precision, loc, d2) {
+  .Call(`_ernest_test_ellipsoid`, chol_precision, loc, d2)
 }
 
 logaddexp <- function(x, y) {

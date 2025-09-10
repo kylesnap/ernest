@@ -56,13 +56,19 @@ void random_vector::UniformInBall(cpp11::writable::doubles& vec,
 /**
  * @brief Generates a random vector uniformly distributed inside an ellipsoid.
  *
- * @param axes Matrix representing the ellipsoid axes.
+ * @param chol_precision The cholesky-decomposition of the precision matrix
+ * defining the ellipsoid.
+ * @param loc Vector specifying the location to shift the sampled point.
+ * @param d2 The average squared radius of the ellipsoid.
  * @param vec Vector to fill (in-place).
  */
-void random_vector::UniformInEllipsoid(cpp11::doubles_matrix<>& axes,
+void random_vector::UniformInEllipsoid(cpp11::doubles_matrix<>& chol_precision,
+                                       cpp11::doubles& loc, double d2,
                                        cpp11::writable::doubles& vec) {
   UniformInBall(vec);
-  lapack_wrapper::dtrmv(axes, vec);
+  lapack_wrapper::dtrsv(chol_precision, vec);
+  lapack_wrapper::dscal(sqrt(d2), vec);
+  lapack_wrapper::daxpy(1.0, loc, vec);
 }
 
 /**

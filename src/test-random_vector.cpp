@@ -59,14 +59,12 @@ context("Point generators") {
 }
 
 /**
- * Generates a random point uniformly distributed inside an ellipsoid.
- *
- * @param axes A matrix where each row represents an axis of the ellipsoid.
- * @return A numeric vector containing the generated point.
+ * A simple helper function for generating points from an ellipsoid.
  */
 [[cpp11::register]]
-cpp11::doubles test_ellipsoid(cpp11::doubles_matrix<> axes) {
-  cpp11::writable::doubles rand(axes.nrow());
-  random_vector::UniformInEllipsoid(axes, rand);
+cpp11::doubles test_ellipsoid(cpp11::doubles_matrix<> chol_precision,
+                              cpp11::doubles loc, double d2) {
+  cpp11::writable::doubles rand(loc.size());
+  random_vector::UniformInEllipsoid(chol_precision, loc, d2, rand);
   return rand;
 }

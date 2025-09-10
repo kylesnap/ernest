@@ -41,7 +41,8 @@ void ReflectWithinUnitCube(cpp11::writable::doubles& vec);
 
 void UniformOnSphere(cpp11::writable::doubles& vec, const double radius = 1);
 void UniformInBall(cpp11::writable::doubles& vec, const double radius = 1);
-void UniformInEllipsoid(cpp11::doubles_matrix<>& axes,
+void UniformInEllipsoid(cpp11::doubles_matrix<>& chol_precision,
+                        cpp11::doubles& loc, double d2,
                         cpp11::writable::doubles& vec);
 
 void RUnif(cpp11::writable::doubles& vec);

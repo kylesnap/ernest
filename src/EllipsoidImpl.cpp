@@ -5,8 +5,10 @@
  *
  * @param unit_log_fn Function to compute the log-likelihood of a proposal.
  * @param criterion The minimum log-likelihood required for acceptance.
- * @param axes Matrix specifying the axes of the ellipsoid.
+ * @param chol_precision The cholesky-decomposition of the precision matrix of
+ * the ellipsoid.
  * @param loc Vector specifying the location to shift the sampled point.
+ * @param d2 The average squared radius of the ellipsoid.
  * @param max_loop Maximum number of sampling attempts.
  * @return cpp11::list containing the accepted proposal, its log-likelihood, and
  * the number of calls, or only the number of calls if no proposal meets the
@@ -14,13 +16,12 @@
  */
 [[cpp11::register]]
 cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion,
-                          cpp11::doubles_matrix<> axes, cpp11::doubles loc,
-                          int max_loop) {
-  cpp11::writable::doubles proposal(axes.nrow());
+                          cpp11::doubles_matrix<> chol_precision,
+                          cpp11::doubles loc, double d2, int max_loop) {
+  cpp11::writable::doubles proposal(loc.size());
   random_vector::RandomEngine rng;
   for (int i = 0; i < max_loop; i++) {
-    random_vector::UniformInEllipsoid(axes, proposal);
-    lapack_wrapper::daxpy(1.0, loc, proposal);
+    random_vector::UniformInEllipsoid(chol_precision, loc, d2, proposal);
     if (random_vector::IsOutsideUnitCube(proposal)) {
       continue;
     }

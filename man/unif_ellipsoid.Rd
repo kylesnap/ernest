@@ -2,22 +2,55 @@
 % Please edit documentation in R/unif_ellipsoid.R
 \name{unif_ellipsoid}
 \alias{unif_ellipsoid}
-\title{Uniformly sample from the ellipsoid hull of live points}
+\title{Generate samples from the spanning ellipsoid}
 \usage{
-unif_ellipsoid(scale = 1)
+unif_ellipsoid(enlarge = 1)
 }
 \arguments{
-\item{scale}{A double, used to inflate the volume of the ellipsoid before
-sampling from it.}
+\item{enlarge}{Double, larger or equal to 1. Factor to inflate the bounding
+ellipsoid's volume before sampling (see Details).}
 }
 \value{
-A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Can be used
-with \code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested
-sampling run.
+A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Use with
+\code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
-Generate new live points from the ellipsoid hull or spanning ellipsoid of
-the current set of live points. Individual points are generated through
-rejection sampling within the ellipsoid, while \code{\link[=update_lrps]{update_lrps()}} updates the
-bounding ellipsoid using \link[cluster:ellipsoidhull]{cluster::ellipsoidhull}.
+Uses the bounding ellipsoid of live points to define the prior region for new
+samples. Effective for unimodal, roughly Gaussian posteriors. The ellipsoid
+is found using \link[cluster:ellipsoidhull]{cluster::ellipsoidhull} and its volume is inflated by a
+constant enlargement factor.
 }
+\details{
+Nested likelihood contours rarely form perfect ellipses, so sampling
+from the spanning ellipsoid without enlargement may exclude valid regions.
+This can bias proposals toward the ellipsoid centre and overestimate
+evidence. Leaving \code{enlarge = 1} will trigger an alert message.
+
+If \link[cluster:ellipsoidhull]{cluster::ellipsoidhull} fails to converge, \code{unif_ellipsoid} falls back to
+sampling from the circumscribed sphere bounding the unit hypercube.
+}
+\examples{
+data(example_run)
+lrps <- unif_ellipsoid(enlarge = 1.2)
+
+ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+
+# The default behaviour of the sampler prints an alert:
+unif_ellipsoid(1.0)
+}
+\references{
+Barbary, K. (2015). nestle: Pure Python,
+MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating
+Bayesian Evidence. (Computer software, Version 0.2).
+\url{https://github.com/kbarbary/nestle}.
+
+Mukherjee, P., Parkinson, D., & Liddle, A. R. (2006). A Nested Sampling
+Algorithm for Cosmological Model Selection. The Astrophysical Journal,
+638(2), L51. \url{https://doi.org/10.1086/501068}
+}
+\seealso{
+Other ernest_lrps: 
+\code{\link{rwmh_cube}()},
+\code{\link{unif_cube}()}
+}
+\concept{ernest_lrps}

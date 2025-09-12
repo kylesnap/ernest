@@ -1,24 +1,54 @@
-#' Uniformly sample from the ellipsoid hull of live points
+#' Generate samples from the spanning ellipsoid
 #'
-#' Generate new live points from the ellipsoid hull or spanning ellipsoid of
-#' the current set of live points. Individual points are generated through
-#' rejection sampling within the ellipsoid, while [update_lrps()] updates the
-#' bounding ellipsoid using [cluster::ellipsoidhull].
+#' Uses the bounding ellipsoid of live points to define the prior region for new
+#' samples. Effective for unimodal, roughly Gaussian posteriors. The ellipsoid
+#' is found using [cluster::ellipsoidhull] and its volume is inflated by a
+#' constant enlargement factor.
 #'
-#' @param scale A double, used to inflate the volume of the ellipsoid before
-#' sampling from it.
+#' @param enlarge Double, larger or equal to 1. Factor to inflate the bounding
+#' ellipsoid's volume before sampling (see Details).
 #'
-#' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Can be used
-#' with [ernest_sampler()] to specify the sampling behaviour of a nested
-#' sampling run.
+#' @details Nested likelihood contours rarely form perfect ellipses, so sampling
+#' from the spanning ellipsoid without enlargement may exclude valid regions.
+#' This can bias proposals toward the ellipsoid centre and overestimate
+#' evidence. Leaving `enlarge = 1` will trigger an alert message.
 #'
+#' If [cluster::ellipsoidhull] fails to converge, `unif_ellipsoid` falls back to
+#' sampling from the circumscribed sphere bounding the unit hypercube.
+#'
+#' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
+#' [ernest_sampler()] to specify nested sampling behaviour.
+#'
+#' @references
+#' Barbary, K. (2015). nestle: Pure Python,
+#' MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating
+#' Bayesian Evidence. (Computer software, Version 0.2).
+#' <https://github.com/kbarbary/nestle>.
+#'
+#' Mukherjee, P., Parkinson, D., & Liddle, A. R. (2006). A Nested Sampling
+#' Algorithm for Cosmological Model Selection. The Astrophysical Journal,
+#' 638(2), L51. <https://doi.org/10.1086/501068>
+#'
+#' @family ernest_lrps
+#' @examples
+#' data(example_run)
+#' lrps <- unif_ellipsoid(enlarge = 1.2)
+#'
+#' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+#'
+#' # The default behaviour of the sampler prints an alert:
+#' unif_ellipsoid(1.0)
 #' @export
-unif_ellipsoid <- function(scale = 1.0) {
+unif_ellipsoid <- function(enlarge = 1.0) {
   check_installed("cluster", reason = "finding convex hulls")
+  check_number_decimal(enlarge, min = 1)
+  if (enlarge == 1.0) {
+    cli::cli_alert_warning("`enlarge` is set to 1.0, which is not recommended.")
+  }
   new_unif_ellipsoid(
     unit_log_fn = NULL,
     n_dim = NULL,
-    scale = scale,
+    enlarge = enlarge,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
 }
@@ -34,7 +64,7 @@ format.unif_ellipsoid <- function(x, ...) {
       cli::cli_dl(c(
         "Centre" = "{pretty(x$cache$loc)}",
         "Volume" = "{pretty(x$cache$volume)}",
-        "Scaling Factor" = if (x$scale != 1) "{x$scale}" else NULL
+        "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL
       ))
     }
   })
@@ -44,22 +74,21 @@ format.unif_ellipsoid <- function(x, ...) {
 #'
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
-#' @param unit_log_fn Function for computing log-likelihood in unit space.
+#' @param unit_log_fn Function to compute log-likelihood in unit space.
 #' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param max_loop Integer. Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
-#' @return An LRPS specification, a list with class
-#' `c("rwmh_cube", "ernest_lrps")`.
+#' @return An LRPS specification, a list with class `c("rwmh_cube", "ernest_lrps")`.
 #' @noRd
 new_unif_ellipsoid <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
   max_loop = 1e6L,
   cache = NULL,
-  scale = 1.0
+  enlarge = 1.0
 ) {
-  check_number_decimal(scale, min = 1, allow_infinite = FALSE)
+  check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   cache <- cache %||% new_environment()
   if (is_integerish(n_dim) && n_dim > 0) {
     if (n_dim <= 1) {
@@ -80,7 +109,7 @@ new_unif_ellipsoid <- function(
     n_dim = n_dim,
     max_loop = max_loop,
     cache = cache,
-    scale = scale,
+    enlarge = enlarge,
     .class = "unif_ellipsoid"
   )
 }
@@ -129,10 +158,10 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
         ))
       }
       chol_precision <- chol(solve(ellipsoid$cov))
-      scaled_d2 <- ellipsoid$d2 * x$scale^(2 / x$n_dim)
+      enlarged_d2 <- ellipsoid$d2 * x$enlarge^(2 / x$n_dim)
       env_poke(x$cache, "chol_precision", chol_precision)
       env_poke(x$cache, "loc", ellipsoid$loc)
-      env_poke(x$cache, "d2", scaled_d2)
+      env_poke(x$cache, "d2", enlarged_d2)
       env_poke(x$cache, "volume", cluster::volume(ellipsoid))
     },
     error = function(cnd) {

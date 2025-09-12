@@ -1,5 +1,5 @@
-set.seed(42)
 fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
+set.seed(42)
 
 test_that("unif_ellipsoid returns correct class and structure", {
   obj <- unif_ellipsoid(1.5)
@@ -132,15 +132,11 @@ describe("unif_ellipsoid in 3D", {
     mu2 <- -c(1, 1, 1)
     sigma_inv <- diag(3) / 0.1**2
 
-    if (!is.matrix(x)) {
-      dim(x) <- c(1, length(x))
-    }
-
-    dx1 <- sweep(x, 2, mu1)
-    dx2 <- sweep(x, 2, mu2)
-    val1 <- -0.5 * rowSums((dx1 %*% sigma_inv) * dx1)
-    val2 <- -0.5 * rowSums((dx2 %*% sigma_inv) * dx2)
-    matrixStats::rowLogSumExps(cbind(val1, val2))
+    dx1 <- x - mu1
+    dx2 <- x - mu2
+    val1 <- -0.5 * drop(dx1 %*% sigma_inv %*% dx1)
+    val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
+    matrixStats::logSumExp(c(val1, val2))
   }
   prior <- create_uniform_prior(lower = -5, upper = 5, varnames = LETTERS[1:3])
   fn <- purrr::compose(log_lik, prior$fn)

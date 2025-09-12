@@ -2,7 +2,7 @@
 % Please edit documentation in R/rwmh_cube.R
 \name{rwmh_cube}
 \alias{rwmh_cube}
-\title{Random walk over the unconstrained prior distribution}
+\title{Generate samples with a random walk}
 \usage{
 rwmh_cube(steps = 25, target_acceptance = 0.5, cov_fn = stats::cov)
 }
@@ -25,8 +25,8 @@ run.
 }
 \description{
 Generate new live points by evolving a current live point through
-a random walk with a fixed number of steps and an adaptive step
-size.
+a Metropolis-Hastings random walk, rejecting steps that fail to meet the
+likelihood criterion.
 }
 \details{
 Calling \code{\link[=update_lrps]{update_lrps()}} builds a new proposal distribution based on the
@@ -55,3 +55,9 @@ Royal Astronomical Society, 493, 3132–3158.
 \url{https://doi.org/10.1093/mnras/staa278}
 }
 }
+\seealso{
+Other ernest_lrps: 
+\code{\link{unif_cube}()},
+\code{\link{unif_ellipsoid}()}
+}
+\concept{ernest_lrps}

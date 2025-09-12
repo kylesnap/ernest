@@ -1,8 +1,8 @@
-#' Random walk over the unconstrained prior distribution
+#' Generate samples with a random walk
 #'
 #' Generate new live points by evolving a current live point through
-#' a random walk with a fixed number of steps and an adaptive step
-#' size.
+#' a Metropolis-Hastings random walk, rejecting steps that fail to meet the
+#' likelihood criterion.
 #'
 #' @param steps Positive integer. Number of steps to take when generating a
 #' proposal point.
@@ -43,6 +43,7 @@
 #'
 #' # Change the default behaviour of the sampler:
 #' rwmh_cube(steps = 20, target_acceptance = 0.4)
+#' @family ernest_lrps
 #' @export
 rwmh_cube <- function(
   steps = 25,

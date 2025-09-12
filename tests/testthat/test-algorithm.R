@@ -9,18 +9,59 @@ smry_base <- NULL
 #' @srrstats {G5.7} These tests all demonstrate that change ernest's
 #' computational parameters changes the behaviour of the NS algorithm
 #' as expected.
-test_that("ernest outputs expected analytic results", {
-  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
-  result <<- generate(sampler, seed = 42)
-  smry_base <<- summary(result)
+describe("gaussian_blobs", {
+  it("works with rwalk", {
+    sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
+    result <<- generate(sampler, seed = 42)
+    smry_base <<- summary(result)
 
-  expect_lt(
-    abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
-    3.0 * smry_base$log_evidence_err
-  )
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1)
+    expect_lt(
+      abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * smry_base$log_evidence_err
+    )
+    weights <- as_draws(result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
+  it("works with unif_ellipsoid", {
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = unif_ellipsoid(1.1),
+      n_points = 200
+    )
+    unif_result <- generate(sampler, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * unif_smry$log_evidence_err
+    )
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
+  it("works with unif_cube", {
+    skip_extended_test()
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = unif_cube(),
+      n_points = 100
+    )
+    unif_result <- generate(sampler, min_logz = 0.5, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * unif_smry$log_evidence_err
+    )
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
 })
 
 #' @srrstats {BS4.6} Test checks that the NS converegence criteria

@@ -20,16 +20,11 @@ gaussian_blobs <- list(
     mu2 <- -c(1, 1)
     sigma_inv <- diag(2) / 0.1**2
 
-    if (!is.matrix(x)) {
-      dim(x) <- c(1, length(x))
-    }
-
-    dx1 <- sweep(x, 2, mu1)
-    dx2 <- sweep(x, 2, mu2)
-
-    val1 <- -0.5 * rowSums((dx1 %*% sigma_inv) * dx1)
-    val2 <- -0.5 * rowSums((dx2 %*% sigma_inv) * dx2)
-    matrixStats::rowLogSumExps(cbind(val1, val2))
+    dx1 <- x - mu1
+    dx2 <- x - mu2
+    val1 <- -0.5 * drop(dx1 %*% sigma_inv %*% dx1)
+    val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
+    matrixStats::logSumExp(c(val1, val2))
   },
   prior = create_uniform_prior(lower = -5, upper = 5, varnames = LETTERS[1:2]),
   # Analytic evidence for two Gaussian blobs

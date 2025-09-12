@@ -2,7 +2,7 @@
 % Please edit documentation in R/unif_cube.R
 \name{unif_cube}
 \alias{unif_cube}
-\title{Uniformly sample from the unconstrained prior distribution}
+\title{Generate samples from the unconstrained prior distribution}
 \usage{
 unif_cube()
 }
@@ -12,9 +12,9 @@ A list with class \code{c("unif_cube", "ernest_lrps")}. Can be used with
 run.
 }
 \description{
-Generate new live points by performing rejection sampling across the entire
-prior distribution. This is highly inefficient as an LRPS, but may be useful
-for testing the behaviour of a nested sampling specification.
+Use rejection sampling across the entire prior distribution to create new
+live points. This is highly inefficient as an LRPS, but may be useful for
+testing the behaviour of a nested sampling specification.
 }
 \examples{
 data(example_run)
@@ -27,5 +27,10 @@ Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 Royal Astronomical Society, 493, 3132–3158.
 \url{https://doi.org/10.1093/mnras/staa278}
+}
+\seealso{
+Other ernest_lrps: 
+\code{\link{rwmh_cube}()},
+\code{\link{unif_ellipsoid}()}
 }
 \concept{ernest_lrps}

@@ -11,12 +11,12 @@
       * No. Dimensions: 3
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.0223
+      * Current Step Size: 1.0069
       
       -- Results 
-      No. Iterations: 4636
-      No. Calls: 101303
-      Log. Evidence: -8.932 (± 0.1143)
+      No. Iterations: 4760
+      No. Calls: 98757
+      Log. Evidence: -9.1826 (± 0.1162)
 
 # summary.ernest_run run tibble columns
 
@@ -26,7 +26,7 @@
       
       -- Nested sampling results <ernest_run> ----------------------------------------
       No. Points: 500
-      No. Iterations: 4636
-      No. Lik. Calls: 101303
-      Log. Evidence: -8.932 (± 0.1143)
+      No. Iterations: 4760
+      No. Lik. Calls: 98757
+      Log. Evidence: -9.1826 (± 0.1162)
 

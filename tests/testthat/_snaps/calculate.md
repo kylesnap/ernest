@@ -45,3 +45,27 @@
       10  -119 ± NA  -0.01830 ± NA  -126 ± NA    -126 ± NA
       # i 5,250 more rows
 
+# calculate works when ndraws = 4000 (default)
+
+    Code
+      calc
+    Output
+      Nested sampling estimates <ernest_estimate>
+      No. of Simulated Draws: 4000
+      Log. Volume: -16 ± 1.3
+      Log. Evidence: -9.2 ± 0.1
+      # A tibble: 5,260 x 4
+            log_lik       log_volume   log_weight log_evidence
+         <rvar[1d]>       <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
+       1  -145 ± NA  -0.002 ± 0.0020  -151 ± 0.83  -151 ± 0.83
+       2  -144 ± NA  -0.004 ± 0.0028  -150 ± 0.82  -150 ± 0.67
+       3  -137 ± NA  -0.006 ± 0.0034  -143 ± 0.82  -143 ± 0.82
+       4  -128 ± NA  -0.008 ± 0.0040  -135 ± 0.82  -135 ± 0.82
+       5  -127 ± NA  -0.010 ± 0.0045  -133 ± 0.81  -133 ± 0.70
+       6  -125 ± NA  -0.012 ± 0.0049  -132 ± 0.79  -131 ± 0.67
+       7  -122 ± NA  -0.014 ± 0.0053  -129 ± 0.81  -129 ± 0.74
+       8  -122 ± NA  -0.016 ± 0.0057  -128 ± 0.80  -128 ± 0.64
+       9  -121 ± NA  -0.018 ± 0.0060  -127 ± 0.79  -127 ± 0.58
+      10  -119 ± NA  -0.020 ± 0.0064  -126 ± 0.79  -125 ± 0.60
+      # i 5,250 more rows
+

@@ -60,7 +60,14 @@ new_ernest_sampler <- function(
   )
   check_environment(run_env, allow_null = TRUE, call = .call)
 
-  lrps$unit_log_fn <- purrr::compose(log_lik_fn, prior$fn)
+  lrps$unit_log_fn <- rlang::new_function(
+    exprs(unit = ),
+    expr(log_lik(prior(unit))),
+    env = list2env(
+      list(log_lik = log_lik_fn, prior = prior$fn),
+      parent = globalenv()
+    )
+  )
   lrps$n_dim <- prior$n_dim
   lrps <- update_lrps(lrps, unit = NULL)
 

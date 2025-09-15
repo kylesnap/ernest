@@ -52,17 +52,6 @@
       No. Accepted Since Update: 0
       Current Step Size: 1
 
-# propose.rwmh_cube: proposes a single point under a likelihood constraint
-
-    Code
-      rwcube
-    Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      No. Dimensions: 2
-      No. Calls Since Update: 25
-      No. Accepted Since Update: 0
-      Current Step Size: 1
-
 # update_lrps.rwmh_cube: warns when chol_cov can't be calculated
 
     Code
@@ -77,5 +66,5 @@
       No. Dimensions: 2
       No. Calls Since Update: 0
       No. Accepted Since Update: 0
-      Current Step Size: 0.6771
+      Current Step Size: 0.7023
 

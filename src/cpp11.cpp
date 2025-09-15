@@ -20,10 +20,10 @@ extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP cho
   END_CPP11
 }
 // RandomWalkImpl.cpp
-cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function log_lik_fn, double criterion, int steps, double epsilon, cpp11::doubles_matrix<> chol_cov);
+cpp11::list RandomWalkImpl(cpp11::writable::doubles original, cpp11::function log_lik_fn, double criterion, int steps, double epsilon, cpp11::doubles_matrix<> chol_cov);
 extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP log_lik_fn, SEXP criterion, SEXP steps, SEXP epsilon, SEXP chol_cov) {
   BEGIN_CPP11
-    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(log_lik_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_cov)));
+    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::writable::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(log_lik_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_cov)));
   END_CPP11
 }
 // test-random_vector.cpp

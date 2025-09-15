@@ -29,7 +29,7 @@ test_that("ernest_run log_lik and prior mapping", {
     row_match[i, ] <- prior_fn(example_run$samples_unit[i, ])
     logl_match[i] <- log_lik(row_match[i, ])
   }
-  colnames(row_match) <- example_run$spec$prior$varnames
+  colnames(row_match) <- example_run$spec$prior$names
   dimnames(example_run$samples) <- NULL
   expect_equal(row_match, example_run$samples)
   expect_equal(logl_match, example_run$log_lik)

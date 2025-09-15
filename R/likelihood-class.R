@@ -123,9 +123,15 @@ new_ernest_likelihood <- function(
 safe_log_lik <- function(code, error_expr) {
   code <- vctrs::vec_cast(code, to = double(), x_arg = "log-lik.")
   if (vctrs::vec_size(code) != 1L) {
+    size <- vctrs::vec_size(code)
+    cli::cli_abort(
+      "log-lik. values must be single scalars, not vectors of size {size}."
+    )
+  }
+  if (is.na(code)) {
     eval(error_expr)
   }
-  if (is.na(code) || (!is.finite(code) & code != -Inf)) {
+  if (!is.finite(code) && code != -Inf) {
     eval(error_expr)
   }
   code

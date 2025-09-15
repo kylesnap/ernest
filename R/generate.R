@@ -221,7 +221,7 @@ check_stopping_criteria <- function(
     call = call
   )
 
-  if (!is.null(cur_it) & !is.null(max_iterations)) {
+  if (!is.null(cur_it) && !is.null(max_iterations)) {
     if (cur_it >= max_iterations) {
       cli::cli_abort(
         c(
@@ -245,7 +245,7 @@ check_stopping_criteria <- function(
       )
     }
   }
-  if (!is.null(d_logz) & !is.null(min_logz)) {
+  if (!is.null(d_logz) && !is.null(min_logz)) {
     if (min_logz >= d_logz) {
       cli::cli_abort(
         c(

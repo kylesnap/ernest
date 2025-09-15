@@ -68,7 +68,7 @@ new_ernest_sampler <- function(
       parent = globalenv()
     )
   )
-  lrps$n_dim <- prior$n_dim
+  lrps$n_dim <- attr(prior, "n_dim")
   lrps <- update_lrps(lrps, unit = NULL)
 
   elems <- list(

@@ -170,7 +170,7 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 #' @noRd
 check_live_set <- function(sampler, call = caller_env()) {
   n_points <- sampler$n_points
-  n_dim <- sampler$prior$n_dim
+  n_dim <- attr(sampler$prior, "n_dim")
 
   # Live Point Check
   unit <- env_get(sampler$run_env, "unit")

@@ -19,11 +19,11 @@ log_lik_mvn <- function(theta) {
 sampler <- ernest_sampler(
   log_lik_mvn,
   create_uniform_prior(
-    n_dim = 3,
     lower = -10,
     upper = 10,
-    varnames = c("x", "y", "z")
-  )
+    names = c("x", "y", "z")
+  ),
+  n_points = 1000
 )
 
 example_run <- generate(sampler, seed = 42L)

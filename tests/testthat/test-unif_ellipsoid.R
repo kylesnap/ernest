@@ -138,7 +138,7 @@ describe("unif_ellipsoid in 3D", {
     val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
     matrixStats::logSumExp(c(val1, val2))
   }
-  prior <- create_uniform_prior(lower = -5, upper = 5, varnames = LETTERS[1:3])
+  prior <- create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:3])
   fn <- purrr::compose(log_lik, prior$fn)
   uniform_3d <- new_unif_ellipsoid(fn, n_dim = 3)
 

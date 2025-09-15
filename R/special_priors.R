@@ -27,70 +27,78 @@
 #' prior <- create_normal_prior(n_dim = 3)
 #' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
-  n_dim = NULL,
   mean = 0,
   sd = 1,
+  names = "Normal",
   lower = -Inf,
   upper = Inf,
-  varnames = "Normal",
-  name_repair = c("unique", "universal", "check_unique")
+  .n_dim = NULL,
+  .name_repair = c("unique", "universal", "check_unique")
 ) {
   mean <- vctrs::vec_cast(mean, double())
   sd <- vctrs::vec_cast(sd, double())
   if (any(sd <= 0)) {
-    cli::cli_abort("`sd` of a normal distribution must be non-negative.")
+    cli::cli_abort(
+      "All elements of {.arg sd} must be strictly positive and non-missing."
+    )
   }
-
-  params <- vctrs::vec_recycle_common(
+  n_dim <- vctrs::vec_size_common(
     mean = mean,
     sd = sd,
     lower = lower,
     upper = upper,
-    varnames = varnames,
+    names = names,
+    .size = .n_dim
+  )
+
+  prior <- new_ernest_prior(
+    fn = \(x) x,
+    n_dim = n_dim,
+    lower = lower,
+    upper = upper,
+    names = names,
+    name_repair = .name_repair,
+    class = "uniform_prior"
+  )
+  params <- vctrs::vec_recycle_common(
+    mean = mean,
+    sd = sd,
     .size = n_dim
   )
-  n_dim <- n_dim %||% vctrs::vec_size(params$lower)
 
-  bounds <- vctrs::vec_cast_common(
-    lower = params$lower,
-    upper = params$upper,
-    .to = double()
-  )
-
-  truncated <- any(is.finite(bounds$lower)) || any(is.finite(bounds$upper))
-  x <- NULL
-  body <- if (truncated) {
+  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$upper))
+  prior$fn <- if (truncated) {
     check_installed(
       "truncnorm",
-      "To calculate the quantile function of the truncated normal distribution."
+      "calculate the quantile function of the truncated normal distribution"
     )
-    expr(
-      (!!truncnorm::qtruncnorm)(
-        x,
+    new_function(
+      exprs(unit = ),
+      expr((!!truncnorm::qtruncnorm)(
+        unit,
         mean = !!params$mean,
         sd = !!params$sd,
-        a = !!bounds$lower,
-        b = !!bounds$upper
-      )
+        a = !!prior$lower,
+        b = !!prior$upper
+      )),
+      env = empty_env()
     )
   } else {
-    expr((!!stats::qnorm)(x, mean = !!params$mean, sd = !!params$sd))
+    new_function(
+      exprs(unit = ),
+      expr((!!stats::qnorm)(unit, mean = !!params$mean, sd = !!params$sd)),
+      env = empty_env()
+    )
   }
 
-  fn <- new_function(
-    exprs(x = ),
-    expr(!!body),
-    env = empty_env()
-  )
-
-  new_ernest_prior(
-    fn = fn,
-    n_dim = n_dim,
-    varnames = params$varnames,
-    lower = params$lower,
-    upper = params$upper,
-    repair = name_repair,
-    class = "normal_prior"
+  do.call(
+    new_ernest_prior,
+    c(
+      as.list(prior),
+      "mean" = params$mean,
+      "sd" = params$sd,
+      class = "normal_prior"
+    )
   )
 }
 
@@ -113,34 +121,27 @@ create_normal_prior <- function(
 #' prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))
 #' prior$fn(c(0.33, 0.67))
 create_uniform_prior <- function(
-  n_dim = NULL,
   lower = 0,
   upper = 1,
-  varnames = "Uniform",
-  name_repair = c("unique", "universal", "check_unique")
+  names = "Uniform",
+  .n_dim = NULL,
+  .name_repair = c("unique", "universal", "check_unique")
 ) {
   prior <- new_ernest_prior(
-    fn = \(x) NULL,
-    n_dim = n_dim,
+    fn = \(x) x,
+    n_dim = .n_dim,
     lower = lower,
     upper = upper,
-    varnames = varnames,
-    repair = name_repair
-  )
-
-  diff <- prior$upper - prior$lower
-  x <- NULL
-  fn <- new_function(
-    exprs(x = ),
-    expr(!!prior$lower + (x * !!diff))
-  )
-
-  new_ernest_prior(
-    fn = fn,
-    n_dim = prior$n_dim,
-    varnames = attr(prior, "varnames"),
-    lower = prior$lower,
-    upper = prior$upper,
+    names = names,
     class = "uniform_prior"
+  )
+  diff <- prior$upper - prior$lower
+  prior$fn <- function(x) {
+    prior$lower + x * diff
+  }
+
+  do.call(
+    new_ernest_prior,
+    c(as.list(prior), class = "uniform_prior")
   )
 }

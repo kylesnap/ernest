@@ -49,9 +49,9 @@ new_ernest_run.ernest_run <- function(x, results) {
 new_ernest_run_ <- function(x, parsed) {
   live_order <- order(x$run_env$log_lik)
   samples_unit <- rbind(parsed$unit, x$run_env$unit[live_order, ])
-  colnames(samples_unit) <- attr(x$prior, "varnames")
+  colnames(samples_unit) <- x$prior$names
   samples <- t(apply(samples_unit, 1, x$prior$fn))
-  colnames(samples) <- attr(x$prior, "varnames")
+  colnames(samples) <- x$prior$names
 
   live <- list(
     "log_lik" = x$run_env$log_lik[live_order],

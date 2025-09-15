@@ -52,7 +52,7 @@ gaussian_blobs_loglik <- function(x) {
 }
 
 # Uniform prior over [-5, 5] in each dimension
-prior <- create_uniform_prior(lower = -5, upper = 5, varnames = c("A", "B"))
+prior <- create_uniform_prior(lower = -5, upper = 5, names = c("A", "B"))
 ```
 
 Set up the sampler and run nested sampling:
@@ -88,7 +88,7 @@ eggbox_loglik <- function(x) {
 }
 
 # Uniform prior over [0, 1] in each dimension
-eggbox_prior <- create_uniform_prior(varnames = c("A", "B"))
+eggbox_prior <- create_uniform_prior(names = c("A", "B"))
 ```
 
 Visualize the likelihood surface:
@@ -166,7 +166,7 @@ Define the prior for the mean and standard deviation, then run the sampler. The 
 prior <- create_uniform_prior(
   lower = c(99999999, 0.01),
   upper = c(100000001, 1),
-  varnames = c("mu", "sigma")
+  names = c("mu", "sigma")
 )
 sampler <- ernest_sampler(partial_log_lik, prior)
 result <- generate(sampler, seed = 42, show_progress = FALSE)

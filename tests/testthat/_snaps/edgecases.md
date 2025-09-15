@@ -2,7 +2,7 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! <ernest_likelihood>: `fn(x)` must return a double, not an empty numeric vector.
+    ! log-lik. values must be single scalars, not vectors of size 0.
 
 # Zero-length prior fails
 
@@ -10,35 +10,35 @@
 
 ---
 
-    `fn` could not be validated as a prior transformation function.
-    x <ernest_prior>: `fn(x)` must have size 1, not size 0.
+    `fn` must return a vector of length 1, not one of length 0.
 
 # Fails on character types
 
-    `fn` could not be validated as a prior transformation function.
-    x <ernest_prior>: Can't convert `fn(x)` <character> to <double>.
+    `fn` must return a numeric vector, not a character vector.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! <ernest_likelihood>: `fn(x)` must return a double, not the string "U".
+    ! Can't convert `log-lik.` <character> to <double>.
 
 # Fails on complex types
 
-    `fn` could not be validated as a prior transformation function.
-    x <ernest_prior>: Can't convert `fn(x)` <complex> to <double>.
+    `fn` must return a numeric vector, not a complex vector.
 
 ---
 
     <ernest_sampler> cannot compile.
     Caused by error in `compile()`:
-    ! <ernest_likelihood>: `fn(x)` must return a double, not the complex number 0+0.3i.
+    ! Can't convert `log-lik.` <complex> to <double>.
 
 # Missing values in the prior
 
-    `fn` could not be validated as a prior transformation function.
-    x <ernest_prior>: `fn(x)` must return a vector of finite values.
+    `fn` failed a sanity check.
+    x Input: 0.2861 and 0.8198
+    x Output: NaN and 0.8198
+    Caused by error in `create_prior()`:
+    ! `fn` must return vectors that only contain finite values.
 
 # Missing values in the log-likelihood
 
@@ -54,10 +54,7 @@
 
 # Ernest fails when ll is flat to begin with
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! `log_lik` must contain a range of likelihood values.
-    x `log_lik` currently contains one unique value (0).
+    `lower` must be strictly smaller than `upper`.
 
 # Ernest halts and warns when ll becomes flat during a run
 

@@ -23,8 +23,6 @@ returns a vector of parameters of the same length.}
 \item{rowwise_fn}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} No longer supported;
 instead, use \code{fn} to provide a prior-transformation function.}
 
-\item{...}{Named arguments to be partially applied to \code{fn}.}
-
 \item{.n_dim}{An optional positive integer. The number of dimensions of the
 prior distribution. If left \code{NULL}, this is inferred from the common length
 of the vector-valued parameters (see Note).}

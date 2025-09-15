@@ -5,16 +5,16 @@ test_that("create_normal_prior error handling", {
 })
 
 test_that("vector recycling behaves as expected", {
-  prior <- create_normal_prior(3L)
+  prior <- create_normal_prior(.n_dim = 3)
   expect_s3_class(prior, "ernest_prior")
   expect_equal(
-    attr(prior, "varnames"),
+    prior$names,
     c("Normal...1", "Normal...2", "Normal...3")
   )
-  expect_equal(prior$n_dim, 3L)
+  expect_equal(attr(prior, "n_dim"), 3L)
 
   prior2 <- create_normal_prior(
-    varnames = c("Normal...1", "Normal...2", "Normal...3")
+    names = c("Normal...1", "Normal...2", "Normal...3")
   )
   expect_identical(prior2, prior)
 
@@ -26,7 +26,7 @@ test_that("create_normal_prior untruncated transformation", {
   prior <- create_normal_prior(
     mean = c(1, 2, 3),
     sd = c(1, 2, 3),
-    n_dim = 3
+    .n_dim = 3
   )
 
   expect_equal(
@@ -36,11 +36,9 @@ test_that("create_normal_prior untruncated transformation", {
 })
 
 test_that("create_normal_prior truncated transformation", {
-  skip_if_not_installed("truncnorm")
   prior <- create_normal_prior(
     mean = c(1, 2, 3),
     sd = 3,
-    n_dim = 3,
     lower = c(0, -Inf, -Inf),
     upper = c(Inf, Inf, 1)
   )
@@ -55,10 +53,10 @@ test_that("create_normal_prior truncated transformation", {
 })
 
 test_that("create_uniform_prior transformation and properties", {
-  prior <- create_uniform_prior(3, lower = c(0, -1, -2), upper = c(1, 0, 1))
+  prior <- create_uniform_prior(lower = c(0, -1, -2), upper = c(1, 0, 1))
   expect_s3_class(prior, "ernest_prior")
   expect_equal(
-    attr(prior, "varnames"),
+    prior$names,
     c("Uniform...1", "Uniform...2", "Uniform...3")
   )
   expect_equal(
@@ -68,6 +66,6 @@ test_that("create_uniform_prior transformation and properties", {
 })
 
 test_that("create_normal_prior and create_uniform_prior: print methods", {
-  expect_snapshot(create_normal_prior(1, mean = 0, sd = 1))
-  expect_snapshot(create_uniform_prior(1, lower = 0, upper = 1))
+  expect_snapshot(create_normal_prior(mean = 0, sd = 1))
+  expect_snapshot(create_uniform_prior(lower = 0, upper = 1))
 })

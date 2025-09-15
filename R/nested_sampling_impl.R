@@ -98,8 +98,9 @@ nested_sampling_impl <- function(
     # 3. Update the integration
     log_vol <- log_vol - d_log_vol
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
-    log_wt <- logaddexp(new_criterion, last_criterion) + log_d_vol
-    log_z <- logaddexp(log_z, log_wt)
+    log_wt <- matrixStats::logSumExp(c(new_criterion, last_criterion)) +
+      log_d_vol
+    log_z <- matrixStats::logSumExp(c(log_z, log_wt))
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS

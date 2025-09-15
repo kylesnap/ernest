@@ -123,7 +123,7 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
 #' needed for NS to converge an evidence estimate.
 test_that("increasing prior vol. increases iterations needed to converge", {
   skip_extended_test()
-  wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
+  wide_prior <- create_uniform_prior(lower = -10, upper = 10, .n_dim = 2)
   sampler_wide <- ernest_sampler(log_lik_fn, wide_prior, n_points = 500)
   run_wide <- generate(sampler_wide, seed = 42L)
   smry_wide <- summary(run_wide)

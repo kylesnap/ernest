@@ -11,23 +11,26 @@ License: GPL (>= 3)
 URL: https://kylesnap.github.io/ernest/
 BugReports: https://github.com/kylesnap/ernest/issues/
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 Imports:
     cli,
     generics,
     ggplot2,
     glue,
+    lifecycle,
     matrixStats,
     posterior,
-    purrr,
     rlang (>= 1.1.0),
     tibble,
     utils,
     vctrs
 Suggests: 
+    cluster,
     ggdist,
     knitr,
     LaplacesDemon,
+    log4r,
+    purrr,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,

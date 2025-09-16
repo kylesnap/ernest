@@ -42,7 +42,7 @@
 #'   object.
 #'
 #' @examples
-#' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+#' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
 #'
@@ -134,16 +134,16 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
 #' @noRd
 create_live <- function(lrps, n_points, call = caller_env()) {
   try_fetch(
-    live <- propose(lrps, criteria = rep(-1e300, n_points)),
-    error = function(cnd) {
-      cli::cli_abort(cnd$message, call = expr(compile()))
+    {
+      live <- replicate(n_points, propose(lrps))
+      live <- list(
+        "unit" = do.call(rbind, live["unit", ]),
+        "log_lik" = list_c(live["log_lik", ])
+      )
+      live
     },
-    warning = function(cnd) {
-      if (grepl("object length is not a multiple", cnd$message)) {
-        cli::cli_abort(cnd$message, call = expr(compile()))
-      } else {
-        cli::cli_warn(cnd$message, call = expr(compile()))
-      }
+    error = function(cnd) {
+      cli::cli_abort(cnd$message, call = call)
     }
   )
   order_logl <- order(live$log_lik)
@@ -163,7 +163,7 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 #' @noRd
 check_live_set <- function(sampler, call = caller_env()) {
   n_points <- sampler$n_points
-  n_dim <- sampler$prior$n_dim
+  n_dim <- attr(sampler$prior, "n_dim")
 
   # Live Point Check
   unit <- env_get(sampler$run_env, "unit")
@@ -179,7 +179,18 @@ check_live_set <- function(sampler, call = caller_env()) {
 
   # Log Lik Checks
   log_lik <- env_get(sampler$run_env, "log_lik")
-  check_double(log_lik, size = n_points, arg = "log_lik", call = call)
+  if (!is_bare_double(log_lik, n = n_points)) {
+    cli::cli_abort(
+      "`log_lik` must be a double vector with length {n_points}.",
+      call = call
+    )
+  }
+  if (any(is.na(log_lik) | is.nan(log_lik) | log_lik == Inf)) {
+    cli::cli_abort(
+      "`log_lik` must contain only finite values or `-Inf`.",
+      call = call
+    )
+  }
 
   n_unique <- vctrs::vec_unique_count(log_lik)
   if (n_unique == 1L) {

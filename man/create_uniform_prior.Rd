@@ -5,25 +5,24 @@
 \title{Specify a prior with uniformly distributed marginals}
 \usage{
 create_uniform_prior(
-  n_dim = NULL,
   lower = 0,
   upper = 1,
-  varnames = "Uniform",
-  name_repair = c("unique", "universal", "check_unique")
+  names = "Uniform",
+  .n_dim = NULL,
+  .name_repair = c("unique", "universal", "check_unique")
 )
 }
 \arguments{
-\item{n_dim}{An optional positive integer. The number of dimensions of the
-prior distribution. If left \code{NULL}, this is inferred from the common length
-of the vector-valued parameters (see Note).}
-
 \item{lower, upper}{Numeric vector of bounds for the uniform distribution.}
 
-\item{varnames}{An optional character vector. Names for the variables in the
+\item{names}{An optional character vector. Names for the variables in the
 prior distribution.}
 
-\item{name_repair}{An optional, case-sensitive string. How to repair
-\code{varnames}. Options are \code{"unique"} (default), \code{"universal"}, or
+\item{.n_dim}{An optional positive integer. The number of dimensions of the
+prior distribution.}
+
+\item{.name_repair}{An optional, case-sensitive string. How to repair
+\code{names}. Options are \code{"unique"} (default), \code{"universal"}, or
 \code{"check_unique"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
 }
 \value{
@@ -35,10 +34,8 @@ A specialisation of \code{\link[=create_prior]{create_prior()}} where the parame
 described by independent uniform marginals.
 }
 \note{
-The vector-valued parameters in this function are recycled to length
-\code{n_dim} if it is an integer, or to a common length if \code{n_dim = NULL}. See
-\link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
-recycling.
+See \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
+how parameters are recycled to a common length.
 }
 \examples{
 prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))

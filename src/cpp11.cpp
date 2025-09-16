@@ -5,18 +5,32 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
-// RandomWalkMetropolis.cpp
-cpp11::list RandomWalkMetropolis(const cpp11::doubles_matrix<> unit, const cpp11::doubles criteria, cpp11::function unit_log_lik, const int num_dim, const int steps, const double epsilon);
-extern "C" SEXP _ernest_RandomWalkMetropolis(SEXP unit, SEXP criteria, SEXP unit_log_lik, SEXP num_dim, SEXP steps, SEXP epsilon) {
+// CubeImpl.cpp
+cpp11::list CubeImpl(int n_dim, cpp11::function unit_log_fn, double criterion, int max_loop);
+extern "C" SEXP _ernest_CubeImpl(SEXP n_dim, SEXP unit_log_fn, SEXP criterion, SEXP max_loop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(RandomWalkMetropolis(cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles_matrix<>>>(unit), cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles>>(criteria), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_lik), cpp11::as_cpp<cpp11::decay_t<const int>>(num_dim), cpp11::as_cpp<cpp11::decay_t<const int>>(steps), cpp11::as_cpp<cpp11::decay_t<const double>>(epsilon)));
+    return cpp11::as_sexp(CubeImpl(cpp11::as_cpp<cpp11::decay_t<int>>(n_dim), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
   END_CPP11
 }
-// UniformCube.cpp
-cpp11::list UniformCube(const cpp11::doubles criteria, cpp11::function unit_log_lik, const int num_dim, const int max_loop);
-extern "C" SEXP _ernest_UniformCube(SEXP criteria, SEXP unit_log_lik, SEXP num_dim, SEXP max_loop) {
+// EllipsoidImpl.cpp
+cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion, cpp11::doubles_matrix<> chol_precision, cpp11::doubles loc, double d2, int max_loop);
+extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP chol_precision, SEXP loc, SEXP d2, SEXP max_loop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(UniformCube(cpp11::as_cpp<cpp11::decay_t<const cpp11::doubles>>(criteria), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_lik), cpp11::as_cpp<cpp11::decay_t<const int>>(num_dim), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
+    return cpp11::as_sexp(EllipsoidImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_precision), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<double>>(d2), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
+  END_CPP11
+}
+// RandomWalkImpl.cpp
+cpp11::list RandomWalkImpl(cpp11::writable::doubles original, cpp11::function log_lik_fn, double criterion, int steps, double epsilon, cpp11::doubles_matrix<> chol_cov);
+extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP log_lik_fn, SEXP criterion, SEXP steps, SEXP epsilon, SEXP chol_cov) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::writable::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(log_lik_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_cov)));
+  END_CPP11
+}
+// test-random_vector.cpp
+cpp11::doubles test_ellipsoid(cpp11::doubles_matrix<> chol_precision, cpp11::doubles loc, double d2);
+extern "C" SEXP _ernest_test_ellipsoid(SEXP chol_precision, SEXP loc, SEXP d2) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(test_ellipsoid(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(chol_precision), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<double>>(d2)));
   END_CPP11
 }
 // utils.cpp
@@ -26,24 +40,18 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
     return cpp11::as_sexp(logaddexp(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y)));
   END_CPP11
 }
-// utils.cpp
-cpp11::doubles logcumsumexp(cpp11::doubles x);
-extern "C" SEXP _ernest_logcumsumexp(SEXP x) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(logcumsumexp(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(x)));
-  END_CPP11
-}
 
 extern "C" {
 /* .Call calls */
 extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_RandomWalkMetropolis", (DL_FUNC) &_ernest_RandomWalkMetropolis, 6},
-    {"_ernest_UniformCube",          (DL_FUNC) &_ernest_UniformCube,          4},
-    {"_ernest_logaddexp",            (DL_FUNC) &_ernest_logaddexp,            2},
-    {"_ernest_logcumsumexp",         (DL_FUNC) &_ernest_logcumsumexp,         1},
-    {"run_testthat_tests",           (DL_FUNC) &run_testthat_tests,           1},
+    {"_ernest_CubeImpl",       (DL_FUNC) &_ernest_CubeImpl,       4},
+    {"_ernest_EllipsoidImpl",  (DL_FUNC) &_ernest_EllipsoidImpl,  6},
+    {"_ernest_RandomWalkImpl", (DL_FUNC) &_ernest_RandomWalkImpl, 6},
+    {"_ernest_logaddexp",      (DL_FUNC) &_ernest_logaddexp,      2},
+    {"_ernest_test_ellipsoid", (DL_FUNC) &_ernest_test_ellipsoid, 3},
+    {"run_testthat_tests",     (DL_FUNC) &run_testthat_tests,     1},
     {NULL, NULL, 0}
 };
 }

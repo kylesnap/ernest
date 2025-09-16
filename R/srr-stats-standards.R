@@ -25,7 +25,6 @@ NULL
 #'
 #' @srrstatsNA {G1.6} No comparisons against other R packages are made; instead,
 #' we focus on comparing Ernest against the Python package Nestle.
-#' @srrstatsNA {G4.0} Ernest does not save files to disk.
 #' @srrstatsNA {G2.4d, G2.4e, G2.5} Ernest does not have functions that allow
 #' for factor-type inputs.
 #' @srrstatsNA {G2.7, G2.8, G2.9, G2.10, G2.11, G2.12} Ernest does not directly
@@ -39,7 +38,6 @@ NULL
 #' @srrstatsNA {BS2.15} Ernest aims to gracefully report errors during a run,
 #' but does not allow for them to be ignored as warnings. The best behaviour for
 #' NS to "skip" invalid points when encountered is yet to be determined.
-#' @srrstatsNA {G3.1, G3.1a} Ernest does not rely on covariance calculations.
 #' @srrstatsNA {G5.4a, G5.4c} Ernest makes comparisons against the Python
 #' package `nestle` to demonstrate its efficacy.
 #' @srrstatsNA {G5.11, G5.11a} Ernest does not download data for external tests.

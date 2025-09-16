@@ -98,7 +98,7 @@ remaining evidence is sufficiently small compared to the accumulated
 evidence.
 }
 \examples{
-prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 ll_fn <- function(x) -sum(x^2)
 sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 sampler

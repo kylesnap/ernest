@@ -43,7 +43,7 @@
 #' plot(example_run)
 #'
 #' # Simulate results before plotting.
-#' plot(example_run, ndraws = 50)
+#' plot(example_run, ndraws = 100)
 plot.ernest_estimate <- function(x, ...) {
   check_dots_empty()
   print(autoplot(x, ...))
@@ -55,7 +55,7 @@ plot.ernest_estimate <- function(x, ...) {
 #' @export
 #' @examples
 #' # Simulate results from a run, then plot simulated results.
-#' sim <- calculate(example_run, ndraws = 50)
+#' sim <- calculate(example_run, ndraws = 100)
 #' plot(sim)
 plot.ernest_run <- function(x, ..., ndraws = 0) {
   check_dots_empty()

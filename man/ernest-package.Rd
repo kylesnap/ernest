@@ -4,9 +4,9 @@
 \name{ernest-package}
 \alias{ernest}
 \alias{ernest-package}
-\title{ernest: The Nested Sampling Toolkit}
+\title{ernest: A Toolkit for Nested Sampling}
 \description{
-Estimate model evidence and posterior distributions using Bayesian nested sampling, and review your results using popular statistical analysis packages.
+Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.
 }
 \seealso{
 Useful links:

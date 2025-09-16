@@ -1,5 +1,5 @@
 test_that("ernest_sampler returns an ernest_sampler object", {
-  prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+  prior <- create_uniform_prior(.n_dim = 2, lower = -1, upper = 1)
   ll_fn <- function(x) -sum(x^2)
   sampler <- ernest_sampler(ll_fn, prior, n_points = 50)
   expect_s3_class(sampler, "ernest_sampler")
@@ -40,5 +40,23 @@ cli::test_that_cli("Fully-verbose output", {
 
   expect_snapshot(
     generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
+  )
+})
+
+test_that("set_logging enables and disables logging", {
+  sampler <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    gaussian_blobs$prior,
+    n_points = 500
+  )
+  withr::local_options("ernest_logging" = TRUE)
+  expect_snapshot(
+    generate(
+      sampler,
+      max_iterations = 1000,
+      seed = 42,
+      show_progress = FALSE
+    ),
+    transform = \(x) sub("i Logfile at .+$", "i Logging run at FILE.", x)
   )
 })

@@ -24,86 +24,82 @@
 #' @family special_priors
 #' @export
 #' @examples
-#' prior <- create_normal_prior(n_dim = 3)
+#' prior <- create_normal_prior(.n_dim = 3)
 #' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
-  n_dim = NULL,
   mean = 0,
   sd = 1,
+  names = "Normal",
   lower = -Inf,
   upper = Inf,
-  varnames = "Normal",
-  name_repair = c("unique", "universal", "check_unique")
+  .n_dim = NULL,
+  .name_repair = c("unique", "universal", "check_unique")
 ) {
   mean <- vctrs::vec_cast(mean, double())
   sd <- vctrs::vec_cast(sd, double())
   if (any(sd <= 0)) {
-    cli::cli_abort("`sd` of a normal distribution must be non-negative.")
-  }
-
-  # Infer n_dim if NULL
-  n_dim <- n_dim %||%
-    vctrs::vec_size_common(
-      "mean" = mean,
-      "sd" = sd,
-      "lower" = lower,
-      "upper" = upper,
-      "varnames" = varnames
+    cli::cli_abort(
+      "All elements of {.arg sd} must be strictly positive and non-missing."
     )
+  }
+  n_dim <- vctrs::vec_size_common(
+    mean = mean,
+    sd = sd,
+    lower = lower,
+    upper = upper,
+    names = names,
+    .size = .n_dim
+  )
+
   prior <- new_ernest_prior(
-    prior_fn = \(x) NULL,
+    fn = \(x) x,
     n_dim = n_dim,
     lower = lower,
     upper = upper,
-    varnames = varnames,
-    repair = name_repair
+    names = names,
+    name_repair = .name_repair,
+    class = "uniform_prior"
   )
-  dparams <- vctrs::vec_recycle_common(
-    "mean" = mean,
-    "sd" = sd,
+  params <- vctrs::vec_recycle_common(
+    mean = mean,
+    sd = sd,
     .size = n_dim
   )
 
-  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$lower))
+  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$upper))
   unit <- NULL
-  fn_body <- if (truncated) {
+  prior$fn <- if (truncated) {
     check_installed(
       "truncnorm",
-      "To calculate the quantile function of the truncated normal distribution."
+      "calculate the quantile function of the truncated normal distribution"
     )
-    expr({
-      y <- truncnorm::qtruncnorm(
-        t(unit),
-        mean = !!dparams$mean,
-        sd = !!dparams$sd,
+    new_function(
+      exprs(unit = ),
+      expr((!!truncnorm::qtruncnorm)(
+        unit,
+        mean = !!params$mean,
+        sd = !!params$sd,
         a = !!prior$lower,
         b = !!prior$upper
-      )
-      if (is.null(rows <- nrow(unit))) {
-        y
-      } else {
-        matrix(y, byrow = TRUE, nrow = rows)
-      }
-    })
+      )),
+      env = empty_env()
+    )
   } else {
-    expr({
-      y <- stats::qnorm(t(unit), mean = !!dparams$mean, sd = !!dparams$sd)
-      if (!is.matrix(unit)) {
-        dim(y) <- NULL
-        y
-      } else {
-        t(y)
-      }
-    })
+    new_function(
+      exprs(unit = ),
+      expr((!!stats::qnorm)(unit, mean = !!params$mean, sd = !!params$sd)),
+      env = empty_env()
+    )
   }
 
-  new_ernest_prior(
-    prior_fn = wrap_special_prior(fn_body),
-    n_dim = prior$n_dim,
-    varnames = attr(prior, "varnames"),
-    lower = prior$lower,
-    upper = prior$upper,
-    class = "normal_prior"
+  do.call(
+    new_ernest_prior,
+    c(
+      as.list(prior),
+      "mean" = params$mean,
+      "sd" = params$sd,
+      class = "normal_prior"
+    )
   )
 }
 
@@ -126,58 +122,27 @@ create_normal_prior <- function(
 #' prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))
 #' prior$fn(c(0.33, 0.67))
 create_uniform_prior <- function(
-  n_dim = NULL,
   lower = 0,
   upper = 1,
-  varnames = "Uniform",
-  name_repair = c("unique", "universal", "check_unique")
+  names = "Uniform",
+  .n_dim = NULL,
+  .name_repair = c("unique", "universal", "check_unique")
 ) {
   prior <- new_ernest_prior(
-    prior_fn = \(x) NULL,
-    n_dim = n_dim,
+    fn = \(x) x,
+    n_dim = .n_dim,
     lower = lower,
     upper = upper,
-    varnames = varnames,
-    repair = name_repair
-  )
-
-  diff <- prior$upper - prior$lower
-  unit <- NULL
-  body <- expr({
-    if (is.matrix(unit)) {
-      y <- sweep(unit, MARGIN = 2, !!diff, `*`)
-      sweep(y, MARGIN = 2, !!prior$lower, `+`)
-    } else {
-      !!prior$lower + (unit * !!diff)
-    }
-  })
-
-  new_ernest_prior(
-    prior_fn = wrap_special_prior(body),
-    n_dim = prior$n_dim,
-    varnames = attr(prior, "varnames"),
-    lower = prior$lower,
-    upper = prior$upper,
+    names = names,
     class = "uniform_prior"
   )
-}
+  diff <- prior$upper - prior$lower
+  prior$fn <- function(x) {
+    prior$lower + x * diff
+  }
 
-#' Wrap a special prior in type- and size-stability checks.
-#'
-#' @param body The body of the function accepting a `unit` parameter, as an
-#' expression.
-#'
-#' @returns A type- and size-stable function.
-#' @noRd
-wrap_special_prior <- function(body) {
-  unit <- NULL
-  new_function(
-    exprs(unit = ),
-    expr({
-      if (!is.numeric(unit)) {
-        stop_input_type(unit, "a numeric vector or matrix")
-      }
-      !!body
-    })
+  do.call(
+    new_ernest_prior,
+    c(as.list(prior), class = "uniform_prior")
   )
 }

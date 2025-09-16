@@ -71,7 +71,7 @@
 #' specification.
 #'
 #' @examples
-#' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+#' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 #' sampler
@@ -221,7 +221,7 @@ check_stopping_criteria <- function(
     call = call
   )
 
-  if (!is.null(cur_it) & !is.null(max_iterations)) {
+  if (!is.null(cur_it) && !is.null(max_iterations)) {
     if (cur_it >= max_iterations) {
       cli::cli_abort(
         c(
@@ -245,7 +245,7 @@ check_stopping_criteria <- function(
       )
     }
   }
-  if (!is.null(d_logz) & !is.null(min_logz)) {
+  if (!is.null(d_logz) && !is.null(min_logz)) {
     if (min_logz >= d_logz) {
       cli::cli_abort(
         c(

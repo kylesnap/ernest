@@ -3,53 +3,38 @@
 #' Creates a modified version of a log-likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters provided.
 #'
-#' @param fn,rowwise_fn Choose one of `fn` or `rowwise_fn`:
-#' * `fn`: A function that takes a vector of parameters and returns a scalar
-#'   likelihood value (either a finite double or `-Inf`).
-#' * `rowwise_fn`: A function that takes a matrix of parameters and returns
-#'   a vector of likelihood values (all finite doubles or `-Inf`).
-#' @param ... Named arguments to `fn` or `rowwise_fn` that should be partially
-#' applied.
-#' @param .nonfinite_action (case-sensitive string) Action to perform when `fn`
-#' returns a value that is non-finite and not `-Inf` (e.g., `NaN`, `NA`, `Inf`):
-#' * `"warn"`: Issue a warning and replace values with `-Inf`.
-#' * `"quiet"`: Silently replace values with `-Inf`.
+#' @param fn A function that takes a vector of parameters and returns a
+#' scalar log-likelihood value (either a finite double or `-Inf`).
+#' @param on_nonfinite A case-sensitive string. Action to perform when `fn`
+#' returns a value that is non-finite and not `-Inf` (i.e., `NaN`, `NA`, `Inf`):
+#' * `"warn"`: Issue a warning and return `-Inf`.
+#' * `"quiet"`: Silently return `-Inf`.
 #' * `"abort"`: Stop execution and signal an error.
 #'
 #' @returns
-#' A function with class `ernest_likelihood`. This function is
-#' wrapped in checks to ensure type and size stability:
-#' * If provided a vector of doubles, returns a scalar double, `-Inf`, or an
-#' error.
-#' * If provided a matrix of doubles, returns a vector of doubles and `-Inf`
-#'   of length equal to the number of matrix rows, or an error.
-#' * Otherwise, it throws an error.
+#' A function with class `ernest_likelihood`. When provided a parameter vector
+#' this function will always return either a scalar finite double, the value
+#' `-Inf`, or an error message.
 #'
 #' @details
 #' Model likelihoods should be provided as a log-density function. The first
-#' argument of `fn` or `rowwise_fn` should be a vector or matrix of parameters,
-#' respectively.
+#' argument of `fn` should be a vector of free parameters.
 #'
-#' If the model likelihood is conditional on some data, then incorporate this
-#' data into the likelihood function here. You can either build an anonymous
-#' function (see [rlang::as_function()]), or use the `...` parameters to
-#' partially apply data to `fn` or `rowwise_fn` (see [purrr::partial()]).
+#' If the model likelihood is conditional on some data, then use this step to
+#' incorporate this data into your nested sampling run. We recommended using
+#' an (anonymous function)[rlang::as_function()] to do this (see Examples).
 #'
 #' It is expected that the log-likelihood function returns a scalar finite
 #' double or `-Inf` for each parameter vector. Non-finite values other than
 #' `-Inf`, such as `NaN`, `Inf`, or `NA` (i.e. missing values) are handled
-#' with the behavior of `.nonfinite_action`.
-#'
-#' Ernest will wrap `fn` so it can accept a matrix of parameters. If you have
-#' a more efficient implementation of your likelihood function that can handle
-#' vectors and matrices, consider providing `rowwise_fn` instead.
+#' with the behavior of `on_nonfinite`.
 #'
 #' @srrstats {BS1.1, BS3.0} Instructions on how to bind data to likelihood
-#' calculation provided here in text and in the example. Also explcitly
+#' calculation provided here in text and in the example. Also explicitly
 #' documents how NA likelihood values are handled.
 #' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15, G2.16} create_likelihood
 #' controls the behaviour of the likelihood function when it returns a missing
-#' value (see `.nonfinite_action`). The same parameter also controls the
+#' value (see `on_nonfinite`). The same parameter also controls the
 #' behaviour when non-finite, non-`-Inf` values are returned.
 #'
 #' @examples
@@ -67,7 +52,7 @@
 #' log_lik <- create_likelihood(fn)
 #' log_lik(c(0, 0, 0))
 #'
-#' # Bind data to the likelihood function using dots or anonymous functions.
+#' # Bind data to the likelihood function an anonymous function.
 #' y <- 100000000 * runif(11, min = 0.1, max = 0.3)
 #' log_lik <- function(theta, y) {
 #'   if (theta[2] <= 0) {
@@ -75,49 +60,11 @@
 #'   }
 #'   sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
 #' }
-#' create_likelihood(log_lik, y = !!y)
 #' create_likelihood(\(theta) log_lik(theta, y))
 #' @aliases ernest_likelihood
 #' @export
-create_likelihood <- function(
-  fn,
-  rowwise_fn,
-  ...,
-  .nonfinite_action = c("warn", "quiet", "abort")
-) {
-  which_arg <- check_exclusive(fn, rowwise_fn)
-  if (which_arg == "fn") {
-    if (inherits(fn, "ernest_likelihood")) {
-      unsafe_fn <- attr(fn, "unsafe_fn")
-      rowwise <- attr(unsafe_fn, "is_rowwise")
-      attr(unsafe_fn, "is_rowwise") <- NULL
-      if (rowwise) {
-        return(create_likelihood(
-          rowwise_fn = unsafe_fn,
-          .nonfinite_action = .nonfinite_action
-        ))
-      } else {
-        return(create_likelihood(
-          fn = unsafe_fn,
-          .nonfinite_action = .nonfinite_action
-        ))
-      }
-    }
-    fn <- as_function(fn, arg = "fn")
-    if (dots_n(...) != 0L) {
-      fn <- purrr::partial(fn, ...)
-    }
-    attr(fn, "is_rowwise") <- FALSE
-    rowwise_fn <- as_rowwise_fn(fn)
-  } else {
-    rowwise_fn <- as_function(rowwise_fn, arg = "rowwise_fn")
-    if (dots_n(...) != 0L) {
-      rowwise_fn <- purrr::partial(rowwise_fn, ...)
-    }
-    fn <- rowwise_fn
-    attr(fn, "is_rowwise") <- TRUE
-  }
-  new_ernest_likelihood(fn, rowwise_fn, .nonfinite_action)
+create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
+  new_ernest_likelihood(fn = fn, on_nonfinite = on_nonfinite)
 }
 
 #' Construct an internal ernest likelihood function
@@ -125,51 +72,79 @@ create_likelihood <- function(
 #' Creates an internal likelihood function with error and nonfinite value
 #' handling for use in nested sampling.
 #'
-#' @param fn A partialized function that computes likelihood values.
-#' @param rowwise_fn A function that computes likelihoods rowwise.
-#' @param .nonfinite_action Case-sensitive string, one of `"warn"`, `"quiet"`,
+#' @param fn A function that computes likelihood values.
+#' @param ... Arguments to be forwarded to `fn`.
+#' @param on_nonfinite Case-sensitive string, one of `"warn"`, `"quiet"`,
 #' or `"abort"`.
 #' @param .call Calling environment for error reporting.
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
 #' error message is provided when the user provides an invalid value for
-#' `.nonfinite_action`.
+#' `on_nonfinite`.
 #'
 #' @return A function of class `"ernest_likelihood"` and `"function"`.
 #' @noRd
 new_ernest_likelihood <- function(
   fn,
-  rowwise_fn,
-  .nonfinite_action,
-  .call = caller_env()
+  on_nonfinite = c("warn", "quiet", "abort"),
+  call = caller_env()
 ) {
-  .nonfinite_action <- arg_match(
-    .nonfinite_action,
-    values = c("warn", "quiet", "abort"),
-    error_call = .call
-  )
-  log_lik_fn <- wrap_loglik(rowwise_fn, .nonfinite_action)
+  fn <- as_function(fn, call = call)
+  on_nonfinite <- arg_match(on_nonfinite, call = call)
 
-  structure(
-    log_lik_fn,
-    unsafe_fn = fn,
-    nonfinite_action = .nonfinite_action,
-    class = c("ernest_likelihood", "function")
+  nonfinite_expr <- switch(
+    on_nonfinite,
+    "warn" = expr({
+      cli::cli_warn("Replacing `{code}` with `-Inf`.")
+      code <- -Inf
+    }),
+    "quiet" = expr(code <- -Inf),
+    "abort" = expr(
+      cli::cli_abort(c(
+        "log-lik. values must be either finite or `-Inf`, not {code}."
+      ))
+    )
   )
+  structure(
+    function(unit) {
+      safe_log_lik(fn(unit), nonfinite_expr)
+    },
+    body = fn,
+    class = c("ernest_likelihood", class(fn))
+  )
+}
+
+#' Checks evaluated code for errors and nonfiniteness
+#' @param code Result of calling log_lik_fn(unit)
+#' @param error_expr Expression of what to do when an error is detected.
+#' @return `code`, which is either an -Inf or a scalar double, or the result
+#' of evaluating `error_expr`.
+#' @noRd
+safe_log_lik <- function(code, error_expr) {
+  code <- vctrs::vec_cast(code, to = double(), x_arg = "log-lik.")
+  if (vctrs::vec_size(code) != 1L) {
+    size <- vctrs::vec_size(code)
+    cli::cli_abort(
+      "log-lik. values must be single scalars, not vectors of size {size}."
+    )
+  }
+  if (is.na(code)) {
+    eval(error_expr)
+  }
+  if (!is.finite(code) && code != -Inf) {
+    eval(error_expr)
+  }
+  code
 }
 
 #' @noRd
 #' @export
 format.ernest_likelihood <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_h3("{.cls ernest_likelihood}")
-    fn <- attr(x, "unsafe_fn")
-    attr(fn, "is_rowwise") <- NULL
-    if (inherits(fn, "purrr_function_partial")) {
-      cli::cat_print(fn)
-    } else {
-      cli::cli_code(format(fn))
-    }
+    cli::cli_text("likelihood function {.cls ernest_likelihood}")
+    cli::cat_line()
+    fn <- attr(x, "body")
+    cli::cli_code(format(fn))
   })
 }
 
@@ -178,43 +153,4 @@ format.ernest_likelihood <- function(x, ...) {
 print.ernest_likelihood <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
-}
-
-#' Wrap a likelihood function with nonfinite value handling
-#'
-#' Wraps a rowwise likelihood function to handle nonfinite values according to
-#' the specified action.
-#'
-#' @param rowwise_fn A function that computes likelihoods rowwise.
-#' @param .nonfinite_action Character string, one of `"warn"`, `"quiet"`, or
-#' `"abort"`.
-#'
-#' @return A function that applies nonfinite value handling to the output of
-#' `rowwise_fn`.
-#' @noRd
-wrap_loglik <- function(rowwise_fn, .nonfinite_action) {
-  function(x) {
-    if (!is.numeric(x)) {
-      stop_input_type(x, "a numeric vector or matrix")
-    }
-    size <- if (is.matrix(x)) NROW(x) else 1L
-    y <- rowwise_fn(x)
-    y <- vctrs::vec_cast(y, to = double(), x_arg = "log_lik(...)")
-    vctrs::vec_check_size(y, size = size, arg = "log_lik(...)")
-    nonfinite <- is.na(y) | is.nan(y) | y == Inf
-    if (any(nonfinite)) {
-      if (.nonfinite_action == "abort") {
-        cli::cli_abort(c(
-          "`lik(x)` must always return finite double values or `-Inf`.",
-          "x" = "`lik(x)` returned {unique(y[nonfinite])}.",
-          "i" = "Did you set `.nonfinite_action` with {.fn create_likelihood})?"
-        ))
-      }
-      if (.nonfinite_action == "warn") {
-        cli::cli_warn("Replacing `{unique(y[nonfinite])}` with `-Inf`.")
-      }
-      y[nonfinite] <- -Inf
-    }
-    y
-  }
 }

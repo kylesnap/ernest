@@ -1,51 +1,99 @@
-# Informative error when prior or log. lik. fails completely.
+# create_live: gives informative error when prior or log. lik. fails completely
 
-    Bad Likelihood Job!
-
----
-
-    Bad Prior Job!
-
-# check_live_set catches problems in the live_env
-
-    `unit` must be a matrix, not a double vector.
+    Code
+      create_live(bad_lik, 10)
+    Condition
+      Error:
+      ! Bad Likelihood Job!
 
 ---
 
-    `unit` must have dimensions 500 x 2.
-    x `unit` instead has dimensions 250 x 4
+    Code
+      create_live(bad_prior, 10)
+    Condition
+      Error:
+      ! Bad Prior Job!
 
----
+# check_live_set: errors if unit is not a matrix of correct shape
 
-    `unit` must not contain missing or `NaN` values.
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `unit` must be a double matrix, not a double vector.
 
----
+# check_live_set: errors if unit matrix has wrong dimensions
 
-    `unit` must respect the lower boundary (0).
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `unit` must have dimensions 500 x 2.
+      x `unit` instead has dimensions 250 x 4
 
----
+# check_live_set: errors if unit matrix contains NaN
 
-    `log_lik` must be a double vector of size 500, not 499.
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `unit` must not contain missing or `NaN` values.
 
----
+# check_live_set: errors if log_lik is too short
 
-    `log_lik` must not contain missing, `NaN`, or `Inf` values.
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `log_lik` must be a double vector with length 500.
 
----
+# check_live_set: errors if log_lik contains NaN
 
-    `log_lik` must not contain missing, `NaN`, or `Inf` values.
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `log_lik` must contain only finite values or `-Inf`.
 
----
+# check_live_set: errors if log_lik contains Inf
 
-    `log_lik` must contain a range of likelihood values.
-    x `log_lik` currently contains one unique value (-10).
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `log_lik` must contain only finite values or `-Inf`.
 
----
+# check_live_set: errors if log_lik is a plateau (all values identical)
+
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `log_lik` must contain a range of likelihood values.
+      x `log_lik` currently contains one unique value (-10).
+
+# check_live_set: warns if log_lik has repeated values but not all identical
 
     `log_lik` may contain a likelihood plateau; proceed with caution.
     ! Only 250/500 likelihood values are unique.
 
-# compile method initializes live points
+# check_live_set: errors if birth vector is wrong
+
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `birth` vector cannot be missing from the `run_env` environment.
+
+---
+
+    Code
+      check_live_set(sampler)
+    Condition
+      Error:
+      ! `birth` vector cannot be missing from the `run_env` environment.
+
+# compile: initializes live points
 
     Code
       sampler

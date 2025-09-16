@@ -6,22 +6,62 @@ unif_prior <- gaussian_blobs$prior
 result <- NULL
 smry_base <- NULL
 
-start <- Sys.time()
 #' @srrstats {G5.7} These tests all demonstrate that change ernest's
 #' computational parameters changes the behaviour of the NS algorithm
 #' as expected.
-test_that("ernest outputs expected analytic results", {
-  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
-  result <<- generate(sampler, seed = 42)
-  smry_base <<- summary(result)
+describe("gaussian_blobs", {
+  it("works with rwalk", {
+    sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
+    result <<- generate(sampler, seed = 42)
+    smry_base <<- summary(result)
 
-  expect_lt(
-    abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
-    3.0 * smry_base$log_evidence_err
-  )
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1)
+    expect_lt(
+      abs(smry_base$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * smry_base$log_evidence_err
+    )
+    weights <- as_draws(result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
+  it("works with unif_ellipsoid", {
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = unif_ellipsoid(1.1),
+      n_points = 200
+    )
+    unif_result <- generate(sampler, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * unif_smry$log_evidence_err
+    )
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
+  it("works with unif_cube", {
+    skip_extended_test()
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = unif_cube(),
+      n_points = 100
+    )
+    unif_result <- generate(sampler, min_logz = 0.5, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * unif_smry$log_evidence_err
+    )
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
 })
 
 #' @srrstats {BS4.6} Test checks that the NS converegence criteria
@@ -83,7 +123,7 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
 #' needed for NS to converge an evidence estimate.
 test_that("increasing prior vol. increases iterations needed to converge", {
   skip_extended_test()
-  wide_prior <- create_uniform_prior(n_dim = 2, lower = -10, upper = 10)
+  wide_prior <- create_uniform_prior(lower = -10, upper = 10, .n_dim = 2)
   sampler_wide <- ernest_sampler(log_lik_fn, wide_prior, n_points = 500)
   run_wide <- generate(sampler_wide, seed = 42L)
   smry_wide <- summary(run_wide)

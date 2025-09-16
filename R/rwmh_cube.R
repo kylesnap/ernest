@@ -1,13 +1,17 @@
-#' Random walk over the unconstrained prior distribution
+#' Generate samples with a random walk
 #'
 #' Generate new live points by evolving a current live point through
-#' a random walk with a fixed number of steps and an adaptive step
-#' size.
+#' a Metropolis-Hastings random walk, rejecting steps that fail to meet the
+#' likelihood criterion.
 #'
 #' @param steps Positive integer. Number of steps to take when generating a
 #' proposal point.
 #' @param target_acceptance Double between `1 / steps` and 1.0. The target
 #' acceptance rate for the proposed points.
+#' @param cov_fn An optional function. If provided, `cov_fn` should
+#' be able to return the variance-covariance matrix for a set of live points
+#' in the sampler. This is used to scale the steps during sampling. If set to
+#' `NULL`, sampling steps will ignore the covariance of the live points.
 #'
 #' @returns A list with class `c("rwmh_cube", "ernest_lrps")`. Can be used with
 #' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
@@ -19,6 +23,9 @@
 #' using a Newton-like method, where the current acceptance rate \eqn{a_{cur}}
 #' is used to target the acceptance rate \eqn{a^*}:
 #' \deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
+#'
+#' @srrstats {G3.1, G3.1a} Users may choose their own cov() method or disable
+#' it entirely. This is tested.
 #'
 #' @references
 #' * Skilling, J. (2006). Nested Sampling for General
@@ -39,11 +46,20 @@
 #'
 #' # Change the default behaviour of the sampler:
 #' rwmh_cube(steps = 20, target_acceptance = 0.4)
+#' @family ernest_lrps
 #' @export
-rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
+rwmh_cube <- function(
+  steps = 25,
+  target_acceptance = 0.5,
+  cov_fn = stats::cov
+) {
+  if (!is.null(cov_fn)) {
+    cov_fn <- as_closure(cov_fn)
+  }
   new_rwmh_cube(
     steps = steps,
-    target_acceptance = target_acceptance
+    target_acceptance = target_acceptance,
+    cov_fn = cov_fn
   )
 }
 
@@ -69,6 +85,7 @@ format.rwmh_cube <- function(x, ...) {
 #' @param cache Optional cache environment.
 #' @param steps Integer. Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
+#' @param cov_fn A call to compute the covariance matrix.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate inputs.
@@ -84,15 +101,22 @@ new_rwmh_cube <- function(
   max_loop = 1e6L,
   cache = NULL,
   steps = 25L,
-  target_acceptance = 0.5
+  target_acceptance = 0.5,
+  cov_fn = NULL
 ) {
   check_number_whole(steps, min = 2)
   check_number_decimal(target_acceptance)
+  check_closure(cov_fn, allow_null = TRUE)
   if (target_acceptance < 1 / steps) {
     cli::cli_abort("`target_acceptance` must be at least 1/{steps}.")
   }
   if (target_acceptance >= 1) {
     cli::cli_abort("`target_acceptance` must be smaller than 1.")
+  }
+  cache <- cache %||% new_environment()
+  env_cache(cache, "n_accept", 0L)
+  if (is_scalar_integerish(n_dim)) {
+    env_cache(cache, "chol_cov", diag(n_dim))
   }
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
@@ -101,53 +125,71 @@ new_rwmh_cube <- function(
     cache = cache,
     steps = as.integer(steps),
     target_acceptance = as.double(target_acceptance),
+    cov_fn = cov_fn,
     .class = "rwmh_cube"
   )
 }
 
 #' @rdname propose
 #' @export
-propose.rwmh_cube <- function(x, original = NULL, criteria = NULL, ...) {
+propose.rwmh_cube <- function(
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
-    NextMethod()
+    NextMethod(x)
   } else {
-    cur_call <- env_cache(x$cache, "n_call", 0)
-    cur_accept <- env_cache(x$cache, "n_accept", 0)
-    res <- RandomWalkMetropolis(
-      unit = original,
-      criteria = criteria,
-      unit_log_lik = x$unit_log_fn,
-      num_dim = x$n_dim,
+    res <- RandomWalkImpl(
+      original = original,
+      log_lik_fn = x$unit_log_fn,
+      criterion = criterion,
       steps = x$steps,
-      epsilon = env_cache(x$cache, "epsilon", 1.0)
+      epsilon = env_cache(x$cache, "epsilon", 1.0),
+      chol_cov = env_cache(x$cache, "chol_cov", diag(x$n_dim))
     )
-    if (any(is.na(res$log_lik))) {
-      no_swaps <- which(is.na(res$log_lik))
-      res$log_lik[no_swaps] <- x$unit_log_fn(original[no_swaps, ])
-    }
-    env_poke(x$cache, "n_call", cur_call + res$n_call)
-    env_poke(x$cache, "n_accept", cur_accept + res$n_accept)
+    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "n_accept", x$cache$n_accept + res$n_accept)
     res
   }
 }
 
 #' @rdname update_lrps
 #' @export
-update_lrps.rwmh_cube <- function(x) {
-  cur_accept <- env_cache(x$cache, "n_accept", 0)
-  cur_call <- env_cache(x$cache, "n_call", 0)
+update_lrps.rwmh_cube <- function(x, unit = NULL) {
+  # Newton-like update to epsilon based on the acceptance ratio
+  cur_call <- NULL
+  cur_accept <- NULL
+  cur_eps <- NULL
+  c(cur_call, cur_accept, cur_eps) %<-%
+    env_get_list(x$cache, c("n_call", "n_accept", "epsilon"), c(0, 0, 1))
   if (cur_call != 0L) {
     acc_ratio <- cur_accept / cur_call
-    # Newton-like update to target the acceptance ratio
-    new_epsilon <- env_cache(x$cache, "epsilon", 1.0) *
-      exp(
-        (acc_ratio - x$target_acceptance) / x$n_dim / x$target_acceptance
-      )
-    env_poke(x$cache, "epsilon", new_epsilon)
-  } else {
-    env_cache(x$cache, "epsilon", 1.0)
+    new_eps <- cur_eps *
+      exp((acc_ratio - x$target_acceptance) / x$n_dim / x$target_acceptance)
+    env_poke(x$cache, "epsilon", new_eps)
   }
   env_poke(x$cache, "n_call", 0L)
   env_poke(x$cache, "n_accept", 0L)
+
+  # Calculate Cholesky-Decomposed Covariance Matrix
+  if (!is.null(x$cov_fn) && !is.null(unit)) {
+    chol_cov <- try_fetch(
+      {
+        tmp <- x$cov_fn(unit)
+        check_matrix(tmp, nrow = x$n_dim, ncol = x$n_dim)
+        chol(tmp)
+      },
+      error = function(cnd) {
+        cli::cli_warn(
+          "Using an identity matrix after failed.",
+          parent = cnd
+        )
+        diag(x$n_dim)
+      }
+    )
+    env_poke(x$cache, "chol_cov", chol_cov)
+  }
   do.call(new_rwmh_cube, as.list(x))
 }

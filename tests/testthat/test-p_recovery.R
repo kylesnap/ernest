@@ -3,10 +3,14 @@
 test_that("Parameter recovery for a normal distribution", {
   prior <- create_normal_prior(mean = c(0, 0))
   log_l <- create_likelihood(
-    LaplacesDemon::dmvn,
-    mu = !!c(0, 0),
-    Sigma = !!diag(2),
-    log = TRUE
+    \(x) {
+      LaplacesDemon::dmvn(
+        x,
+        mu = c(0, 0),
+        Sigma = diag(2),
+        log = TRUE
+      )
+    }
   )
 
   sampler <- ernest_sampler(log_l, prior, n_points = 100)
@@ -57,7 +61,7 @@ log_lik <- function(theta) {
 prior <- create_uniform_prior(
   lower = c(99999999, 0.01),
   upper = c(100000001, 1),
-  varnames = c("mu", "sigma")
+  names = c("mu", "sigma")
 )
 
 # Certified posterior median and 95% interval for mean (from NIST)

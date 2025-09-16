@@ -1,29 +1,16 @@
 # new_ernest_likelihood fails informatively
 
-    `.nonfinite_action` must be one of "warn", "quiet", or "abort", not "loudly".
+    `on_nonfinite` must be one of "warn", "quiet", or "abort", not "loudly".
 
 # create_likelihood with simple function
 
     Code
       ll
     Output
+      likelihood function <ernest_likelihood>
       
-      -- <ernest_likelihood> 
       function (x) 
       -sum((x - 1)^2)
-
-# create_likelihood with rowwise_fn
-
-    Code
-      ll
-    Output
-      
-      -- <ernest_likelihood> 
-      function (x) 
-      {
-          LaplacesDemon::dmvn(x, mu = c(-1, 1), Sigma = diag(0.95, 
-              nrow = 2))
-      }
 
 # create_likelihood throws errors
 
@@ -31,61 +18,25 @@
 
 ---
 
-    `.nonfinite_action` must be one of "warn", "quiet", or "abort", not "blob".
-
----
-
-    Exactly one of `fn` or `rowwise_fn` must be supplied.
-
-# create_likelihood can forward arguments
-
-    Code
-      ll
-    Output
-      
-      -- <ernest_likelihood> 
-      <partialised>
-      function (...) 
-      ~rowwise_fn(mu = ~c(-1, 1), Sigma = c(0.95, 0, 0, 0.95), ...)
-      <environment ADDRESS>
+    `on_nonfinite` must be one of "warn", "quiet", or "abort", not "blob".
 
 # non_finite action options
 
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned NaN.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
-
----
-
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned NaN.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
+    log-lik. values must be either finite or `-Inf`, not NaN.
 
 ---
 
     Replacing `NaN` with `-Inf`.
 
----
+# fn fails if a non-double is returned
 
-    Replacing `NaN` with `-Inf`.
-
-# nonfinite_action options with auto_batch = FALSE
-
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned Inf.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
+    Can't convert `log-lik.` <character> to <double>.
 
 ---
 
-    `lik(x)` must always return finite double values or `-Inf`.
-    x `lik(x)` returned Inf.
-    i Did you set `.nonfinite_action` with `create_likelihood()`)?
+    Can't convert `log-lik.` <character> to <double>.
 
 ---
 
-    Replacing `Inf` with `-Inf`.
-
----
-
-    Replacing `Inf` with `-Inf`.
+    Can't convert `log-lik.` <character> to <double>.
 

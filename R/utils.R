@@ -1,3 +1,57 @@
+#' Configure logging for ernest runs
+#'
+#' Set up logging for ernest. Use the `ernest_logging` option to enable or
+#' disable the log file during sampling.
+#'
+#' @param dir Character. Directory in which to create the log file.
+#' Defaults to a temporary directory.
+#' @param threshold Character. Minimum log level to record, one of
+#' "INFO", "DEBUG", "WARN", "ERROR", or "FATAL".
+#' @param layout Character. Log output format, either "json" or "logfmt".
+#'
+#' @note Currently, "INFO" messages print the state of the [ernest_lrps]
+#' cache after it is updated. "DEBUG" messages detail the results of each
+#' call to [propose].
+#'
+#' @srrstats {G4.0} Users can choose the location of logging files.
+#'
+#' @return A list containing the log configuration: threshold,
+#' destination file path, and layout. This list is also stored in the ernest
+#' package environment for use during sampling.
+#' @keywords internal
+#' @export
+configure_logging <- function(
+  dir = tempdir(),
+  threshold = "INFO",
+  layout = c("json", "logfmt")
+) {
+  check_string(dir)
+  threshold <- arg_match(
+    threshold,
+    values = c("DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+  )
+  layout <- arg_match(layout)
+  file_ext <- switch(
+    layout,
+    "json" = ".json",
+    "logfmt" = ".file"
+  )
+  layout <- switch(
+    layout,
+    "json" = log4r::json_log_layout(),
+    "logfmt" = log4r::logfmt_log_layout()
+  )
+
+  if (!dir.exists(dir)) {
+    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
+    dir <- tempdir()
+  }
+  dest <- tempfile(pattern = "ernest_run", tmpdir = dir, fileext = file_ext)
+  log_config <- list(threshold = threshold, dest = dest, layout = layout)
+  options("ernest_log_config" = log_config)
+  return(log_config)
+}
+
 #' Check the class of an object
 #'
 #' Validates that an object inherits from at least one of the specified classes.
@@ -65,14 +119,18 @@ check_matrix <- function(
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  check_number_whole(nrow, min = 1, call = "check_matrix")
-  check_number_whole(ncol, min = 1, call = "check_matrix")
-  bounds <- vctrs::vec_recycle_common(lower, upper, .size = ncol)
+  check_number_whole(nrow, min = 1, call = call)
+  check_number_whole(ncol, min = 1, call = call)
+  bounds <- vctrs::vec_recycle_common(
+    "lower" = lower,
+    "upper" = upper,
+    .size = ncol
+  )
 
-  if (!is.matrix(x) || !is_double(x)) {
+  if (!is.double(x) || !is.matrix(x)) {
     stop_input_type(
       x,
-      "a matrix",
+      "a double matrix",
       ...,
       allow_na = FALSE,
       allow_null = FALSE,
@@ -86,6 +144,7 @@ check_matrix <- function(
         "`{arg}` must have dimensions {nrow} x {ncol}.",
         "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
       ),
+      arg = arg,
       call = call
     )
   }
@@ -97,13 +156,13 @@ check_matrix <- function(
         call = call
       )
     }
-    if (any(x[i, ] <= lower)) {
+    if (any(x[i, ] <= bounds$lower)) {
       cli::cli_abort(
         "`{arg}` must respect the lower boundary ({lower}).",
         call = call
       )
     }
-    if (any(x[i, ] >= upper)) {
+    if (any(x[i, ] >= bounds$upper)) {
       cli::cli_abort(
         "`{arg}` must respect the upper boundary ({upper}).",
         call = call
@@ -111,85 +170,6 @@ check_matrix <- function(
     }
   }
   invisible(NULL)
-}
-
-#' Check that an object is a double vector
-#'
-#' Validates that an object is a double vector of a specified length and value
-#' constraints.
-#'
-#' @param x An object to check.
-#' @param size Expected length of the vector.
-#' @param allow_neg_inf Logical. If FALSE, `-Inf` values are not allowed.
-#' @param ... Additional arguments passed to error handlers.
-#' @param arg Argument name for error messages.
-#' @param call Call environment for error messages.
-#'
-#' @return Returns NULL invisibly if `x` is a valid double vector, otherwise
-#' throws an informative error.
-#' @noRd
-check_double <- function(
-  x,
-  size,
-  allow_neg_inf = TRUE,
-  ...,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  check_number_whole(size, min = 0, call = "check_vector")
-
-  if (!is_bare_double(x)) {
-    stop_input_type(
-      x,
-      glue::glue("a double vector"),
-      ...,
-      allow_na = FALSE,
-      allow_null = FALSE,
-      arg = arg,
-      call = call
-    )
-  }
-  if (vctrs::vec_size(x) != size) {
-    act <- vctrs::vec_size(x)
-    cli::cli_abort("`{arg}` must be a double vector of size {size}, not {act}.")
-  }
-  if (size == 0L) {
-    return(invisible(NULL))
-  }
-
-  if (any(is.na(x) | is.nan(x) | x == Inf)) {
-    cli::cli_abort("`{arg}` must not contain missing, `NaN`, or `Inf` values.")
-  }
-  if (!allow_neg_inf && any(x == -Inf)) {
-    cli::cli_abort("`{arg}` must not contain `-Inf` values.")
-  }
-  invisible(NULL)
-}
-
-#' Transform a function for rowwise application
-#'
-#' Converts a function so it can be applied rowwise to a matrix or directly to
-#' a vector.
-#'
-#' @param fn A function to transform.
-#'
-#' @return A function that applies `fn` to each row of a matrix or to a vector.
-#' @noRd
-as_rowwise_fn <- function(fn) {
-  x <- NULL
-  new_function(
-    exprs(x = ),
-    expr({
-      if (is.vector(x)) {
-        (!!fn)(x)
-      } else if (is.matrix(x)) {
-        tmp <- apply(x, 1, (!!fn))
-        if (is.matrix(tmp)) t(tmp) else tmp
-      } else {
-        stop_input_type(x, "a double vector or matrix", arg = "x")
-      }
-    })
-  )
 }
 
 #' Check that a list has unique, non-empty names
@@ -345,27 +325,6 @@ interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
   posterior::rvar(t(interp))
 }
 
-# Helpers for generating and validating the live points -----
-
-# Helpers for running nested sampling ---
-
-#' Find indices of the smallest n values in a vector
-#'
-#' Returns the indices of the smallest `n` values in a numeric vector.
-#'
-#' @param x A numeric vector to search.
-#' @param n Integer. The number of smallest values to find.
-#'
-#' @return An integer vector of indices corresponding to the smallest values.
-#' @noRd
-which_minn <- function(x, n = 1L) {
-  if (n == 1L) {
-    which.min(x)
-  } else {
-    order(x)[seq_len(min(n, length(x)))]
-  }
-}
-
 # Helpers for computing and reporting results -----
 
 #' Compute the nested sampling integral and statistics
@@ -420,4 +379,11 @@ pretty <- function(x) {
     x
   }
   round(x, digits = max(3L, getOption("digits") - 3L))
+}
+
+#' @noRd
+#' @export
+update_lrps.ernest_lrps <- function(x, unit = NULL) {
+  env_poke(x$cache, "n_call", 0L)
+  do.call(new_unif_cube, as.list(x))
 }

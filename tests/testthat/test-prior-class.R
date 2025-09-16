@@ -1,155 +1,119 @@
-#' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
-#' error messages
-test_that("new_ernest_prior throws informative errors", {
+describe("new_ernest_prior", {
   fn <- function(x) x
-  expect_snapshot_error(new_ernest_prior(fn, n_dim = 0))
-  expect_snapshot_error(new_ernest_prior(
-    fn,
-    n_dim = 3,
-    lower = c(-Inf, 0)
-  ))
-  expect_snapshot_error(new_ernest_prior(
-    fn,
-    n_dim = 3,
-    lower = c("-Inf", 0, 0)
-  ))
-  expect_snapshot_error(new_ernest_prior(
-    fn,
-    n_dim = 3,
-    lower = c(0, 0),
-    upper = c(1, 1),
-    varnames = c("A", "B", "C")
-  ))
+
+  it("Explains dimensionality errors", {
+    expect_snapshot(new_ernest_prior(fn, n_dim = 0), error = TRUE)
+    expect_snapshot(
+      new_ernest_prior(fn, n_dim = 3, lower = c(-Inf, 0)),
+      error = TRUE
+    )
+    expect_snapshot(
+      new_ernest_prior(
+        fn,
+        lower = c(-Inf, -Inf, 2),
+        upper = c(Inf, Inf)
+      ),
+      error = TRUE
+    )
+    expect_snapshot_error(new_ernest_prior(
+      fn,
+      names = LETTERS[1:4],
+      n_dim = 2
+    ))
+  })
+
+  it("explains type errors", {
+    expect_snapshot(new_ernest_prior(fn, lower = c("0", "0")), error = TRUE)
+    expect_snapshot(new_ernest_prior(fn, names = c(60, 70)), error = TRUE)
+  })
+
+  it("explains errors with upper and lower", {
+    expect_snapshot(new_ernest_prior(fn, lower = c(Inf, 0)), error = TRUE)
+    expect_snapshot(new_ernest_prior(fn, upper = c(0, -Inf)), error = TRUE)
+    expect_snapshot(new_ernest_prior(fn, lower = 0, upper = 0), error = TRUE)
+  })
+
+  prior <- NULL
+  it("returns correct structure and class", {
+    prior <<- new_ernest_prior(
+      fn = fn,
+      n_dim = 2,
+      lower = c(0, 1),
+      upper = c(1, 2),
+      names = c("a", "b")
+    )
+    expect_type(prior, "list")
+    expect_s3_class(prior, "ernest_prior")
+    expect_equal(attr(prior, "n_dim"), 2)
+    expect_equal(prior$lower, c(0, 1))
+    expect_equal(prior$upper, c(1, 2))
+    expect_equal(prior$names, c("a", "b"))
+    expect_true(is.function(prior$fn))
+  })
+
+  it("can infer n_dim", {
+    expect_identical(
+      prior,
+      new_ernest_prior(
+        fn = fn,
+        lower = c(0, 1),
+        upper = c(1, 2),
+        names = c("a", "b")
+      )
+    )
+  })
 })
 
-test_that("new_ernest_prior errors if lower >= upper", {
-  fn <- function(x) x
-  expect_snapshot_error(
-    new_ernest_prior(fn, n_dim = 2, lower = c(1, 2), upper = c(2, 2))
-  )
-  expect_snapshot_error(
-    new_ernest_prior(fn, n_dim = 2, lower = c(2, 2), upper = c(1, 1))
-  )
-})
+describe("create_prior", {
+  set.seed(42)
+  it("creates a custom prior", {
+    # 3D uniform prior in [-10, 10]
+    unif <- function(x) {
+      -10 + x * 20
+    }
+    # Single vector input
+    prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
+    expect_equal(prior$fn(c(0.25, 0.5, 0.75)), c(-5, 0, 5))
+    expect_snapshot(prior)
+  })
 
-test_that("new_ernest_prior returns correct structure and class", {
-  fn <- function(x) x
-  prior <- new_ernest_prior(
-    prior_fn = fn,
-    n_dim = 2,
-    lower = c(0, 1),
-    upper = c(1, 2),
-    varnames = c("a", "b")
-  )
-  expect_type(prior, "list")
-  expect_s3_class(prior, "ernest_prior")
-  expect_equal(prior$n_dim, 2)
-  expect_equal(prior$lower, c(0, 1))
-  expect_equal(prior$upper, c(1, 2))
-  expect_equal(attr(prior, "varnames"), c("a", "b"))
-  expect_true(is.function(prior$fn))
-})
+  it("catchers issues with prior function output length", {
+    fn <- function(x) c(x[1], x[2], x[1] / x[2])
+    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+  })
 
-test_that("new_ernest_prior recycles varnames, lower, upper", {
-  fn <- function(x) x
-  prior <- new_ernest_prior(
-    prior_fn = fn,
-    n_dim = 3,
-    lower = 0,
-    upper = 1,
-    varnames = "x"
-  )
-  expect_equal(prior$lower, rep(0, 3))
-  expect_equal(prior$upper, rep(1, 3))
-  expect_equal(attr(prior, "varnames"), c("x...1", "x...2", "x...3"))
-})
+  it("errors if prior returns non-finite values", {
+    fn <- function(x) rep(NaN, length(x))
+    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    fn <- function(x) c(x[1], NA)
+    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    fn <- function(x) c(Inf, x[2])
+    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+  })
 
-test_that("create_prior can apply function arguments", {
-  fn <- function(x) x
-  prior <- create_prior(
-    fn = stats::qnorm,
-    mean = !!c(-1, 0, 1),
-    sd = !!c(1, 1, 1),
-    .n_dim = 3,
-    .varnames = "x"
-  )
-  expect_equal(attr(prior, "varnames"), c("x...1", "x...2", "x...3"))
-  expect_equal(
-    prior$fn(c(0.5, 0.5, 0.5)),
-    c(-1, 0, 1)
-  )
+  it("errors if prior returns OOB values", {
+    fn <- function(x) x
+    expect_snapshot(create_prior(fn, lower = 0.5, .n_dim = 2), error = TRUE)
+    expect_snapshot(create_prior(fn, upper = 0.5, .n_dim = 2), error = TRUE)
+  })
 })
 
 test_that("new_ernest_prior repairs names as specified", {
   fn <- function(x) x
   prior <- new_ernest_prior(
-    prior_fn = fn,
+    fn = fn,
     n_dim = 2,
-    varnames = c("x", "x"),
-    repair = "universal"
+    names = c("x", "x"),
+    name_repair = "universal"
   )
-  expect_equal(attr(prior, "varnames"), c("x...1", "x...2"))
-  expect_snapshot_error(
+  expect_equal(prior$names, c("x...1", "x...2"))
+  expect_snapshot(
     new_ernest_prior(
-      prior_fn = fn,
+      fn = fn,
       n_dim = 2,
-      varnames = c("x", "x"),
-      repair = "check_unique"
-    )
+      names = c("x", "x"),
+      name_repair = "check_unique"
+    ),
+    error = TRUE
   )
-})
-
-test_that("create_prior creates a custom prior", {
-  # 3D uniform prior in [-10, 10]
-  unif <- function(x) {
-    -10 + x * 20
-  }
-
-  # Single vector input
-  prior <- create_prior(unif, .n_dim = 3, .lower = -10, .upper = 10)
-  expect_equal(prior$fn(c(0.25, 0.5, 0.75)), c(-5, 0, 5))
-  mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
-  expect_equal(
-    prior$fn(mat),
-    matrix(c(-5, 0, 5, -8, -6, -4), ncol = 3, byrow = TRUE)
-  )
-})
-
-test_that("create_prior creates a custom rowwise prior", {
-  # 3D uniform prior in [-10, 10]
-  unif <- function(x) {
-    -10 + x * 20
-  }
-
-  # Single vector input
-  prior <- create_prior(rowwise = unif, .n_dim = 3, .lower = -10, .upper = 10)
-  expect_equal(prior$fn(c(0.25, 0.5, 0.75)), c(-5, 0, 5))
-  mat <- matrix(c(0.25, 0.5, 0.75, 0.1, 0.2, 0.3), ncol = 3, byrow = TRUE)
-  expect_equal(
-    prior$fn(mat),
-    matrix(c(-5, 0, 5, -8, -6, -4), ncol = 3, byrow = TRUE)
-  )
-  expect_snapshot(prior)
-})
-
-test_that("create_prior errors if prior function output length is wrong", {
-  fn <- function(x) c(x[1], x[2], x[1] / x[2])
-  expect_snapshot_error(
-    create_prior(fn, .n_dim = 2)
-  )
-
-  fn <- function(x) {
-    if (is.matrix(x)) {
-      matrix(runif(20), ncol = 5)
-    } else {
-      runif(2)
-    }
-  }
-  expect_snapshot_error(create_prior(rowwise = fn, .n_dim = 2))
-  expect_no_message(create_prior(fn, .n_dim = 2))
-})
-
-test_that("create_prior errors if prior returns non-finite values", {
-  fn <- function(x) rep(NaN, length(x))
-  expect_snapshot_error(create_prior(fn, .n_dim = 2))
 })

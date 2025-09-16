@@ -1,4 +1,4 @@
-wrapped_lik <- create_likelihood(rowwise_fn = gaussian_blobs$log_lik)
+wrapped_lik <- create_likelihood(gaussian_blobs$log_lik)
 
 test_that("ernest_sampler initializes correctly", {
   sampler <- new_ernest_sampler(

@@ -1,8 +1,8 @@
-#' Uniformly sample from the unconstrained prior distribution
+#' Generate samples from the unconstrained prior distribution
 #'
-#' Generate new live points by performing rejection sampling across the entire
-#' prior distribution. This is highly inefficient as an LRPS, but may be useful
-#' for testing the behaviour of a nested sampling specification.
+#' Use rejection sampling across the entire prior distribution to create new
+#' live points. This is highly inefficient as an LRPS, but may be useful for
+#' testing the behaviour of a nested sampling specification.
 #'
 #' @returns A list with class `c("unif_cube", "ernest_lrps")`. Can be used with
 #' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
@@ -15,12 +15,12 @@
 #'
 #' @srrstats {BS4.0} References the software containing the sampling algorithm.
 #'
-#' @family ernest_lrps
 #' @examples
 #' data(example_run)
 #' lrps <- unif_cube()
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+#' @family ernest_lrps
 #' @export
 unif_cube <- function() {
   new_unif_cube(
@@ -72,18 +72,22 @@ new_unif_cube <- function(
 
 #' @rdname propose
 #' @export
-propose.unif_cube <- function(x, original = NULL, criteria = NULL, ...) {
+propose.unif_cube <- function(
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
-    NextMethod()
+    NextMethod(x)
   } else {
-    cur_call <- env_cache(x$cache, "n_call", 0)
-    res <- UniformCube(
-      criteria = criteria,
-      unit_log_lik = x$unit_log_fn,
-      num_dim = x$n_dim,
+    res <- CubeImpl(
+      n_dim = x$n_dim,
+      unit_log_fn = x$unit_log_fn,
+      criterion = criterion,
       max_loop = x$max_loop
     )
-    env_poke(x$cache, "n_call", cur_call + res$n_call)
+    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
 }

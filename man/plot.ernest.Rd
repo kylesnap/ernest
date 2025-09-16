@@ -54,9 +54,9 @@ data(example_run)
 plot(example_run)
 
 # Simulate results before plotting.
-plot(example_run, ndraws = 50)
+plot(example_run, ndraws = 100)
 # Simulate results from a run, then plot simulated results.
-sim <- calculate(example_run, ndraws = 50)
+sim <- calculate(example_run, ndraws = 100)
 plot(sim)
 }
 \seealso{

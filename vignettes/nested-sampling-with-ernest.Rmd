@@ -80,7 +80,7 @@ The following defines a uniform prior over $[-10, 10)$ for each parameter in 3D 
 prior <- create_uniform_prior(
   lower = -10,
   upper = 10,
-  varnames = c("x", "y", "z")
+  names = c("x", "y", "z")
 )
 prior
 ```
@@ -113,8 +113,7 @@ five_dim <- function(u) {
 }
 create_prior(
   fn = five_dim,
-  .n_dim = 5,
-  .varnames = c("MVN", "MVN", "Beta", "Gamma", "Norm[2, 10]")
+  names = c("MVN", "MVN", "Beta", "Gamma", "Norm[2, 10]")
 )
 ```
 
@@ -132,9 +131,8 @@ hierarchical <- function(u) {
 }
 create_prior(
   fn = hierarchical,
-  .n_dim = 3,
-  .varnames = c("mu", "sigma", "x"),
-  .lower = c(-Inf, 0, -Inf)
+  names = c("mu", "sigma", "x"),
+  lower = c(-Inf, 0, -Inf)
 )
 ```
 
@@ -150,10 +148,7 @@ C <- diag(1, 3)
 C[C == 0] <- 0.95
 
 loglike <- create_likelihood(
-  rowwise_fn = dmvn,
-  mu = !!mu,
-  Sigma = !!C,
-  log = TRUE
+  \(x) dmvn(x, mu = mu, Sigma = C, log = TRUE)
 )
 ```
 

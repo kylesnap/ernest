@@ -23,8 +23,8 @@
       
       -- Results 
       No. Iterations: 1
-      No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      No. Calls: 0
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [ansi]
 
@@ -47,8 +47,8 @@
       
       -- Results 
       No. Iterations: 1
-      No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      No. Calls: 0
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [unicode]
 
@@ -71,8 +71,8 @@
       
       ── Results 
       No. Iterations: 1
-      No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      No. Calls: 0
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Progress bar can be printed [fancy]
 
@@ -95,8 +95,8 @@
       
       ── Results 
       No. Iterations: 1
-      No. Calls: 1
-      Log. Evidence: -6.9737 (± 2.5135)
+      No. Calls: 0
+      Log. Evidence: -10.5042 (± 2.8489)
 
 # Fully-verbose output [plain]
 
@@ -114,12 +114,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2167
+      * Current Step Size: 1.2333
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 5130
+      Log. Evidence: -6.5929 (± 1.59)
 
 # Fully-verbose output [ansi]
 
@@ -137,12 +137,12 @@
       * No. Dimensions: 2
       * No. Calls Since Update: 0
       * No. Accepted Since Update: 0
-      * Current Step Size: 0.2167
+      * Current Step Size: 1.2333
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 5130
+      Log. Evidence: -6.5929 (± 1.59)
 
 # Fully-verbose output [unicode]
 
@@ -160,12 +160,12 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2167
+      • Current Step Size: 1.2333
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 5130
+      Log. Evidence: -6.5929 (± 1.59)
 
 # Fully-verbose output [fancy]
 
@@ -183,10 +183,32 @@
       • No. Dimensions: 2
       • No. Calls Since Update: 0
       • No. Accepted Since Update: 0
-      • Current Step Size: 0.2167
+      • Current Step Size: 1.2333
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10701
-      Log. Evidence: -6.6693 (± 1.6596)
+      No. Calls: 5130
+      Log. Evidence: -6.5929 (± 1.59)
+
+# set_logging enables and disables logging
+
+    Code
+      generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
+    Message
+      i Logging run at FILE.
+    Output
+      Nested sampling run <ernest_run/ernest_sampler>
+      No. Points: 500
+      
+      -- Sampling Method 
+      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      * No. Dimensions: 2
+      * No. Calls Since Update: 0
+      * No. Accepted Since Update: 0
+      * Current Step Size: 1.2333
+      
+      -- Results 
+      No. Iterations: 1000
+      No. Calls: 5130
+      Log. Evidence: -6.5929 (± 1.59)
 

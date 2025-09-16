@@ -159,7 +159,7 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">2</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...1`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...2`</span>
@@ -181,7 +181,7 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ⠙ Performing nested sampling (1 points replaced)...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_iterations` reached (100).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (100 points replaced)... <span style="color: #B2B2B2;">[39ms]</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (100 points replaced)... <span style="color: #B2B2B2;">[37ms]</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
@@ -195,8 +195,8 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Results </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Iterations: 100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls: 162</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.5675 (± 0.1207)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls: 83</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.5414 (± 0.1157)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The final number of calls may exceed `max_calls`, as `generate`</span></span></span>
 <span class="r-in"><span><span class="co"># only checks the number of calls when removing a live point.</span></span></span>
@@ -204,7 +204,7 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ⠙ Performing nested sampling (1 points replaced)...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_calls` surpassed (2602 &gt; 2600).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (222 points replaced)... <span style="color: #B2B2B2;">[153ms]</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (273 points replaced)... <span style="color: #B2B2B2;">[143ms]</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
@@ -214,12 +214,12 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 0.2255</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.2761</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Results </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. Iterations: 221</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Iterations: 272</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls: 2602</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.5548 (± 0.0698)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.6356 (± 0.0637)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use the default stopping criteria</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span>  <span class="co"># \dontrun{}</span></span></span>

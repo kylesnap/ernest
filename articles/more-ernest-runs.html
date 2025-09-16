@@ -95,13 +95,13 @@ sampling test problem, as the evidence can be solved analytically.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Uniform prior over [-5, 5] in each dimension</span></span>
-<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>, upper <span class="op">=</span> <span class="fl">5</span>, varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="op">-</span><span class="fl">5</span>, upper <span class="op">=</span> <span class="fl">5</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Set up the sampler and run nested sampling:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">gaussian_blobs_loglik</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0497 &lt; 0.05).</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span></code></pre></div>
 <p>For this distribution, the analytical evidence is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒵</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mn>2</mn><mn>2</mn></msup><mo>*</mo><mi>π</mi><mo>*</mo><msup><mn>0.1</mn><mn>2</mn></msup><mi>/</mi><mn>100</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mo>−</mo><mn>6.679</mn></mrow><annotation encoding="application/x-tex">\mathcal{Z} = \log(2^2 * \pi * 0.1^2 / 100) \approx -6.679</annotation></semantics></math>.
 Use <code>summary</code> to extract the log-evidence
@@ -113,9 +113,9 @@ Use <code>summary</code> to extract the log-evidence
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested sampling results </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 100</span></span>
-<span><span class="co">#&gt; No. Iterations: 948</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 20902</span></span>
-<span><span class="co">#&gt; Log. Evidence: -6.4384 (± 0.2592)</span></span></code></pre></div>
+<span><span class="co">#&gt; No. Iterations: 970</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 20634</span></span>
+<span><span class="co">#&gt; Log. Evidence: -6.6637 (± 0.2644)</span></span></code></pre></div>
 <p>Plot the progress of the evidence estimate:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
@@ -136,7 +136,7 @@ log-likelihood and prior:</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Uniform prior over [0, 1] in each dimension</span></span>
-<span><span class="va">eggbox_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">eggbox_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Visualize the likelihood surface:</p>
 <p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>Run the sampler and compare the estimated log-evidence to the nestle
@@ -146,15 +146,15 @@ result
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">eggbox_prior</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499 &lt; 0.05).</span></span>
 <span><span class="va">smry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="va">smry</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested sampling results </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 5046</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 111977</span></span>
-<span><span class="co">#&gt; Log. Evidence: 235.9308 (± 0.1198)</span></span></code></pre></div>
+<span><span class="co">#&gt; No. Iterations: 5015</span></span>
+<span><span class="co">#&gt; No. Lik. Calls: 106032</span></span>
+<span><span class="co">#&gt; Log. Evidence: 235.9939 (± 0.1195)</span></span></code></pre></div>
 <p>Plot the posterior distribution:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
@@ -190,13 +190,9 @@ of <code>create_likelihood</code>:</p>
 <span><span class="va">anon_log_lik</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, data <span class="op">=</span> <span class="va">y</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="co"># Using dots for create_likelihood</span></span>
-<span><span class="va">partial_log_lik</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_likelihood.html">create_likelihood</a></span><span class="op">(</span>fn <span class="op">=</span> <span class="va">log_lik</span>, data <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">y</span><span class="op">)</span></span>
-<span></span>
 <span><span class="va">expected_mean</span> <span class="op">&lt;-</span> <span class="fl">100000000.200000000000000</span></span>
 <span><span class="va">expected_sd</span> <span class="op">&lt;-</span> <span class="fl">0.108372230793914</span></span>
 <span><span class="fu">anon_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">expected_mean</span>, <span class="va">expected_sd</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 10.0784</span></span>
-<span><span class="fu">partial_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">expected_mean</span>, <span class="va">expected_sd</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 10.0784</span></span></code></pre></div>
 <p>Define the prior for the mean and standard deviation, then run the
 sampler. The prior is constrained near the expected posterior values:
@@ -207,9 +203,9 @@ divergence</a> between prior and posterior.</p>
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span></span>
 <span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">99999999</span>, <span class="fl">0.01</span><span class="op">)</span>,</span>
 <span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100000001</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span><span class="op">)</span></span>
+<span>  names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"sigma"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">partial_log_lik</span>, <span class="va">prior</span><span class="op">)</span></span>
+<span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">anon_log_lik</span>, <span class="va">prior</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, seed <span class="op">=</span> <span class="fl">42</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.05 &lt; 0.05).</span></span></code></pre></div>
@@ -228,7 +224,7 @@ interval):</p>
 <span><span class="co">#&gt;   variable    `5%`         `50%`         `95%`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.62<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.109         0.173</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.69<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.171</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

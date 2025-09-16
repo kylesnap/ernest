@@ -47,13 +47,13 @@ described by independent normal variables, possibly truncated.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_normal_prior</span><span class="op">(</span></span>
-<span>  n_dim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mean <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  names <span class="op">=</span> <span class="st">"Normal"</span>,</span>
 <span>  lower <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  upper <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  varnames <span class="op">=</span> <span class="st">"Normal"</span>,</span>
-<span>  name_repair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"unique"</span>, <span class="st">"universal"</span>, <span class="st">"check_unique"</span><span class="op">)</span></span>
+<span>  .n_dim <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  .name_repair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"unique"</span>, <span class="st">"universal"</span>, <span class="st">"check_unique"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -61,13 +61,7 @@ described by independent normal variables, possibly truncated.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-n-dim">n_dim<a class="anchor" aria-label="anchor" href="#arg-n-dim"></a></dt>
-<dd><p>An optional positive integer. The number of dimensions of the
-prior distribution. If left <code>NULL</code>, this is inferred from the common length
-of the vector-valued parameters (see Note).</p></dd>
-
-
-<dt id="arg-mean">mean<a class="anchor" aria-label="anchor" href="#arg-mean"></a></dt>
+<dl><dt id="arg-mean">mean<a class="anchor" aria-label="anchor" href="#arg-mean"></a></dt>
 <dd><p>Numeric vector of means.</p></dd>
 
 
@@ -75,19 +69,24 @@ of the vector-valued parameters (see Note).</p></dd>
 <dd><p>Numeric vector of standard deviations (must be strictly positive.)</p></dd>
 
 
+<dt id="arg-names">names<a class="anchor" aria-label="anchor" href="#arg-names"></a></dt>
+<dd><p>An optional character vector. Names for the variables in the
+prior distribution.</p></dd>
+
+
 <dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
 <dd><p>Numeric vector of bounds for a truncated normal
 distribution.</p></dd>
 
 
-<dt id="arg-varnames">varnames<a class="anchor" aria-label="anchor" href="#arg-varnames"></a></dt>
-<dd><p>An optional character vector. Names for the variables in the
+<dt id="arg--n-dim">.n_dim<a class="anchor" aria-label="anchor" href="#arg--n-dim"></a></dt>
+<dd><p>An optional positive integer. The number of dimensions of the
 prior distribution.</p></dd>
 
 
-<dt id="arg-name-repair">name_repair<a class="anchor" aria-label="anchor" href="#arg-name-repair"></a></dt>
+<dt id="arg--name-repair">.name_repair<a class="anchor" aria-label="anchor" href="#arg--name-repair"></a></dt>
 <dd><p>An optional, case-sensitive string. How to repair
-<code>varnames</code>. Options are <code>"unique"</code> (default), <code>"universal"</code>, or
+<code>names</code>. Options are <code>"unique"</code> (default), <code>"universal"</code>, or
 <code>"check_unique"</code>. See <code><a href="https://vctrs.r-lib.org/reference/vec_as_names.html" class="external-link">vctrs::vec_as_names()</a></code> for details.</p></dd>
 
 </dl></div>
@@ -98,10 +97,8 @@ implementation of the unit hypercube transformation.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>The vector-valued parameters in this function are recycled to length
-<code>n_dim</code> if it is an integer, or to a common length if <code>n_dim = NULL</code>. See
-<a href="https://vctrs.r-lib.org/reference/theory-faq-recycling.html" class="external-link">vctrs::vector_recycling_rules</a> for additional information on
-recycling.</p>
+    <p>See <a href="https://vctrs.r-lib.org/reference/theory-faq-recycling.html" class="external-link">vctrs::vector_recycling_rules</a> for additional information on
+how parameters are recycled to a common length.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -114,7 +111,7 @@ recycling.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu">create_normal_prior</span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu">create_normal_prior</span><span class="op">(</span>.n_dim <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Normal` -&gt; `Normal...1`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Normal` -&gt; `Normal...2`</span>

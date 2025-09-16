@@ -136,7 +136,7 @@ parameter.</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">2</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...1`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...2`</span>
@@ -165,7 +165,9 @@ parameter.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • <span style="color: #BBBB00;">!</span> An abstract LRPS sampler <span style="color: #0000BB;">&lt;ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Uniform Unit Cube LRPS <span style="color: #0000BB;">&lt;unif_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

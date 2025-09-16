@@ -46,64 +46,43 @@ either a finite value or <code>-Inf</code> for each vector of parameters provide
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span></span>
-<span>  <span class="va">fn</span>,</span>
-<span>  <span class="va">rowwise_fn</span>,</span>
-<span>  <span class="va">...</span>,</span>
-<span>  .nonfinite_action <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"quiet"</span>, <span class="st">"abort"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span><span class="va">fn</span>, on_nonfinite <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"quiet"</span>, <span class="st">"abort"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-fn-rowwise-fn">fn, rowwise_fn<a class="anchor" aria-label="anchor" href="#arg-fn-rowwise-fn"></a></dt>
-<dd><p>Choose one of <code>fn</code> or <code>rowwise_fn</code>:</p><ul><li><p><code>fn</code>: A function that takes a vector of parameters and returns a scalar
-likelihood value (either a finite double or <code>-Inf</code>).</p></li>
-<li><p><code>rowwise_fn</code>: A function that takes a matrix of parameters and returns
-a vector of likelihood values (all finite doubles or <code>-Inf</code>).</p></li>
-</ul></dd>
+<dl><dt id="arg-fn">fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
+<dd><p>A function that takes a vector of parameters and returns a
+scalar log-likelihood value (either a finite double or <code>-Inf</code>).</p></dd>
 
 
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Named arguments to <code>fn</code> or <code>rowwise_fn</code> that should be partially
-applied.</p></dd>
-
-
-<dt id="arg--nonfinite-action">.nonfinite_action<a class="anchor" aria-label="anchor" href="#arg--nonfinite-action"></a></dt>
-<dd><p>(case-sensitive string) Action to perform when <code>fn</code>
-returns a value that is non-finite and not <code>-Inf</code> (e.g., <code>NaN</code>, <code>NA</code>, <code>Inf</code>):</p><ul><li><p><code>"warn"</code>: Issue a warning and replace values with <code>-Inf</code>.</p></li>
-<li><p><code>"quiet"</code>: Silently replace values with <code>-Inf</code>.</p></li>
+<dt id="arg-on-nonfinite">on_nonfinite<a class="anchor" aria-label="anchor" href="#arg-on-nonfinite"></a></dt>
+<dd><p>A case-sensitive string. Action to perform when <code>fn</code>
+returns a value that is non-finite and not <code>-Inf</code> (i.e., <code>NaN</code>, <code>NA</code>, <code>Inf</code>):</p><ul><li><p><code>"warn"</code>: Issue a warning and return <code>-Inf</code>.</p></li>
+<li><p><code>"quiet"</code>: Silently return <code>-Inf</code>.</p></li>
 <li><p><code>"abort"</code>: Stop execution and signal an error.</p></li>
 </ul></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A function with class <code>ernest_likelihood</code>. This function is
-wrapped in checks to ensure type and size stability:</p><ul><li><p>If provided a vector of doubles, returns a scalar double, <code>-Inf</code>, or an
-error.</p></li>
-<li><p>If provided a matrix of doubles, returns a vector of doubles and <code>-Inf</code>
-of length equal to the number of matrix rows, or an error.</p></li>
-<li><p>Otherwise, it throws an error.</p></li>
-</ul></div>
+    <p>A function with class <code>ernest_likelihood</code>. When provided a parameter vector
+this function will always return either a scalar finite double, the value
+<code>-Inf</code>, or an error message.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Model likelihoods should be provided as a log-density function. The first
-argument of <code>fn</code> or <code>rowwise_fn</code> should be a vector or matrix of parameters,
-respectively.</p>
-<p>If the model likelihood is conditional on some data, then incorporate this
-data into the likelihood function here. You can either build an anonymous
-function (see <code><a href="https://rlang.r-lib.org/reference/as_function.html" class="external-link">rlang::as_function()</a></code>), or use the <code>...</code> parameters to
-partially apply data to <code>fn</code> or <code>rowwise_fn</code> (see <code><a href="https://purrr.tidyverse.org/reference/partial.html" class="external-link">purrr::partial()</a></code>).</p>
+argument of <code>fn</code> should be a vector of free parameters.</p>
+<p>If the model likelihood is conditional on some data, then use this step to
+incorporate this data into your nested sampling run. We recommended using
+an (anonymous function)<code><a href="https://rlang.r-lib.org/reference/as_function.html" class="external-link">rlang::as_function()</a></code> to do this (see Examples).</p>
 <p>It is expected that the log-likelihood function returns a scalar finite
 double or <code>-Inf</code> for each parameter vector. Non-finite values other than
 <code>-Inf</code>, such as <code>NaN</code>, <code>Inf</code>, or <code>NA</code> (i.e. missing values) are handled
-with the behavior of <code>.nonfinite_action</code>.</p>
-<p>Ernest will wrap <code>fn</code> so it can accept a matrix of parameters. If you have
-a more efficient implementation of your likelihood function that can handle
-vectors and matrices, consider providing <code>rowwise_fn</code> instead.</p>
+with the behavior of <code>on_nonfinite</code>.</p>
     </div>
 
     <div class="section level2">
@@ -123,7 +102,7 @@ vectors and matrices, consider providing <code>rowwise_fn</code> instead.</p>
 <span class="r-in"><span><span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.679876</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Bind data to the likelihood function using dots or anonymous functions.</span></span></span>
+<span class="r-in"><span><span class="co"># Bind data to the likelihood function an anonymous function.</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">100000000</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">11</span>, min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="kw">if</span> <span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span></span>
@@ -131,19 +110,9 @@ vectors and matrices, consider providing <code>rowwise_fn</code> instead.</p>
 <span class="r-in"><span>  <span class="op">}</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, mean <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="fu">create_likelihood</span><span class="op">(</span><span class="va">log_lik</span>, y <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">y</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ── <span style="color: #0000BB;">&lt;ernest_likelihood&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;partialised&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (...) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> fn(y = c(11792689.0822127, 14543993.5941249, 29763387.744315, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15531046.660617, 17316007.2788596, 14453893.2293654, 20176399.9927789, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20279952.7114257, 25178754.7301501, 11634861.6639152, 16051442.1574771</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ), ...)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55f13b4d4a08&gt;</span>
 <span class="r-in"><span><span class="fu">create_likelihood</span><span class="op">(</span>\<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> likelihood function <span style="color: #0000BB;">&lt;ernest_likelihood&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ── <span style="color: #0000BB;">&lt;ernest_likelihood&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #AFAF00;">function</span> <span style="color: #D7AF00;">(</span>theta<span style="color: #D7AF00;">)</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">log_lik</span><span style="color: #D7AF00;">(</span>theta, y<span style="color: #D7AF00;">)</span></span>
 </code></pre></div>

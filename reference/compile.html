@@ -115,7 +115,7 @@ object.</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>n_dim <span class="op">=</span> <span class="fl">2</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...1`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...2`</span>
@@ -135,13 +135,13 @@ object.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">$</span><span class="va">run_env</span><span class="op">$</span><span class="va">unit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]       [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9947288 0.98949724</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.9889581 0.09055999</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.9465411 0.91811271</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.9413467 0.08311054</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.0780184 0.92671498</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.9569834 0.11210960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]       [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.97347381 0.00929293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.98035135 0.91453735</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.08963612 0.03773272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 0.11839594 0.98338343</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 0.03654720 0.89163741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 0.06913359 0.08462063</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Continue a previous run</span></span></span>
 <span class="r-in"><span><span class="co"># run &lt;- data(example_run)</span></span></span>
@@ -153,14 +153,14 @@ object.</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
 <span class="r-in"><span><span class="va">sampler_3</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 1000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 0.0223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.0048</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -10,6 +10,7 @@
 <url><loc>https://kylesnap.github.io/ernest/reference/as_draws.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/calculate.ernest_run.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/compile.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/configure_logging.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/create_likelihood.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/create_normal_prior.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/create_prior.html</loc></url>
@@ -26,6 +27,7 @@
 <url><loc>https://kylesnap.github.io/ernest/reference/rwmh_cube.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/summary.ernest_run.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/unif_cube.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/unif_ellipsoid.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/update_lrps.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/visualize.ernest_run.html</loc></url>
 </urlset>

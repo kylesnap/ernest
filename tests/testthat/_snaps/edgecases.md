@@ -1,7 +1,7 @@
 # Zero-length likelihood fails
 
     <ernest_sampler> cannot compile.
-    Caused by error in `compile()`:
+    Caused by error in `ernest_sampler()`:
     ! log-lik. values must be single scalars, not vectors of size 0.
 
 # Zero-length prior fails
@@ -19,7 +19,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `compile()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't convert `log-lik.` <character> to <double>.
 
 # Fails on complex types
@@ -29,7 +29,7 @@
 ---
 
     <ernest_sampler> cannot compile.
-    Caused by error in `compile()`:
+    Caused by error in `ernest_sampler()`:
     ! Can't convert `log-lik.` <complex> to <double>.
 
 # Missing values in the prior
@@ -43,13 +43,13 @@
 # Missing values in the log-likelihood
 
     <ernest_sampler> cannot compile.
-    Caused by error in `compile()`:
+    Caused by error in `ernest_sampler()`:
     ! log-lik. values must be either finite or `-Inf`, not NA.
 
 ---
 
     <ernest_sampler> threw a warning during compilation
-    Caused by warning in `compile()`:
+    Caused by warning:
     ! Replacing `NA` with `-Inf`.
 
 # Ernest fails when ll is flat to begin with

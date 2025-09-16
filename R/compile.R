@@ -143,14 +143,7 @@ create_live <- function(lrps, n_points, call = caller_env()) {
       live
     },
     error = function(cnd) {
-      cli::cli_abort(cnd$message, call = expr(compile()))
-    },
-    warning = function(cnd) {
-      if (grepl("object length is not a multiple", cnd$message)) {
-        cli::cli_abort(cnd$message, call = expr(compile()))
-      } else {
-        cli::cli_warn(cnd$message, call = expr(compile()))
-      }
+      cli::cli_abort(cnd$message, call = call)
     }
   )
   order_logl <- order(live$log_lik)
@@ -192,7 +185,7 @@ check_live_set <- function(sampler, call = caller_env()) {
       call = call
     )
   }
-  if (any(!is.finite(log_lik) & log_lik != -Inf)) {
+  if (any(is.na(log_lik) | is.nan(log_lik) | log_lik == Inf)) {
     cli::cli_abort(
       "`log_lik` must contain only finite values or `-Inf`.",
       call = call

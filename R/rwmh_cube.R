@@ -54,7 +54,7 @@ rwmh_cube <- function(
   cov_fn = stats::cov
 ) {
   if (!is.null(cov_fn)) {
-    cov_fn = as_closure(cov_fn)
+    cov_fn <- as_closure(cov_fn)
   }
   new_rwmh_cube(
     steps = steps,

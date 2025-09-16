@@ -7,50 +7,35 @@
 \usage{
 create_prior(
   fn,
-  rowwise_fn = deprecated(),
-  ...,
+  names = NULL,
+  lower = -Inf,
+  upper = Inf,
   .n_dim = NULL,
-  .varnames = NULL,
-  .name_repair = c("unique", "universal", "check_unique"),
-  .lower = -Inf,
-  .upper = Inf
+  .name_repair = c("unique", "universal", "check_unique")
 )
 }
 \arguments{
 \item{fn}{A function. Takes a vector of unit cube coordinates and
 returns a vector of parameters of the same length.}
 
-\item{rowwise_fn}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} No longer supported;
-instead, use \code{fn} to provide a prior-transformation function.}
+\item{names}{An optional character vector. Names for the variables in the
+prior distribution.}
+
+\item{lower, upper}{Numeric vectors. Expected bounds for the
+parameter vectors after hypercube transformation.}
 
 \item{.n_dim}{An optional positive integer. The number of dimensions of the
-prior distribution. If left \code{NULL}, this is inferred from the common length
-of the vector-valued parameters (see Note).}
-
-\item{.varnames}{An optional character vector. Names for the variables in the
 prior distribution.}
 
 \item{.name_repair}{An optional, case-sensitive string. How to repair
-\code{varnames}. Options are \code{"unique"} (default), \code{"universal"}, or
+\code{names}. Options are \code{"unique"} (default), \code{"universal"}, or
 \code{"check_unique"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for details.}
-
-\item{.lower, .upper}{Numeric vectors. Expected bounds for the
-parameter vectors after hypercube transformation.}
 }
 \value{
-A named list with class \code{ernest_prior}, containing:
-\itemize{
-\item \code{fn}: The prior transformation function.
-\item \code{n_dim}: Number of dimensions in the prior space.
-\item \code{lower}, \code{upper}: Bounds for the prior distribution, recycled to length
-\code{n_dim}.
-}
-
-Additionally, the object has a \code{varnames} attribute.
-
-When provided a vector from the unit hypercube, \code{fn} either a length-\code{n_dim}
-vector of doubles, containing transformed model parameters, or an error
-message.
+A list with with class \code{ernest_prior}, containing \code{fn}, \code{lower}, \code{upper},
+and \code{names}. The vector-valued parameters are guaranteed to be of
+length \code{n_dim} if provided, or share a common length if otherwise left
+\code{NULL}.
 }
 \description{
 Use an R function to specify the prior distribution of parameters for a
@@ -75,10 +60,8 @@ be able to take in a vector of points (each between 0 and 1) and return
 a vector of the same length which contains only finite values.
 }
 \note{
-The vector-valued parameters in this function are recycled to length
-\code{.n_dim} if it is an integer, or to a common length if \code{.n_dim = NULL}. See
-\link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
-recycling.
+See \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
+how parameters are recycled to a common length.
 }
 \examples{
 # 3D uniform prior in the range [-10, 10]
@@ -86,7 +69,7 @@ unif <- function(x) {
    -10 + x * 20
 }
 
-prior <- create_prior(unif, .n_dim = 3, .lower = -10, .upper = 10)
+prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
 prior$fn(c(0.25, 0.5, 0.75))
 
 # A normal prior with parameterised mean and standard deviation
@@ -98,7 +81,7 @@ hier_f <- function(theta) {
 }
 create_prior(
   hier_f,
-  .varnames = c("mu", "sigma", "x"),
-  .lower = c(-Inf, 0, -Inf)
+  names = c("mu", "sigma", "x"),
+  lower = c(-Inf, 0, -Inf)
 )
 }

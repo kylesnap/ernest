@@ -116,13 +116,18 @@ new_unif_ellipsoid <- function(
 
 #' @rdname propose
 #' @export
-propose.unif_ellipsoid <- function(x, original = NULL, criteria = NULL) {
+propose.unif_ellipsoid <- function(
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
-    NextMethod(x, criteria)
+    NextMethod(x)
   } else {
     res <- EllipsoidImpl(
       unit_log_fn = x$unit_log_fn,
-      criterion = criteria,
+      criterion = criterion,
       chol_precision = x$cache$chol_precision,
       loc = x$cache$loc,
       d2 = x$cache$d2,

@@ -33,7 +33,7 @@ describe("new_ernest_lrps", {
 describe("propose.ernest_lrps", {
   it("proposes a single new point", {
     lrps <- new_ernest_lrps(fn, 2L)
-    result <- propose(lrps, original = NULL, criteria = -Inf)
+    result <- propose(lrps, original = NULL, criterion = -Inf)
     expect_length(result$unit, 2)
     expect_equal(
       gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
@@ -53,10 +53,10 @@ describe("propose.ernest_lrps", {
   it("is reproducible under seed", {
     set.seed(42L)
     lrps <- new_ernest_lrps(fn, 2L)
-    result1 <- propose(lrps, criteria = -37)
+    result1 <- propose(lrps, criterion = -37)
 
     set.seed(42L)
-    result2 <- propose(lrps, criteria = -37)
+    result2 <- propose(lrps, criterion = -37)
     expect_identical(result1, result2)
   })
 })

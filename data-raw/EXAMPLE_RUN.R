@@ -27,4 +27,5 @@ sampler <- ernest_sampler(
 )
 
 example_run <- generate(sampler, seed = 42L)
+
 usethis::use_data(example_run, overwrite = TRUE)

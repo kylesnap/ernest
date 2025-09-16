@@ -23,7 +23,7 @@ describe("new_unif_cube", {
 uniform <- new_unif_cube(fn, 2L, max_loop = 10000)
 describe("propose.unif_cube", {
   it("proposes a single new point", {
-    result <- propose(uniform, original = NULL, criteria = -Inf)
+    result <- propose(uniform, original = NULL, criterion = -Inf)
     expect_length(result$unit, 2)
     expect_equal(
       gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
@@ -36,7 +36,7 @@ describe("propose.unif_cube", {
     result <- propose(
       uniform,
       original = c(0.5, 0.5),
-      criteria = -99.3068
+      criterion = -99.3068
     )
     expect_length(result$unit, 2)
     expect_equal(

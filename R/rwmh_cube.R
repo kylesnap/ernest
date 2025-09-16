@@ -24,6 +24,9 @@
 #' is used to target the acceptance rate \eqn{a^*}:
 #' \deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
 #'
+#' @srrstats {G3.1, G3.1a} Users may choose their own cov() method or disable
+#' it entirely. This is tested.
+#'
 #' @references
 #' * Skilling, J. (2006). Nested Sampling for General
 #'   Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
@@ -129,14 +132,19 @@ new_rwmh_cube <- function(
 
 #' @rdname propose
 #' @export
-propose.rwmh_cube <- function(x, original = NULL, criteria = NULL) {
+propose.rwmh_cube <- function(
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
-    NextMethod()
+    NextMethod(x)
   } else {
     res <- RandomWalkImpl(
       original = original,
       log_lik_fn = x$unit_log_fn,
-      criterion = criteria,
+      criterion = criterion,
       steps = x$steps,
       epsilon = env_cache(x$cache, "epsilon", 1.0),
       chol_cov = env_cache(x$cache, "chol_cov", diag(x$n_dim))

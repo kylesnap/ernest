@@ -72,14 +72,19 @@ new_unif_cube <- function(
 
 #' @rdname propose
 #' @export
-propose.unif_cube <- function(x, original = NULL, criteria = NULL) {
+propose.unif_cube <- function(
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
-    NextMethod(x, criteria)
+    NextMethod(x)
   } else {
     res <- CubeImpl(
       n_dim = x$n_dim,
       unit_log_fn = x$unit_log_fn,
-      criterion = criteria,
+      criterion = criterion,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)

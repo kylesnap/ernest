@@ -71,7 +71,7 @@
 #' specification.
 #'
 #' @examples
-#' prior <- create_uniform_prior(n_dim = 2, lower = -1, upper = 1)
+#' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
 #' sampler
@@ -114,7 +114,6 @@ generate.ernest_sampler <- function(
     min_logz = min_logz,
     show_progress = show_progress
   )
-  env_unbind(pkg_env("ernest"), "logger")
   new_ernest_run(x, results)
 }
 

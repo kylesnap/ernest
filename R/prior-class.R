@@ -54,7 +54,7 @@
 #'    -10 + x * 20
 #' }
 #'
-#' prior <- create_prior(unif, n_dim = 3, lower = -10, upper = 10)
+#' prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
 #' prior$fn(c(0.25, 0.5, 0.75))
 #'
 #' # A normal prior with parameterised mean and standard deviation

@@ -60,6 +60,8 @@ new_ernest_sampler <- function(
   )
   check_environment(run_env, allow_null = TRUE, call = .call)
 
+  unit <- NULL
+  log_lik <- NULL
   lrps$unit_log_fn <- rlang::new_function(
     exprs(unit = ),
     expr(log_lik(prior(unit))),

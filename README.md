@@ -89,7 +89,7 @@ likelihood, run nested sampling, and summarise results.
 library(ernest)
 
 # Define a prior (i.i.d. multivariate uniform)
-prior <- create_uniform_prior(lower = -10, upper = 10, varnames = c("x", "y", "z"))
+prior <- create_uniform_prior(lower = -10, upper = 10, names = c("x", "y", "z"))
 
 # Define a log-likelihood function (multivariate normal)
 mu <- c(0, 0, 0)

@@ -40,7 +40,7 @@ describe("new_unif_ellipsoid", {
 uniform <- new_unif_ellipsoid(fn, n_dim = 2, enlarge = 1.2)
 describe("propose.unif_ellipsoid", {
   it("Proposes points in the unit cube", {
-    result <- propose(uniform, original = NULL, criteria = -Inf)
+    result <- propose(uniform, original = NULL, criterion = -Inf)
     expect_length(result$unit, 2)
     expect_equal(
       gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
@@ -50,7 +50,7 @@ describe("propose.unif_ellipsoid", {
   })
 
   it("Proposes points in the unit sphere", {
-    result <- propose(uniform, original = c(0.5, 0.5), criteria = -99.3068)
+    result <- propose(uniform, original = c(0.5, 0.5), criterion = -99.3068)
     expect_length(result$unit, 2)
     expect_length(result$unit, 2)
     expect_equal(
@@ -64,7 +64,7 @@ describe("propose.unif_ellipsoid", {
 
 live <- replicate(
   500,
-  propose(uniform, original = c(0.5, 0.5), criteria = -99.3068)
+  propose(uniform, original = c(0.5, 0.5), criterion = -99.3068)
 )
 live <- do.call(rbind, live["unit", ])
 describe("update_lrps.unif_ellipsoid", {
@@ -86,7 +86,7 @@ describe("update_lrps.unif_ellipsoid", {
 
     new_live <- replicate(
       500,
-      propose(new_uniform, original = c(0.5, 0.5), criteria = -Inf)
+      propose(new_uniform, original = c(0.5, 0.5), criterion = -Inf)
     )
     new_live <- do.call(rbind, new_live["unit", ])
     dists <- apply(new_live, 1, \(x) {
@@ -103,7 +103,7 @@ describe("update_lrps.unif_ellipsoid", {
     new_unif_scaled <- update_lrps(uniform, live)
     scaled_live <- replicate(
       500,
-      propose(new_unif_scaled, original = c(0.5, 0.5), criteria = -Inf)
+      propose(new_unif_scaled, original = c(0.5, 0.5), criterion = -Inf)
     )
     scaled_live <- do.call(rbind, scaled_live["unit", ])
     precision <- solve(ell$cov)
@@ -145,7 +145,7 @@ describe("unif_ellipsoid in 3D", {
   it("can propose in 3D", {
     result <- replicate(
       500,
-      propose(uniform_3d, original = c(0.5, 0.5, 0.5), criteria = -300)
+      propose(uniform_3d, original = c(0.5, 0.5, 0.5), criterion = -300)
     )
     live <<- do.call(rbind, result["unit", ])
     expect_equal(dim(live), c(500, 3))
@@ -157,7 +157,7 @@ describe("unif_ellipsoid in 3D", {
     precision <- solve(ell$cov)
     new_live <- replicate(
       500,
-      propose(new_uniform, original = c(0.5, 0.5, 0.5), criteria = -Inf)
+      propose(new_uniform, original = c(0.5, 0.5, 0.5), criterion = -Inf)
     )
     new_live <- do.call(rbind, new_live["unit", ])
     dists <- apply(new_live, 1, \(x) {

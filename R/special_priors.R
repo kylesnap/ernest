@@ -24,7 +24,7 @@
 #' @family special_priors
 #' @export
 #' @examples
-#' prior <- create_normal_prior(n_dim = 3)
+#' prior <- create_normal_prior(.n_dim = 3)
 #' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
   mean = 0,
@@ -67,6 +67,7 @@ create_normal_prior <- function(
   )
 
   truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$upper))
+  unit <- NULL
   prior$fn <- if (truncated) {
     check_installed(
       "truncnorm",

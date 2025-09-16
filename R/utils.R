@@ -13,6 +13,8 @@
 #' cache after it is updated. "DEBUG" messages detail the results of each
 #' call to [propose].
 #'
+#' @srrstats {G4.0} Users can choose the location of logging files.
+#'
 #' @return A list containing the log configuration: threshold,
 #' destination file path, and layout. This list is also stored in the ernest
 #' package environment for use during sampling.
@@ -46,7 +48,7 @@ configure_logging <- function(
   }
   dest <- tempfile(pattern = "ernest_run", tmpdir = dir, fileext = file_ext)
   log_config <- list(threshold = threshold, dest = dest, layout = layout)
-  env_poke(pkg_env("ernest"), "log_config", log_config)
+  options("ernest_log_config" = log_config)
   return(log_config)
 }
 

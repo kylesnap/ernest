@@ -152,12 +152,9 @@ Supply data using either an anonymous function or the dots argument of `create_l
 anon_log_lik <- \(theta) log_lik(theta, data = y) 
 
 # Using dots for create_likelihood
-partial_log_lik <- create_likelihood(fn = log_lik, data = !!y)
-
 expected_mean <- 100000000.200000000000000
 expected_sd <- 0.108372230793914
 anon_log_lik(c(expected_mean, expected_sd))
-partial_log_lik(c(expected_mean, expected_sd))
 ```
 
 Define the prior for the mean and standard deviation, then run the sampler. The prior is constrained near the expected posterior values: the number of iterations required is proportional to the product of the number of live points (`n_points`) and the [KL divergence](https://en.wikipedia.org/wiki/Kullback–Leibler_divergence) between prior and posterior.
@@ -168,7 +165,7 @@ prior <- create_uniform_prior(
   upper = c(100000001, 1),
   names = c("mu", "sigma")
 )
-sampler <- ernest_sampler(partial_log_lik, prior)
+sampler <- ernest_sampler(anon_log_lik, prior)
 result <- generate(sampler, seed = 42, show_progress = FALSE)
 ```
 

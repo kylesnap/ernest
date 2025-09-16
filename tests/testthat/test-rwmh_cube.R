@@ -38,7 +38,7 @@ describe("new_rwmh_cube", {
 rwcube <- new_rwmh_cube(fn, 2L, cov_fn = as_closure(stats::cov))
 describe("propose.rwmh_cube", {
   it("proposes a single new point", {
-    result <- propose(rwcube, original = NULL, criteria = -Inf)
+    result <- propose(rwcube, original = NULL, criterion = -Inf)
     expect_length(result$unit, 2L)
     expect_equal(
       gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
@@ -49,7 +49,7 @@ describe("propose.rwmh_cube", {
 
   it("proposes a single point under a likelihood constraint", {
     orig <- c(0.5, 0.5)
-    result <- propose(rwcube, original = orig, criteria = -300)
+    result <- propose(rwcube, original = orig, criterion = -300)
     expect_length(result$unit, 2)
     expect_equal(rwcube$cache$n_call, 25L)
     expect_equal(
@@ -61,10 +61,10 @@ describe("propose.rwmh_cube", {
 
   it("is reproducible under seed", {
     set.seed(42L)
-    result1 <- propose(rwcube, original = c(0.5, 0.5), criteria = -99.30685)
+    result1 <- propose(rwcube, original = c(0.5, 0.5), criterion = -99.30685)
 
     set.seed(42L)
-    result2 <- propose(rwcube, original = c(0.5, 0.5), criteria = -99.30685)
+    result2 <- propose(rwcube, original = c(0.5, 0.5), criterion = -99.30685)
     expect_identical(result1, result2)
   })
 })
@@ -96,7 +96,7 @@ describe("update_lrps.rwmh_cube", {
       cov_fn = alt_cov
     )
     expect_identical(rwcube_spear$cov_fn, alt_cov)
-    result <- propose(rwcube_spear, original = c(0.5, 0.5), criteria = -300)
+    result <- propose(rwcube_spear, original = c(0.5, 0.5), criterion = -300)
     spear_chol_cov <- chol(stats::cov(live, method = "spearman"))
     update_lrps(rwcube_spear, unit = live)
     expect_identical(rwcube_spear$cache$chol_cov, spear_chol_cov)

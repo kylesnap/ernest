@@ -123,15 +123,6 @@ propose.ernest_lrps <- function(x, original = NULL, criteria = -Inf) {
       criterion = criteria,
       max_loop = x$max_loop
     )
-    if (isTRUE(getOption("ernest_logging", FALSE))) {
-      log4r::debug(
-        x$cache$logger,
-        method = "unif",
-        original = -1,
-        new = res$unit,
-        ncall = res$n_call
-      )
-    }
     res
   } else {
     cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")

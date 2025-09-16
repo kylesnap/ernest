@@ -128,15 +128,6 @@ propose.unif_ellipsoid <- function(x, original = NULL, criteria = NULL) {
       d2 = x$cache$d2,
       max_loop = x$max_loop
     )
-    if (isTRUE(getOption("ernest_logging", FALSE))) {
-      log4r::debug(
-        x$cache$logger,
-        method = "ellipsoid",
-        original = original,
-        new = res$unit,
-        ncall = res$n_call
-      )
-    }
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
@@ -172,15 +163,5 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
       env_unbind(x$cache, c("chol_precision", "loc", "d2"))
     }
   )
-  if (isTRUE(getOption("ernest_logging", FALSE))) {
-    log4r::info(
-      x$cache$logger,
-      method = "ellipsoid",
-      chol_precision = x$cache$chol_precision %||% 0,
-      loc = x$cache$loc %||% 0,
-      d2 = x$cache$d2 %||% 0,
-      unit = unit
-    )
-  }
   do.call(new_unif_ellipsoid, as.list(x))
 }

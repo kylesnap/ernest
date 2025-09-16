@@ -141,16 +141,6 @@ propose.rwmh_cube <- function(x, original = NULL, criteria = NULL) {
       epsilon = env_cache(x$cache, "epsilon", 1.0),
       chol_cov = env_cache(x$cache, "chol_cov", diag(x$n_dim))
     )
-    if (isTRUE(getOption("ernest_logging", FALSE))) {
-      log4r::debug(
-        x$cache$logger,
-        method = "rwmh",
-        original = original,
-        new = res$unit,
-        ncall = res$n_call,
-        naccept = res$n_accept
-      )
-    }
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     env_poke(x$cache, "n_accept", x$cache$n_accept + res$n_accept)
     res
@@ -192,15 +182,6 @@ update_lrps.rwmh_cube <- function(x, unit = NULL) {
       }
     )
     env_poke(x$cache, "chol_cov", chol_cov)
-  }
-  if (isTRUE(getOption("ernest_logging", FALSE))) {
-    log4r::info(
-      x$cache$logger,
-      method = "rwmh",
-      old_epsilon = cur_eps,
-      new_epsilon = env_get(x$cache, "epsilon", -99),
-      unit = unit
-    )
   }
   do.call(new_rwmh_cube, as.list(x))
 }

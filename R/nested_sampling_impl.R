@@ -56,6 +56,18 @@ nested_sampling_impl <- function(
   dead_calls <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
 
+  logger <- if (isTRUE(getOption("ernest_logging", FALSE))) {
+    config <- env_cache(pkg_env("ernest"), "log_config", configure_logging())
+    cli::cli_alert_info("Logfile at {.file {config$dest}}.")
+    log4r::logger(
+      threshold = config$threshold,
+      appenders = log4r::file_appender(config$dest, layout = config$layout)
+    )
+  } else {
+    env_unbind(pkg_env("ernest"), "logger")
+    NULL
+  }
+
   i <- 1
   if (show_progress) {
     cli::cli_progress_step(
@@ -105,13 +117,16 @@ nested_sampling_impl <- function(
 
     # 4. If required, update the LRPS
     if (
-      call > x$first_update &&
-        env_cache(x$lrps$cache, "n_call", 0L) > x$update_interval
+      call > x$first_update && (x$lrps$cache$n_call %||% 0L) > x$update_interval
     ) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
+      if (!is.null(logger)) {
+        inject(log4r::info(logger, !!!as.list(x$lrps$cache)))
+      }
     }
 
     # 4. Replace the worst points in live with new points
+    copy <- NULL
     new_unit <- if (call <= x$first_update) {
       propose(x$lrps, criteria = live_env$log_lik[worst_idx])
     } else {
@@ -122,6 +137,14 @@ nested_sampling_impl <- function(
         original = live_env$unit[copy, ],
         criteria = live_env$log_lik[worst_idx]
       )
+    }
+    if (!is.null(logger)) {
+      inject(log4r::debug(
+        logger,
+        original = live_env$unit[copy, ],
+        criteria = live_env$log_lik[worst_idx],
+        !!!new_unit
+      ))
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit

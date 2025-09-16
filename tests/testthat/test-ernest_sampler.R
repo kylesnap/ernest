@@ -42,3 +42,21 @@ cli::test_that_cli("Fully-verbose output", {
     generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
   )
 })
+
+test_that("set_logging enables and disables logging", {
+  sampler <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    gaussian_blobs$prior,
+    n_points = 500
+  )
+  withr::local_options("ernest_logging" = TRUE)
+  expect_snapshot(
+    generate(
+      sampler,
+      max_iterations = 1000,
+      seed = 42,
+      show_progress = FALSE
+    ),
+    transform = \(x) sub("i Logfile at .+$", "i Logging run at FILE.", x)
+  )
+})

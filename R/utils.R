@@ -1,3 +1,55 @@
+#' Configure logging for ernest runs
+#'
+#' Set up logging for ernest. Use the `ernest_logging` option to enable or
+#' disable the log file during sampling.
+#'
+#' @param dir Character. Directory in which to create the log file.
+#' Defaults to a temporary directory.
+#' @param threshold Character. Minimum log level to record, one of
+#' "INFO", "DEBUG", "WARN", "ERROR", or "FATAL".
+#' @param layout Character. Log output format, either "json" or "logfmt".
+#'
+#' @note Currently, "INFO" messages print the state of the [ernest_lrps]
+#' cache after it is updated. "DEBUG" messages detail the results of each
+#' call to [propose].
+#'
+#' @return A list containing the log configuration: threshold,
+#' destination file path, and layout. This list is also stored in the ernest
+#' package environment for use during sampling.
+#' @keywords internal
+#' @export
+configure_logging <- function(
+  dir = tempdir(),
+  threshold = "INFO",
+  layout = c("json", "logfmt")
+) {
+  check_string(dir)
+  threshold <- arg_match(
+    threshold,
+    values = c("DEBUG", "INFO", "WARN", "ERROR", "FATAL")
+  )
+  layout <- arg_match(layout)
+  file_ext <- switch(
+    layout,
+    "json" = ".json",
+    "logfmt" = ".file"
+  )
+  layout <- switch(
+    layout,
+    "json" = log4r::json_log_layout(),
+    "logfmt" = log4r::logfmt_log_layout()
+  )
+
+  if (!dir.exists(dir)) {
+    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
+    dir <- tempdir()
+  }
+  dest <- tempfile(pattern = "ernest_run", tmpdir = dir, fileext = file_ext)
+  log_config <- list(threshold = threshold, dest = dest, layout = layout)
+  env_poke(pkg_env("ernest"), "log_config", log_config)
+  return(log_config)
+}
+
 #' Check the class of an object
 #'
 #' Validates that an object inherits from at least one of the specified classes.
@@ -325,45 +377,6 @@ pretty <- function(x) {
     x
   }
   round(x, digits = max(3L, getOption("digits") - 3L))
-}
-
-#' Enable logging individual LRPS points
-#'
-#' @param cache An enviroment, usually the `cache` of an LRPS.
-#'
-#' @returns TRUE or FALSE. If TRUE, a logger instance has
-#' been bound within `cache`.
-#' @noRd
-set_logging <- function(cache) {
-  # Check logging package and parameters.
-  if (env_has(cache, "logger")) {
-    return(FALSE)
-  }
-  check_installed("log4r", reason = "for logging LRPS performance")
-  dest <- getOption("ernest_log_dest", tempdir())
-  if (!dir.exists(dest) && !dir.create(dest)) {
-    cli::cli_warn(c(
-      "`getOption('ernest_log_dest')` is not a valid path.",
-      "!" = "Using {.fn tempdir} instead."
-    ))
-    dest <- tempdir()
-  }
-
-  # Set-up logging.
-  logfile <- tempfile(pattern = "proposals", tmpdir = dest, fileext = ".log")
-  env_poke(
-    cache,
-    "logger",
-    log4r::logger(
-      threshold = "DEBUG",
-      appenders = log4r::file_appender(
-        logfile,
-        append = FALSE,
-        layout = log4r::json_log_layout()
-      )
-    )
-  )
-  logfile
 }
 
 #' @noRd

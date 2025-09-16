@@ -114,6 +114,7 @@ generate.ernest_sampler <- function(
     min_logz = min_logz,
     show_progress = show_progress
   )
+  env_unbind(pkg_env("ernest"), "logger")
   new_ernest_run(x, results)
 }
 

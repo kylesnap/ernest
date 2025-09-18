@@ -7,18 +7,20 @@
     Code
       create_normal_prior(mean = 0, sd = 1)
     Output
-      custom prior distribution <normal_prior/ernest_prior>
-      # A tibble: 1 x 3
-        names  lower upper
-        <chr>  <dbl> <dbl>
-      1 Normal  -Inf   Inf
+      normal prior distribution <normal_prior/ernest_prior>
+      
+      # A tibble: 1 x 5
+        names  lower upper  mean    sd
+        <chr>  <dbl> <dbl> <dbl> <dbl>
+      1 Normal  -Inf   Inf     0     1
 
 ---
 
     Code
       create_uniform_prior(lower = 0, upper = 1)
     Output
-      custom prior distribution <uniform_prior/ernest_prior>
+      uniform prior distribution <uniform_prior/ernest_prior>
+      
       # A tibble: 1 x 3
         names   lower upper
         <chr>   <dbl> <dbl>

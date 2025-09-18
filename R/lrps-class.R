@@ -73,7 +73,7 @@ new_ernest_lrps <- function(
 #' @export
 format.ernest_lrps <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_alert_warning("An abstract LRPS sampler {.cls {class(x)}}")
+    cli::cli_alert_warning("abstract LRPS sampler {.cls {class(x)}}")
   })
 }
 

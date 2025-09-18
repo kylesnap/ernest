@@ -12,7 +12,7 @@
 
 ---
 
-    `min_logz` must be strictly smaller than 967.1611.
+    `min_logz` must be strictly smaller than 967.2.
     x `x` already contains previously-generated samples.
     i Should you use `clear` to erase previous samples from `x`?
 

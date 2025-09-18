@@ -43,7 +43,7 @@
     Code
       obj
     Output
-      ! An abstract LRPS sampler <ernest_lrps>
+      ! abstract LRPS sampler <ernest_lrps>
 
 # propose.ernest_lrps: errors if original is provided
 

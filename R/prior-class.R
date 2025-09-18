@@ -245,11 +245,20 @@ check_prior <- function(prior, n_tests = 1000, call = caller_env()) {
 #' @export
 format.ernest_prior <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("custom prior distribution {.cls {class(x)}}")
+    name <- switch(
+      class(x)[[1]],
+      "uniform_prior" = "uniform",
+      "normal_prior" = "normal",
+      "custom"
+    )
+    cli::cli_text("{name} prior distribution {.cls {class(x)}}")
+    cli::cat_line()
     cli::cat_print(tibble::tibble(
       "names" = x$names,
       "lower" = x$lower,
-      "upper" = x$upper
+      "upper" = x$upper,
+      "mean" = x$mean,
+      "sd" = x$sd
     ))
   })
 }

@@ -35,8 +35,8 @@
 # Missing values in the prior
 
     `fn` failed a sanity check.
-    x Input: 0.2861 and 0.8198
-    x Output: NaN and 0.8198
+    x Input: 0.2861, 0.8198
+    x Output: NaN, 0.8198
     Caused by error in `create_prior()`:
     ! `fn` must return vectors that only contain finite values.
 
@@ -65,20 +65,20 @@
       `log_lik` may contain a likelihood plateau; proceed with caution.
       ! Only 130/500 likelihood values are unique.
       Warning:
-      Stopping run due to a likelihood plateau at 0.
+      Stopping run due to a likelihood plateau at 0.0000.
     Output
-      Nested sampling run <ernest_run/ernest_sampler>
+      nested sampling results <ernest_run/ernest_sampler>
+      
       No. Points: 500
       
       -- Sampling Method 
-      * Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
-      * No. Dimensions: 2
-      * No. Calls Since Update: 0
-      * No. Accepted Since Update: 0
-      * Current Step Size: 1
+      [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
+      [2] ""                                                     
+      [3] "No. Dimensions: 2"                                    
+      [4] "Current Step Size: 1.000"                             
       
       -- Results 
       No. Iterations: 149
       No. Calls: 30
-      Log. Evidence: -0.2973 (± 0.0636)
+      Log. Evidence: -0.2973 (± 0.06362)
 

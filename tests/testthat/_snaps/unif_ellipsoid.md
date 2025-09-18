@@ -26,22 +26,22 @@
     Code
       obj
     Output
-      Uniform Ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      
       No. Dimensions: 2
-      No. Calls Since Update: 0
-      Centre: 0.5 and 0.5
-      Volume: 1.5708
+      Centre: 0.5000, 0.5000
+      Log Volume: 0.4516
 
 # propose.unif_ellipsoid: Proposes points in the unit sphere
 
     Code
       uniform
     Output
-      Uniform Ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      
       No. Dimensions: 2
-      No. Calls Since Update: 8
-      Centre: 0.5 and 0.5
-      Volume: 1.5708
+      Centre: 0.5000, 0.5000
+      Log Volume: 0.4516
       Enlargement Factor: 1.2
 
 # update_lrps.unif_ellipsoid: can rebound to a matrix of live points
@@ -49,11 +49,11 @@
     Code
       uniform
     Output
-      Uniform Ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      
       No. Dimensions: 2
-      No. Calls Since Update: 0
-      Centre: 0.5003 and 0.5052
-      Volume: 0.1508
+      Centre: 0.5003, 0.5052
+      Log Volume: -1.892
       Enlargement Factor: 1.2
 
 # update_lrps.unif_ellipsoid: fails to a unit sphere when cluster fails

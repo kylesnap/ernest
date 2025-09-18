@@ -63,7 +63,7 @@ values:
 \item "quiet": Always quiet.
 }
 
-When set to quiet, message are not displayed and the condition is not
+When set to quiet, messages are not displayed and the condition is not
 signaled. See \code{\link[rlang:abort]{rlang::abort()}} for more information.
 }
 }

@@ -3,11 +3,10 @@
     Code
       obj
     Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
+      
       No. Dimensions: Uninitialized
-      No. Calls Since Update: 0
-      No. Accepted Since Update: 0
-      Current Step Size: 1
+      Current Step Size: 1.000
 
 # new_rwmh_cube: errors on invalid arguments
 
@@ -46,11 +45,10 @@
     Code
       rwcube
     Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
+      
       No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Accepted Since Update: 0
-      Current Step Size: 1
+      Current Step Size: 1.000
 
 # update_lrps.rwmh_cube: warns when chol_cov can't be calculated
 
@@ -62,9 +60,8 @@
       Caused by error in `chol.default()`:
       ! the leading minor of order 1 is not positive
     Output
-      Random Walk in Unit Cube LRPS <rwmh_cube/ernest_lrps>
+      random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
+      
       No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Accepted Since Update: 0
       Current Step Size: 0.7023
 

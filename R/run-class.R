@@ -100,10 +100,11 @@ format.ernest_run <- function(x, ...) {
   log_z <- pretty(tail(x$log_evidence, 1))
   log_z_sd <- pretty(sqrt(tail(x$log_evidence_var, 1)))
   cli::cli_format_method({
-    cli::cli_text("Nested sampling run {.cls {class(x)}}")
+    cli::cli_text("nested sampling results {.cls {class(x)}}")
+    cli::cat_line()
     cli::cli_text("No. Points: {x$n_points}")
     cli::cli_h3("Sampling Method")
-    cli::cat_bullet(format(x$lrps))
+    cli::cat_print(format(x$lrps))
     cli::cli_h3("Results")
     cli::cli_text("No. Iterations: {x$n_iter}")
     cli::cli_text("No. Calls: {x$n_calls}")
@@ -199,7 +200,8 @@ format.summary.ernest_run <- function(x, ...) {
   log_z <- pretty(x$log_evidence)
   log_z_sd <- pretty(x$log_evidence_err)
   cli::cli_format_method({
-    cli::cli_h1("Nested sampling results {.cls ernest_run}")
+    cli::cli_text("nested sampling results {.cls ernest_run}")
+    cli::cat_line()
     cli::cli_dl(c(
       "No. Points" = "{x$n_points}",
       "No. Iterations" = "{x$n_iter}",

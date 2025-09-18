@@ -100,10 +100,11 @@ of the Royal Astronomical Society, 483(2), 2044–2056.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># View results as a tibble with `ndraws = FALSE` (the default).</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 4000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: <span style="color: #0000BB;">-17 ± 1.3</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: <span style="color: #0000BB;">-9.2 ± 0.069</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± 1.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9.2 ± 0.069</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,495 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik         log_volume   log_weight log_evidence</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
@@ -121,10 +122,11 @@ of the Royal Astronomical Society, 483(2), 2044–2056.
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate 100 simulated log-volume values for each iteration.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: <span style="color: #0000BB;">-17 ± 1.4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: <span style="color: #0000BB;">-9.1 ± 0.068</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± 1.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9.1 ± 0.068</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,495 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik         log_volume   log_weight log_evidence</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>

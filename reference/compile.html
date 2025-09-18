@@ -124,16 +124,18 @@ object.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compile the sampler to add live points</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">$</span><span class="va">run_env</span><span class="op">$</span><span class="va">unit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]       [,2]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.97347381 0.00929293</span>
@@ -150,17 +152,19 @@ object.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Make a new sampler from a previous run</span></span></span>
 <span class="r-in"><span><span class="va">sampler_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile</a></span><span class="op">(</span><span class="va">example_run</span>, clear <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 1000 live points.</span>
 <span class="r-in"><span><span class="va">sampler_3</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 1000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.0048</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.005</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

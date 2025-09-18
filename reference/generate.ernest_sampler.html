@@ -166,32 +166,33 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_point <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Stop sampling after a set number of iterations or likelihood calls.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ⠙ Performing nested sampling (1 points replaced)...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_iterations` reached (100).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (100 points replaced)... <span style="color: #B2B2B2;">[37ms]</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Results </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Iterations: 100</span>
@@ -201,25 +202,24 @@ Computation. Bayesian Analysis, 1(4), 833–859.
 <span class="r-in"><span><span class="co"># The final number of calls may exceed `max_calls`, as `generate`</span></span></span>
 <span class="r-in"><span><span class="co"># only checks the number of calls when removing a live point.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_calls <span class="op">=</span> <span class="fl">2600</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Creating new live points.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ⠙ Performing nested sampling (1 points replaced)...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_calls` surpassed (2602 &gt; 2600).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Performing nested sampling (273 points replaced)... <span style="color: #B2B2B2;">[143ms]</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.2761</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.276</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Results </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Iterations: 272</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls: 2602</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.6356 (± 0.0637)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -0.6356 (± 0.06370)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use the default stopping criteria</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span>  <span class="co"># \dontrun{}</span></span></span>

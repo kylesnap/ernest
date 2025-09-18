@@ -111,23 +111,26 @@ Royal Astronomical Society, 493, 3132–3158.
 <span class="r-in"><span><span class="va">lrps</span> <span class="op">&lt;-</span> <span class="fu">rwmh_cube</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">$</span><span class="va">log_lik_fn</span>, <span class="va">example_run</span><span class="op">$</span><span class="va">prior</span>, sampler <span class="op">=</span> <span class="va">lrps</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 500</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Change the default behaviour of the sampler:</span></span></span>
 <span class="r-in"><span><span class="fu">rwmh_cube</span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">20</span>, target_acceptance <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Dimensions: Uninitialized</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Current Step Size: 1.000</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -212,7 +212,8 @@ for each parameter in 3D space:</p>
 <span>  names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">prior</span></span>
-<span><span class="co">#&gt; custom prior distribution <span style="color: #0000BB;">&lt;uniform_prior/ernest_prior&gt;</span></span></span>
+<span><span class="co">#&gt; uniform prior distribution <span style="color: #0000BB;">&lt;uniform_prior/ernest_prior&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
 <span><span class="co">#&gt;   names lower upper</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -259,6 +260,7 @@ fifth from a truncated normal distribution.</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `MVN` -&gt; `MVN...1`</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `MVN` -&gt; `MVN...2`</span></span>
 <span><span class="co">#&gt; custom prior distribution <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 3</span></span></span>
 <span><span class="co">#&gt;   names       lower upper</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -286,6 +288,7 @@ functions.</p>
 <span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span>, <span class="fl">0</span>, <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; custom prior distribution <span style="color: #0000BB;">&lt;ernest_prior&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
 <span><span class="co">#&gt;   names lower upper</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -332,15 +335,17 @@ exchange for longer run times.</p>
 <span>  n_points <span class="op">=</span> <span class="fl">500</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">sampler</span></span>
-<span><span class="co">#&gt; Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • </span></span>
 <span><span class="co">#&gt; • No. Dimensions: 3</span></span>
 <span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
 <span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
-<span><span class="co">#&gt; • Current Step Size: 1</span></span></code></pre></div>
+<span><span class="co">#&gt; • Current Step Size: 1.000</span></span></code></pre></div>
 <p>Run nested sampling for a fixed number of iterations or until the
 evidence estimate converges:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -350,14 +355,16 @@ evidence estimate converges:</p>
 <span>  seed <span class="op">=</span> <span class="fl">123</span>, </span>
 <span>  show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Creating new live points.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Created 500 live points.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `max_iterations` reached (2000).</span></span>
 <span><span class="va">run</span></span>
-<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • </span></span>
 <span><span class="co">#&gt; • No. Dimensions: 3</span></span>
 <span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
 <span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
@@ -366,7 +373,7 @@ evidence estimate converges:</p>
 <span><span class="co">#&gt; ── Results </span></span>
 <span><span class="co">#&gt; No. Iterations: 2000</span></span>
 <span><span class="co">#&gt; No. Calls: 30851</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.1601 (± 1.6892)</span></span></code></pre></div>
+<span><span class="co">#&gt; Log. Evidence: -9.160 (± 1.689)</span></span></code></pre></div>
 <p><code>generate</code> produces an <code>ernest_run</code> object that
 can be saved. You can continue a run by calling <code>generate</code> on
 a previously created <code>ernest_run</code>:</p>
@@ -377,14 +384,16 @@ a previously created <code>ernest_run</code>:</p>
 <span><span class="va">continued_run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">tmp_name</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">run2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">continued_run</span>, min_logz <span class="op">=</span> <span class="fl">0.01</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Restoring live points from a previous run.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.01 &lt; 0.01).</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Restored 500 live points from a previous run.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.00998162 &lt; 0.01).</span></span>
 <span><span class="va">run2</span></span>
-<span><span class="co">#&gt; Nested sampling run <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; • </span></span>
 <span><span class="co">#&gt; • No. Dimensions: 3</span></span>
 <span><span class="co">#&gt; • No. Calls Since Update: 0</span></span>
 <span><span class="co">#&gt; • No. Accepted Since Update: 0</span></span>
@@ -393,7 +402,7 @@ a previously created <code>ernest_run</code>:</p>
 <span><span class="co">#&gt; ── Results </span></span>
 <span><span class="co">#&gt; No. Iterations: 6604</span></span>
 <span><span class="co">#&gt; No. Calls: 145951</span></span>
-<span><span class="co">#&gt; Log. Evidence: -8.8876 (± 0.1236)</span></span></code></pre></div>
+<span><span class="co">#&gt; Log. Evidence: -8.888 (± 0.1236)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="inspecting-and-summarising-results">Inspecting and Summarising Results<a class="anchor" aria-label="anchor" href="#inspecting-and-summarising-results"></a>
@@ -403,12 +412,12 @@ evidence estimates, posterior samples, and diagnostics as a tidy
 <code>tibble</code>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run&gt;</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Nested sampling results </span><span style="color: #0000BB; font-weight: bold;">&lt;ernest_run&gt;</span> <span style="color: #00BBBB;">────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; No. Points: 500</span></span>
 <span><span class="co">#&gt; No. Iterations: 6604</span></span>
 <span><span class="co">#&gt; No. Lik. Calls: 145951</span></span>
-<span><span class="co">#&gt; Log. Evidence: -8.8876 (± 0.1236)</span></span>
+<span><span class="co">#&gt; Log. Evidence: -8.888 (± 0.1236)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span><span class="op">$</span><span class="va">run</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,104 × 7</span></span></span>
 <span><span class="co">#&gt;     call log_lik log_volume log_weight log_evidence log_evidence_err information</span></span>
@@ -480,10 +489,11 @@ this uncertainty with the estimate’s <code>plot</code> method.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">calc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run2</span>, ndraws <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="va">calc_sim</span></span>
-<span><span class="co">#&gt; Nested sampling estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span></span>
+<span><span class="co">#&gt; evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. of Simulated Draws: 500</span></span>
-<span><span class="co">#&gt; Log. Volume: <span style="color: #0000BB;">-20 ± 1.2</span></span></span>
-<span><span class="co">#&gt; Log. Evidence: <span style="color: #0000BB;">-8.9 ± 0.12</span></span></span>
+<span><span class="co">#&gt; Log. Volume: -20 ± 1.2</span></span>
+<span><span class="co">#&gt; Log. Evidence: -8.9 ± 0.12</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,104 × 4</span></span></span>
 <span><span class="co">#&gt;        log_lik        log_volume    log_weight  log_evidence</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span></span>

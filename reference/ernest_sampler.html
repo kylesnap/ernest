@@ -118,7 +118,7 @@ specifications. If this compilation step fails, review your <code>log_lik_fn</co
 values:</p><ul><li><p>"default": Verbose unless the <code>.frequency</code> argument is supplied.</p></li>
 <li><p>"verbose": Always verbose.</p></li>
 <li><p>"quiet": Always quiet.</p></li>
-</ul><p>When set to quiet, message are not displayed and the condition is not
+</ul><p>When set to quiet, messages are not displayed and the condition is not
 signaled. See <code><a href="https://rlang.r-lib.org/reference/abort.html" class="external-link">rlang::abort()</a></code> for more information.</p>
 </div>
 
@@ -143,15 +143,17 @@ parameter.</p></li>
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu">ernest_sampler</span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Random Walk in Unit Cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Accepted Since Update: 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use a unit-cube LRPS (not recommended in practice)</span></span></span>
 <span class="r-in"><span><span class="va">unit_sampler</span> <span class="op">&lt;-</span> <span class="fu">ernest_sampler</span><span class="op">(</span></span></span>
@@ -161,11 +163,13 @@ parameter.</p></li>
 <span class="r-in"><span>  sampler <span class="op">=</span> <span class="fu"><a href="unif_cube.html">unif_cube</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">unit_sampler</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Uniform Unit Cube LRPS <span style="color: #0000BB;">&lt;unif_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • uniform unit cube LRPS <span style="color: #0000BB;">&lt;unif_cube/ernest_lrps&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> • No. Calls Since Update: 0</span>
 </code></pre></div>

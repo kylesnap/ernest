@@ -67,7 +67,8 @@ rwmh_cube <- function(
 #' @export
 format.rwmh_cube <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("Random Walk in Unit Cube LRPS {.cls {class(x)}}")
+    cli::cli_text("random walk in unit cube LRPS {.cls {class(x)}}")
+    cli::cat_line()
     cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
     cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
     cli::cli_text("No. Accepted Since Update: {x$cache$n_acc %||% 0L}")

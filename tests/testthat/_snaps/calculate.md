@@ -3,7 +3,8 @@
     Code
       calc
     Output
-      Nested sampling estimates <ernest_estimate>
+      evidence estimates <ernest_estimate>
+      
       Log. Volume: -17 ± NA
       Log. Evidence: -9.2 ± NA
       # A tibble: 10,495 x 5
@@ -26,7 +27,8 @@
     Code
       calc
     Output
-      Nested sampling estimates <ernest_estimate>
+      evidence estimates <ernest_estimate>
+      
       No. of Simulated Draws: 1
       Log. Volume: -15 ± NA
       Log. Evidence: -9.1 ± NA
@@ -50,7 +52,8 @@
     Code
       calc
     Output
-      Nested sampling estimates <ernest_estimate>
+      evidence estimates <ernest_estimate>
+      
       No. of Simulated Draws: 4000
       Log. Volume: -17 ± 1.3
       Log. Evidence: -9.2 ± 0.072

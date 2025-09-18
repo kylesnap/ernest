@@ -32,6 +32,9 @@
 #' controlled by the `min_logz` parameter. In cases where convergence is not
 #' achieved, the sampler will stop when the maximum number of iterations or
 #' likelihood calls is reached, or when the log-likelihood plateau is detected.
+#'
+#' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol
+#' @importFrom prettyunits pretty_signif
 #' @noRd
 nested_sampling_impl <- function(
   x,
@@ -67,23 +70,26 @@ nested_sampling_impl <- function(
 
   i <- 1
   if (show_progress) {
-    cli::cli_progress_step(
-      "Performing nested sampling ({i} points replaced)...",
-      spinner = TRUE
+    cli::cli_progress_bar(
+      format = paste0(
+        "{pb_spin} Generating samples | {pb_current} iter. | {call} log-lik. ",
+        "calls | {pretty_signif(d_log_z)} log-evid. remaining"
+      ),
+      type = "custom"
     )
   }
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
-      cli::cli_inform(c("v" = "`max_calls` surpassed ({call} > {max_calls})."))
+      alert_success("`max_calls` surpassed ({call} > {max_calls}).")
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      cli::cli_inform(c(
-        "v" = "`min_logz` reached ({pretty(d_log_z)} < {min_logz})."
-      ))
+      alert_success(
+        "`min_logz` reached ({pretty_signif(d_log_z)} < {min_logz})."
+      )
       break
     }
     if (show_progress) {
@@ -150,7 +156,7 @@ nested_sampling_impl <- function(
     call <- call + new_unit$n_call
   }
   if (i >= max_iterations) {
-    cli::cli_inform(c("v" = "`max_iterations` reached ({i})."))
+    alert_success("`max_iterations` reached ({i}).")
   }
 
   list(

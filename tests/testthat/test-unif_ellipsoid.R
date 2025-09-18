@@ -32,7 +32,7 @@ describe("new_unif_ellipsoid", {
     expect_equal(obj$cache$chol_precision, diag(2))
     expect_equal(obj$cache$d2, 2 / 4)
     expect_equal(obj$cache$loc, c(0.5, 0.5))
-    expect_equal(obj$cache$volume, pi * (sqrt(2) / 2)^2)
+    expect_equal(obj$cache$log_volume, log(pi * (sqrt(2) / 2)^2))
     expect_snapshot(obj)
   })
 })
@@ -82,7 +82,7 @@ describe("update_lrps.unif_ellipsoid", {
     expect_equal(new_uniform$cache$chol_precision, chol(precision))
     expect_equal(new_uniform$cache$d2, ell$d2 * 1.2)
     expect_equal(new_uniform$cache$loc, loc)
-    expect_equal(new_uniform$cache$volume, cluster::volume(ell))
+    expect_equal(new_uniform$cache$log_volume, cluster::volume(ell, log = TRUE))
 
     new_live <- replicate(
       500,
@@ -98,7 +98,7 @@ describe("update_lrps.unif_ellipsoid", {
     expect_snapshot(uniform)
   })
 
-  it("scales to the correct volume", {
+  it("scales to the correct log_volume", {
     unif_scaled <- new_unif_ellipsoid(fn, n_dim = 2, enlarge = 1.25)
     new_unif_scaled <- update_lrps(uniform, live)
     scaled_live <- replicate(

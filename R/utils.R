@@ -368,17 +368,56 @@ compute_integral <- function(log_lik, log_volume) {
   )
 }
 
-#' CLI formatter for doubles
+# CLI Tools ----------
+
+#' Alert the user to success if verbose is not quiet.
+#'
+#' @param text Text of the alert.
+#' @param .envir Environment to evaluate the glue expressions in.
+#' @returns NULL, invisibly.
+#' @noRd
+alert_success <- function(text, .envir = caller_env()) {
+  if (getOption("rlib_message_verbosity", "default") != "quiet") {
+    cli::cli_alert_success(text, .envir = .envir)
+  }
+  invisible(NULL)
+}
+
+#' Alert the user to info if verbose is not quiet.
+#'
+#' @param text Text of the alert.
+#' @param .envir Environment to evaluate the glue expressions in.
+#' @returns NULL, invisibly.
+#' @noRd
+alert_info <- function(text, .envir = caller_env()) {
+  if (getOption("rlib_message_verbosity", "default") != "quiet") {
+    cli::cli_alert_info(text, .envir = .envir)
+  }
+  invisible(NULL)
+}
+
+#' Make double vectors pretty
 #'
 #' @param x An object.
-#' @returns x, unless x is a number, in which case x is rounded to a set
-#' number of decimal places.
+#' @returns `x`, unless it is a numeric vector, then `x` is returned as a
+#' formatted character string.
 #' @noRd
 pretty <- function(x) {
   if (!is.numeric(x)) {
-    x
+    return(x)
   }
-  round(x, digits = max(3L, getOption("digits") - 3L))
+  max_len <- utils::strOptions()$vec.len
+  digits <- max(3L, getOption("digits") - 3L)
+  strrep <- if (length(x) <= max_len) {
+    pretty_signif(x, digits = digits)
+  } else {
+    c(
+      pretty_signif(x[1:4], digits = digits),
+      "...",
+      pretty_signif(x[length(x)])
+    )
+  }
+  paste0(strrep, collapse = ", ")
 }
 
 #' @noRd

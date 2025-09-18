@@ -66,13 +66,13 @@ compile.ernest_sampler <- function(object, ..., seed = NA) {
   set_ernest_seed(seed, object$run_env)
 
   # Fill live points
-  cli::cli_inform(c("v" = "Creating new live points."))
   live <- create_live(object$lrps, object$n_points)
   env_poke(object$run_env, "unit", live$unit, create = TRUE)
   env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
   env_poke(object$run_env, "birth", rep(0L, object$n_points))
 
   check_live_set(object)
+  alert_info("Created {object$n_points} live points.")
   object
 }
 
@@ -95,7 +95,6 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
   }
 
   # Fill live points
-  cli::cli_inform(c("v" = "Restoring live points from a previous run."))
   env_poke(object$run_env, "cache", attr(object, "seed"))
   set_ernest_seed(seed, object$run_env)
 
@@ -121,6 +120,7 @@ compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
       )
     }
   )
+  alert_info("Restored {object$n_points} live points from a previous run.")
   object
 }
 
@@ -233,14 +233,14 @@ check_live_set <- function(sampler, call = caller_env()) {
 #' @noRd
 set_ernest_seed <- function(seed, cache, call = caller_env()) {
   if (is.null(seed)) {
-    cli::cli_inform(c("v" = "Resetting the RNG state (`seed = NULL`)"))
+    alert_info("Reset the RNG state (`seed = NULL`).")
     set.seed(NULL)
     env_unbind(cache, "seed")
   } else if (!is.na(seed)) {
     check_number_whole(seed, allow_null = TRUE, call = call)
     env_poke(cache, "seed", seed)
   } else if (env_has(cache, "seed")) {
-    cli::cli_inform(c("v" = "Restored a previously saved RNG state."))
+    alert_info("Restored a previously saved RNG state.")
   }
   if (env_has(cache, "seed")) {
     set.seed(env_has(cache, "seed"))

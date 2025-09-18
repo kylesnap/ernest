@@ -57,13 +57,14 @@ unif_ellipsoid <- function(enlarge = 1.0) {
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("Uniform Ellipsoid LRPS {.cls {class(x)}}")
+    cli::cli_text("uniform ellipsoid LRPS {.cls {class(x)}}")
+    cli::cat_line()
     cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
     cli::cli_text("No. Calls Since Update: {x$cache$n_call %||% 0L}")
-    if (all(env_has(x$cache, c("loc", "volume")))) {
+    if (all(env_has(x$cache, c("loc", "log_volume")))) {
       cli::cli_dl(c(
         "Centre" = "{pretty(x$cache$loc)}",
-        "Volume" = "{pretty(x$cache$volume)}",
+        "Log Volume" = "{pretty(x$cache$log_volume)}",
         "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL
       ))
     }
@@ -97,11 +98,10 @@ new_unif_ellipsoid <- function(
     env_cache(cache, "chol_precision", diag(n_dim))
     env_cache(cache, "loc", rep(0.5, n_dim))
     env_cache(cache, "d2", n_dim / 4)
-    env_cache(
-      cache,
-      "volume",
-      pi^(n_dim / 2) / gamma(n_dim / 2 + 1) * (sqrt(n_dim) / 2)^n_dim
-    )
+    log_vol <- ((n_dim / 2) * log(pi)) -
+      lgamma(n_dim / 2 + 1) +
+      n_dim * ((1 / 2) * log(n_dim) - log(2))
+    env_cache(cache, "log_volume", log_vol)
   }
   env_poke(cache, "n_call", 0L)
   new_ernest_lrps(
@@ -158,7 +158,7 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
       env_poke(x$cache, "chol_precision", chol_precision)
       env_poke(x$cache, "loc", ellipsoid$loc)
       env_poke(x$cache, "d2", enlarged_d2)
-      env_poke(x$cache, "volume", cluster::volume(ellipsoid))
+      env_poke(x$cache, "log_volume", cluster::volume(ellipsoid, log = TRUE))
     },
     error = function(cnd) {
       cli::cli_warn(

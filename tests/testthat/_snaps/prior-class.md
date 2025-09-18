@@ -72,6 +72,7 @@
       prior
     Output
       custom prior distribution <ernest_prior>
+      
       # A tibble: 3 x 3
         names lower upper
         <chr> <dbl> <dbl>
@@ -94,8 +95,8 @@
     Condition
       Error in `create_prior()`:
       ! `fn` failed a sanity check.
-      x Input: 0.7736 and 0.0321
-      x Output: NaN and NaN
+      x Input: 0.7736, 0.03207
+      x Output: NaN, NaN
       Caused by error in `create_prior()`:
       ! `fn` must return vectors that only contain finite values.
 
@@ -106,8 +107,8 @@
     Condition
       Error in `create_prior()`:
       ! `fn` failed a sanity check.
-      x Input: 0.0245 and 0.184
-      x Output: 0.0245 and NA
+      x Input: 0.02453, 0.1840
+      x Output: 0.02453, NA
       Caused by error in `create_prior()`:
       ! `fn` must return vectors that only contain finite values.
 
@@ -118,8 +119,8 @@
     Condition
       Error in `create_prior()`:
       ! `fn` failed a sanity check.
-      x Input: 0.0123 and 0.9578
-      x Output: Inf and 0.9578
+      x Input: 0.01234, 0.9578
+      x Output: Inf, 0.9578
       Caused by error in `create_prior()`:
       ! `fn` must return vectors that only contain finite values.
 
@@ -130,8 +131,8 @@
     Condition
       Error in `create_prior()`:
       ! `fn` failed a sanity check.
-      x Input: 0.1615 and 0.1666
-      x Output: 0.1615 and 0.1666
+      x Input: 0.1615, 0.1666
+      x Output: 0.1615, 0.1666
       Caused by error in `create_prior()`:
       ! `fn` must respect the `lower` bounds.
 
@@ -142,8 +143,8 @@
     Condition
       Error in `create_prior()`:
       ! `fn` failed a sanity check.
-      x Input: 0.0339 and 0.5343
-      x Output: 0.0339 and 0.5343
+      x Input: 0.03390, 0.5343
+      x Output: 0.03390, 0.5343
       Caused by error in `create_prior()`:
       ! `fn` must respect the `upper` bounds.
 

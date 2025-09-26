@@ -28,7 +28,7 @@ describe("gaussian_blobs", {
     sampler <- ernest_sampler(
       log_lik_fn,
       unif_prior,
-      sampler = unif_ellipsoid(1.1),
+      sampler = unif_ellipsoid(1.25),
       n_points = 200
     )
     unif_result <- generate(sampler, seed = 42)

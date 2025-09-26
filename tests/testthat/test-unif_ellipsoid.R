@@ -8,7 +8,7 @@ test_that("unif_ellipsoid returns correct class and structure", {
   expect_null(obj$n_dim)
   expect_equal(obj$max_loop, 1e6L)
   expect_equal(obj$enlarge, 1.5)
-  expect_null(obj$cache$chol_precision)
+  expect_null(obj$cache$cov)
   expect_null(obj$cache$d2)
   expect_null(obj$cache$loc)
 
@@ -29,7 +29,7 @@ describe("new_unif_ellipsoid", {
     expect_equal(obj$n_dim, 2L)
     expect_equal(obj$max_loop, 1e6L)
     expect_equal(obj$enlarge, 1.0)
-    expect_equal(obj$cache$chol_precision, diag(2))
+    expect_equal(obj$cache$cov, diag(2))
     expect_equal(obj$cache$d2, 2 / 4)
     expect_equal(obj$cache$loc, c(0.5, 0.5))
     expect_equal(obj$cache$log_volume, log(pi * (sqrt(2) / 2)^2))
@@ -77,9 +77,8 @@ describe("update_lrps.unif_ellipsoid", {
   it("can rebound to a matrix of live points", {
     new_uniform <- update_lrps(uniform, live)
     ell <<- cluster::ellipsoidhull(live)
-    precision <- solve(ell$cov)
     loc <- ell$loc
-    expect_equal(new_uniform$cache$chol_precision, chol(precision))
+    expect_equal(new_uniform$cache$cov, ell$cov)
     expect_equal(new_uniform$cache$d2, ell$d2 * 1.2)
     expect_equal(new_uniform$cache$loc, loc)
     expect_equal(new_uniform$cache$log_volume, cluster::volume(ell, log = TRUE))
@@ -89,6 +88,7 @@ describe("update_lrps.unif_ellipsoid", {
       propose(new_uniform, original = c(0.5, 0.5), criterion = -Inf)
     )
     new_live <- do.call(rbind, new_live["unit", ])
+    precision <- solve(ell$cov)
     dists <- apply(new_live, 1, \(x) {
       d <- x - ell$loc
       drop(d %*% precision %*% d)
@@ -119,7 +119,7 @@ describe("update_lrps.unif_ellipsoid", {
     x <- seq(0.01, 0.49, length.out = 500)
     xy <- cbind(x, x * 2) # Dependence between columns.
     expect_snapshot(new_uniform <- update_lrps(uniform, xy))
-    expect_equal(new_uniform$cache$chol_precision, diag(2))
+    expect_equal(new_uniform$cache$cov, diag(2))
     expect_equal(new_uniform$cache$d2, 2 / 4)
     expect_equal(new_uniform$cache$loc, c(0.5, 0.5))
   })
@@ -154,12 +154,12 @@ describe("unif_ellipsoid in 3D", {
   it("can update its bounds", {
     new_uniform <- update_lrps(uniform_3d, live)
     ell <- cluster::ellipsoidhull(live)
-    precision <- solve(ell$cov)
     new_live <- replicate(
       500,
       propose(new_uniform, original = c(0.5, 0.5, 0.5), criterion = -Inf)
     )
     new_live <- do.call(rbind, new_live["unit", ])
+    precision <- solve(ell$cov)
     dists <- apply(new_live, 1, \(x) {
       d <- x - ell$loc
       drop(d %*% precision %*% d)

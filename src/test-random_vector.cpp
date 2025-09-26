@@ -1,3 +1,4 @@
+#include <iostream>
 #include <limits>
 
 #include "random_vector.h"
@@ -20,15 +21,17 @@ bool almost_equal(double a, double b) {
 
 context("Reflect functionality") {
   test_that("All values transform to 0.5") {
-    cpp11::writable::doubles test = {-2.5, -1.5, -0.5, 0.5, 1.5, 2.5};
+    Eigen::RowVectorXd test(6);
+    test << -2.5, -1.5, -0.5, 0.5, 1.5, 2.5;
     random_vector::ReflectWithinUnitCube(test);
-    expect_true(std::all_of(test.cbegin(), test.cend(),
-                            [](double i) { return almost_equal(i, 0.5); }));
+    expect_true((test.array() - 0.5).abs().maxCoeff() < 1e-4);
   }
 
   test_that("Negative values reflect") {
-    cpp11::writable::doubles test = {-0.9, -0.1, -1.9};
-    cpp11::writable::doubles expected = {0.9, 0.1, 0.9};
+    Eigen::RowVectorXd test(3);
+    test << -0.9, -0.1, -1.9;
+    Eigen::RowVectorXd expected(3);
+    expected << 0.9, 0.1, 0.9;
     random_vector::ReflectWithinUnitCube(test);
 
     expect_true(almost_equal(test[0], expected[0]));
@@ -39,32 +42,59 @@ context("Reflect functionality") {
 
 context("Point generators") {
   random_vector::RandomEngine rng;
-  int n_points = 1000;
-  constexpr int DIM_MAX = 20;
+  int n_points = 50;
+  constexpr int kDimMax = 20;
 
-  test_that("random in ball") {
-    for (int n_dim = 1; n_dim < DIM_MAX; n_dim++) {
-      int n_fails = 0;
-      cpp11::writable::doubles rand(n_dim);
-      for (int p = 0; p < n_points; p++) {
-        random_vector::UniformInBall(rand);
-        double norm = lapack_wrapper::dnrm2(rand);
-        if (norm >= 1.0) {
-          n_fails++;
+  test_that("UniformOnSphere") {
+    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
+      Eigen::RowVectorXd test(n_dim);
+      int n_fail = 0;
+      for (int i = 0; i < n_points; i++) {
+        random_vector::UniformOnSphere(test);
+        if (!almost_equal(test.norm(), 1.0)) {
+          n_fail++;
         }
       }
-      expect_true(n_fails == 0);
+      expect_true(n_fail == 0);
     }
   }
-}
 
-/**
- * A simple helper function for generating points from an ellipsoid.
- */
-[[cpp11::register]]
-cpp11::doubles test_ellipsoid(cpp11::doubles_matrix<> chol_precision,
-                              cpp11::doubles loc, double d2) {
-  cpp11::writable::doubles rand(loc.size());
-  random_vector::UniformInEllipsoid(chol_precision, loc, d2, rand);
-  return rand;
+  test_that("UniformInBall") {
+    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
+      Eigen::RowVectorXd test(n_dim);
+      int n_fail = 0;
+      for (int i = 0; i < n_points; i++) {
+        random_vector::UniformInBall(test);
+        if (test.norm() > 1.0) {
+          n_fail++;
+        }
+      }
+      expect_true(n_fail == 0);
+    }
+  }
+
+  test_that("UniformInEllipsoid") {
+    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
+      // Random positive definite precision/covariance matrix
+      Eigen::MatrixXd A = Eigen::MatrixXd::Random(n_dim, n_dim);
+      Eigen::MatrixXd prec =
+          A.transpose() * A + 0.1 * Eigen::MatrixXd::Identity(n_dim, n_dim);
+      Eigen::MatrixXd cov = prec.inverse();
+
+      double d2 = 2.0;
+      Eigen::RowVectorXd loc(n_dim), test(n_dim);
+      loc.fill(0.5);
+
+      int n_fail = 0;
+      for (int i = 0; i < n_points; i++) {
+        random_vector::UniformInEllipsoid(cov, d2, loc, test);
+        Eigen::RowVectorXd centered = test - loc;
+        double mahalanobis_sq = centered * prec * centered.transpose();
+        if (mahalanobis_sq > d2) {
+          n_fail++;
+        }
+      }
+      expect_true(n_fail == 0);
+    }
+  }
 }

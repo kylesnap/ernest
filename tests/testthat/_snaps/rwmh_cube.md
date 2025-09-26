@@ -63,5 +63,5 @@
       random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
       
       No. Dimensions: 2
-      Current Step Size: 0.7023
+      Current Step Size: 0.7213
 

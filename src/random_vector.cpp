@@ -8,12 +8,14 @@
 
 #include "random_vector.h"
 
+#include <iostream>
+
 /**
  * @brief Reflects each element of the vector within the unit cube [0, 1].
  *
  * @param vec Vector to be reflected in-place.
  */
-void random_vector::ReflectWithinUnitCube(cpp11::writable::doubles& vec) {
+void random_vector::ReflectWithinUnitCube(Eigen::Ref<Eigen::RowVectorXd> vec) {
   for (size_t i = 0; i < vec.size(); ++i) {
     double val = vec[i];
     bool idx_even = std::fmod(val, 2.0) < 1.0;
@@ -31,13 +33,12 @@ void random_vector::ReflectWithinUnitCube(cpp11::writable::doubles& vec) {
  * @param vec Vector to fill (in-place).
  * @param radius Radius of the sphere.
  */
-void random_vector::UniformOnSphere(cpp11::writable::doubles& vec,
+void random_vector::UniformOnSphere(Eigen::Ref<Eigen::RowVectorXd> vec,
                                     const double radius) {
   RNorm(vec);
-  double norm = lapack_wrapper::dnrm2(vec);
-  double inv_norm = R_pow_di(norm, -1);
-  lapack_wrapper::dscal(inv_norm, vec);
-  lapack_wrapper::dscal(radius, vec);
+  double inv_norm = std::pow(vec.norm(), -1.0);
+  vec *= inv_norm;
+  vec *= radius;
 }
 
 /**
@@ -46,45 +47,27 @@ void random_vector::UniformOnSphere(cpp11::writable::doubles& vec,
  * @param vec Vector to fill (in-place).
  * @param radius Radius of the ball.
  */
-void random_vector::UniformInBall(cpp11::writable::doubles& vec,
+void random_vector::UniformInBall(Eigen::Ref<Eigen::RowVectorXd> vec,
                                   const double radius) {
   const int n_dim = vec.size();
-  UniformOnSphere(vec, R_pow(unif_rand(), 1.0 / n_dim));
-  lapack_wrapper::dscal(radius, vec);
+  UniformOnSphere(vec, pow(unif_rand(), 1.0 / n_dim));
+  vec *= radius;
 }
 
 /**
  * @brief Generates a random vector uniformly distributed inside an ellipsoid.
  *
- * @param chol_precision The cholesky-decomposition of the precision matrix
- * defining the ellipsoid.
- * @param loc Vector specifying the location to shift the sampled point.
+ * @param cov The covariance matrix defining the ellipsoid.
  * @param d2 The average squared radius of the ellipsoid.
+ * @param loc Vector specifying the location to shift the sampled point.
  * @param vec Vector to fill (in-place).
  */
-void random_vector::UniformInEllipsoid(cpp11::doubles_matrix<>& chol_precision,
-                                       cpp11::doubles& loc, double d2,
-                                       cpp11::writable::doubles& vec) {
+void random_vector::UniformInEllipsoid(const Eigen::Ref<Eigen::MatrixXd> cov,
+                                       const double d2,
+                                       const Eigen::Ref<Eigen::RowVectorXd> loc,
+                                       Eigen::Ref<Eigen::RowVectorXd> vec) {
+  Eigen::LLT<Eigen::MatrixXd> llt(cov);
   UniformInBall(vec);
-  lapack_wrapper::dtrsv(chol_precision, vec);
-  lapack_wrapper::dscal(sqrt(d2), vec);
-  lapack_wrapper::daxpy(1.0, loc, vec);
-}
-
-/**
- * @brief Fills a vector with uniformly distributed random numbers in [0, 1].
- *
- * @param vec Vector to fill (in-place).
- */
-void random_vector::RUnif(cpp11::writable::doubles& vec) {
-  std::generate(vec.begin(), vec.end(), unif_rand);
-}
-
-/**
- * @brief Fills a vector with standard normally-distributed random numbers.
- *
- * @param vec Vector to fill (in-place).
- */
-void random_vector::RNorm(cpp11::writable::doubles& vec) {
-  std::generate(vec.begin(), vec.end(), norm_rand);
+  vec = sqrt(d2) * (vec * llt.matrixU());
+  vec += loc;
 }

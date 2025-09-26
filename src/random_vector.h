@@ -6,14 +6,9 @@
  * https://people.math.sc.edu/Burkardt/cpp_src/random_data/random_data.html
  */
 #pragma once
-#include <vector>
-
-#include <R_ext/BLAS.h>
-#include <R_ext/Lapack.h>
 #include <R_ext/Random.h>
-#include <Rmath.h>
 
-#include "lapack_wrapper.h"
+#include "wrap.h"
 
 namespace random_vector {
 
@@ -32,20 +27,37 @@ struct RandomEngine {
  * @return true If all components of `vec` are in (0, 1).
  * @return false Otherwise.
  */
-inline bool IsOutsideUnitCube(const cpp11::doubles& vec) {
-  return std::any_of(vec.cbegin(), vec.cend(),
-                     [](double i) { return i < 0.0 || i > 1.0; });
+inline bool IsOutsideUnitCube(const Eigen::Ref<Eigen::RowVectorXd> vec) {
+  return (vec.array() < 0.0).any() || (vec.array() > 1.0).any();
 }
 
-void ReflectWithinUnitCube(cpp11::writable::doubles& vec);
+void ReflectWithinUnitCube(Eigen::Ref<Eigen::RowVectorXd> vec);
 
-void UniformOnSphere(cpp11::writable::doubles& vec, const double radius = 1);
-void UniformInBall(cpp11::writable::doubles& vec, const double radius = 1);
-void UniformInEllipsoid(cpp11::doubles_matrix<>& chol_precision,
-                        cpp11::doubles& loc, double d2,
-                        cpp11::writable::doubles& vec);
+void UniformOnSphere(Eigen::Ref<Eigen::RowVectorXd> vec,
+                     const double radius = 1);
+void UniformInBall(Eigen::Ref<Eigen::RowVectorXd> vec, const double radius = 1);
+void UniformInEllipsoid(const Eigen::Ref<Eigen::MatrixXd> cov, const double d2,
+                        const Eigen::Ref<Eigen::RowVectorXd> loc,
+                        Eigen::Ref<Eigen::RowVectorXd> vec);
 
-void RUnif(cpp11::writable::doubles& vec);
-void RNorm(cpp11::writable::doubles& vec);
+/**
+ * @brief Fills a vector with uniformly distributed random numbers in [0, 1].
+ *
+ * @param vec Vector to fill (in-place).
+ */
+template <class T>
+inline void RUnif(T& vec) {
+  std::generate(vec.begin(), vec.end(), unif_rand);
+}
+
+/**
+ * @brief Fills a vector with standard normally-distributed random numbers.
+ *
+ * @param vec Vector to fill (in-place).
+ */
+template <class T>
+inline void RNorm(T& vec) {
+  std::generate(vec.begin(), vec.end(), norm_rand);
+}
 
 }  // namespace random_vector

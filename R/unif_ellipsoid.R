@@ -91,7 +91,7 @@ new_unif_ellipsoid <- function(
     if (n_dim <= 1) {
       cli::cli_abort("`n_dim` must be larger than 1.")
     }
-    env_cache(cache, "chol_precision", diag(n_dim))
+    env_cache(cache, "cov", diag(n_dim))
     env_cache(cache, "loc", rep(0.5, n_dim))
     env_cache(cache, "d2", n_dim / 4)
     log_vol <- ((n_dim / 2) * log(pi)) -
@@ -124,7 +124,7 @@ propose.unif_ellipsoid <- function(
     res <- EllipsoidImpl(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      chol_precision = x$cache$chol_precision,
+      cov = x$cache$cov,
       loc = x$cache$loc,
       d2 = x$cache$d2,
       max_loop = x$max_loop
@@ -149,9 +149,8 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
           "x" = if (ellipsoid$ierr != 0) "Error thrown by the Fortran routine."
         ))
       }
-      chol_precision <- chol(solve(ellipsoid$cov))
       enlarged_d2 <- ellipsoid$d2 * x$enlarge^(2 / x$n_dim)
-      env_poke(x$cache, "chol_precision", chol_precision)
+      env_poke(x$cache, "cov", ellipsoid$cov)
       env_poke(x$cache, "loc", ellipsoid$loc)
       env_poke(x$cache, "d2", enlarged_d2)
       env_poke(x$cache, "log_volume", cluster::volume(ellipsoid, log = TRUE))
@@ -161,7 +160,7 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
         "Sampling from the unit sphere after encountering a rebounding error.",
         parent = cnd
       )
-      env_unbind(x$cache, c("chol_precision", "loc", "d2"))
+      env_unbind(x$cache, c("cov", "loc", "d2"))
     }
   )
   do.call(new_unif_ellipsoid, as.list(x))

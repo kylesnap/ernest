@@ -4,45 +4,69 @@
 \alias{rwmh_cube}
 \title{Generate samples with a random walk}
 \usage{
-rwmh_cube(steps = 25, target_acceptance = 0.5, cov_fn = stats::cov)
+rwmh_cube(steps = 25, target_acceptance = 0.5)
 }
 \arguments{
 \item{steps}{Positive integer. Number of steps to take when generating a
 proposal point.}
 
-\item{target_acceptance}{Double between \code{1 / steps} and 1.0. The target
-acceptance rate for the proposed points.}
-
-\item{cov_fn}{An optional function. If provided, \code{cov_fn} should
-be able to return the variance-covariance matrix for a set of live points
-in the sampler. This is used to scale the steps during sampling. If set to
-\code{NULL}, sampling steps will ignore the covariance of the live points.}
+\item{target_acceptance}{Number between \code{1 / steps} and 1.0. Target
+acceptance rate for proposed points.}
 }
 \value{
-A list with class \code{c("rwmh_cube", "ernest_lrps")}. Can be used with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling
-run.
+An object of class \code{c("rwmh_cube", "ernest_lrps")} that can be
+used with \code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour.
 }
 \description{
-Generate new live points by evolving a current live point through
+Create new live points by evolving a current live point through
 a Metropolis-Hastings random walk, rejecting steps that fail to meet the
 likelihood criterion.
 }
 \details{
-Calling \code{\link[=update_lrps]{update_lrps()}} builds a new proposal distribution based on the
-acceptance rate of the previous run. The step size \eqn{\epsilon} is updated
-using a Newton-like method, where the current acceptance rate \eqn{a_{cur}}
-is used to target the acceptance rate \eqn{a^*}:
-\deqn{\epsilon_{new} = \epsilon_{old} * \exp((a_{cur} - a^*)/(n_{dim} * a^*))}
+The random walk LRPS generates proposals by performing a fixed number of
+Metropolis-Hastings steps within the unit hypercube. Each step proposes a
+new location by adding a random perturbation to the current position,
+accepting or rejecting the step based on whether it satisfies the likelihood
+criterion. This process continues for the specified number of steps,
+with the final accepted position returned as the proposal.
+
+\strong{Step-size Adaptation}: The step size \eqn{\epsilon} is adapted between
+sampling rounds using \code{\link[=update_lrps]{update_lrps()}}. The adaptation uses a Newton-like
+method to target the desired acceptance rate \eqn{\alpha_*}. Given the
+current acceptance rate \eqn{\alpha_i} and number of dimensions
+\eqn{d}, the step size is updated with:
+
+\deqn{\epsilon_i * \exp(\frac{\alpha_i - \alpha^*}{d \cdot \alpha_*})}
+
+Given the previously-accepted sample \eqn{X_{i-1}} and the number of
+dimensions \eqn{d}, proposed points are generated from:
+
+\deqn{X_{i-1} + S_d(0, \epsilon)}
+
+where \eqn{S(0, \epsilon)} is a point drawn uniformly from the
+$d$-dimensional ball centered on the origin with radius \eqn{\epsilon}.
 }
+\section{Control Parameters}{
+
+\itemize{
+\item \code{steps}: Start with 25. Increase to generate samples that more closely
+follow the posterior distribution; decrease for computational efficiency.
+\item \code{target_acceptance}: Start with 0.4-0.6. Lower values encourage more global
+exploration of the posterior, higher values encourage explorations close
+to the starting point.
+}
+}
+
 \examples{
-data(example_run)
+# Basic usage with default parameters
 lrps <- rwmh_cube()
 
-ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+# A faster sampler for simple-to-traverse posterior surfaces
+fast_lrps <- rwmh_cube(
+  steps = 20,
+  target_acceptance = 0.7
+)
 
-# Change the default behaviour of the sampler:
-rwmh_cube(steps = 20, target_acceptance = 0.4)
 }
 \references{
 \itemize{
@@ -57,6 +81,7 @@ Royal Astronomical Society, 493, 3132–3158.
 }
 \seealso{
 Other ernest_lrps: 
+\code{\link{adaptive_rwmh}()},
 \code{\link{unif_cube}()},
 \code{\link{unif_ellipsoid}()}
 }

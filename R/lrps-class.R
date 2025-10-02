@@ -59,7 +59,7 @@ new_ernest_lrps <- function(
     max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
-  env_cache(elem$cache, "n_call", 0L)
+  env_poke(elem$cache, "n_call", 0L)
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)

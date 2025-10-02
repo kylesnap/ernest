@@ -3,12 +3,11 @@
  * This is a modified version of the original code written by John Burkardt,
  * licensed under the LPGL. The original and unaltered source code for this
  * document can be found at
+ *
  * https://people.math.sc.edu/Burkardt/cpp_src/random_data/random_data.html
  */
 
 #include "random_vector.h"
-
-#include <iostream>
 
 /**
  * @brief Reflects each element of the vector within the unit cube [0, 1].

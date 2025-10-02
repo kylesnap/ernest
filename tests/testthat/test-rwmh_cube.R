@@ -9,7 +9,6 @@ test_that("rwmh_cube returns correct class and structure", {
   expect_equal(obj$max_loop, 1e6L)
   expect_equal(obj$target_acceptance, 0.5)
   expect_equal(obj$steps, 25)
-  expect_identical(obj$cov_fn, stats::cov)
   expect_snapshot(obj)
 })
 
@@ -20,7 +19,6 @@ describe("new_rwmh_cube", {
     expect_snapshot(new_rwmh_cube(fn, 2L, target_acceptance = 0), error = TRUE)
     expect_snapshot(new_rwmh_cube(fn, 2L, target_acceptance = 1), error = TRUE)
     expect_snapshot(new_rwmh_cube(fn, 2L, steps = 1), error = TRUE)
-    expect_snapshot(new_rwmh_cube(fn, 2L, cov_fn = "fizz"), error = TRUE)
   })
 
   it("initializes correctly", {
@@ -31,11 +29,10 @@ describe("new_rwmh_cube", {
     expect_equal(rwcube$n_dim, 2L)
     expect_equal(rwcube$target_acceptance, 0.5)
     expect_equal(rwcube$steps, 25)
-    expect_identical(diag(2), rwcube$cache$chol_cov)
   })
 })
 
-rwcube <- new_rwmh_cube(fn, 2L, cov_fn = as_closure(stats::cov))
+rwcube <- new_rwmh_cube(fn, 2L)
 describe("propose.rwmh_cube", {
   it("proposes a single new point", {
     result <- propose(rwcube, original = NULL, criterion = -Inf)
@@ -71,7 +68,6 @@ describe("propose.rwmh_cube", {
 
 live <- replicate(500, propose(rwcube))
 live <- do.call(rbind, live["unit", ])
-chol_cov <- chol(stats::cov(live))
 describe("update_lrps.rwmh_cube", {
   it("resets and is idempotent", {
     acc_ratio <- rwcube$cache$n_accept / rwcube$cache$n_call
@@ -82,29 +78,7 @@ describe("update_lrps.rwmh_cube", {
       new_rwcube$cache$epsilon,
       exp((acc_ratio - 0.5) / 2L / 0.5)
     )
-    expect_identical(rwcube$cache$chol_cov, chol_cov)
     newer_rwcube <- update_lrps(new_rwcube, unit = live)
     expect_identical(new_rwcube, newer_rwcube)
-  })
-
-  it("can accept alternate cov. methods", {
-    set.seed(42L)
-    alt_cov <- \(x) stats::cov(x, method = "spearman")
-    rwcube_spear <- new_rwmh_cube(
-      fn,
-      2L,
-      cov_fn = alt_cov
-    )
-    expect_identical(rwcube_spear$cov_fn, alt_cov)
-    result <- propose(rwcube_spear, original = c(0.5, 0.5), criterion = -300)
-    spear_chol_cov <- chol(stats::cov(live, method = "spearman"))
-    update_lrps(rwcube_spear, unit = live)
-    expect_identical(rwcube_spear$cache$chol_cov, spear_chol_cov)
-  })
-
-  it("warns when chol_cov can't be calculated", {
-    bad_live <- matrix(0, nrow = 500, ncol = 2)
-    expect_snapshot(update_lrps(rwcube, bad_live))
-    expect_identical(diag(2), rwcube$cache$chol_cov)
   })
 })

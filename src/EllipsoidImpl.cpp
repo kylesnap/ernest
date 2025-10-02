@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "random_vector.h"
 #include "wrap.h"
 

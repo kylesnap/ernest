@@ -47,6 +47,7 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 }
 \seealso{
 Other ernest_lrps: 
+\code{\link{adaptive_rwmh}()},
 \code{\link{rwmh_cube}()},
 \code{\link{unif_cube}()}
 }

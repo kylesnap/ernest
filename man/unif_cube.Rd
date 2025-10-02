@@ -30,6 +30,7 @@ Royal Astronomical Society, 493, 3132–3158.
 }
 \seealso{
 Other ernest_lrps: 
+\code{\link{adaptive_rwmh}()},
 \code{\link{rwmh_cube}()},
 \code{\link{unif_ellipsoid}()}
 }

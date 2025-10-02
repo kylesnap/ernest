@@ -1,4 +1,3 @@
-#include <iostream>
 #include <limits>
 
 #include "random_vector.h"
@@ -76,7 +75,10 @@ context("Point generators") {
   test_that("UniformInEllipsoid") {
     for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
       // Random positive definite precision/covariance matrix
-      Eigen::MatrixXd A = Eigen::MatrixXd::Random(n_dim, n_dim);
+      Eigen::MatrixXd A(n_dim, n_dim);
+      for (auto &a : A.reshaped()) {
+        a = unif_rand();
+      }
       Eigen::MatrixXd prec =
           A.transpose() * A + 0.1 * Eigen::MatrixXd::Identity(n_dim, n_dim);
       Eigen::MatrixXd cov = prec.inverse();

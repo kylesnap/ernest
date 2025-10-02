@@ -98,10 +98,10 @@ eggbox_sample <- expand.grid(
   "A" = seq(0, 1, by = 0.01),
   "B" = seq(0, 1, by = 0.01)
 )
-eggbox_sample$logl <- purrr::map2_dbl(
-  eggbox_sample$A, 
-  eggbox_sample$B, 
-  \(a, b) eggbox_loglik(c(a, b))
+eggbox_sample$logl <- mapply(
+  function(a, b) eggbox_loglik(c(a, b)),
+  eggbox_sample$A,
+  eggbox_sample$B
 )
 
 library(ggplot2)
@@ -138,7 +138,9 @@ y <- c(
 
 # Model likelihood: Y ~ N(mu, sd)
 log_lik <- function(theta, data) {
-  if (theta[2] <= 0) return(-Inf)
+  if (theta[2] <= 0) {
+    return(-Inf)
+  }
   sum(stats::dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
 }
 ```
@@ -149,7 +151,7 @@ Supply data using either an anonymous function or the dots argument of `create_l
 
 ```{r}
 # Anonymous function
-anon_log_lik <- \(theta) log_lik(theta, data = y) 
+anon_log_lik <- \(theta) log_lik(theta, data = y)
 
 # Using dots for create_likelihood
 expected_mean <- 100000000.200000000000000

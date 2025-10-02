@@ -1,7 +1,7 @@
-#include <cpp11.hpp>
 #include <Rmath.h>
+
+#include <cpp11.hpp>
 #include <numeric>
-#include <iostream>
 
 [[cpp11::register]]
 double logaddexp(double x, double y) {

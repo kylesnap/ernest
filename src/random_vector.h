@@ -7,6 +7,10 @@
  */
 #pragma once
 #include <R_ext/Random.h>
+#include <Rmath.h>
+
+#include <algorithm>
+#include <cmath>
 
 #include "wrap.h"
 
@@ -58,6 +62,16 @@ inline void RUnif(T& vec) {
 template <class T>
 inline void RNorm(T& vec) {
   std::generate(vec.begin(), vec.end(), norm_rand);
+}
+
+/**
+ * @brief Outer product of a row vector.
+ *
+ * @param x Eigen row vector.
+ * @return Eigen square matrix.
+ */
+inline Eigen::MatrixXd outer(const Eigen::Ref<const Eigen::RowVectorXd>& x) {
+  return x.transpose() * x;
 }
 
 }  // namespace random_vector

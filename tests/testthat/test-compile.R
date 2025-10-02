@@ -23,22 +23,10 @@ describe("create_live", {
   })
   it("gives informative error when prior or log. lik. fails completely", {
     bad_lik <- new_rwmh_cube(
-      unit_log_fn = purrr::compose(
-        \(x) stop("Bad Likelihood Job!"),
-        gaussian_blobs$prior$fn,
-      ),
+      unit_log_fn = \(x) stop("Bad Likelihood Job!"),
       n_dim = 2L
     )
     expect_snapshot(create_live(bad_lik, 10), error = TRUE)
-
-    bad_prior <- new_rwmh_cube(
-      unit_log_fn = purrr::compose(
-        gaussian_blobs$log_lik,
-        \(x) stop("Bad Prior Job!")
-      ),
-      n_dim = 2L
-    )
-    expect_snapshot(create_live(bad_prior, 10), error = TRUE)
   })
 })
 

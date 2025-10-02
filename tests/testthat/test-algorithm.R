@@ -24,6 +24,25 @@ describe("gaussian_blobs", {
     expect_equal(sum(weights), 1)
   })
 
+  it("works with adaptive_rwalk", {
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = adaptive_rwmh(),
+      n_points = 100
+    )
+    ad_result <- generate(sampler, seed = 42)
+    smry_ad <- summary(ad_result)
+
+    expect_lt(
+      abs(smry_ad$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * smry_ad$log_evidence_err
+    )
+    weights <- as_draws(ad_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
   it("works with unif_ellipsoid", {
     sampler <- ernest_sampler(
       log_lik_fn,

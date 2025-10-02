@@ -6,14 +6,6 @@
       Error:
       ! Bad Likelihood Job!
 
----
-
-    Code
-      create_live(bad_prior, 10)
-    Condition
-      Error:
-      ! Bad Prior Job!
-
 # check_live_set: errors if unit is not a matrix of correct shape
 
     Code

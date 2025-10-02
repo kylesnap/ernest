@@ -1,4 +1,4 @@
-fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
+fn <- \(x) gaussian_blobs$log_lik(gaussian_blobs$prior$fn(x))
 set.seed(42)
 
 test_that("unif_ellipsoid returns correct class and structure", {
@@ -139,7 +139,7 @@ describe("unif_ellipsoid in 3D", {
     matrixStats::logSumExp(c(val1, val2))
   }
   prior <- create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:3])
-  fn <- purrr::compose(log_lik, prior$fn)
+  fn <- \(x) log_lik(prior$fn(x))
   uniform_3d <- new_unif_ellipsoid(fn, n_dim = 3)
 
   it("can propose in 3D", {

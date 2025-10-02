@@ -117,9 +117,10 @@ generate.ernest_sampler <- function(
   new_ernest_run(x, results)
 }
 
-#' @method generate ernest_run
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
 #' from the last known set of live points.
+#'
+#' @method generate ernest_run
 #' @export
 generate.ernest_run <- function(
   x,

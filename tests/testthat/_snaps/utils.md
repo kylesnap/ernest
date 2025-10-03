@@ -4,7 +4,7 @@
       config
     Message
       logfile configuration <ernest_logging>
-      Directory: 'PATH'
+      Directory: PATH
       Threshold: INFO
 
 # ernest_logging handles invalid directories

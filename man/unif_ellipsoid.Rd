@@ -4,7 +4,7 @@
 \alias{unif_ellipsoid}
 \title{Generate samples from the spanning ellipsoid}
 \usage{
-unif_ellipsoid(enlarge = 1)
+unif_ellipsoid(enlarge = 1.25)
 }
 \arguments{
 \item{enlarge}{Double, larger or equal to 1. Factor to inflate the bounding
@@ -24,19 +24,16 @@ constant enlargement factor.
 Nested likelihood contours rarely form perfect ellipses, so sampling
 from the spanning ellipsoid without enlargement may exclude valid regions.
 This can bias proposals toward the ellipsoid centre and overestimate
-evidence. Leaving \code{enlarge = 1} will trigger an alert message.
+evidence. Setting \code{enlarge = 1} will produce a warning.
 
 If \link[cluster:ellipsoidhull]{cluster::ellipsoidhull} fails to converge, \code{unif_ellipsoid} falls back to
 sampling from the circumscribed sphere bounding the unit hypercube.
 }
 \examples{
 data(example_run)
-lrps <- unif_ellipsoid(enlarge = 1.2)
+lrps <- unif_ellipsoid(enlarge = 1.25)
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-
-# The default behaviour of the sampler prints an alert:
-unif_ellipsoid(1.0)
 }
 \references{
 Barbary, K. (2015). nestle: Pure Python,

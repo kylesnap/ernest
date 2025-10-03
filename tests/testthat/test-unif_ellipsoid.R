@@ -12,8 +12,8 @@ test_that("unif_ellipsoid returns correct class and structure", {
   expect_null(obj$cache$d2)
   expect_null(obj$cache$loc)
 
-  expect_snapshot(obj <- unif_ellipsoid())
-  expect_equal(obj$enlarge, 1.0)
+  obj <- unif_ellipsoid()
+  expect_equal(obj$enlarge, 1.25)
 })
 
 describe("new_unif_ellipsoid", {

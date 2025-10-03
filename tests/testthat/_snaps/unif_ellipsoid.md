@@ -1,10 +1,3 @@
-# unif_ellipsoid returns correct class and structure
-
-    Code
-      obj <- unif_ellipsoid()
-    Message
-      ! `enlarge` is set to 1.0, which is not recommended.
-
 # new_unif_ellipsoid: fails when scale or n_dim are improper.
 
     Code

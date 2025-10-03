@@ -11,7 +11,7 @@
 #' @details Nested likelihood contours rarely form perfect ellipses, so sampling
 #' from the spanning ellipsoid without enlargement may exclude valid regions.
 #' This can bias proposals toward the ellipsoid centre and overestimate
-#' evidence. Leaving `enlarge = 1` will trigger an alert message.
+#' evidence. Setting `enlarge = 1` will produce a warning.
 #'
 #' If [cluster::ellipsoidhull] fails to converge, `unif_ellipsoid` falls back to
 #' sampling from the circumscribed sphere bounding the unit hypercube.
@@ -32,14 +32,11 @@
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
-#' lrps <- unif_ellipsoid(enlarge = 1.2)
+#' lrps <- unif_ellipsoid(enlarge = 1.25)
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-#'
-#' # The default behaviour of the sampler prints an alert:
-#' unif_ellipsoid(1.0)
 #' @export
-unif_ellipsoid <- function(enlarge = 1.0) {
+unif_ellipsoid <- function(enlarge = 1.25) {
   check_installed("cluster", reason = "finding convex hulls")
   check_number_decimal(enlarge, min = 1)
   if (enlarge == 1.0) {

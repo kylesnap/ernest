@@ -1,4 +1,4 @@
-fn <- purrr::compose(gaussian_blobs$log_lik, gaussian_blobs$prior$fn)
+fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
 set.seed(42)
 
 test_that("unif_cube returns correct class and structure", {

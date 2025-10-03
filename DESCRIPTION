@@ -31,7 +31,6 @@ Suggests:
     knitr,
     LaplacesDemon,
     log4r,
-    purrr,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,

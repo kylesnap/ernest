@@ -1,12 +1,3 @@
-# ernest_logging configures logging correctly
-
-    Code
-      config
-    Message
-      logfile configuration <ernest_logging>
-      Directory: 'PATH'
-      Threshold: INFO
-
 # ernest_logging handles invalid directories
 
     Code

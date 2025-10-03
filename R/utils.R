@@ -62,13 +62,22 @@ ernest_logging <- function(
   config
 }
 
+#' Simple format for ernest_logging
+#' @noRd
+#' @export
+format.ernest_logging <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_text("logfile configuration {.cls ernest_logging}")
+    cli::cli_text("Directory: {.path {x$dir}}")
+    cli::cli_text("Threshold: {x$threshold}")
+  })
+}
+
 #' Simple print for ernest_logging
 #' @noRd
 #' @export
 print.ernest_logging <- function(x, ...) {
-  cli::cli_text("logfile configuration {.cls ernest_logging}")
-  cli::cli_text("Directory: {.path {x$dir}}")
-  cli::cli_text("Threshold: {x$threshold}")
+  print(format(x, ...), sep = "\n")
 }
 
 #' Configure logging when `generate` is called

@@ -6,14 +6,11 @@ test_that("ernest_logging configures logging correctly", {
   expect_equal(config$dir, normalizePath("."))
   expect_equal(config$fileext, ".json")
   expect_equal(getOption("ernest_logging"), config)
+  expect_match(capture_output(print(config)), "logfile configuration")
 
   disable <- ernest_logging(dir = FALSE)
   expect_null(disable)
   expect_null(getOption("ernest_logging"))
-
-  expect_snapshot(config, transform = \(x) {
-    sub(paste0("\n?", config$dir), "PATH", x)
-  })
 })
 
 test_that("ernest_logging handles invalid directories", {

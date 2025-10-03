@@ -37,17 +37,16 @@
 #' @importFrom prettyunits pretty_signif
 #' @noRd
 nested_sampling_impl <- function(
-  x,
-  max_iterations,
-  max_calls,
-  min_logz,
-  last_criterion = -1e300,
-  log_vol = 0,
-  log_z = -1e300,
-  iter = 0L,
-  call = 0L,
-  show_progress = TRUE
-) {
+    x,
+    max_iterations,
+    max_calls,
+    min_logz,
+    last_criterion = -1e300,
+    log_vol = 0,
+    log_z = -1e300,
+    iter = 0L,
+    call = 0L,
+    show_progress = TRUE) {
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
@@ -58,15 +57,7 @@ nested_sampling_impl <- function(
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_calls <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
-
-  logger <- if (isTRUE(getOption("ernest_logging", FALSE))) {
-    config <- getOption("ernest_log_config", configure_logging())
-    cli::cli_alert_info("Logfile at {.file {config$dest}}.")
-    log4r::logger(
-      threshold = config$threshold,
-      appenders = log4r::file_appender(config$dest, layout = config$layout)
-    )
-  }
+  logger <- start_logging()
 
   i <- 1
   if (show_progress) {

@@ -1,55 +1,96 @@
 #' Configure logging for ernest runs
 #'
-#' Set up logging for ernest. Use the `ernest_logging` option to enable or
-#' disable the log file during sampling.
+#' Set up log for ernest. #' "INFO"-level logging saves the results of each call
+#' to [update_lrps]; "DEBUG"-level logging additionally saves the results of
+#' each call to [propose].
 #'
-#' @param dir Character. Directory in which to create the log file.
-#' Defaults to a temporary directory.
-#' @param threshold Character. Minimum log level to record, one of
+#' @param dir Character or `FALSE.` Directory in which to create the log file.
+#' This directory must already exist. If `FALSE`, logging is disabled.
+#' @param threshold Character. Minimum message level to record, one of
 #' "INFO", "DEBUG", "WARN", "ERROR", or "FATAL".
 #' @param layout Character. Log output format, either "json" or "logfmt".
 #'
-#' @note Currently, "INFO" messages print the state of the [ernest_lrps]
-#' cache after it is updated. "DEBUG" messages detail the results of each
-#' call to [propose].
+#' @return
+#' A list with S3 class "ernest_logging" if `dir` is a valid directory, or
+#' NULL if `dir` is FALSE. The list contains arguments used to create an
+#' instance of [log4r::logger] when [generate] is called. The return value is
+#' also stored in the R option 'ernest_logging'.
 #'
 #' @srrstats {G4.0} Users can choose the location of logging files.
 #'
-#' @return A list containing the log configuration: threshold,
-#' destination file path, and layout. This list is also stored in the ernest
-#' package environment for use during sampling.
 #' @keywords internal
 #' @export
-configure_logging <- function(
+ernest_logging <- function(
   dir = tempdir(),
   threshold = "INFO",
   layout = c("json", "logfmt")
 ) {
-  check_string(dir)
+  # Capture the unevaluated expression for comparison
+  dir_expr <- enquo(dir)
+
+  if (isFALSE(dir)) {
+    options("ernest_logging" = NULL)
+    return(NULL)
+  }
+  check_installed("log4r", reason = "writing log files")
+
+  dir <- if (identical(dir_expr, quote(tempdir()))) {
+    tempdir()
+  } else if (!dir.exists(dir)) {
+    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
+    tempdir()
+  } else {
+    normalizePath(dir)
+  }
   threshold <- arg_match(
     threshold,
     values = c("DEBUG", "INFO", "WARN", "ERROR", "FATAL")
   )
   layout <- arg_match(layout)
-  file_ext <- switch(
-    layout,
-    "json" = ".json",
-    "logfmt" = ".file"
-  )
+  file_ext <- switch(layout, "json" = ".json", "logfmt" = ".file")
   layout <- switch(
     layout,
     "json" = log4r::json_log_layout(),
     "logfmt" = log4r::logfmt_log_layout()
   )
 
-  if (!dir.exists(dir)) {
-    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
-    dir <- tempdir()
+  config <- structure(
+    list(threshold = threshold, dir = dir, fileext = file_ext, layout = layout),
+    class = "ernest_logging"
+  )
+  options("ernest_logging" = config)
+  config
+}
+
+#' Simple print for ernest_logging
+#' @noRd
+#' @export
+print.ernest_logging <- function(x, ...) {
+  cli::cli_text("logfile configuration {.cls ernest_logging}")
+  cli::cli_text("Directory: {.path {x$dir}}")
+  cli::cli_text("Threshold: {x$threshold}")
+}
+
+#' Configure logging when `generate` is called
+#' @noRd
+start_logging <- function() {
+  if (is.null(config <- getOption("ernest_logging"))) {
+    return(NULL)
   }
-  dest <- tempfile(pattern = "ernest_run", tmpdir = dir, fileext = file_ext)
-  log_config <- list(threshold = threshold, dest = dest, layout = layout)
-  options("ernest_log_config" = log_config)
-  return(log_config)
+  check_class(config, "ernest_logging")
+  file <- file.path(
+    config$dir,
+    paste0(
+      "ernest_generate_",
+      format(Sys.time(), "%Y%m%d_%H%M%S"),
+      config$fileext
+    )
+  )
+  alert_info("Logging run to {.file {file}}.")
+  log4r::logger(
+    threshold = config$threshold,
+    appenders = log4r::file_appender(file, layout = config$layout)
+  )
 }
 
 #' Check the class of an object

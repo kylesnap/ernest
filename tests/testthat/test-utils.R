@@ -11,9 +11,8 @@ test_that("ernest_logging configures logging correctly", {
   expect_null(disable)
   expect_null(getOption("ernest_logging"))
 
-  skip_on_cran()
   expect_snapshot(config, transform = \(x) {
-    sub("Directory: .+$", "Directory: PATH", x)
+    sub(paste0("\n?", config$dir), "PATH", x)
   })
 })
 

@@ -1,10 +1,10 @@
-# create_live: gives informative error when prior or log. lik. fails completely
+# create_live: gives informative error when unit_log_fn fails completely
 
     Code
       create_live(bad_lik, 10)
     Condition
       Error:
-      ! Bad Likelihood Job!
+      ! Bad Job!
 
 # check_live_set: errors if unit is not a matrix of correct shape
 

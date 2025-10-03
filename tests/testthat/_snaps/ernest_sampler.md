@@ -182,25 +182,3 @@
       No. Calls: 5130
       Log. Evidence: -7.110 (± 1.925)
 
-# set_logging enables and disables logging
-
-    Code
-      generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
-    Message
-      i Logging run at FILE.
-    Output
-      nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
-      [2] ""                                                     
-      [3] "No. Dimensions: 2"                                    
-      [4] "Current Step Size: 0.2855"                            
-      
-      -- Results 
-      No. Iterations: 1000
-      No. Calls: 5130
-      Log. Evidence: -7.110 (± 1.925)
-

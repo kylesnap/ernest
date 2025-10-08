@@ -37,16 +37,17 @@
 #' @importFrom prettyunits pretty_signif
 #' @noRd
 nested_sampling_impl <- function(
-    x,
-    max_iterations,
-    max_calls,
-    min_logz,
-    last_criterion = -1e300,
-    log_vol = 0,
-    log_z = -1e300,
-    iter = 0L,
-    call = 0L,
-    show_progress = TRUE) {
+  x,
+  max_iterations,
+  max_calls,
+  min_logz,
+  last_criterion = -1e300,
+  log_vol = 0,
+  log_z = -1e300,
+  iter = 0L,
+  call = 0L,
+  show_progress = TRUE
+) {
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
@@ -58,6 +59,9 @@ nested_sampling_impl <- function(
   dead_calls <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
   logger <- start_logging()
+  if (!is.null(logger)) {
+    log4r::warn(logger, "run_info" = format(x))
+  }
 
   i <- 1
   if (show_progress) {
@@ -115,7 +119,12 @@ nested_sampling_impl <- function(
     ) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
       if (!is.null(logger)) {
-        inject(log4r::info(logger, !!!as.list(x$lrps$cache)))
+        inject(log4r::info(
+          logger,
+          ITER = i,
+          !!!as.list(x$lrps$cache),
+          unit = live_env$unit
+        ))
       }
     }
 
@@ -135,6 +144,7 @@ nested_sampling_impl <- function(
     if (!is.null(logger)) {
       inject(log4r::debug(
         logger,
+        ITER = i,
         original = live_env$unit[copy, ],
         criterion = live_env$log_lik[worst_idx],
         !!!new_unit

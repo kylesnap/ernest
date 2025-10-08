@@ -1,11 +1,8 @@
-#include "random_vector.h"
+#include "random_generator.h"
 
 #define K_SQRT2d2_SQRTPI 1.25331413731550025120788264241
 #define K_LN3 1.09861228866810969139524523692
 
-/**
- * @brief State for the accelerated scaling and shaping algorithm
- */
 struct AdaptiveState {
   Eigen::RowVectorXd mean;
   Eigen::MatrixXd cov;
@@ -48,8 +45,8 @@ AdaptiveState Initalize(cpp11::doubles& mean,
                         double forgetfulness, double epsilon,
                         double min_epsilon) {
   AdaptiveState state;
-  state.mean = wrap::as_eigen(mean);
-  state.cov = wrap::as_eigen(covariance);
+  state.mean = as_row_vector(mean);
+  state.cov = as_Matrix(covariance);
   state.target_accept = target_accept;
   state.prior_strength = prior_strength;
   state.forgetfulness = forgetfulness;
@@ -97,12 +94,12 @@ void IncludeObservation(AdaptiveState& state, int step,
   double weight = 1.0 / (step - f_n + 1);
 
   // Update mean
-  Eigen::MatrixXd prev_mean_outer = random_vector::outer(state.mean);
+  Eigen::MatrixXd prev_mean_outer = random_generator::outer(state.mean);
   state.mean = ((step - f_n) * weight) * state.mean + weight * cur_draw;
 
   // Update covariance
-  Eigen::MatrixXd cur_outer = random_vector::outer(cur_draw);
-  Eigen::MatrixXd mean_outer = random_vector::outer(state.mean);
+  Eigen::MatrixXd cur_outer = random_generator::outer(cur_draw);
+  Eigen::MatrixXd mean_outer = random_generator::outer(state.mean);
   state.cov =
       (1.0 / (step - f_n + state.prior_strength + state.n_dim + 2)) *
       ((step - f_n + state.prior_strength + state.n_dim + 1) * state.cov +
@@ -125,12 +122,12 @@ void ReplaceObservation(AdaptiveState& state, int step,
   int f_n = ForgetSeq(step, state.forgetfulness);
   double weight = 1.0 / (step - f_n + 1);
 
-  Eigen::MatrixXd diff_mean = random_vector::outer(state.mean);
+  Eigen::MatrixXd diff_mean = random_generator::outer(state.mean);
   state.mean += weight * (cur_draw - old_draw);
-  diff_mean -= random_vector::outer(state.mean);
+  diff_mean -= random_generator::outer(state.mean);
 
   Eigen::MatrixXd diff_draw =
-      random_vector::outer(cur_draw) - random_vector::outer(old_draw);
+      random_generator::outer(cur_draw) - random_generator::outer(old_draw);
   state.cov += (1.0 / (step - f_n + state.prior_strength + state.n_dim + 2)) *
                (diff_draw + (step - f_n + 1) * diff_mean);
 }
@@ -158,33 +155,30 @@ void UpdateScaling(AdaptiveState& state, bool accept, size_t step) {
  * @brief Performs adaptive random walk Metropolis-Hastings sampling with
  * reflection.
  *
- * The algorithm adapts the proposal distribution N(current, epsilon * scaling *
- * covariance) where epsilon is adapted to achieve target acceptance rate and
- * covariance is estimated from the sample path with forgetting.
- *
- * @param original Initial point for the random walk (vector of doubles)
- * @param unit_log_fn Function that computes the log-likelihood for proposals
+ * @param original Initial point for the random walk (vector of doubles).
+ * @param unit_log_fn Function that computes the log-likelihood for proposals.
  * @param criterion Minimum log-likelihood value required for acceptance
- * (log-likelihood constraint)
- * @param steps Number of random walk steps to perform
- * @param epsilon Initial step-size
- * @param min_epsilon Minimum allowed step-size parameter to prevent degeneracy
- * @param target_acceptance Target acceptance rate for optimal efficiency
- * @param mean Initial mean vector for the proposal distribution
- * @param covariance Initial covariance matrix estimate (e.g., from live points)
+ *                  (log-likelihood constraint).
+ * @param steps Number of random walk steps to perform.
+ * @param epsilon Initial step-size.
+ * @param min_epsilon Minimum allowed step-size parameter to prevent degeneracy.
+ * @param target_acceptance Target acceptance rate for optimal efficiency.
+ * @param mean Initial mean vector for the proposal distribution.
+ * @param covariance Initial covariance matrix estimate (e.g., from live
+ * points).
  * @param strength Prior strength for covariance matrix (typically number of
- * parameters)
- * @param forgetfulness Forgetting parameter controlling memory length (0 <
- * forgetfulness <= 1)
+ *                 parameters).
+ * @param forgetfulness Forgetting parameter controlling memory length
+ *                      (0 < forgetfulness <= 1).
  *
- * @return cpp11::list List containing:
- *   - unit: Final accepted sample point
- *   - log_lik: Log-likelihood of the final point
- *   - n_call: Total number of function evaluations (equals steps)
- *   - n_accept: Number of accepted proposals
- *   - epsilon: Final adapted step-size parameter
- *   - mean: Final adapted mean vector
- *   - covariance: Final adapted covariance matrix
+ * @return A list containing:
+ *         - unit: Final accepted sample point
+ *         - log_lik: Log-likelihood of the final point
+ *         - n_call: Total number of function evaluations (equals steps)
+ *         - n_accept: Number of accepted proposals
+ *         - epsilon: Final adapted step-size parameter
+ *         - mean: Final adapted mean vector
+ *         - covariance: Final adapted covariance matrix
  */
 [[cpp11::register]]
 cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
@@ -193,28 +187,26 @@ cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                            cpp11::doubles mean,
                            cpp11::doubles_matrix<> covariance, double strength,
                            double forgetfulness) {
-  random_vector::RandomEngine rng;
+  random_generator::RandomEngine rng;
 
-  // Setups
   AdaptiveState state = Initalize(mean, covariance, target_acceptance, strength,
                                   forgetfulness, epsilon, min_epsilon);
   Eigen::RowVectorXd next_draw(state.n_dim), old_draw(state.n_dim),
       rand_vec(state.n_dim);
-  Eigen::RowVectorXd cur_draw = wrap::as_eigen(original);
+  Eigen::RowVectorXd cur_draw = as_row_vector(original);
   bool accept;
   size_t n_accept = 0;
 
   for (int step = 1; step <= steps; step++) {
-    // Generate proposal Y_n ~ N(mean, epsilon * cov_scale * cov)
     next_draw = cur_draw;
-    random_vector::RNorm(rand_vec);
+    random_generator::RNorm(rand_vec);
     Eigen::LLT<Eigen::MatrixXd> llt(state.epsilon * state.cov_scaling *
                                     state.cov);
     next_draw += rand_vec * llt.matrixL();
-    if (random_vector::IsOutsideUnitCube(next_draw)) {
+    if (random_generator::IsOutsideUnitCube(next_draw)) {
       accept = false;
     } else {
-      double log_lik = unit_log_fn(wrap::as_doubles(next_draw));
+      double log_lik = unit_log_fn(as_row_doubles(next_draw));
       accept = log_lik >= criterion;
     }
     if (accept) {
@@ -222,12 +214,12 @@ cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
       n_accept++;
     }
     if (step == 1) {
-      Eigen::RowVectorXd orig = wrap::as_eigen(original);
+      Eigen::RowVectorXd orig = as_row_vector(original);
       state.mean = 0.5 * (cur_draw + orig);
       state.cov *= (state.prior_strength + state.n_dim + 1);
       state.cov +=
-          (random_vector::outer(cur_draw) + random_vector::outer(orig)) -
-          (2 * random_vector::outer(state.mean));
+          (random_generator::outer(cur_draw) + random_generator::outer(orig)) -
+          (2 * random_generator::outer(state.mean));
       state.cov /= (state.prior_strength + state.n_dim + 3);
       old_draw = cur_draw;
       UpdateScaling(state, accept, step);
@@ -245,8 +237,8 @@ cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   }
 
   return cpp11::writable::list(
-      {"unit"_nm = wrap::as_doubles(cur_draw),
-       "log_lik"_nm = unit_log_fn(wrap::as_doubles(cur_draw)),
+      {"unit"_nm = as_row_doubles(cur_draw),
+       "log_lik"_nm = unit_log_fn(as_row_doubles(cur_draw)),
        "n_call"_nm = steps, "n_accept"_nm = n_accept,
        "epsilon"_nm = state.epsilon, "mean"_nm = state.mean,
        "covariance"_nm = as_doubles_matrix(state.cov)});

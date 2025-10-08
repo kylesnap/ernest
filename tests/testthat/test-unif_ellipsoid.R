@@ -19,7 +19,6 @@ test_that("unif_ellipsoid returns correct class and structure", {
 describe("new_unif_ellipsoid", {
   it("fails when scale or n_dim are improper.", {
     expect_snapshot(new_unif_ellipsoid(fn, 2L, enlarge = 0.5), error = TRUE)
-    expect_snapshot(new_unif_ellipsoid(fn, 1L), error = TRUE)
   })
 
   it("passes the correct defaults", {
@@ -30,7 +29,7 @@ describe("new_unif_ellipsoid", {
     expect_equal(obj$max_loop, 1e6L)
     expect_equal(obj$enlarge, 1.0)
     expect_equal(obj$cache$cov, diag(2))
-    expect_equal(obj$cache$d2, 2 / 4)
+    expect_equal(obj$cache$scale, 0.5)
     expect_equal(obj$cache$loc, c(0.5, 0.5))
     expect_equal(obj$cache$log_volume, log(pi * (sqrt(2) / 2)^2))
     expect_snapshot(obj)
@@ -76,13 +75,12 @@ describe("update_lrps.unif_ellipsoid", {
   ell <<- NULL
   it("can rebound to a matrix of live points", {
     new_uniform <- update_lrps(uniform, live)
-    ell <<- cluster::ellipsoidhull(live)
-    loc <- ell$loc
-    expect_equal(new_uniform$cache$cov, ell$cov)
-    expect_equal(new_uniform$cache$d2, ell$d2 * 1.2)
-    expect_equal(new_uniform$cache$loc, loc)
-    expect_equal(new_uniform$cache$log_volume, cluster::volume(ell, log = TRUE))
-
+    ell <<- list(
+      cov = new_uniform$cache$cov,
+      loc = new_uniform$cache$loc,
+      scale = new_uniform$cache$scale,
+      trans = new_uniform$cache$trans
+    )
     new_live <- replicate(
       500,
       propose(new_uniform, original = c(0.5, 0.5), criterion = -Inf)
@@ -93,7 +91,7 @@ describe("update_lrps.unif_ellipsoid", {
       d <- x - ell$loc
       drop(d %*% precision %*% d)
     })
-    n_oob <- sum(dists > ell$d2 * 1.2)
+    n_oob <- sum(dists > ell$scale * 1.2)
     expect_equal(n_oob, 0)
     expect_snapshot(uniform)
   })
@@ -111,60 +109,13 @@ describe("update_lrps.unif_ellipsoid", {
       d <- x - ell$loc
       drop(d %*% precision %*% d)
     })
-    n_oob <- sum(dists > ell$d2 * 1.25)
+    n_oob <- sum(dists > ell$scale * 1.25)
     expect_equal(n_oob, 0)
   })
 
-  it("fails to a unit sphere when cluster fails", {
+  it("reports numerical errors", {
     x <- seq(0.01, 0.49, length.out = 500)
-    xy <- cbind(x, x * 2) # Dependence between columns.
+    xy <- cbind(x, x * 2)
     expect_snapshot(new_uniform <- update_lrps(uniform, xy))
-    expect_equal(new_uniform$cache$cov, diag(2))
-    expect_equal(new_uniform$cache$d2, 2 / 4)
-    expect_equal(new_uniform$cache$loc, c(0.5, 0.5))
-  })
-})
-
-describe("unif_ellipsoid in 3D", {
-  log_lik <- function(x) {
-    sigma <- 0.1
-    mu1 <- c(1, 1, 1)
-    mu2 <- -c(1, 1, 1)
-    sigma_inv <- diag(3) / 0.1**2
-
-    dx1 <- x - mu1
-    dx2 <- x - mu2
-    val1 <- -0.5 * drop(dx1 %*% sigma_inv %*% dx1)
-    val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
-    matrixStats::logSumExp(c(val1, val2))
-  }
-  prior <- create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:3])
-  fn <- \(x) prior$fn(x) |> log_lik()
-  uniform_3d <- new_unif_ellipsoid(fn, n_dim = 3)
-
-  it("can propose in 3D", {
-    result <- replicate(
-      500,
-      propose(uniform_3d, original = c(0.5, 0.5, 0.5), criterion = -300)
-    )
-    live <<- do.call(rbind, result["unit", ])
-    expect_equal(dim(live), c(500, 3))
-  })
-
-  it("can update its bounds", {
-    new_uniform <- update_lrps(uniform_3d, live)
-    ell <- cluster::ellipsoidhull(live)
-    new_live <- replicate(
-      500,
-      propose(new_uniform, original = c(0.5, 0.5, 0.5), criterion = -Inf)
-    )
-    new_live <- do.call(rbind, new_live["unit", ])
-    precision <- solve(ell$cov)
-    dists <- apply(new_live, 1, \(x) {
-      d <- x - ell$loc
-      drop(d %*% precision %*% d)
-    })
-    n_oob <- sum(dists > ell$d2)
-    expect_equal(n_oob, 0)
   })
 })

@@ -2,7 +2,7 @@
 #'
 #' Uses the bounding ellipsoid of live points to define the prior region for new
 #' samples. Effective for unimodal, roughly Gaussian posteriors. The ellipsoid
-#' is found using [cluster::ellipsoidhull] and its volume is inflated by a
+#' is found using the internal bounding ellipsoid algorithm and its volume is inflated by a
 #' constant enlargement factor.
 #'
 #' @param enlarge Double, larger or equal to 1. Factor to inflate the bounding
@@ -13,7 +13,7 @@
 #' This can bias proposals toward the ellipsoid centre and overestimate
 #' evidence. Setting `enlarge = 1` will produce a warning.
 #'
-#' If [cluster::ellipsoidhull] fails to converge, `unif_ellipsoid` falls back to
+#' If the bounding ellipsoid computation fails to converge, `unif_ellipsoid` falls back to
 #' sampling from the circumscribed sphere bounding the unit hypercube.
 #'
 #' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
@@ -24,6 +24,7 @@
 #' MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating
 #' Bayesian Evidence. (Computer software, Version 0.2).
 #' <https://github.com/kbarbary/nestle>.
+#'
 #'
 #' Mukherjee, P., Parkinson, D., & Liddle, A. R. (2006). A Nested Sampling
 #' Algorithm for Cosmological Model Selection. The Astrophysical Journal,
@@ -37,7 +38,6 @@
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 unif_ellipsoid <- function(enlarge = 1.25) {
-  check_installed("cluster", reason = "finding convex hulls")
   check_number_decimal(enlarge, min = 1)
   if (enlarge == 1.0) {
     cli::cli_alert_warning("`enlarge` is set to 1.0, which is not recommended.")
@@ -76,7 +76,8 @@ format.unif_ellipsoid <- function(x, ...) {
 #' @param max_loop Integer. Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
-#' @return An LRPS specification, a list with class `c("rwmh_cube", "ernest_lrps")`.
+#' @return An LRPS specification, a list with class
+#' `c("unif_ellipsoid", "ernest_lrps")`.
 #' @noRd
 new_unif_ellipsoid <- function(
   unit_log_fn = NULL,
@@ -88,12 +89,10 @@ new_unif_ellipsoid <- function(
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   cache <- cache %||% new_environment()
   if (is_integerish(n_dim) && n_dim > 0) {
-    if (n_dim <= 1) {
-      cli::cli_abort("`n_dim` must be larger than 1.")
-    }
     env_cache(cache, "cov", diag(n_dim))
     env_cache(cache, "loc", rep(0.5, n_dim))
-    env_cache(cache, "d2", n_dim / 4)
+    env_cache(cache, "trans", diag(n_dim))
+    env_cache(cache, "scale", n_dim / 4)
     log_vol <- ((n_dim / 2) * log(pi)) -
       lgamma(n_dim / 2 + 1) +
       n_dim * ((1 / 2) * log(n_dim) - log(2))
@@ -124,9 +123,9 @@ propose.unif_ellipsoid <- function(
     res <- EllipsoidImpl(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      cov = x$cache$cov,
+      trans = x$cache$trans,
       loc = x$cache$loc,
-      d2 = x$cache$d2,
+      scale = x$cache$scale,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
@@ -142,25 +141,30 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
   }
   try_fetch(
     {
-      ellipsoid <- suppressWarnings(cluster::ellipsoidhull(unit))
-      if (!ellipsoid$conv) {
-        cli::cli_abort(c(
-          "Failed to estimate the spanning ellipsoid.",
-          "x" = if (ellipsoid$ierr != 0) "Error thrown by the Fortran routine."
-        ))
+      ellipsoid <- BoundingEllipsoid(unit)
+      if (ellipsoid$log_vol == -Inf) {
+        cli::cli_abort("Fatal numerical error (e.g., perfect collinearity.")
       }
-      enlarged_d2 <- ellipsoid$d2 * x$enlarge^(2 / x$n_dim)
+
+      if (ellipsoid$error != 0L) {
+        cli::cli_warn(
+          "Ellipsoid fitting returned an error code ({ellipsoid$error})"
+        )
+      }
+
+      enlarged_scale <- ellipsoid$scale * x$enlarge^(2 / x$n_dim)
       env_poke(x$cache, "cov", ellipsoid$cov)
       env_poke(x$cache, "loc", ellipsoid$loc)
-      env_poke(x$cache, "d2", enlarged_d2)
-      env_poke(x$cache, "log_volume", cluster::volume(ellipsoid, log = TRUE))
+      env_poke(x$cache, "trans", ellipsoid$trans)
+      env_poke(x$cache, "scale", enlarged_scale)
+      env_poke(x$cache, "log_volume", ellipsoid$log_vol)
     },
     error = function(cnd) {
       cli::cli_warn(
         "Sampling from the unit sphere after encountering a rebounding error.",
         parent = cnd
       )
-      env_unbind(x$cache, c("cov", "loc", "d2"))
+      env_unbind(x$cache, c("cov", "loc", "trans", "scale"))
     }
   )
   do.call(new_unif_ellipsoid, as.list(x))

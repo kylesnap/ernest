@@ -1,4 +1,4 @@
-#include "random_vector.h"
+#include "random_generator.h"
 
 /**
  * @brief LRPS using points in the unit hypercube.
@@ -15,9 +15,9 @@
 cpp11::list CubeImpl(int n_dim, cpp11::function unit_log_fn, double criterion,
                      int max_loop) {
   cpp11::writable::doubles proposal(n_dim);
-  random_vector::RandomEngine rng;
+  random_generator::RandomEngine rng;
   for (int i = 0; i < max_loop; i++) {
-    random_vector::RUnif(proposal);
+    random_generator::RUnif(proposal);
     double log_lik = unit_log_fn(proposal);
     if (log_lik >= criterion) {
       using namespace cpp11::literals;

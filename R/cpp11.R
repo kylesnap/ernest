@@ -8,8 +8,12 @@ CubeImpl <- function(n_dim, unit_log_fn, criterion, max_loop) {
   .Call(`_ernest_CubeImpl`, n_dim, unit_log_fn, criterion, max_loop)
 }
 
-EllipsoidImpl <- function(unit_log_fn, criterion, cov, loc, d2, max_loop) {
-  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, cov, loc, d2, max_loop)
+BoundingEllipsoid <- function(X) {
+  .Call(`_ernest_BoundingEllipsoid`, X)
+}
+
+EllipsoidImpl <- function(unit_log_fn, criterion, trans, loc, scale, max_loop) {
+  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, trans, loc, scale, max_loop)
 }
 
 RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {

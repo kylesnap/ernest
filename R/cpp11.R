@@ -12,8 +12,12 @@ BoundingEllipsoid <- function(X) {
   .Call(`_ernest_BoundingEllipsoid`, X)
 }
 
-EllipsoidImpl <- function(unit_log_fn, criterion, trans, loc, scale, max_loop) {
-  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, trans, loc, scale, max_loop)
+EllipsoidImpl <- function(unit_log_fn, criterion, scaledInvSqrtA, loc, max_loop) {
+  .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, scaledInvSqrtA, loc, max_loop)
+}
+
+MultiBoundingEllipsoids <- function(X) {
+  .Call(`_ernest_MultiBoundingEllipsoids`, X)
 }
 
 RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {

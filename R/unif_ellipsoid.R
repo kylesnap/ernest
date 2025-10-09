@@ -1,9 +1,7 @@
 #' Generate samples from the spanning ellipsoid
 #'
 #' Uses the bounding ellipsoid of live points to define the prior region for new
-#' samples. Effective for unimodal, roughly Gaussian posteriors. The ellipsoid
-#' is found using the internal bounding ellipsoid algorithm and its volume is inflated by a
-#' constant enlargement factor.
+#' samples. Effective for unimodal, roughly Gaussian posteriors.
 #'
 #' @param enlarge Double, larger or equal to 1. Factor to inflate the bounding
 #' ellipsoid's volume before sampling (see Details).
@@ -13,18 +11,26 @@
 #' This can bias proposals toward the ellipsoid centre and overestimate
 #' evidence. Setting `enlarge = 1` will produce a warning.
 #'
-#' If the bounding ellipsoid computation fails to converge, `unif_ellipsoid` falls back to
-#' sampling from the circumscribed sphere bounding the unit hypercube.
+#' Ellipsoids are stored in the LRPS cache in quadric representation, such that
+#' each point within the ellipsoid \eqn{x} satisfies the inequality
+#' \deqn{(x - loc) A (x - loc)^T \leq scale}. The inverse square root of the
+#' precision matrix \eqn{A}, scaled by the enlargement factor, is also stored
+#' to facilitate efficient point generation.
+#'
+#' The covariance matrix of the points is used to compute the bounding
+#' ellipsoid. In exceptional cases (e.g. perfect collinearity), this matrix
+#' may be singular. Should this occur, the covariance matrix is reconditioned
+#' by adjusting its eigenvalues. Should this also fail, the algorithm falls
+#' back to sampling from the circumscribed sphere bounding the unit hypercube.
 #'
 #' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
 #' [ernest_sampler()] to specify nested sampling behaviour.
 #'
 #' @references
-#' Barbary, K. (2015). nestle: Pure Python,
-#' MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating
-#' Bayesian Evidence. (Computer software, Version 0.2).
-#' <https://github.com/kbarbary/nestle>.
-#'
+#' Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
+#' Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
+#' Notices of the Royal Astronomical Society. 398(4), 1601–1614.
+#' <https://doi.org/10.1111/j.1365-2966.2009.14548.x>
 #'
 #' Mukherjee, P., Parkinson, D., & Liddle, A. R. (2006). A Nested Sampling
 #' Algorithm for Cosmological Model Selection. The Astrophysical Journal,
@@ -80,25 +86,23 @@ format.unif_ellipsoid <- function(x, ...) {
 #' `c("unif_ellipsoid", "ernest_lrps")`.
 #' @noRd
 new_unif_ellipsoid <- function(
-  unit_log_fn = NULL,
-  n_dim = NULL,
-  max_loop = 1e6L,
-  cache = NULL,
-  enlarge = 1.0
-) {
+    unit_log_fn = NULL,
+    n_dim = NULL,
+    max_loop = 1e6L,
+    cache = NULL,
+    enlarge = 1.0) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   cache <- cache %||% new_environment()
   if (is_integerish(n_dim) && n_dim > 0) {
-    env_cache(cache, "cov", diag(n_dim))
+    env_cache(cache, "A", diag(n_dim))
     env_cache(cache, "loc", rep(0.5, n_dim))
-    env_cache(cache, "trans", diag(n_dim))
+    env_cache(cache, "scaledInvSqrtA", diag(n_dim / 4, nrow = n_dim))
     env_cache(cache, "scale", n_dim / 4)
     log_vol <- ((n_dim / 2) * log(pi)) -
       lgamma(n_dim / 2 + 1) +
       n_dim * ((1 / 2) * log(n_dim) - log(2))
     env_cache(cache, "log_volume", log_vol)
   }
-  env_poke(cache, "n_call", 0L)
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
     n_dim = n_dim,
@@ -112,20 +116,18 @@ new_unif_ellipsoid <- function(
 #' @rdname propose
 #' @export
 propose.unif_ellipsoid <- function(
-  x,
-  original = NULL,
-  criterion = -Inf,
-  idx = NULL
-) {
+    x,
+    original = NULL,
+    criterion = -Inf,
+    idx = NULL) {
   if (is.null(original)) {
     NextMethod(x)
   } else {
     res <- EllipsoidImpl(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      trans = x$cache$trans,
+      scaledInvSqrtA = x$cache$scaledInvSqrtA,
       loc = x$cache$loc,
-      scale = x$cache$scale,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
@@ -143,28 +145,36 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
     {
       ellipsoid <- BoundingEllipsoid(unit)
       if (ellipsoid$log_vol == -Inf) {
-        cli::cli_abort("Fatal numerical error (e.g., perfect collinearity.")
-      }
-
-      if (ellipsoid$error != 0L) {
+        cli::cli_abort("Encountered a fatal numerical error.")
+      } else if (ellipsoid$error != 0L) {
         cli::cli_warn(
-          "Ellipsoid fitting returned an error code ({ellipsoid$error})"
+          "Ellipsoid fitting returned an error code ({ellipsoid$error})."
         )
       }
 
-      enlarged_scale <- ellipsoid$scale * x$enlarge^(2 / x$n_dim)
-      env_poke(x$cache, "cov", ellipsoid$cov)
+      env_poke(x$cache, "A", ellipsoid$A)
       env_poke(x$cache, "loc", ellipsoid$loc)
-      env_poke(x$cache, "trans", ellipsoid$trans)
-      env_poke(x$cache, "scale", enlarged_scale)
-      env_poke(x$cache, "log_volume", ellipsoid$log_vol)
+      env_poke(
+        x$cache,
+        "scaledInvSqrtA",
+        ellipsoid$scaledInvSqrtA * sqrt(x$enlarge)
+      )
+      env_poke(x$cache, "scale", ellipsoid$scale)
+      env_poke(
+        x$cache,
+        "log_volume",
+        ellipsoid$log_vol + x$n_dim * log(x$enlarge) / 2
+      )
     },
     error = function(cnd) {
       cli::cli_warn(
         "Sampling from the unit sphere after encountering a rebounding error.",
         parent = cnd
       )
-      env_unbind(x$cache, c("cov", "loc", "trans", "scale"))
+      env_unbind(
+        x$cache,
+        c("A", "loc", "scaledInvSqrtA", "scale", "log_volume")
+      )
     }
   )
   do.call(new_unif_ellipsoid, as.list(x))

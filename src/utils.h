@@ -12,6 +12,19 @@
 #include <cpp11.hpp>
 #include <cpp11eigen.hpp>
 
+// Reference to nonmutable Eigen object.
+template <class T>
+using ConstRef = Eigen::Ref<const T>;
+// Reference to mutable Eigen object.
+template <class T>
+using Ref = Eigen::Ref<T>;
+
+// Shorthand names for Eigen objects
+using RowVector = Eigen::RowVectorXd;
+using ColVector = Eigen::VectorXd;
+using Vector = Eigen::VectorXd;
+using Matrix = Eigen::MatrixXd;
+
 namespace cpp11 {
 
 /**
@@ -20,8 +33,8 @@ namespace cpp11 {
  * @param x R doubles vector to convert.
  * @return Eigen row vector mapped to the input data.
  */
-inline Eigen::RowVectorXd as_row_vector(const cpp11::doubles &x) {
-  return Eigen::Map<Eigen::RowVectorXd>(REAL(x.data()), x.size());
+inline RowVector as_row_vector(const cpp11::doubles &x) {
+  return Eigen::Map<RowVector>(REAL(x.data()), x.size());
 }
 
 /**
@@ -30,8 +43,7 @@ inline Eigen::RowVectorXd as_row_vector(const cpp11::doubles &x) {
  * @param x Eigen row vector to convert.
  * @return R doubles vector containing the data from x.
  */
-inline cpp11::doubles as_row_doubles(
-    const Eigen::Ref<const Eigen::RowVectorXd> &x) {
+inline cpp11::doubles as_row_doubles(const ConstRef<RowVector> &x) {
   return cpp11::as_doubles(cpp11::as_sexp(x));
 }
 

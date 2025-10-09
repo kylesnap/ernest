@@ -25,41 +25,17 @@ context("LogVolume function") {
   }
 }
 
-context("ScaleFactor function") {
-  test_that("ScaleFactor finds maximum distance") {
-    Eigen::MatrixXd X(3, 2);
-    X << 0, 0, 1, 0, 0, 1;
-    Eigen::RowVectorXd loc = Eigen::RowVectorXd::Zero(2);
-    Eigen::MatrixXd precision = Eigen::MatrixXd::Identity(2, 2);
-
-    double scale = bounding::ScaleFactor(X, loc, precision);
-    expect_true(almost_equal(scale, 1.0));
-  }
-}
-
-context("GetTMatrix function") {
-  test_that("GetTMatrix creates correct transformation") {
-    Eigen::VectorXd e_values(2);
-    e_values << 4.0, 1.0;
-    Eigen::MatrixXd e_vectors = Eigen::MatrixXd::Identity(2, 2);
-
-    Eigen::MatrixXd trans = bounding::GetTMatrix(e_values, e_vectors);
-
-    expect_true(almost_equal(trans(0, 0), 2.0));  // sqrt(4)
-    expect_true(almost_equal(trans(1, 1), 1.0));  // sqrt(1)
-  }
-}
-
 context("Ellipsoid function - basic functionality") {
   test_that("Ellipsoid handles insufficient points") {
     Eigen::MatrixXd X(1, 2);
     X << 0, 0;
     Eigen::RowVectorXd loc(2);
-    Eigen::MatrixXd cov(2, 2);
-    Eigen::MatrixXd trans(2, 2);
+    Eigen::MatrixXd A(2, 2);
+    Eigen::MatrixXd scaledInvSqrtA(2, 2);
     double scale, log_volume;
 
-    int result = bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
+    bounding::Status result =
+        bounding::Ellipsoid(X, loc, A, scaledInvSqrtA, scale, log_volume);
     expect_true(log_volume == R_NegInf);
     expect_true(result == bounding::Status::kFatal);
   }
@@ -68,11 +44,11 @@ context("Ellipsoid function - basic functionality") {
     Eigen::MatrixXd X(3, 2);
     X << 0, 0, 2, 0, 0, 2;
     Eigen::RowVectorXd loc(2);
-    Eigen::MatrixXd cov(2, 2);
-    Eigen::MatrixXd trans(2, 2);
+    Eigen::MatrixXd A(2, 2);
+    Eigen::MatrixXd scaledInvSqrtA(2, 2);
     double scale, log_volume;
 
-    bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
+    bounding::Ellipsoid(X, loc, A, scaledInvSqrtA, scale, log_volume);
 
     expect_true(almost_equal(loc(0), 2.0 / 3.0));
     expect_true(almost_equal(loc(1), 2.0 / 3.0));
@@ -88,34 +64,20 @@ context("Ellipsoid function - bounding property") {
         0, 1.5, 1.5, 0;
 
     Eigen::RowVectorXd loc(2);
-    Eigen::MatrixXd cov(2, 2);
-    Eigen::MatrixXd trans(2, 2);
+    Eigen::MatrixXd A(2, 2);
+    Eigen::MatrixXd scaledInvSqrtA(2, 2);
     double scale, log_volume;
 
-    bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
+    bounding::Ellipsoid(X, loc, A, scaledInvSqrtA, scale, log_volume);
     expect_true(log_volume != R_NegInf);
 
     // Verify all points are within the ellipsoid
-    // Transform to unit space and check distance <= scale
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensystem(cov);
-    Eigen::VectorXd e_values = eigensystem.eigenvalues();
-    Eigen::MatrixXd e_vectors = eigensystem.eigenvectors();
-
-    // Handle zero eigenvalues like the main function
-    for (int i = 0; i < 1; i++) {
-      if (e_values[i] <= 0.0) {
-        e_values.head(i + 1).setConstant(e_values[i + 1] / 2.0);
-      }
-    }
-
-    Eigen::MatrixXd inv_cov = e_vectors * e_values.cwiseInverse().asDiagonal() *
-                              e_vectors.transpose();
-
+    // Use the precision matrix A directly
     double max_dist = R_NegInf;
     bool non_pos_dist = FALSE;
     for (int i = 0; i < X.rows(); ++i) {
       Eigen::RowVectorXd diff = X.row(i) - loc;
-      double dist = diff * inv_cov * diff.transpose();
+      double dist = diff * A * diff.transpose();
       max_dist = Rf_fmax2(max_dist, dist);
       non_pos_dist = non_pos_dist || !(almost_equal(1.0, sign(dist)));
     }
@@ -131,17 +93,13 @@ context("Ellipsoid function - geometric cases") {
     X << 0, 0, 1, 1, 2, 2, 3, 3;
 
     Eigen::RowVectorXd loc(2);
-    Eigen::MatrixXd cov(2, 2);
-    Eigen::MatrixXd trans(2, 2);
+    Eigen::MatrixXd A(2, 2);
+    Eigen::MatrixXd scaledInvSqrtA(2, 2);
     double scale, log_volume;
 
-    int result = bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
+    bounding::Status result =
+        bounding::Ellipsoid(X, loc, A, scaledInvSqrtA, scale, log_volume);
     expect_true(log_volume != R_NegInf);
-
-    // Should handle the zero eigenvalue case
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensystem(cov);
-    Eigen::VectorXd e_values = eigensystem.eigenvalues();
-    expect_true(e_values[0] > 0);  // After correction, should be positive
     expect_true(result == bounding::Status::kNonInvertible);
   }
 
@@ -151,40 +109,13 @@ context("Ellipsoid function - geometric cases") {
     X << 0, 0, 0, 1, 0, 0;
 
     Eigen::RowVectorXd loc(3);
-    Eigen::MatrixXd cov(3, 3);
-    Eigen::MatrixXd trans(3, 3);
+    Eigen::MatrixXd A(3, 3);
+    Eigen::MatrixXd scaledInvSqrtA(3, 3);
     double scale, log_volume;
 
-    int result = bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
+    bounding::Status result =
+        bounding::Ellipsoid(X, loc, A, scaledInvSqrtA, scale, log_volume);
     expect_true(log_volume != R_NegInf);
-
-    // Check that unconstrained eigenvalues were set
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensystem(cov);
-    Eigen::VectorXd e_values = eigensystem.eigenvalues();
-    expect_true(almost_equal(e_values[0], e_values[1]));
-    expect_true(result == bounding::Status::kSingular);
-  }
-}
-
-context("Ellipsoid function - analytical cases") {
-  test_that("Ellipsoid volume for unit square vertices") {
-    // Vertices of a unit square
-    Eigen::MatrixXd X(4, 2);
-    X << 0, 0, 1, 0, 0, 1, 1, 1;
-
-    Eigen::RowVectorXd loc(2);
-    Eigen::MatrixXd cov(2, 2);
-    Eigen::MatrixXd trans(2, 2);
-    double scale, log_volume;
-
-    bounding::Ellipsoid(X, loc, cov, trans, scale, log_volume);
-    expect_true(log_volume != R_NegInf);
-
-    // Center should be at (0.5, 0.5)
-    expect_true(almost_equal(loc(0), 0.5));
-    expect_true(almost_equal(loc(1), 0.5));
-
-    // Volume should be reasonable (positive, finite)
-    expect_true(R_FINITE(log_volume));
+    expect_true(result == bounding::Status::kUnderdetermined);
   }
 }

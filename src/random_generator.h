@@ -19,7 +19,7 @@
 namespace random_generator {
 
 /**
- * @brief RAII wrapper for R's random number generator state.
+ * @brief Wrapper for R's random number generator state.
  *
  * Ensures proper initialization and cleanup of R's RNG state
  * to maintain reproducibility and thread safety.
@@ -35,46 +35,18 @@ struct RandomEngine {
  * @param vec A vector to check.
  * @return true if any component of vec is outside [0,1], false otherwise.
  */
-inline bool IsOutsideUnitCube(const Eigen::Ref<Eigen::RowVectorXd> vec) {
+inline bool IsOutsideUnitCube(ConstRef<RowVector> vec) {
   return (vec.array() < 0.0).any() || (vec.array() > 1.0).any();
 }
 
-/**
- * @brief Reflects a vector to lie within the unit hypercube [0,1]^n.
- *
- * @param vec Vector to be reflected in-place.
- */
-void ReflectWithinUnitCube(Eigen::Ref<Eigen::RowVectorXd> vec);
+void ReflectWithinUnitCube(Ref<RowVector> vec);
 
-/**
- * @brief Generates a point uniformly distributed on the surface of a sphere.
- *
- * @param vec Vector to fill with the generated point (modified in-place).
- * @param radius Radius of the sphere (default: 1.0).
- */
-void UniformOnSphere(Eigen::Ref<Eigen::RowVectorXd> vec,
-                     const double radius = 1);
+void UniformOnSphere(Ref<RowVector> vec, const double radius = 1);
 
-/**
- * @brief Generates a point uniformly distributed inside a ball.
- *
- * @param vec Vector to fill with the generated point (modified in-place).
- * @param radius Radius of the ball (default: 1.0).
- */
-void UniformInBall(Eigen::Ref<Eigen::RowVectorXd> vec, const double radius = 1);
+void UniformInBall(Ref<RowVector> vec, const double radius = 1);
 
-/**
- * @brief Generates a point uniformly distributed inside an ellipsoid.
- *
- * @param trans Transformation matrix defining the ellipsoid's axes and scaling.
- * @param scale Additional scaling factor for the ellipsoid.
- * @param loc Center location of the ellipsoid.
- * @param vec Vector to fill with the generated point (modified in-place).
- */
-void UniformInEllipsoid(const Eigen::Ref<Eigen::MatrixXd> trans,
-                        const double scale,
-                        const Eigen::Ref<Eigen::RowVectorXd> loc,
-                        Eigen::Ref<Eigen::RowVectorXd> vec);
+void UniformInEllipsoid(ConstRef<Matrix> scaledInvSqrtA,
+                        ConstRef<RowVector> loc, Ref<RowVector> vec);
 
 /**
  * @brief Fills a vector with uniformly distributed random numbers in [0,1].
@@ -108,8 +80,6 @@ inline void RNorm(T& vec) {
  * @param x Input row vector.
  * @return Square matrix representing the outer product x^T * x.
  */
-inline Eigen::MatrixXd outer(const Eigen::Ref<const Eigen::RowVectorXd>& x) {
-  return x.transpose() * x;
-}
+inline Matrix outer(const ConstRef<RowVector> x) { return x.transpose() * x; }
 
 }  // namespace random_generator

@@ -37,8 +37,8 @@
       uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
       
       No. Dimensions: 2
-      Centre: 0.5073, 0.5080
-      Log Volume: -1.777
+      Centre: 0.5010, 0.4957
+      Log Volume: -1.529
       Enlargement Factor: 1.2
 
 # update_lrps.unif_ellipsoid: reports numerical errors
@@ -47,5 +47,5 @@
       new_uniform <- update_lrps(uniform, xy)
     Condition
       Warning:
-      Ellipsoid fitting returned an error code (1)
+      Ellipsoid fitting returned an error code (1).
 

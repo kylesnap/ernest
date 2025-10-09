@@ -27,10 +27,17 @@ extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X) {
   END_CPP11
 }
 // EllipsoidImpl.cpp
-cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion, cpp11::doubles_matrix<> trans, cpp11::doubles loc, double scale, int max_loop);
-extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP trans, SEXP loc, SEXP scale, SEXP max_loop) {
+cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion, cpp11::doubles_matrix<> scaledInvSqrtA, cpp11::doubles loc, int max_loop);
+extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP scaledInvSqrtA, SEXP loc, SEXP max_loop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(EllipsoidImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(trans), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<double>>(scale), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
+    return cpp11::as_sexp(EllipsoidImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(scaledInvSqrtA), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
+  END_CPP11
+}
+// MultiEllipsoid.cpp
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X);
+extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
   END_CPP11
 }
 // RandomWalkImpl.cpp
@@ -53,13 +60,14 @@ extern "C" {
 extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_AdaptiveRWImpl",    (DL_FUNC) &_ernest_AdaptiveRWImpl,    11},
-    {"_ernest_BoundingEllipsoid", (DL_FUNC) &_ernest_BoundingEllipsoid,  1},
-    {"_ernest_CubeImpl",          (DL_FUNC) &_ernest_CubeImpl,           4},
-    {"_ernest_EllipsoidImpl",     (DL_FUNC) &_ernest_EllipsoidImpl,      6},
-    {"_ernest_RandomWalkImpl",    (DL_FUNC) &_ernest_RandomWalkImpl,     5},
-    {"_ernest_logaddexp",         (DL_FUNC) &_ernest_logaddexp,          2},
-    {"run_testthat_tests",        (DL_FUNC) &run_testthat_tests,         1},
+    {"_ernest_AdaptiveRWImpl",          (DL_FUNC) &_ernest_AdaptiveRWImpl,          11},
+    {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,        1},
+    {"_ernest_CubeImpl",                (DL_FUNC) &_ernest_CubeImpl,                 4},
+    {"_ernest_EllipsoidImpl",           (DL_FUNC) &_ernest_EllipsoidImpl,            5},
+    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  1},
+    {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,           5},
+    {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,                2},
+    {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,               1},
     {NULL, NULL, 0}
 };
 }

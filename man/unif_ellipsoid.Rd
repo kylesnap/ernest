@@ -16,9 +16,7 @@ A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Use with
 }
 \description{
 Uses the bounding ellipsoid of live points to define the prior region for new
-samples. Effective for unimodal, roughly Gaussian posteriors. The ellipsoid
-is found using \link[cluster:ellipsoidhull]{cluster::ellipsoidhull} and its volume is inflated by a
-constant enlargement factor.
+samples. Effective for unimodal, roughly Gaussian posteriors.
 }
 \details{
 Nested likelihood contours rarely form perfect ellipses, so sampling
@@ -26,8 +24,17 @@ from the spanning ellipsoid without enlargement may exclude valid regions.
 This can bias proposals toward the ellipsoid centre and overestimate
 evidence. Setting \code{enlarge = 1} will produce a warning.
 
-If \link[cluster:ellipsoidhull]{cluster::ellipsoidhull} fails to converge, \code{unif_ellipsoid} falls back to
-sampling from the circumscribed sphere bounding the unit hypercube.
+Ellipsoids are stored in the LRPS cache in quadric representation, such that
+each point within the ellipsoid \eqn{x} satisfies the inequality
+\deqn{(x - loc) A (x - loc)^T \leq scale}. The inverse square root of the
+precision matrix \eqn{A}, scaled by the enlargement factor, is also stored
+to facilitate efficient point generation.
+
+The covariance matrix of the points is used to compute the bounding
+ellipsoid. In exceptional cases (e.g. perfect collinearity), this matrix
+may be singular. Should this occur, the covariance matrix is reconditioned
+by adjusting its eigenvalues. Should this also fail, the algorithm falls
+back to sampling from the circumscribed sphere bounding the unit hypercube.
 }
 \examples{
 data(example_run)
@@ -36,10 +43,10 @@ lrps <- unif_ellipsoid(enlarge = 1.25)
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 }
 \references{
-Barbary, K. (2015). nestle: Pure Python,
-MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating
-Bayesian Evidence. (Computer software, Version 0.2).
-\url{https://github.com/kbarbary/nestle}.
+Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
+Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
+Notices of the Royal Astronomical Society. 398(4), 1601–1614.
+\url{https://doi.org/10.1111/j.1365-2966.2009.14548.x}
 
 Mukherjee, P., Parkinson, D., & Liddle, A. R. (2006). A Nested Sampling
 Algorithm for Cosmological Model Selection. The Astrophysical Journal,

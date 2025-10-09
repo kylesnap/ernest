@@ -62,21 +62,20 @@ context("Point generators") {
 
   test_that("UniformInEllipsoid") {
     for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
-      // Random transformation matrix
-      Eigen::MatrixXd trans(n_dim, n_dim);
-      for (auto &a : trans.reshaped()) {
+      // Random scaledInvSqrtA matrix
+      Eigen::MatrixXd scaledInvSqrtA(n_dim, n_dim);
+      for (auto &a : scaledInvSqrtA.reshaped()) {
         a = unif_rand();
       }
 
-      double scale = 2.0;
       Eigen::RowVectorXd loc(n_dim), test(n_dim);
       loc.fill(0.5);
 
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
-        random_generator::UniformInEllipsoid(trans, scale, loc, test);
-        Eigen::RowVectorXd centered = (test - loc) / sqrt(scale);
-        Eigen::RowVectorXd unit_space = centered * trans.inverse();
+        random_generator::UniformInEllipsoid(scaledInvSqrtA, loc, test);
+        Eigen::RowVectorXd centered = test - loc;
+        Eigen::RowVectorXd unit_space = centered * scaledInvSqrtA.inverse();
         if (unit_space.norm() > 1.0) {
           n_fail++;
         }

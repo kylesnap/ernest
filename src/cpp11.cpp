@@ -34,10 +34,10 @@ extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP sca
   END_CPP11
 }
 // MultiEllipsoid.cpp
-cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X);
-extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X) {
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double reduction);
+extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP reduction) {
   BEGIN_CPP11
-    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
+    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(reduction)));
   END_CPP11
 }
 // RandomWalkImpl.cpp
@@ -64,7 +64,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,        1},
     {"_ernest_CubeImpl",                (DL_FUNC) &_ernest_CubeImpl,                 4},
     {"_ernest_EllipsoidImpl",           (DL_FUNC) &_ernest_EllipsoidImpl,            5},
-    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  1},
+    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,           5},
     {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,                2},
     {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,               1},

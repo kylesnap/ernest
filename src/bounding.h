@@ -1,5 +1,5 @@
 /**
- * @file Bounding.h
+ * @file bounding.h
  * @brief Ellipsoidal bounding algorithms for nested sampling.
  *
  * This module provides functions for computing minimum volume ellipsoids
@@ -8,15 +8,20 @@
 
 #pragma once
 
+#include <deque>
 #include <iostream>
 #include <limits>
+#include <numeric>
+#include <vector>
 
+#include "KMeansRexCore.h"
 #include "Rmath.h"
 #include "utils.h"
 
 namespace bounding {
 
 constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
+inline const char* kMethod = "plusplus";
 
 /**
  * @brief Status codes for ellipsoid computation operations.
@@ -28,53 +33,55 @@ enum Status {
   kFatal = 3             // Fatal error preventing computation
 };
 
-/**
- * @brief Computes the log-volume of an n-dimensional ellipsoid.
- *
- * Calculates the logarithm of the volume using the formula:
- * V = sqrt(prod(eigenvalues) * scale^n) * pi^(n/2) / Gamma(n/2 + 1)
- *
- * @param e_values Eigenvalues of the ellipsoid's covariance matrix.
- * @param scale Scale factor from the enclosing ellipsoid computation.
- * @return The natural logarithm of the ellipsoid volume.
- */
-inline double LogVolume(const ConstRef<Vector> e_values, const double scale) {
-  int n_dim = e_values.size();
-  double log_vol = log(e_values.prod());
-  log_vol = 0.5 * (log_vol + n_dim * log(scale));
-  log_vol += (n_dim / 2.0) * log(M_PI) - lgamma(n_dim / 2.0 + 1.0);
-  return log_vol;
-}
+class Ellipsoid {
+ public:
+  Ellipsoid(int n_dim)
+      : _n_dim(n_dim),
+        _loc(RowVector(n_dim)),
+        _A(Matrix(n_dim, n_dim)),
+        _scaled_inv_sqrt_A(Matrix(n_dim, n_dim)),
+        _e_values(n_dim),
+        _e_vectors(Matrix(n_dim, n_dim)),
+        _work(n_dim) {};
+  void Fit(const ConstRef<Matrix> X);
 
-/**
- * @brief Computes the scale factor for the minimum enclosing ellipsoid.
- *
- * Finds the maximum Mahalanobis distance from the center to any point
- * in the dataset, which determines the scale of the enclosing ellipsoid.
- *
- * @param X Matrix of points (rows are points, columns are dimensions).
- * @param loc Center location of the ellipsoid.
- * @param precision Precision matrix (inverse covariance) of the ellipsoid.
- * @return The scale factor (maximum squared Mahalanobis distance).
- */
-inline double ScaleFactor(const ConstRef<Matrix> X,
-                          const ConstRef<RowVector> loc,
-                          const ConstRef<Matrix> precision) {
-  double d2 = R_NegInf;
-  Eigen::RowVectorXd temp(X.cols());
+  // Getters for private members
+  const RowVector& loc() const { return _loc; }
+  const Matrix& A() const { return _A; }
+  const Matrix& scaled_inv_sqrt_A() const { return _scaled_inv_sqrt_A; }
+  double scale() const { return _scale; }
+  double log_volume() const {
+    if (_code == kFatal) {
+      return R_NegInf;
+    }
+    return _log_volume;
+  };
+  Status code() const { return _code; }
 
-  for (int i = 0; i < X.rows(); ++i) {
-    temp = X.row(i) - loc;
-    double d2_row = temp * precision * temp.transpose();
-    d2 = Rf_fmax2(d2, d2_row);
+ private:
+  int _n_dim;
+  RowVector _loc;
+  Matrix _A;
+  Matrix _scaled_inv_sqrt_A;
+  double _scale = 0;
+  double _log_volume = R_NegInf;
+  Vector _e_values;
+  Matrix _e_vectors;
+  Eigen::SelfAdjointEigenSolver<Matrix> _work;
+  Status _code = kOk;
+
+  inline void CalcLogVolume() {
+    _log_volume = log(_e_values.prod());
+    _log_volume = 0.5 * (_log_volume + _n_dim * log(_scale));
+    _log_volume += (_n_dim / 2.0) * log(M_PI) - lgamma(_n_dim / 2.0 + 1.0);
   }
-  return d2;
-}
+  void ScaleFactor(const ConstRef<Matrix> X);
+  void FindAxes(const ConstRef<Matrix> X);
+};
 
-Status GetEigendecomposition(const ConstRef<Matrix> X,
-                             const ConstRef<RowVector> loc,
-                             Ref<Vector> e_values, Ref<Matrix> e_vectors);
+using EllipsoidWithIdx = std::pair<Ellipsoid, std::vector<int>>;
 
-Status Ellipsoid(ConstRef<Matrix> X, Ref<RowVector> loc, Ref<Matrix> A,
-                 Ref<Matrix> scaledInvSqrtA, double &scale, double &log_volume);
+void FitMultiEllipsoids(const ConstRef<Matrix> X,
+                        std::vector<Ellipsoid>& ellipsoids,
+                        const double log_volume_reduction);
 }  // namespace bounding

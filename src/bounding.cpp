@@ -1,5 +1,5 @@
 /**
- * @file Bounding.cpp
+ * @file bounding.cpp
  * @brief Implementation of ellipsoidal bounding algorithms.
  *
  * This file contains the implementation of functions for computing minimum
@@ -21,102 +21,158 @@ using namespace bounding;
  * @param e_vectors Output matrix for the eigenvectors.
  * @return Int code representing the outcome of the decomposition.
  */
-Status bounding::GetEigendecomposition(const ConstRef<Matrix> X,
-                                       const ConstRef<RowVector> loc,
-                                       Ref<Vector> e_values,
-                                       Ref<Matrix> e_vectors) {
-  Status code = kOk;
-  Matrix centered = X.rowwise() - loc;
-  Matrix cov = (centered.adjoint() * centered) / double(X.rows() - 1);
-  Eigen::SelfAdjointEigenSolver<Matrix> eigensystem(cov);
-  if (eigensystem.info() == Eigen::NoConvergence) {
-    return Status::kFatal;
+void Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
+  _code = kOk;
+  Matrix centered = X.rowwise() - _loc;
+  _A = (centered.adjoint() * centered) / double(X.rows() - 1);
+
+  _work.compute(_A);
+  if (_work.info() == Eigen::NoConvergence) {
+    _code = kFatal;
+    return;
   }
 
-  e_values = eigensystem.eigenvalues();
-  e_vectors = eigensystem.eigenvectors();
-  std::cout << "[Ellipsoid] Eigenvalues:\n" << e_values << std::endl;
-  std::cout << "[Ellipsoid] Eigenvectors:\n" << e_vectors << std::endl;
+  _e_values = _work.eigenvalues();
+  _e_vectors = _work.eigenvectors();
 
   // Correct zero-valued eigenvalues.
-  int zero_ev = (e_values.array() <= kPrecision).count();
-  if (zero_ev == e_values.size()) {
-    return kFatal;
+  int zero_ev = (_e_values.array() <= kPrecision).count();
+  if (zero_ev == _e_values.size()) {
+    _code = kFatal;
   } else if (zero_ev != 0) {
-    std::cout << "[Ellipsoid] ZERO COUNT:\n" << zero_ev << std::endl;
-    code = kNonInvertible;
-    e_values.head(zero_ev).setConstant(e_values[zero_ev] / 2.0);
-    std::cout << "[Ellipsoid] Repaired zero-valued eigenvalues:\n"
-              << e_values << std::endl;
+    _code = kNonInvertible;
+    _e_values.head(zero_ev).setConstant(_e_values[zero_ev] / 2.0);
   }
 
   // Address underdetermined systems
-  if (X.rows() < X.cols() + 1) {
-    code = kUnderdetermined;
-    int unconstrained = X.cols() + 1 - X.rows();
-    e_values.head(unconstrained).setConstant(e_values[unconstrained]);
-    std::cout << "[Ellipsoid] Modified eigenvalues for unconstrained dims:\n"
-              << e_values << std::endl;
+  if (X.rows() < _n_dim + 1) {
+    _code = kUnderdetermined;
+    int unconstrained = _n_dim + 1 - X.rows();
+    _e_values.head(unconstrained).setConstant(_e_values[unconstrained]);
   }
-  return code;
 }
 
 /**
- * @brief Computes the minimum volume ellipsoid enclosing a set of points.
+ * @brief Computes the scale factor for the minimum enclosing ellipsoid.
  *
- * This function implements an algorithm to find the minimum volume ellipsoid
- * that contains all given points. It handles degenerate cases such as
- * insufficient points and singular covariance matrices.
+ * Finds the maximum Mahalanobis distance from the center to any point
+ * in the dataset, which determines the scale of the enclosing ellipsoid.
  *
- * @param X Input matrix where each row is a point and each column is a
- * dimension.
- * @param loc Output parameter for the ellipsoid center (mean of points).
- * @param A Output parameter describing the ellipsoid's axes.
- * @param scaledInvSqrtA Output parameter for the sphere transformation matrix.
- * @param scale Output parameter for the scale factor of the enclosing
- * ellipsoid.
- * @param log_volume Output parameter for the natural logarithm of ellipsoid
- * volume.
- * @return Status code indicating success or type of failure encountered.
+ * @param X Matrix of points (rows are points, columns are dimensions).
+ * @return The scale factor (maximum squared Mahalanobis distance).
  */
-Status bounding::Ellipsoid(ConstRef<Matrix> X, Ref<RowVector> loc,
-                           Ref<Matrix> A, Ref<Matrix> scaledInvSqrtA,
-                           double& scale, double& log_volume) {
-  std::cout << "[Ellipsoid] Starting computation..." << std::endl;
+void Ellipsoid::ScaleFactor(const ConstRef<Matrix> X) {
+  _scale = R_NegInf;
+  Eigen::RowVectorXd temp(X.cols());
+  for (int i = 0; i < X.rows(); ++i) {
+    temp = X.row(i) - _loc;
+    double scale = temp * _A * temp.transpose();
+    _scale = Rf_fmax2(_scale, scale);
+  }
+}
 
+void Ellipsoid::Fit(ConstRef<Matrix> X) {
   int n_dim = X.cols();
   int n_point = X.rows();
   std::cout << "[Ellipsoid] n_dim: " << n_dim << ", n_point: " << n_point
             << std::endl;
-
-  loc = X.colwise().mean();
-  std::cout << "[Ellipsoid] Computed mean (loc): " << loc << std::endl;
-
-  if (n_point <= 1) {
-    std::cout << "[Ellipsoid] Not enough points. Returning kFatal."
-              << std::endl;
-    log_volume = R_NegInf;
-    return Status::kFatal;
+  if (n_dim != _n_dim) {
+    _code = kFatal;
+    return;
   }
 
-  Vector e_values = Vector(n_dim);
-  Matrix e_vectors = Matrix(n_dim, n_dim);
-  Status code = GetEigendecomposition(X, loc, e_values, e_vectors);
-  A = e_vectors * e_values.cwiseInverse().asDiagonal() * e_vectors.transpose();
+  _loc = X.colwise().mean();
 
-  scale = ScaleFactor(X, loc, A);
-  std::cout << "[Ellipsoid] Scale factor: " << scale << std::endl;
+  if (n_point <= 1) {
+    _code = kFatal;
+    return;
+  }
 
-  scaledInvSqrtA = A;
-  Eigen::SelfAdjointEigenSolver<Matrix> decomp(scaledInvSqrtA);
-  scaledInvSqrtA = decomp.operatorInverseSqrt();
-  scaledInvSqrtA *= sqrt(scale);
-  std::cout << "[Ellipsoid] Transformation matrix:\n"
-            << scaledInvSqrtA << std::endl;
+  FindAxes(X);
+  if (_code == kFatal) {
+    return;
+  }
+  _A = _e_vectors * _e_values.cwiseInverse().asDiagonal() *
+       _e_vectors.transpose();
 
-  log_volume = LogVolume(e_values, scale);
-  std::cout << "[Ellipsoid] Log volume: " << log_volume << std::endl;
+  ScaleFactor(X);
 
-  std::cout << "[Ellipsoid] Returning status: " << code << std::endl;
-  return code;
+  _work.compute(_A);
+  _scaled_inv_sqrt_A = _work.operatorInverseSqrt();
+  _scaled_inv_sqrt_A *= sqrt(_scale);
+
+  CalcLogVolume();
+  return;
+}
+
+std::vector<int> find_clusters(const std::vector<int>& rows,
+                               const ConstRef<Vector> cluster_idx,
+                               const int cluster) {
+  std::vector<int> new_indices;
+  for (int i = 0; i < rows.size(); i++) {
+    if (cluster_idx[i] == cluster) new_indices.push_back(rows[i]);
+  }
+  return new_indices;
+}
+
+void bounding::FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                  std::vector<Ellipsoid>& ellipsoids,
+                                  const double log_volume_reduction) {
+  int n_dim = X.cols();
+  int n_point = X.rows();
+  std::deque<EllipsoidWithIdx> proposals;
+  Eigen::ArrayXXd cluster_loc(2, n_dim);
+
+  Matrix lh_X(n_point, n_dim), rh_X(n_point, n_dim);
+
+  proposals.emplace_back(Ellipsoid(n_dim), std::vector<int>(n_point));
+  proposals.front().first.Fit(X);
+  std::iota(proposals.front().second.begin(), proposals.front().second.end(),
+            0);
+
+  while (!proposals.empty()) {
+    Ellipsoid& cur = proposals.front().first;
+    std::vector<int>& rows = proposals.front().second;
+    if (cur.code() == kFatal) {
+      proposals.pop_front();
+      continue;
+    }
+
+    std::cout << "[MULTI] Current rows: ";
+    for (const auto& idx : rows) {
+      std::cout << idx << " ";
+    }
+    std::cout << std::endl;
+    Matrix sub_X = X(rows, Eigen::all);
+    Eigen::ArrayXd cluster_idx(sub_X.rows());
+    kmeans_rex::RunKMeans(sub_X, 2, 100, kMethod, cluster_loc, cluster_idx);
+
+    EllipsoidWithIdx lh =
+        std::make_pair(Ellipsoid(n_dim), find_clusters(rows, cluster_idx, 0));
+    lh.first.Fit(X(lh.second, Eigen::all));
+
+    EllipsoidWithIdx rh =
+        std::make_pair(Ellipsoid(n_dim), find_clusters(rows, cluster_idx, 1));
+    rh.first.Fit(X(rh.second, Eigen::all));
+
+    double old_log_vol = cur.log_volume() + log_volume_reduction;
+    double new_log_volume =
+        Rf_logspace_add(lh.first.log_volume(), rh.first.log_volume());
+    std::cout << "[MULTI] Log Volume " << cur.log_volume() << " -> "
+              << new_log_volume << std::endl;
+    bool split = false;
+    if (R_FINITE(new_log_volume) && new_log_volume <= old_log_vol) {
+      split = true;
+    }
+
+    if (split) {
+      std::cout << "[MULTI] Splitting into two" << std::endl;
+      proposals.emplace_back(std::move(lh));
+      proposals.emplace_back(std::move(rh));
+    } else {
+      std::cout << "[MULTI] Accepting new ellipsoid" << std::endl;
+      ellipsoids.emplace_back(std::move(cur));
+    }
+    proposals.pop_front();
+  }
 }

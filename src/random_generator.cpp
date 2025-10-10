@@ -55,13 +55,13 @@ void random_generator::UniformInBall(Ref<RowVector> vec, const double radius) {
 /**
  * @brief Generates a random vector uniformly distributed inside an ellipsoid.
  *
- * @param scaledInvSqrtA Scaled inverse square root of the precision matrix.
+ * @param _scaled_inv_sqrt_A Scaled inverse square root of the precision matrix.
  * @param loc Vector specifying the location to shift the sampled point.
  * @param vec Vector to fill (in-place).
  */
-void random_generator::UniformInEllipsoid(ConstRef<Matrix> scaledInvSqrtA,
+void random_generator::UniformInEllipsoid(ConstRef<Matrix> _scaled_inv_sqrt_A,
                                           ConstRef<RowVector> loc,
                                           Ref<RowVector> vec) {
   UniformInBall(vec);
-  vec = (vec * scaledInvSqrtA) + loc;
+  vec = (vec * _scaled_inv_sqrt_A) + loc;
 }

@@ -45,7 +45,7 @@ void UniformOnSphere(Ref<RowVector> vec, const double radius = 1);
 
 void UniformInBall(Ref<RowVector> vec, const double radius = 1);
 
-void UniformInEllipsoid(ConstRef<Matrix> scaledInvSqrtA,
+void UniformInEllipsoid(ConstRef<Matrix> _scaled_inv_sqrt_A,
                         ConstRef<RowVector> loc, Ref<RowVector> vec);
 
 /**

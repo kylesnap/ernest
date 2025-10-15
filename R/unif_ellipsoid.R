@@ -11,17 +11,18 @@
 #' This can bias proposals toward the ellipsoid centre and overestimate
 #' evidence. Setting `enlarge = 1` will produce a warning.
 #'
-#' Ellipsoids are stored in the LRPS cache in quadric representation, such that
-#' each point within the ellipsoid \eqn{x} satisfies the inequality
-#' \deqn{(x - loc) A (x - loc)^T \leq scale}. The inverse square root of the
-#' precision matrix \eqn{A}, scaled by the enlargement factor, is also stored
-#' to facilitate efficient point generation.
+#' Ellipsoids are stored in the LRPS cache in quadric representation. That is,
+#' an ellipsoid with center \eqn{c} and shape matrix \eqn{Q} contains points
+#' \eqn{x \in R^n} that satisfy the inequality
+#' \deqn{(x - c) Q^-1 (x - c)^T \leq 1}
+#' The square root of the precision matrix \eqn{Q}, scaled by `enlarge`, is
+#' also stored for efficient point generation.
 #'
-#' The covariance matrix of the points is used to compute the bounding
-#' ellipsoid. In exceptional cases (e.g. perfect collinearity), this matrix
-#' may be singular. Should this occur, the covariance matrix is reconditioned
-#' by adjusting its eigenvalues. Should this also fail, the algorithm falls
-#' back to sampling from the circumscribed sphere bounding the unit hypercube.
+#' The covariance matrix of the points is used estimate \eqn{Q}. In exceptional
+#' cases (e.g. perfect collinearity), this matrix may be singular. Should this
+#' occur, the covariance matrix is reconditioned by adjusting its eigenvalues.
+#' Should this also fail, the algorithm falls back to sampling from the
+#' circumscribed sphere bounding the unit hypercube.
 #'
 #' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
 #' [ernest_sampler()] to specify nested sampling behaviour.
@@ -63,9 +64,9 @@ format.unif_ellipsoid <- function(x, ...) {
     cli::cli_text("uniform ellipsoid LRPS {.cls {class(x)}}")
     cli::cat_line()
     cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    if (all(env_has(x$cache, c("loc", "log_volume")))) {
+    if (all(env_has(x$cache, c("center", "log_volume")))) {
       cli::cli_dl(c(
-        "Centre" = "{pretty(x$cache$loc)}",
+        "Centre" = "{pretty(x$cache$center)}",
         "Log Volume" = "{pretty(x$cache$log_volume)}",
         "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL
       ))
@@ -94,9 +95,9 @@ new_unif_ellipsoid <- function(
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   cache <- cache %||% new_environment()
   if (is_integerish(n_dim) && n_dim > 0) {
-    env_cache(cache, "A", diag(n_dim))
-    env_cache(cache, "loc", rep(0.5, n_dim))
-    env_cache(cache, "scaledInvSqrtA", diag(n_dim / 4, nrow = n_dim))
+    env_cache(cache, "inverse_shape", diag(n_dim))
+    env_cache(cache, "center", rep(0.5, n_dim))
+    env_cache(cache, "scaled_sqrt_shape", diag(sqrt(n_dim / 4), nrow = n_dim))
     env_cache(cache, "scale", n_dim / 4)
     log_vol <- ((n_dim / 2) * log(pi)) -
       lgamma(n_dim / 2 + 1) +
@@ -126,8 +127,8 @@ propose.unif_ellipsoid <- function(
     res <- EllipsoidImpl(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      scaledInvSqrtA = x$cache$scaledInvSqrtA,
-      loc = x$cache$loc,
+      scaledInvSqrtA = x$cache$scaled_sqrt_shape,
+      loc = x$cache$center,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
@@ -152,14 +153,13 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
         )
       }
 
-      env_poke(x$cache, "A", ellipsoid$A)
-      env_poke(x$cache, "loc", ellipsoid$loc)
+      env_poke(x$cache, "inverse_shape", ellipsoid$inverse_shape)
+      env_poke(x$cache, "center", ellipsoid$center)
       env_poke(
         x$cache,
-        "scaledInvSqrtA",
-        ellipsoid$scaledInvSqrtA * sqrt(x$enlarge)
+        "scaled_sqrt_shape",
+        ellipsoid$sqrt_shape * sqrt(x$enlarge)
       )
-      env_poke(x$cache, "scale", ellipsoid$scale)
       env_poke(
         x$cache,
         "log_volume",
@@ -173,7 +173,7 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
       )
       env_unbind(
         x$cache,
-        c("A", "loc", "scaledInvSqrtA", "scale", "log_volume")
+        c("inverse_shape", "center", "scaled_sqrt_shape", "log_volume")
       )
     }
   )

@@ -1,18 +1,4 @@
-/**
- * @file bounding.h
- * @brief Ellipsoidal bounding algorithms for nested sampling.
- *
- * This module provides functions for computing minimum volume ellipsoids
- * that bound point sets, primarily used in nested sampling algorithms.
- */
-
 #pragma once
-
-#include <deque>
-#include <iostream>
-#include <limits>
-#include <numeric>
-#include <vector>
 
 #include "KMeansRexCore.h"
 #include "Rmath.h"
@@ -20,68 +6,86 @@
 
 namespace bounding {
 
+// Numerical precision threshold for eigenvalue comparisons.
 constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
-inline const char* kMethod = "plusplus";
 
-/**
- * @brief Status codes for ellipsoid computation operations.
- */
+// Status codes for ellipsoid computation operations.
+//
+// These codes indicate the outcome of ellipsoid fitting operations and
+// help diagnose numerical issues.
 enum Status {
-  kOk = 0,               // Operation completed successfully
-  kNonInvertible = 1,    // Covariance matrix is non-invertible
-  kUnderdetermined = 2,  // Insufficient points for full rank covariance
-  kFatal = 3             // Fatal error preventing computation
+  kOk = 0,              // Operation completed successfully.
+  kFatal = 1,           // Numerical error from estimating the shape matrix.
+  kDegenerate = 2,      // Eigenvalue of the shape matrix is zero.
+  kUnderdetermined = 3  // Number of fitted points < n_dim + 1.
 };
 
+// Represents a hyper-ellipsoid defined by center and shape matrix.
+//
+// An ellipsoid satisfying the equation:
+//   (x - center) * inverse_shape * (x - center)' <= 1
+//
+// The class provides methods to fit ellipsoids to point sets and handles
+// degenerate cases such as collinear points or underdetermined systems.
 class Ellipsoid {
  public:
-  Ellipsoid(int n_dim)
-      : _n_dim(n_dim),
-        _loc(RowVector(n_dim)),
-        _A(Matrix(n_dim, n_dim)),
-        _scaled_inv_sqrt_A(Matrix(n_dim, n_dim)),
-        _e_values(n_dim),
-        _e_vectors(Matrix(n_dim, n_dim)),
-        _work(n_dim) {};
+  Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape);
+  explicit Ellipsoid(const int n_dim);
+  explicit Ellipsoid(const ConstRef<Matrix> X);
   void Fit(const ConstRef<Matrix> X);
 
-  // Getters for private members
-  const RowVector& loc() const { return _loc; }
-  const Matrix& A() const { return _A; }
-  const Matrix& scaled_inv_sqrt_A() const { return _scaled_inv_sqrt_A; }
-  double scale() const { return _scale; }
-  double log_volume() const {
-    if (_code == kFatal) {
-      return R_NegInf;
+  // Converts the ellipsoid to an R list representation.
+  //
+  // Returns:
+  // An R list containing
+  // - log_vol: Log volume of the ellipsoid (or -Inf on error).
+  // - error: Status code.
+  // - center: Center vector (only if not kFatal).
+  // - inverse_shape: Inverse shape matrix (only if not kFatal).
+  // - sqrt_shape: Square root of inverse shape (only if not kFatal).
+  inline const cpp11::list as_list() {
+    using namespace cpp11::literals;
+    if (error_ == kFatal) {
+      return cpp11::writable::list(
+          {"log_vol"_nm = R_NegInf, "error"_nm = static_cast<int>(error_)});
+    } else {
+      return cpp11::writable::list(
+          {"center"_nm = as_row_doubles(center_),
+           "inverse_shape"_nm = as_doubles_matrix(inverse_shape_),
+           "sqrt_shape"_nm = as_doubles_matrix(sqrt_shape_),
+           "log_vol"_nm = log_volume_, "error"_nm = static_cast<int>(error_)});
     }
-    return _log_volume;
   };
-  Status code() const { return _code; }
+
+  // Getters for private variables
+  inline const RowVector& center() const { return center_; }
+  inline const Matrix& shape() const { return shape_; }
+  inline const Matrix& inverse_shape() const { return inverse_shape_; }
+  inline const Matrix& sqrt_shape() const { return sqrt_shape_; }
+  inline int n_dim() const { return n_dim_; }
+  inline Status error() const { return error_; }
+  inline double log_volume() const { return log_volume_; }
 
  private:
-  int _n_dim;
-  RowVector _loc;
-  Matrix _A;
-  Matrix _scaled_inv_sqrt_A;
-  double _scale = 0;
-  double _log_volume = R_NegInf;
-  Vector _e_values;
-  Matrix _e_vectors;
-  Eigen::SelfAdjointEigenSolver<Matrix> _work;
-  Status _code = kOk;
+  RowVector center_;      // Center of the ellipsoid.
+  Matrix shape_;          // Shape matrix (covariance-like).
+  Matrix inverse_shape_;  // Inverse of shape matrix (precision).
+  Matrix sqrt_shape_;     // Matrix square root of inverse shape.
+  int n_dim_;             // Number of dimensions.
+  Status error_ = kOk;    // Status of most recent operation.
+  Eigen::SelfAdjointEigenSolver<Matrix> work_;  // Reusable workspace.
+  double log_volume_ = R_NegInf;                // Log volume of the ellipsoid.
 
-  inline void CalcLogVolume() {
-    _log_volume = log(_e_values.prod());
-    _log_volume = 0.5 * (_log_volume + _n_dim * log(_scale));
-    _log_volume += (_n_dim / 2.0) * log(M_PI) - lgamma(_n_dim / 2.0 + 1.0);
-  }
-  void ScaleFactor(const ConstRef<Matrix> X);
   void FindAxes(const ConstRef<Matrix> X);
+  void ScaleAxes(const ConstRef<Matrix> X);
+
+  // Compute the constant term in the log volume formula.
+  //
+  // Returns:
+  // log(pi^(n_dim/2) / gamma(n_dim/2 - 1))
+  const inline double log_volume_const() {
+    return (n_dim_ * M_LN_SQRT_PI) - lgamma1p(n_dim_ / 2.0);
+  }
 };
 
-using EllipsoidWithIdx = std::pair<Ellipsoid, std::vector<int>>;
-
-void FitMultiEllipsoids(const ConstRef<Matrix> X,
-                        std::vector<Ellipsoid>& ellipsoids,
-                        const double log_volume_reduction);
 }  // namespace bounding

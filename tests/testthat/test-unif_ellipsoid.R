@@ -2,27 +2,26 @@ fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
 set.seed(42)
 
 describe("BoundingEllipsoid", {
+  n_points <- 5000
   it("fits points in 3D correctly", {
-    A <- matrix(
+    inverse_shape <- matrix(
       c(1.439, -1.607, 0.626, -1.607, 2.685, -0.631, 0.626, -0.631, 0.43),
       nrow = 3,
       byrow = TRUE
     )
-    n_points <- 5000
-    radius <- 2
-    original_points <- uniformly::runif_in_ellipsoid(n_points, A, radius)
-    theoretical_cov <- (radius^2 / (3 + 2)) * solve(A)
+    original_points <- uniformly::runif_in_ellipsoid(n_points, inverse_shape, 1)
+    theoretical_cov <- (1 / (3 + 2)) * solve(inverse_shape)
 
     ell_fit <- BoundingEllipsoid(original_points)
     expect_false(is.infinite(ell_fit$log_vol))
     expect_equal(ell_fit$error, 0)
 
     new_points <- uniformly::runif_in_sphere(n_points, 3, 1) %*%
-      ell_fit$scaledInvSqrtA
-    new_points <- sweep(new_points, 2, ell_fit$loc, "+")
+      ell_fit$sqrt_shape
+    new_points <- sweep(new_points, 2, ell_fit$center, "+")
 
     expect_equal(colMeans(new_points), c(0, 0, 0), tolerance = 0.05)
-    expect_equal(ell_fit$loc, colMeans(original_points), tolerance = 0.1)
+    expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)
 
     sample_cov <- cov(original_points)
     fitted_cov <- cov(new_points)
@@ -31,32 +30,38 @@ describe("BoundingEllipsoid", {
   })
 
   it("fits points in 5D correctly", {
-    A <- matrix(nrow = 5, ncol = 5, byrow = TRUE)
-    A[1, ] <- c(0.228, 0.0948, -0.133, -0.174, 0.00331)
-    A[2, ] <- c(0.0948, 0.174, -0.0954, -0.146, 0.00501)
-    A[3, ] <- c(-0.133, -0.0954, 0.268, -0.0323, -0.00409)
-    A[4, ] <- c(-0.174, -0.146, -0.0323, 0.386, -0.00151)
-    A[5, ] <- c(0.00331, 0.00501, -0.00409, -0.00151, 0.0678)
-    A <- 1e4 * A
-    n_points <- 5000
-    radius <- 1
-    original_points <- uniformly::runif_in_ellipsoid(n_points, A, 1)
+    inverse_shape <- matrix(nrow = 5, ncol = 5, byrow = TRUE)
+    inverse_shape[1, ] <- c(0.228, 0.0948, -0.133, -0.174, 0.00331)
+    inverse_shape[2, ] <- c(0.0948, 0.174, -0.0954, -0.146, 0.00501)
+    inverse_shape[3, ] <- c(-0.133, -0.0954, 0.268, -0.0323, -0.00409)
+    inverse_shape[4, ] <- c(-0.174, -0.146, -0.0323, 0.386, -0.00151)
+    inverse_shape[5, ] <- c(0.00331, 0.00501, -0.00409, -0.00151, 0.0678)
+    inverse_shape <- 1e4 * inverse_shape
+    original_points <- uniformly::runif_in_ellipsoid(n_points, inverse_shape, 1)
 
-    theoretical_cov <- (radius^2 / (3 + 2)) * solve(A)
+    theoretical_cov <- (1 / (3 + 2)) * solve(inverse_shape)
 
     ell_fit <- BoundingEllipsoid(original_points)
     expect_false(is.infinite(ell_fit$log_vol))
     expect_equal(ell_fit$error, 0)
 
     new_points <- uniformly::runif_in_sphere(n_points, 5, 1) %*%
-      ell_fit$scaledInvSqrtA
+      ell_fit$sqrt_shape
     expect_equal(colMeans(new_points), c(0, 0, 0, 0, 0), tolerance = 0.05)
-    expect_equal(ell_fit$loc, colMeans(original_points), tolerance = 0.1)
+    expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)
 
     sample_cov <- cov(original_points)
     fitted_cov <- cov(new_points)
     expect_equal(fitted_cov, theoretical_cov, tolerance = 0.05)
     expect_equal(fitted_cov, sample_cov, tolerance = 0.1)
+  })
+
+  it("Recovers from degenerate live point matrices", {
+    x <- runif(100)
+    xy <- unname(cbind(x, 2 * x))
+    ell_fit <- BoundingEllipsoid(xy)
+    expect_equal(ell_fit$error, 2L)
+    expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
   })
 })
 
@@ -88,13 +93,12 @@ describe("new_unif_ellipsoid", {
     expect_mapequal(
       env_get_list(
         obj$cache,
-        c("A", "loc", "scaledInvSqrtA", "scale", "log_volume")
+        c("inverse_shape", "center", "scaled_sqrt_shape", "log_volume")
       ),
       list(
-        A = diag(2),
-        loc = c(0.5, 0.5),
-        scaledInvSqrtA = diag(2) * 0.5,
-        scale = 0.5,
+        inverse_shape = diag(2),
+        center = c(0.5, 0.5),
+        scaled_sqrt_shape = diag(2) * sqrt(0.5),
         log_volume = log(pi * (sqrt(2) / 2)^2)
       )
     )
@@ -142,9 +146,9 @@ describe("update_lrps.unif_ellipsoid", {
   it("can rebound to a matrix of live points", {
     new_uniform <- update_lrps(uniform, live)
     ell <<- list(
-      A = new_uniform$cache$A,
-      loc = new_uniform$cache$loc,
-      scale = new_uniform$cache$scale
+      inverse_shape = new_uniform$cache$inverse_shape,
+      center = new_uniform$cache$center,
+      enlarge = new_uniform$enlarge
     )
     new_live <- replicate(
       500,
@@ -152,14 +156,21 @@ describe("update_lrps.unif_ellipsoid", {
     )
     new_live <- do.call(rbind, new_live["unit", ])
 
-    precision <- ell$A
+    precision <- ell$inverse_shape
     dists <- apply(new_live, 1, \(x) {
-      d <- x - ell$loc
+      d <- x - ell$center
       drop(d %*% precision %*% d)
     })
-    n_oob <- sum(dists > ell$scale * 1.2)
+    n_oob <- sum(dists > 1 * ell$enlarge)
     expect_equal(n_oob, 0)
     expect_snapshot(uniform)
+
+    skip_extended_test()
+    skip_on_cran()
+    vdiffr::expect_doppelganger("propose.ellipsoid", {
+      plot(live, xlim = c(0, 1), ylim = c(0, 1))
+      points(new_live, col = "red")
+    })
   })
 
   it("reports numerical errors", {

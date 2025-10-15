@@ -24,17 +24,18 @@ from the spanning ellipsoid without enlargement may exclude valid regions.
 This can bias proposals toward the ellipsoid centre and overestimate
 evidence. Setting \code{enlarge = 1} will produce a warning.
 
-Ellipsoids are stored in the LRPS cache in quadric representation, such that
-each point within the ellipsoid \eqn{x} satisfies the inequality
-\deqn{(x - loc) A (x - loc)^T \leq scale}. The inverse square root of the
-precision matrix \eqn{A}, scaled by the enlargement factor, is also stored
-to facilitate efficient point generation.
+Ellipsoids are stored in the LRPS cache in quadric representation. That is,
+an ellipsoid with center \eqn{c} and shape matrix \eqn{Q} contains points
+\eqn{x \in R^n} that satisfy the inequality
+\deqn{(x - c) Q^-1 (x - c)^T \leq 1}
+The square root of the precision matrix \eqn{Q}, scaled by \code{enlarge}, is
+also stored for efficient point generation.
 
-The covariance matrix of the points is used to compute the bounding
-ellipsoid. In exceptional cases (e.g. perfect collinearity), this matrix
-may be singular. Should this occur, the covariance matrix is reconditioned
-by adjusting its eigenvalues. Should this also fail, the algorithm falls
-back to sampling from the circumscribed sphere bounding the unit hypercube.
+The covariance matrix of the points is used estimate \eqn{Q}. In exceptional
+cases (e.g. perfect collinearity), this matrix may be singular. Should this
+occur, the covariance matrix is reconditioned by adjusting its eigenvalues.
+Should this also fail, the algorithm falls back to sampling from the
+circumscribed sphere bounding the unit hypercube.
 }
 \examples{
 data(example_run)

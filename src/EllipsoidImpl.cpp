@@ -13,25 +13,9 @@
  */
 [[cpp11::register]]
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
-  int n_dim = X.ncol();
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  Eigen::RowVectorXd loc(n_dim);
-  Eigen::MatrixXd A(n_dim, n_dim), scaledInvSqrtA(n_dim, n_dim);
-  double scale = R_NegInf, log_vol;
-
-  int result =
-      bounding::Ellipsoid(X_eigen, loc, A, scaledInvSqrtA, scale, log_vol);
-
-  using namespace cpp11::literals;
-  if (log_vol == R_NegInf) {
-    return cpp11::writable::list({"log_vol"_nm = log_vol, "error"_nm = result});
-  } else {
-    return cpp11::writable::list(
-        {"loc"_nm = as_row_doubles(loc), "A"_nm = as_doubles_matrix(A),
-         "scale"_nm = scale,
-         "scaledInvSqrtA"_nm = as_doubles_matrix(scaledInvSqrtA),
-         "log_vol"_nm = log_vol, "error"_nm = result});
-  }
+  bounding::Ellipsoid ell(X_eigen);
+  return ell.as_list();
 }
 
 /**

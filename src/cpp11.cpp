@@ -5,13 +5,6 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
-// AdaptiveRWImpl.cpp
-cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon, double min_epsilon, double target_acceptance, cpp11::doubles mean, cpp11::doubles_matrix<> covariance, double strength, double forgetfulness);
-extern "C" SEXP _ernest_AdaptiveRWImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon, SEXP min_epsilon, SEXP target_acceptance, SEXP mean, SEXP covariance, SEXP strength, SEXP forgetfulness) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(AdaptiveRWImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon), cpp11::as_cpp<cpp11::decay_t<double>>(min_epsilon), cpp11::as_cpp<cpp11::decay_t<double>>(target_acceptance), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(mean), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(covariance), cpp11::as_cpp<cpp11::decay_t<double>>(strength), cpp11::as_cpp<cpp11::decay_t<double>>(forgetfulness)));
-  END_CPP11
-}
 // CubeImpl.cpp
 cpp11::list CubeImpl(int n_dim, cpp11::function unit_log_fn, double criterion, int max_loop);
 extern "C" SEXP _ernest_CubeImpl(SEXP n_dim, SEXP unit_log_fn, SEXP criterion, SEXP max_loop) {
@@ -45,6 +38,13 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
 extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon) {
   BEGIN_CPP11
     return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon)));
+  END_CPP11
+}
+// adaptive_rwmh.cpp
+cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon_init, double epsilon_min, double target_acceptance, cpp11::doubles mean, cpp11::doubles_matrix<> cov, double strength, double forgetfulness);
+extern "C" SEXP _ernest_AdaptiveRWImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon_init, SEXP epsilon_min, SEXP target_acceptance, SEXP mean, SEXP cov, SEXP strength, SEXP forgetfulness) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(AdaptiveRWImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_init), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_min), cpp11::as_cpp<cpp11::decay_t<double>>(target_acceptance), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(mean), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(cov), cpp11::as_cpp<cpp11::decay_t<double>>(strength), cpp11::as_cpp<cpp11::decay_t<double>>(forgetfulness)));
   END_CPP11
 }
 // exported_utils.cpp

@@ -195,11 +195,11 @@ propose.adaptive_rwmh <- function(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
       steps = x$steps,
-      epsilon = x$cache$epsilon %||% 1.0,
-      min_epsilon = x$min_epsilon,
+      epsilon_init = x$cache$epsilon %||% 1.0,
+      epsilon_min = x$min_epsilon,
       target_acceptance = x$target_acceptance,
       mean = x$cache$mean,
-      covariance = x$cache$covariance,
+      cov = x$cache$covariance,
       strength = x$strength %||% 100,
       forgetfulness = x$forgetfulness
     )
@@ -207,9 +207,12 @@ propose.adaptive_rwmh <- function(
     # Update cache with new adaptive parameters
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     env_poke(x$cache, "n_accept", x$cache$n_accept + res$n_accept)
-    env_poke(x$cache, "mean", res$mean)
-    env_poke(x$cache, "covariance", res$covariance)
-    env_poke(x$cache, "epsilon", res$epsilon)
+    env_bind(
+      x$cache,
+      mean = res$mean,
+      covariance = res$cov,
+      epsilon = res$epsilon
+    )
     res
   }
 }

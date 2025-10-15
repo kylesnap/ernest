@@ -91,10 +91,10 @@ describe("update_lrps.adaptive_rwmh", {
   live <- replicate(500, propose(adaptive_rw))
   log_lik <- list_c(live["log_lik", ])
   live <- do.call(rbind, live["unit", ])
+  adaptive_rw <<- update_lrps(adaptive_rw, unit = live)
 
   it("sets the covariance matrix and is idempotent", {
     cov <- stats::cov(live)
-    adaptive_rw <<- update_lrps(adaptive_rw, unit = live)
     expect_equal(adaptive_rw$cache$n_call, 0L)
     expect_equal(adaptive_rw$cache$n_accept, 0L)
     expect_equal(adaptive_rw$strength, 500)

@@ -92,7 +92,7 @@
       adaptive random walk LRPS <adaptive_rwmh/ernest_lrps>
       
       No. Dimensions: 2
-      Current Step Size: 0.4272
+      Current Step Size: 0.3341
       Target Acceptance: 0.1
 
 ---
@@ -103,6 +103,6 @@
       adaptive random walk LRPS <adaptive_rwmh/ernest_lrps>
       
       No. Dimensions: 2
-      Current Step Size: 0.3346
+      Current Step Size: 0.1000
       Target Acceptance: 0.9
 

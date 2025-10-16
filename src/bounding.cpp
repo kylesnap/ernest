@@ -1,5 +1,10 @@
 #include "bounding.h"
 
+#include <functional>
+#include <numeric>
+
+#include "R_ext/Applic.h"
+
 using namespace bounding;
 
 // Constructs an ellipsoid from a given center and shape matrix.
@@ -24,12 +29,17 @@ bounding::Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
 
   double det_shape = R_pow_di(work_.eigenvalues().prod(), -1);
   log_volume_ = log_volume_const() + log(sqrt(det_shape));
+  error_ = kOk;
 }
 
 // Constructs an empty ellipsoid with specified dimensionality.
 //
 // `n_dim`: The number of dimensions for the ellipsoid.
 Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), work_(n_dim) {
+  if (n_dim == 0) {
+    error_ = kFatal;
+    return;
+  }
   center_ = RowVector::Zero(n_dim_);
   shape_ = Matrix::Zero(n_dim_, n_dim_);
   inverse_shape_ = Matrix::Zero(n_dim_, n_dim_);
@@ -81,6 +91,23 @@ void Ellipsoid::Fit(ConstRef<Matrix> X) {
   sqrt_shape_ = work_.operatorInverseSqrt();
   double det_shape = R_pow_di(work_.eigenvalues().prod(), -1);
   log_volume_ = log_volume_const() + log(sqrt(det_shape));
+}
+
+// Detect whether two ellipsoids intersect
+//
+// Employs the method found in: Gilitschenski and U. D. Hanebeck,
+// "A robust computational test for overlap of two arbitrary-dimensional
+// ellipsoids in fault-detection of Kalman filters," 2012 15th International
+// Conference on Information Fusion, Singapore, 2012, pp. 396-401.
+//
+// `other`: An ellipsoid with same dimensions as `this`.
+// `tau`: Scaling parameter (default 1.0).
+//
+// Returns:
+// TRUE if ellipsoids touch, FALSE if they do not touch.
+bool Ellipsoid::Overlaps(const Ellipsoid& other, double tau) const {
+  // SET UP BRENT METHOD PROBLEM.
+  return false;
 }
 
 // Finds the principal axes of the ellipsoid via eigendecomposition of the
@@ -147,76 +174,130 @@ void Ellipsoid::ScaleAxes(const ConstRef<Matrix> X) {
   shape_ /= scale2;
 }
 
-// std::vector<int> find_clusters(const std::vector<int>& rows,
-//                                const ConstRef<Vector> cluster_idx,
-//                                const int cluster) {
-//   std::vector<int> new_indices;
-//   for (int i = 0; i < rows.size(); i++) {
-//     if (cluster_idx[i] == cluster) new_indices.push_back(rows[i]);
-//   }
-//   return new_indices;
-// }
+// Extracts row indices that belong to a specific cluster.
+//
+// `rows`: Original row indices from the parent dataset.
+// `sub_idx`: Cluster assignments for each point (0 or 1).
+// `cluster`: Which cluster to extract (0 or 1).
+//
+// Returns: Vector of row indices belonging to the specified cluster.
+static std::vector<int> find_clusters(const std::vector<int>& rows,
+                                      const ConstRef<Vector> sub_idx,
+                                      const int cluster) {
+  std::vector<int> cluster_rows;
+  for (int i = 0; i < rows.size(); i++) {
+    if (sub_idx[i] == cluster) {
+      cluster_rows.push_back(rows[i]);
+    }
+  }
+  return cluster_rows;
+}
 
-// void bounding::FitMultiEllipsoids(const ConstRef<Matrix> X,
-//                                   std::vector<Ellipsoid>& ellipsoids,
-//                                   const double log_volume_reduction) {
-//   int n_dim = X.cols();
-//   int n_point = X.rows();
-//   std::deque<EllipsoidWithIdx> proposals;
-//   Eigen::ArrayXXd cluster_loc(2, n_dim);
+// Splits a cluster into two sub-ellipsoids using k-means clustering.
+//
+// `X`: Full dataset matrix (n_point x n_dim).
+// `rows`: Row indices of points in the current cluster.
+// `n_dim`: Number of dimensions.
+// `lh`: Output left-hand sub-ellipsoid.
+// `rh`: Output right-hand sub-ellipsoid.
+//
+// Returns: true if splitting resulted in two nondegenerate ellipsoids,
+// otherwise false.
+static bool split_cluster(const ConstRef<Matrix> X,
+                          const std::vector<int>& rows, const int n_dim,
+                          SubEllipsoid& lh, SubEllipsoid& rh) {
+  Matrix sub_X = X(rows, Eigen::all);
+  Eigen::ArrayXd sub_idx(sub_X.rows());
+  Eigen::ArrayXXd mu(2, n_dim);
+  kmeans_rex::RunKMeans(sub_X, 2, 100, mu, sub_idx);
 
-//   Matrix lh_X(n_point, n_dim), rh_X(n_point, n_dim);
+  lh.rows = find_clusters(rows, sub_idx, 0);
+  lh.ell.Fit(X(lh.rows, Eigen::all));
+  rh.rows = find_clusters(rows, sub_idx, 1);
+  rh.ell.Fit(X(rh.rows, Eigen::all));
 
-//   proposals.emplace_back(Ellipsoid(n_dim), std::vector<int>(n_point));
-//   proposals.front().first.Fit(X);
-//   std::iota(proposals.front().second.begin(), proposals.front().second.end(),
-//             0);
+  return lh.ell.error() == kOk && rh.ell.error() == kOk;
+}
 
-//   while (!proposals.empty()) {
-//     Ellipsoid& cur = proposals.front().first;
-//     std::vector<int>& rows = proposals.front().second;
-//     if (cur.code() == kFatal) {
-//       proposals.pop_front();
-//       continue;
-//     }
+static void split(std::deque<SubEllipsoid>& proposals, SubEllipsoid& lh,
+                  SubEllipsoid& rh) {
+  int n_dim = lh.ell.n_dim();
+  proposals.emplace_back(std::move(lh));
+  proposals.emplace_back(std::move(rh));
+  lh = SubEllipsoid({Ellipsoid(n_dim), std::vector<int>()});
+  rh = SubEllipsoid({Ellipsoid(n_dim), std::vector<int>()});
+  proposals.pop_front();
+}
 
-//     std::cout << "[MULTI] Current rows: ";
-//     for (const auto& idx : rows) {
-//       std::cout << idx << " ";
-//     }
-//     std::cout << std::endl;
-//     Matrix sub_X = X(rows, Eigen::all);
-//     Eigen::ArrayXd cluster_idx(sub_X.rows());
-//     kmeans_rex::RunKMeans(sub_X, 2, 100, kMethod, cluster_loc, cluster_idx);
+static void merge(std::vector<Ellipsoid>& ellipsoids,
+                  std::deque<SubEllipsoid>& proposals) {
+  ellipsoids.emplace_back(std::move(proposals.front().ell));
+  proposals.pop_front();
+}
 
-//     EllipsoidWithIdx lh =
-//         std::make_pair(Ellipsoid(n_dim), find_clusters(rows, cluster_idx,
-//         0));
-//     lh.first.Fit(X(lh.second, Eigen::all));
+std::vector<Ellipsoid> bounding::FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                                    const double min_reduction,
+                                                    const double min_dist) {
+  int n_dim = X.cols();
+  int n_point = X.rows();
+  std::vector<Ellipsoid> ellipsoids;
+  std::deque<SubEllipsoid> proposals;
 
-//     EllipsoidWithIdx rh =
-//         std::make_pair(Ellipsoid(n_dim), find_clusters(rows, cluster_idx,
-//         1));
-//     rh.first.Fit(X(rh.second, Eigen::all));
+  SubEllipsoid lh{Ellipsoid(n_dim), std::vector<int>()};
+  SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
+  Ellipsoid intersect(n_dim);
 
-//     double old_log_vol = cur.log_volume() + log_volume_reduction;
-//     double new_log_volume =
-//         Rf_logspace_add(lh.first.log_volume(), rh.first.log_volume());
-//     std::cout << "[MULTI] Log Volume " << cur.log_volume() << " -> "
-//               << new_log_volume << std::endl;
-//     bool split = false;
-//     if (R_FINITE(new_log_volume) && new_log_volume <= old_log_vol) {
-//       split = true;
-//     }
+  proposals.emplace_back(
+      SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
+  proposals.front().ell.Fit(X);
+  if (proposals.front().ell.error() != kOk) {
+    merge(ellipsoids, proposals);
+    return ellipsoids;
+  }
+  std::iota(proposals.front().rows.begin(), proposals.front().rows.end(), 0);
 
-//     if (split) {
-//       std::cout << "[MULTI] Splitting into two" << std::endl;
-//       proposals.emplace_back(std::move(lh));
-//       proposals.emplace_back(std::move(rh));
-//     } else {
-//       std::cout << "[MULTI] Accepting new ellipsoid" << std::endl;
-//       ellipsoids.emplace_back(std::move(cur));
-//     }
-//     proposals.pop_front();
-//   }
-// }
+  while (!proposals.empty()) {
+    Ellipsoid& cur = proposals.front().ell;
+    std::vector<int>& rows = proposals.front().rows;
+    std::cout << "[DEBUG] Proposals size: " << proposals.size()
+              << ", Current rows: " << rows.size() << std::endl;
+    if (cur.error() != kOk) {
+      std::cout << "[DEBUG] Current ellipsoid error: " << cur.error()
+                << std::endl;
+      proposals.pop_front();
+      continue;
+    }
+
+    bool splitable = split_cluster(X, rows, n_dim, lh, rh);
+    if (!splitable) {
+      std::cout << "[DEBUG] Merging after degenerate ellipsoids." << std::endl;
+      merge(ellipsoids, proposals);
+      continue;
+    }
+
+    double cur_log_vol = cur.log_volume() + log(min_reduction);
+    double tot_log_vol =
+        Rf_logspace_add(lh.ell.log_volume(), rh.ell.log_volume());
+    std::cout << "[DEBUG] cur_log_vol: " << cur_log_vol
+              << ", tot_log_vol: " << tot_log_vol << std::endl;
+    bool less_volume = R_FINITE(tot_log_vol) && tot_log_vol <= cur_log_vol;
+    if (!less_volume) {
+      std::cout << "[DEBUG] Merging due to insufficient volume reduction."
+                << std::endl;
+      merge(ellipsoids, proposals);
+      continue;
+    }
+
+    bool touching = lh.ell.Overlaps(rh.ell);
+    std::cout << (touching ? "[DEBUG] Touching" : "[DEBUG] Separate")
+              << std::endl;
+    if (FALSE) {
+      std::cout << "[DEBUG] Merging due to touching clusters." << std::endl;
+      merge(ellipsoids, proposals);
+    } else {
+      std::cout << "[DEBUG] Splitting cluster." << std::endl;
+      split(proposals, lh, rh);
+    }
+  }
+  return ellipsoids;
+}

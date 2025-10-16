@@ -48,6 +48,6 @@ typedef ArrayXd Vec;
 void RunKMeans(const double *X_IN, int N, int D, int K, int Niter,
                const char *initname, double *Mu_OUT, double *Z_OUT);
 void RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K, int Niter,
-               const char *initname, Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
+               Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
                Eigen::Ref<Eigen::VectorXd> Z_OUT);
 }  // namespace kmeans_rex

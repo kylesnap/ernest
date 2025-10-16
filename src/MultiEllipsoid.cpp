@@ -11,9 +11,22 @@
  */
 [[cpp11::register]]
 cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
-                                    const double reduction) {
+                                    const double min_reduction,
+                                    const double min_distance) {
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  std::vector<bounding::Ellipsoid> ellipsoids;
-  bounding::FitMultiEllipsoids(X_eigen, ellipsoids, log(reduction));
-  return cpp11::list();
+  std::vector<bounding::Ellipsoid> ellipsoids =
+      bounding::FitMultiEllipsoids(X_eigen, min_reduction, min_distance);
+  cpp11::writable::list ellipsoid_list;
+  cpp11::writable::doubles prob;
+  for (auto ell : ellipsoids) {
+    prob.push_back(ell.log_volume());
+    ellipsoid_list.push_back(ell.as_list());
+  }
+  double total_log_vol = logspace_sum(REAL(prob.data()), prob.size());
+  for (auto p : prob) {
+    p = exp(p - total_log_vol);
+  }
+  using namespace cpp11::literals;
+  return cpp11::writable::list(
+      {"prob"_nm = prob, "ellipsoid"_nm = ellipsoid_list});
 }

@@ -10,14 +10,12 @@ namespace bounding {
 constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
 
 // Status codes for ellipsoid computation operations.
-//
-// These codes indicate the outcome of ellipsoid fitting operations and
-// help diagnose numerical issues.
 enum Status {
-  kOk = 0,              // Operation completed successfully.
-  kFatal = 1,           // Numerical error from estimating the shape matrix.
-  kDegenerate = 2,      // Eigenvalue of the shape matrix is zero.
-  kUnderdetermined = 3  // Number of fitted points < n_dim + 1.
+  kOk = 0,               // Operation completed successfully.
+  kFatal = 1,            // Numerical error from estimating the shape matrix.
+  kDegenerate = 2,       // Eigenvalue of the shape matrix is zero.
+  kUnderdetermined = 3,  // Number of fitted points < n_dim + 1.
+  kEmpty = -1            // Uninitialized ellipsoid
 };
 
 // Represents a hyper-ellipsoid defined by center and shape matrix.
@@ -33,6 +31,7 @@ class Ellipsoid {
   explicit Ellipsoid(const int n_dim);
   explicit Ellipsoid(const ConstRef<Matrix> X);
   void Fit(const ConstRef<Matrix> X);
+  bool Overlaps(const Ellipsoid& other, double tau = 1.0) const;
 
   // Converts the ellipsoid to an R list representation.
   //
@@ -67,12 +66,12 @@ class Ellipsoid {
   inline double log_volume() const { return log_volume_; }
 
  private:
-  RowVector center_;      // Center of the ellipsoid.
-  Matrix shape_;          // Shape matrix (covariance-like).
-  Matrix inverse_shape_;  // Inverse of shape matrix (precision).
-  Matrix sqrt_shape_;     // Matrix square root of inverse shape.
-  int n_dim_;             // Number of dimensions.
-  Status error_ = kOk;    // Status of most recent operation.
+  RowVector center_;       // Center of the ellipsoid.
+  Matrix shape_;           // Shape matrix (covariance-like).
+  Matrix inverse_shape_;   // Inverse of shape matrix (precision).
+  Matrix sqrt_shape_;      // Matrix square root of inverse shape.
+  int n_dim_;              // Number of dimensions.
+  Status error_ = kEmpty;  // Status of most recent operation.
   Eigen::SelfAdjointEigenSolver<Matrix> work_;  // Reusable workspace.
   double log_volume_ = R_NegInf;                // Log volume of the ellipsoid.
 
@@ -87,5 +86,15 @@ class Ellipsoid {
     return (n_dim_ * M_LN_SQRT_PI) - lgamma1p(n_dim_ / 2.0);
   }
 };
+
+// Struct containing an ellipsoid and a integer vector of row indicies.
+struct SubEllipsoid {
+  Ellipsoid ell;
+  std::vector<int> rows;
+};
+
+std::vector<Ellipsoid> FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                          const double min_reduction,
+                                          const double max_overlap);
 
 }  // namespace bounding

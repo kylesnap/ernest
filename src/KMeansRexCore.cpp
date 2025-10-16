@@ -209,11 +209,11 @@ void kmeans_rex::RunKMeans(const double *X_IN, int N, int D, int K, int Niter,
 
 // Overload: accepts Eigen::Ref<Matrix> and Eigen::Ref<Vector>
 void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K,
-                           int Niter, const char *initname,
-                           Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
+                           int Niter, Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
                            Eigen::Ref<Eigen::VectorXd> Z_OUT) {
   int N = X_IN.rows();
   int D = X_IN.cols();
+  const char *initname = "plusplus";
   std::cout << "[Kmeans] n_dim: " << D << ", n_point: " << N << std::endl;
 
   ExtMat X(const_cast<double *>(X_IN.data()), N, D);

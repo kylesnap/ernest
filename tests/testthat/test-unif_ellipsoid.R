@@ -4,13 +4,13 @@ set.seed(42)
 describe("BoundingEllipsoid", {
   n_points <- 5000
   it("fits points in 3D correctly", {
-    inverse_shape <- matrix(
+    shape <- matrix(
       c(1.439, -1.607, 0.626, -1.607, 2.685, -0.631, 0.626, -0.631, 0.43),
       nrow = 3,
       byrow = TRUE
     )
-    original_points <- uniformly::runif_in_ellipsoid(n_points, inverse_shape, 1)
-    theoretical_cov <- (1 / (3 + 2)) * solve(inverse_shape)
+    original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
+    theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points)
     expect_false(is.infinite(ell_fit$log_vol))
@@ -30,16 +30,16 @@ describe("BoundingEllipsoid", {
   })
 
   it("fits points in 5D correctly", {
-    inverse_shape <- matrix(nrow = 5, ncol = 5, byrow = TRUE)
-    inverse_shape[1, ] <- c(0.228, 0.0948, -0.133, -0.174, 0.00331)
-    inverse_shape[2, ] <- c(0.0948, 0.174, -0.0954, -0.146, 0.00501)
-    inverse_shape[3, ] <- c(-0.133, -0.0954, 0.268, -0.0323, -0.00409)
-    inverse_shape[4, ] <- c(-0.174, -0.146, -0.0323, 0.386, -0.00151)
-    inverse_shape[5, ] <- c(0.00331, 0.00501, -0.00409, -0.00151, 0.0678)
-    inverse_shape <- 1e4 * inverse_shape
-    original_points <- uniformly::runif_in_ellipsoid(n_points, inverse_shape, 1)
+    shape <- matrix(nrow = 5, ncol = 5, byrow = TRUE)
+    shape[1, ] <- c(0.228, 0.0948, -0.133, -0.174, 0.00331)
+    shape[2, ] <- c(0.0948, 0.174, -0.0954, -0.146, 0.00501)
+    shape[3, ] <- c(-0.133, -0.0954, 0.268, -0.0323, -0.00409)
+    shape[4, ] <- c(-0.174, -0.146, -0.0323, 0.386, -0.00151)
+    shape[5, ] <- c(0.00331, 0.00501, -0.00409, -0.00151, 0.0678)
+    shape <- 1e4 * shape
+    original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
 
-    theoretical_cov <- (1 / (3 + 2)) * solve(inverse_shape)
+    theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points)
     expect_false(is.infinite(ell_fit$log_vol))
@@ -93,10 +93,10 @@ describe("new_unif_ellipsoid", {
     expect_mapequal(
       env_get_list(
         obj$cache,
-        c("inverse_shape", "center", "scaled_sqrt_shape", "log_volume")
+        c("shape", "center", "scaled_sqrt_shape", "log_volume")
       ),
       list(
-        inverse_shape = diag(2),
+        shape = diag(2),
         center = c(0.5, 0.5),
         scaled_sqrt_shape = diag(2) * sqrt(0.5),
         log_volume = log(pi * (sqrt(2) / 2)^2)
@@ -146,7 +146,7 @@ describe("update_lrps.unif_ellipsoid", {
   it("can rebound to a matrix of live points", {
     new_uniform <- update_lrps(uniform, live)
     ell <<- list(
-      inverse_shape = new_uniform$cache$inverse_shape,
+      shape = new_uniform$cache$shape,
       center = new_uniform$cache$center,
       enlarge = new_uniform$enlarge
     )
@@ -156,7 +156,7 @@ describe("update_lrps.unif_ellipsoid", {
     )
     new_live <- do.call(rbind, new_live["unit", ])
 
-    precision <- ell$inverse_shape
+    precision <- ell$shape
     dists <- apply(new_live, 1, \(x) {
       d <- x - ell$center
       drop(d %*% precision %*% d)

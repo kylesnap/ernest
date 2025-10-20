@@ -87,15 +87,16 @@ format.unif_ellipsoid <- function(x, ...) {
 #' `c("unif_ellipsoid", "ernest_lrps")`.
 #' @noRd
 new_unif_ellipsoid <- function(
-    unit_log_fn = NULL,
-    n_dim = NULL,
-    max_loop = 1e6L,
-    cache = NULL,
-    enlarge = 1.0) {
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = 1e6L,
+  cache = NULL,
+  enlarge = 1.0
+) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   cache <- cache %||% new_environment()
   if (is_integerish(n_dim) && n_dim > 0) {
-    env_cache(cache, "inverse_shape", diag(n_dim))
+    env_cache(cache, "shape", diag(n_dim))
     env_cache(cache, "center", rep(0.5, n_dim))
     env_cache(cache, "scaled_sqrt_shape", diag(sqrt(n_dim / 4), nrow = n_dim))
     env_cache(cache, "scale", n_dim / 4)
@@ -117,10 +118,11 @@ new_unif_ellipsoid <- function(
 #' @rdname propose
 #' @export
 propose.unif_ellipsoid <- function(
-    x,
-    original = NULL,
-    criterion = -Inf,
-    idx = NULL) {
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
     NextMethod(x)
   } else {
@@ -153,7 +155,7 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
         )
       }
 
-      env_poke(x$cache, "inverse_shape", ellipsoid$inverse_shape)
+      env_poke(x$cache, "shape", ellipsoid$shape)
       env_poke(x$cache, "center", ellipsoid$center)
       env_poke(
         x$cache,
@@ -173,7 +175,7 @@ update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
       )
       env_unbind(
         x$cache,
-        c("inverse_shape", "center", "scaled_sqrt_shape", "log_volume")
+        c("shape", "center", "scaled_sqrt_shape", "log_volume")
       )
     }
   )

@@ -12,10 +12,17 @@ constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
 // Status codes for ellipsoid computation operations.
 enum Status {
   kOk = 0,               // Operation completed successfully.
-  kFatal = 1,            // Numerical error from estimating the shape matrix.
+  kNilpotent = 1,        // Input matrix cannot be inverted.
   kDegenerate = 2,       // Eigenvalue of the shape matrix is zero.
   kUnderdetermined = 3,  // Number of fitted points < n_dim + 1.
-  kEmpty = -1            // Uninitialized ellipsoid
+  kEmpty = -1,           // Uninitialized ellipsoid
+  kFatal = 99            // Numerical error
+};
+
+// Simple struct for an eigensystem
+struct Eigensystem {
+  Vector values;
+  Matrix vectors;
 };
 
 // Represents a hyper-ellipsoid defined by center and shape matrix.
@@ -31,7 +38,26 @@ class Ellipsoid {
   explicit Ellipsoid(const int n_dim);
   explicit Ellipsoid(const ConstRef<Matrix> X);
   void Fit(const ConstRef<Matrix> X);
-  bool Overlaps(const Ellipsoid& other, double tau = 1.0) const;
+  double Distance(const ConstRef<Vector> point) const;
+
+  // Determines whether a given point is covered by the bounding region.
+  //
+  // `point`: A constant reference to a Vector representing the point to check.
+  //
+  // Returns:
+  // 1 if the point is covered by the bounding region,
+  // 0 if the point is not covered but within a certain threshold,
+  // -1 if a numerical issue occured.
+  inline int Covered(const ConstRef<Vector> point) const {
+    double dist = Distance(point);
+    if (!R_FINITE(dist)) {
+      return point.isApprox(center_) ? 1 : -1;
+    } else if (dist >= 1.0) {
+      return 1;
+    } else {
+      return 0;
+    }
+  };
 
   // Converts the ellipsoid to an R list representation.
   //
@@ -50,33 +76,35 @@ class Ellipsoid {
     } else {
       return cpp11::writable::list(
           {"center"_nm = as_row_doubles(center_),
-           "inverse_shape"_nm = as_doubles_matrix(inverse_shape_),
-           "sqrt_shape"_nm = as_doubles_matrix(sqrt_shape_),
+           "shape"_nm = as_doubles_matrix(L_ * L_.transpose()),
+           "sqrt_shape"_nm = as_doubles_matrix(inv_sqrt_shape_),
            "log_vol"_nm = log_volume_, "error"_nm = static_cast<int>(error_)});
     }
   };
 
   // Getters for private variables
-  inline const RowVector& center() const { return center_; }
-  inline const Matrix& shape() const { return shape_; }
-  inline const Matrix& inverse_shape() const { return inverse_shape_; }
-  inline const Matrix& sqrt_shape() const { return sqrt_shape_; }
+  inline RowVector center() const { return center_.transpose(); }
+  inline Matrix shape() const { return L_ * L_.transpose(); }
+  inline const Matrix& inv_sqrt_shape() const { return inv_sqrt_shape_; }
+  inline const Matrix& matrixL() const { return L_; };
   inline int n_dim() const { return n_dim_; }
   inline Status error() const { return error_; }
   inline double log_volume() const { return log_volume_; }
 
  private:
-  RowVector center_;       // Center of the ellipsoid.
-  Matrix shape_;           // Shape matrix (covariance-like).
-  Matrix inverse_shape_;   // Inverse of shape matrix (precision).
-  Matrix sqrt_shape_;      // Matrix square root of inverse shape.
+  Vector center_;          // Center of the ellipsoid (changed from RowVector).
+  Matrix L_;               // Lower triangular of shape matrix.
+  Matrix inv_sqrt_shape_;  // Inverse square root of shape matrix.
   int n_dim_;              // Number of dimensions.
   Status error_ = kEmpty;  // Status of most recent operation.
-  Eigen::SelfAdjointEigenSolver<Matrix> work_;  // Reusable workspace.
-  double log_volume_ = R_NegInf;                // Log volume of the ellipsoid.
+  double log_volume_ = R_NegInf;  // Log volume of the ellipsoid.
 
-  void FindAxes(const ConstRef<Matrix> X);
-  void ScaleAxes(const ConstRef<Matrix> X);
+  Vector eigenvalues;
+  Matrix eigenvectors;
+
+  Eigensystem FindAxes(const ConstRef<Matrix> X);
+  void ScaleAxes(ConstRef<Matrix> X, Eigensystem& eig);
+  void SetShape(Eigensystem& eig);
 
   // Compute the constant term in the log volume formula.
   //

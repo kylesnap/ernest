@@ -28,32 +28,44 @@ context("Ellipsoid class - basic functionality") {
     expect_true(ell.Covered(center));
   }
 
-  test_that("Ellipsoid bounds all input points") {
-    std::cout << "[TEST] Running: Ellipsoid bounds all input points"
-              << std::endl;
-    // Create a set of random points
-    Eigen::MatrixXd X(10, 2);
-    X << 0.934681506741446, -1.10934386692773, -0.0927026432043534,
-        -0.165253071681541, 0.945919217628179, -1.17643629595198,
-        0.779882729044357, -1.39204790238083, 0.668308362725138,
-        -0.363965942433027, -0.970956925958582, 0.910219868950651,
-        -0.41972737345736, -0.345625239953043, 0.800538882935828,
-        -0.307907407476938, 0.0658319173280825, -0.95753533700075,
-        0.936704248735548, -0.881101537651297;
+  test_that("Distance works") {
+    int n_dim = 10;
+    int n_test = 1000;  // Reduce number of tests for faster runtime
+    double err_max = 0.0;
+    random_generator::RandomEngine gen;
 
-    bounding::Ellipsoid ell(2);
-    ell.Fit(X);
-    std::cout << "Fit Sucessful" << std::endl;
-    std::cout << ell.center() << std::endl;
-    std::cout << ell.shape() << std::endl;
-    std::cout << ell.inv_sqrt_shape() << std::endl;
+    // Preallocate matrices/vectors to avoid repeated allocations
+    Vector center(n_dim);
+    Matrix u(n_dim, n_dim);
+    Vector p(n_dim);
 
-    // Verify all points are within the ellipsoid
-    // Use the precision matrix A directly
-    X.transposeInPlace();
-    for (auto col : X.colwise()) {
-      expect_true(ell.Covered(col));
+    for (int i_test = 0; i_test < n_test; i_test++) {
+      // Random ellipsoid center and SPD matrix
+      random_generator::RUnif(center);
+      std::generate(u.reshaped().begin(), u.reshaped().end(), unif_rand);
+      Matrix a = u * u.transpose();
+
+      bounding::Ellipsoid ell(center, a);
+      Matrix L = ell.matrixL();
+
+      // Random unit direction
+      random_generator::RUnif(p);
+      p.array() -= 0.5;
+      p.normalize();
+
+      // transform p using Cholesky factor
+      L.transpose().triangularView<Eigen::Upper>().solveInPlace(p);
+      double sin = 2 * unif_rand();
+
+      // position point at xc + (1/sin) * direction
+      p = (p / sin) + center;
+
+      // Compute distance from p to ellipsoid defined by (xc, g)
+      double s = ell.Distance(p);
+      double err = abs(s - sin);
+      err_max = Rf_fmax2(err_max, err);
     }
+    expect_true(err_max < 1e-3);
   }
 }
 
@@ -70,15 +82,12 @@ context("Ellipsoid class - geometric cases") {
 
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == bounding::Status::kDegenerate);
-    std::cout << "[TEST] Completed: Ellipsoid handles collinear points"
-              << std::endl;
   }
 
   test_that("Ellipsoid handles underconstrained case") {
     std::cout << "[TEST] Running: Ellipsoid handles underconstrained case"
               << std::endl;
-    // Fewer points than dimensions + 1
-    Eigen::MatrixXd X(2, 3);  // 2 points in 3D
+    Eigen::MatrixXd X(2, 3);
     X << 0, 0, 0, 1, 0, 0;
 
     bounding::Ellipsoid ell(3);

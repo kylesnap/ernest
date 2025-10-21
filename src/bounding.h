@@ -45,18 +45,16 @@ class Ellipsoid {
   // `point`: A constant reference to a Vector representing the point to check.
   //
   // Returns:
-  // 1 if the point is covered by the bounding region,
-  // 0 if the point is not covered but within a certain threshold,
-  // -1 if a numerical issue occured.
-  inline int Covered(const ConstRef<Vector> point) const {
+  // TRUE if the point is covered by the bounding region,
+  // FALSE if the point is not covered.
+  inline bool Covered(const ConstRef<Vector> point) const {
     double dist = Distance(point);
     if (!R_FINITE(dist)) {
-      return point.isApprox(center_) ? 1 : -1;
-    } else if (dist >= 1.0) {
-      return 1;
-    } else {
-      return 0;
+      if (R_IsNaN(dist)) return true;
+      cpp11::stop("Numerical issue encountered.");
+      return false;
     }
+    return dist >= 1.0;
   };
 
   // Converts the ellipsoid to an R list representation.

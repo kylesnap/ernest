@@ -297,10 +297,15 @@ std::vector<Ellipsoid> bounding::FitMultiEllipsoids(const ConstRef<Matrix> X,
   SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
   Ellipsoid intersect(n_dim);
 
+  std::string dbg_prefix = "[FitMultiEllipsoids] ";
+
   proposals.emplace_back(
       SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
   proposals.front().ell.Fit(X);
   if (proposals.front().ell.error() != kOk) {
+    std::cout << dbg_prefix
+              << "Initial fit error: " << proposals.front().ell.error()
+              << std::endl;
     merge(ellipsoids, proposals);
     return ellipsoids;
   }

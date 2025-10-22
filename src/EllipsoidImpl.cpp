@@ -5,20 +5,6 @@
 #include "utils.h"
 
 /**
- * @brief Find the bounding ellipsoid of the given points.
- * @param X A matrix of points.
- * @returns A list, containing the mean, precision matrix,
- * transformation matrix, scale, and the log volume of the ellipsoid,
- * or just NULL if log volume is -Infy.
- */
-[[cpp11::register]]
-cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
-  Eigen::MatrixXd X_eigen = as_Matrix(X);
-  bounding::Ellipsoid ell(X_eigen);
-  return ell.as_list();
-}
-
-/**
  * @brief LRPS using uniform points from an ellipsoid.
  *
  * @param unit_log_fn Function to compute the log-likelihood of a proposal.

@@ -13,24 +13,10 @@ extern "C" SEXP _ernest_CubeImpl(SEXP n_dim, SEXP unit_log_fn, SEXP criterion, S
   END_CPP11
 }
 // EllipsoidImpl.cpp
-cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X);
-extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(BoundingEllipsoid(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
-  END_CPP11
-}
-// EllipsoidImpl.cpp
 cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion, cpp11::doubles_matrix<> scaledInvSqrtA, cpp11::doubles loc, int max_loop);
 extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP scaledInvSqrtA, SEXP loc, SEXP max_loop) {
   BEGIN_CPP11
     return cpp11::as_sexp(EllipsoidImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(scaledInvSqrtA), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
-  END_CPP11
-}
-// MultiEllipsoid.cpp
-cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact);
-extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact)));
   END_CPP11
 }
 // RandomWalkImpl.cpp
@@ -52,6 +38,20 @@ double logaddexp(double x, double y);
 extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
   BEGIN_CPP11
     return cpp11::as_sexp(logaddexp(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y)));
+  END_CPP11
+}
+// update_lrps.cpp
+cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X);
+extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(BoundingEllipsoid(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
+  END_CPP11
+}
+// update_lrps.cpp
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact);
+extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact)));
   END_CPP11
 }
 

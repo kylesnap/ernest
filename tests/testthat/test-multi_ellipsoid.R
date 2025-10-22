@@ -1,14 +1,70 @@
-test_that("Clustering works", {
-  # Set parameters
-  set.seed(42)
+set.seed(42)
 
-  # Generate random data for three clusters
-  data_1 <- c(0.25, 0.25, 0.25) + uniformly::runif_in_sphere(50, 3, r = 0.1)
-  data_2 <- c(0.75, 0.75, 0.75) + uniformly::runif_in_sphere(250, 3, r = 0.1)
+describe("MultiBoundingEllipsoids", {
+  n_points <- 5000
 
-  # Stack all data together into a larger 2D array
-  data_all <- rbind(data_1, data_2)
+  it("fits points in 3D correctly", {
+    n_dim <- 3L
+    k <- 3L
+    points_per_k <- n_points %/% k
 
-  # Display the data
-  MultiBoundingEllipsoids(data_all, 1)
+    data_1 <- -5 + uniformly::runif_in_sphere(points_per_k, n_dim)
+    data_2 <- uniformly::runif_in_sphere(points_per_k, n_dim)
+    data_3 <- 5 + uniformly::runif_in_sphere(points_per_k, n_dim)
+    data_all <- rbind(data_1, data_2, data_3)
+
+    result <- MultiBoundingEllipsoids(
+      data_all,
+      min_reduction = 0.7,
+      allow_contact = TRUE
+    )
+
+    # Check structure
+    expect_type(result, "list")
+    expect_named(result, c("prob", "ellipsoid"))
+    expect_equal(sum(result$prob), 1)
+
+    # Expect three ellipsoids
+    expect_equal(length(result$prob), 3)
+    centers <- lapply(result$ellipsoid, function(x) x[["center"]])
+    expect_equal(
+      sort(list_c(centers)),
+      c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
+      tolerance = 0.01
+    )
+
+    # Expect similar with allow_contact FALSE
+    result <- MultiBoundingEllipsoids(
+      data_all,
+      min_reduction = 1,
+      allow_contact = FALSE
+    )
+    expect_equal(length(result$prob), 3)
+    centers <- lapply(result$ellipsoid, function(x) x[["center"]])
+    expect_equal(
+      sort(list_c(centers)),
+      c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
+      tolerance = 0.01
+    )
+
+    # Plot Test Points
+    ells <- result$ellipsoid
+    print(ells)
+    new_1 <- result$ellipsoid[[1]]$center +
+      (uniformly::runif_in_sphere(points_per_k, n_dim) %*% ells[[1]]$sqrt_shape)
+    new_2 <- result$ellipsoid[[2]]$center +
+      (uniformly::runif_in_sphere(points_per_k, n_dim) %*% ells[[2]]$sqrt_shape)
+    new_3 <- result$ellipsoid[[3]]$center +
+      (uniformly::runif_in_sphere(points_per_k, n_dim) %*% ells[[3]]$sqrt_shape)
+    new_all <- rbind(new_1, new_2, new_3)
+
+    skip_on_cran()
+    skip_extended_test()
+    vdiffr::expect_doppelganger("multi_ellipsoid", {
+      plot(data_all)
+      points(new_all, col = "red")
+    })
+  })
 })
+
+test_that("Holder", {})

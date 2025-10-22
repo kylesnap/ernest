@@ -4,16 +4,8 @@ CubeImpl <- function(n_dim, unit_log_fn, criterion, max_loop) {
   .Call(`_ernest_CubeImpl`, n_dim, unit_log_fn, criterion, max_loop)
 }
 
-BoundingEllipsoid <- function(X) {
-  .Call(`_ernest_BoundingEllipsoid`, X)
-}
-
 EllipsoidImpl <- function(unit_log_fn, criterion, scaledInvSqrtA, loc, max_loop) {
   .Call(`_ernest_EllipsoidImpl`, unit_log_fn, criterion, scaledInvSqrtA, loc, max_loop)
-}
-
-MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact) {
-  .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact)
 }
 
 RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {
@@ -26,4 +18,12 @@ AdaptiveRWImpl <- function(original, unit_log_fn, criterion, steps, epsilon_init
 
 logaddexp <- function(x, y) {
   .Call(`_ernest_logaddexp`, x, y)
+}
+
+BoundingEllipsoid <- function(X) {
+  .Call(`_ernest_BoundingEllipsoid`, X)
+}
+
+MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact) {
+  .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact)
 }

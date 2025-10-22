@@ -1,7 +1,19 @@
-#include <cmath>
-
 #include "KMeansRexCore.h"
 #include "bounding.h"
+
+/**
+ * @brief Find the bounding ellipsoid of the given points.
+ * @param X A matrix of points.
+ * @returns A list, containing the mean, precision matrix,
+ * transformation matrix, scale, and the log volume of the ellipsoid,
+ * or just NULL if log volume is -Infy.
+ */
+[[cpp11::register]]
+cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
+  Eigen::MatrixXd X_eigen = as_Matrix(X);
+  bounding::Ellipsoid ell(X_eigen);
+  return ell.as_list();
+}
 
 /**
  * @brief Find the bounding ellipsoid of the given points.

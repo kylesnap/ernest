@@ -26,6 +26,7 @@ context("Ellipsoid class - basic functionality") {
     expect_false(ell.Covered(oob));
     expect_true(ell.Covered(inb));
     expect_true(ell.Covered(center));
+    expect_true(almost_equal(ell.log_volume(), 1.14473));
   }
 
   test_that("Distance to point works") {

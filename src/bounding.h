@@ -25,6 +25,25 @@ struct Eigensystem {
   Matrix vectors;
 };
 
+// DPGT wrapping class
+class Solver {
+ public:
+  inline Solver(int n) : n_(n), z_(n), wa1_(n), wa2_(n) {};
+  int Solve(Ref<Matrix> A, Ref<Vector> b, Ref<Vector> x, double delta);
+
+  inline double f() const { return f_; };
+  inline double iter() const { return iter_; };
+  inline int info() const { return info_; };
+
+ private:
+  int n_;
+  double rtol_ = 1e-8;
+  double atol_ = 1e-8;
+  double par_ = 0.0, f_ = 0.0;
+  int info_ = 0, iter_ = 0, it_max_ = 100;
+  std::vector<double> z_, wa1_, wa2_;
+};
+
 // Represents a hyper-ellipsoid defined by center and shape matrix.
 //
 // An ellipsoid satisfying the equation:
@@ -39,6 +58,8 @@ class Ellipsoid {
   explicit Ellipsoid(const ConstRef<Matrix> X);
   void Fit(const ConstRef<Matrix> X);
   double Distance(const ConstRef<Vector> point) const;
+  Vector Closest(const ConstRef<Vector> point) const;
+  double Distance(const Ellipsoid& other) const;
 
   // Determines whether a given point is covered by the bounding region.
   //
@@ -121,6 +142,6 @@ struct SubEllipsoid {
 
 std::vector<Ellipsoid> FitMultiEllipsoids(const ConstRef<Matrix> X,
                                           const double min_reduction,
-                                          const double max_overlap);
+                                          const bool allow_contact);
 
 }  // namespace bounding

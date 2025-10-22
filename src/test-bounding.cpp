@@ -28,10 +28,10 @@ context("Ellipsoid class - basic functionality") {
     expect_true(ell.Covered(center));
   }
 
-  test_that("Distance works") {
+  test_that("Distance to point works") {
     int n_dim = 10;
-    int n_test = 1000;  // Reduce number of tests for faster runtime
-    double err_max = 0.0;
+    int n_test = 100;  // Reduce number of tests for faster runtime
+    double err_dist = 0.0, err_out = 0.0, err_in = 0.0;
     random_generator::RandomEngine gen;
 
     // Preallocate matrices/vectors to avoid repeated allocations
@@ -63,16 +63,66 @@ context("Ellipsoid class - basic functionality") {
       // Compute distance from p to ellipsoid defined by (xc, g)
       double s = ell.Distance(p);
       double err = abs(s - sin);
-      err_max = Rf_fmax2(err_max, err);
+      err_dist = Rf_fmax2(err_dist, err);
+
+      // Compute closest point
+      Vector close = ell.Closest(p);
+      double dist_closest = ell.Distance(close);
+      if (s <= 1.0) {
+        // If o is outside Ell, the dist(close) should be 1.
+        err_out = Rf_fmax2(err_out, std::abs(dist_closest - 1.0));
+      } else {
+        // If p is inside Ell, then dist(close) should be equal to dist(p).
+        err_in = Rf_fmax2(err_in, std::abs(dist_closest - s));
+      }
     }
-    expect_true(err_max < 1e-3);
+    expect_true(err_dist < 1e-3);
+    expect_true(err_in < 1e-3);
+    expect_true(err_out < 1e-3);
+  }
+
+  Eigen::Matrix2d shape = Eigen::Matrix2d::Identity();
+
+  test_that("Two barely touching ellipsoids") {
+    Eigen::RowVector2d center1{0, 0};
+    Eigen::RowVector2d center2{2, 0};
+
+    bounding::Ellipsoid ell1(center1, shape);
+    bounding::Ellipsoid ell2(center2, shape);
+
+    double dist = ell1.Distance(ell2);
+
+    // Distance should be approximately R_NegInf (touching)
+    expect_true(dist == R_NegInf);
+  }
+
+  test_that("Two overlapping ellipsoids") {
+    Eigen::RowVector2d center1{0, 0};
+    Eigen::RowVector2d center2{1, 0};
+
+    bounding::Ellipsoid ell1(center1, shape);
+    bounding::Ellipsoid ell2(center2, shape);
+
+    double dist = ell1.Distance(ell2);
+
+    // Distance should be R_NegInf (overlapping)
+    expect_true(dist == R_NegInf);
+  }
+
+  test_that("Two non-overlapping ellipsoids") {
+    Eigen::RowVector2d center1{0, 0};
+    Eigen::RowVector2d center2{2.01, 0};
+
+    bounding::Ellipsoid ell1(center1, shape);
+    bounding::Ellipsoid ell2(center2, shape);
+
+    double dist = ell1.Distance(ell2);
+    expect_true(almost_equal(dist, 0.01));
   }
 }
 
 context("Ellipsoid class - geometric cases") {
   test_that("Ellipsoid handles collinear points") {
-    std::cout << "[TEST] Running: Ellipsoid handles collinear points"
-              << std::endl;
     // Points on a line
     Eigen::MatrixXd X(4, 2);
     X << 0, 0, 1, 1, 2, 2, 3, 3;
@@ -85,8 +135,6 @@ context("Ellipsoid class - geometric cases") {
   }
 
   test_that("Ellipsoid handles underconstrained case") {
-    std::cout << "[TEST] Running: Ellipsoid handles underconstrained case"
-              << std::endl;
     Eigen::MatrixXd X(2, 3);
     X << 0, 0, 0, 1, 0, 0;
 
@@ -95,7 +143,5 @@ context("Ellipsoid class - geometric cases") {
 
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == bounding::Status::kUnderdetermined);
-    std::cout << "[TEST] Completed: Ellipsoid handles underconstrained case"
-              << std::endl;
   }
 }

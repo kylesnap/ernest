@@ -12,10 +12,10 @@
 [[cpp11::register]]
 cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
                                     const double min_reduction,
-                                    const double min_distance) {
+                                    const bool allow_contact) {
   Eigen::MatrixXd X_eigen = as_Matrix(X);
   std::vector<bounding::Ellipsoid> ellipsoids =
-      bounding::FitMultiEllipsoids(X_eigen, min_reduction, min_distance);
+      bounding::FitMultiEllipsoids(X_eigen, min_reduction, allow_contact);
   cpp11::writable::list ellipsoid_list;
   cpp11::writable::doubles prob;
   for (auto ell : ellipsoids) {

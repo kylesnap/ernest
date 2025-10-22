@@ -27,10 +27,10 @@ extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP sca
   END_CPP11
 }
 // MultiEllipsoid.cpp
-cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const double min_distance);
-extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP min_distance) {
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact);
+extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact) {
   BEGIN_CPP11
-    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const double>>(min_distance)));
+    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact)));
   END_CPP11
 }
 // RandomWalkImpl.cpp

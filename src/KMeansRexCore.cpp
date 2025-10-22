@@ -45,7 +45,7 @@ int randint(int low, int high) {
   return rint + low;
 }
 
-int discrete_rand(Vec &p) {
+int discrete_rand(Vec& p) {
   double total = p.sum();
   int K = (int)p.size();
 
@@ -63,7 +63,7 @@ int discrete_rand(Vec &p) {
   return newk;
 }
 
-void select_without_replacement(int N, int K, Vec &chosenIDs) {
+void select_without_replacement(int N, int K, Vec& chosenIDs) {
   Vec p = Vec::Ones(N);
   for (int kk = 0; kk < K; kk++) {
     int choice;
@@ -85,7 +85,7 @@ void select_without_replacement(int N, int K, Vec &chosenIDs) {
 
 // ======================================================= Init Cluster Locs Mu
 
-void sampleRowsRandom(ExtMat &X, ExtMat &Mu) {
+void sampleRowsRandom(ExtMat& X, ExtMat& Mu) {
   int N = X.rows();
   int K = Mu.rows();
   Vec ChosenIDs = Vec::Zero(K);
@@ -95,7 +95,7 @@ void sampleRowsRandom(ExtMat &X, ExtMat &Mu) {
   }
 }
 
-void sampleRowsPlusPlus(ExtMat &X, ExtMat &Mu) {
+void sampleRowsPlusPlus(ExtMat& X, ExtMat& Mu) {
   int N = X.rows();
   int K = Mu.rows();
   if (K > N) {
@@ -120,7 +120,7 @@ void sampleRowsPlusPlus(ExtMat &X, ExtMat &Mu) {
   }
 }
 
-void init_Mu(ExtMat &X, ExtMat &Mu, const char *initname) {
+void init_Mu(ExtMat& X, ExtMat& Mu, const char* initname) {
   if (string(initname) == "random") {
     sampleRowsRandom(X, Mu);
   } else if (string(initname) == "plusplus") {
@@ -129,7 +129,7 @@ void init_Mu(ExtMat &X, ExtMat &Mu, const char *initname) {
 }
 
 // ======================================================= Update Assignments Z
-void pairwise_distance(ExtMat &X, ExtMat &Mu, Mat &Dist) {
+void pairwise_distance(ExtMat& X, ExtMat& Mu, Mat& Dist) {
   int D = X.cols();
   int K = Mu.rows();
 
@@ -145,7 +145,7 @@ void pairwise_distance(ExtMat &X, ExtMat &Mu, Mat &Dist) {
   }
 }
 
-double assignClosest(ExtMat &X, ExtMat &Mu, ExtMat &Z, Mat &Dist) {
+double assignClosest(ExtMat& X, ExtMat& Mu, ExtMat& Z, Mat& Dist) {
   double totalDist = 0;
   int minRowID;
 
@@ -159,7 +159,7 @@ double assignClosest(ExtMat &X, ExtMat &Mu, ExtMat &Z, Mat &Dist) {
 }
 
 // ======================================================= Update Locations Mu
-void calc_Mu(ExtMat &X, ExtMat &Mu, ExtMat &Z) {
+void calc_Mu(ExtMat& X, ExtMat& Mu, ExtMat& Z) {
   // Mu = Mat::Zero(Mu.rows(), Mu.cols());
   Mu.fill(0);
   Vec NperCluster = Vec::Zero(Mu.rows());
@@ -174,7 +174,7 @@ void calc_Mu(ExtMat &X, ExtMat &Mu, ExtMat &Z) {
 }
 
 // ======================================================= Overall Lloyd Alg.
-void run_lloyd(ExtMat &X, ExtMat &Mu, ExtMat &Z, int Niter) {
+void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
   double prevDist, totalDist = 0;
   Mat Dist = Mat::Zero(X.rows(), Mu.rows());
 
@@ -194,12 +194,12 @@ void run_lloyd(ExtMat &X, ExtMat &Mu, ExtMat &Z, int Niter) {
 // ===========================================================================
 // ===========================================================================
 
-void kmeans_rex::RunKMeans(const double *X_IN, int N, int D, int K, int Niter,
-                           const char *initname, double *Mu_OUT,
-                           double *Z_OUT) {
+void kmeans_rex::RunKMeans(const double* X_IN, int N, int D, int K, int Niter,
+                           const char* initname, double* Mu_OUT,
+                           double* Z_OUT) {
   random_generator::RandomEngine rand;
 
-  ExtMat X(const_cast<double *>(X_IN), N, D);
+  ExtMat X(const_cast<double*>(X_IN), N, D);
   ExtMat Mu(Mu_OUT, K, D);
   ExtMat Z(Z_OUT, N, 1);
 
@@ -213,10 +213,9 @@ void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K,
                            Eigen::Ref<Eigen::VectorXd> Z_OUT) {
   int N = X_IN.rows();
   int D = X_IN.cols();
-  const char *initname = "plusplus";
-  std::cout << "[Kmeans] n_dim: " << D << ", n_point: " << N << std::endl;
+  const char* initname = "plusplus";
 
-  ExtMat X(const_cast<double *>(X_IN.data()), N, D);
+  ExtMat X(const_cast<double*>(X_IN.data()), N, D);
   ExtMat Mu(Mu_OUT.data(), K, D);
   ExtMat Z(Z_OUT.data(), N, 1);
 

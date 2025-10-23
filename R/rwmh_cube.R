@@ -67,8 +67,9 @@
 #' @family ernest_lrps
 #' @export
 rwmh_cube <- function(
-    steps = 25,
-    target_acceptance = 0.5) {
+  steps = 25,
+  target_acceptance = 0.5
+) {
   new_rwmh_cube(
     steps = steps,
     target_acceptance = target_acceptance
@@ -106,12 +107,13 @@ format.rwmh_cube <- function(x, ...) {
 #' `c("rwmh_cube", "ernest_lrps")`.
 #' @noRd
 new_rwmh_cube <- function(
-    unit_log_fn = NULL,
-    n_dim = NULL,
-    max_loop = 1e6L,
-    cache = NULL,
-    steps = 25L,
-    target_acceptance = 0.5) {
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = 1e6L,
+  cache = NULL,
+  steps = 25L,
+  target_acceptance = 0.5
+) {
   check_number_whole(steps, min = 2)
   check_number_decimal(target_acceptance)
   if (target_acceptance < 1 / steps) {
@@ -137,10 +139,11 @@ new_rwmh_cube <- function(
 #' @rdname propose
 #' @export
 propose.rwmh_cube <- function(
-    x,
-    original = NULL,
-    criterion = -Inf,
-    idx = NULL) {
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
     NextMethod(x)
   } else {

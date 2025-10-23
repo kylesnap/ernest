@@ -108,7 +108,6 @@ new_unif_ellipsoid <- function(
 ) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
 
-  # Check the cache
   cache <- cache %||% new_environment()
   has_ell <- all(env_has(
     cache,
@@ -146,7 +145,6 @@ propose.unif_ellipsoid <- function(
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    # Scale the sampling radius to enlarge volume by factor x$enlarge
     proposal <- double(x$n_dim)
     radius <- x$enlarge^(1 / x$n_dim)
     for (i in seq_len(x$max_loop)) {

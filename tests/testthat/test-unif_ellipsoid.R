@@ -170,10 +170,11 @@ describe("update_lrps.unif_ellipsoid", {
 
     skip_extended_test()
     skip_on_cran()
-    vdiffr::expect_doppelganger("propose.ellipsoid", {
+    fig <- \() {
       plot(live, xlim = c(0, 1), ylim = c(0, 1))
       points(new_live, col = "red")
-    })
+    }
+    vdiffr::expect_doppelganger("propose.ellipsoid", fig)
   })
 
   it("reports numerical errors", {

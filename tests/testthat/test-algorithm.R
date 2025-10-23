@@ -57,7 +57,24 @@ describe("gaussian_blobs", {
       abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
       3.0 * unif_smry$log_evidence_err
     )
-    print(unif_result)
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
+
+  it("works with multi_ellipsoid", {
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = multi_ellipsoid(1.25)
+    )
+    unif_result <- generate(sampler, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      3.0 * unif_smry$log_evidence_err
+    )
     weights <- as_draws(unif_result) |>
       weights()
     expect_equal(sum(weights), 1)

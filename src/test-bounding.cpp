@@ -1,6 +1,6 @@
 #include <limits>
 
-#include "bounding.h"
+#include "ellipsoid.h"
 #include "testthat.h"
 #include "utils.h"
 
@@ -91,10 +91,7 @@ context("Ellipsoid class - basic functionality") {
     bounding::Ellipsoid ell1(center1, shape);
     bounding::Ellipsoid ell2(center2, shape);
 
-    double dist = ell1.Distance(ell2);
-
-    // Distance should be approximately R_NegInf (touching)
-    expect_true(dist == R_NegInf);
+    expect_true(ell1.Intersects(ell2));
   }
 
   test_that("Two overlapping ellipsoids") {
@@ -104,10 +101,7 @@ context("Ellipsoid class - basic functionality") {
     bounding::Ellipsoid ell1(center1, shape);
     bounding::Ellipsoid ell2(center2, shape);
 
-    double dist = ell1.Distance(ell2);
-
-    // Distance should be R_NegInf (overlapping)
-    expect_true(dist == R_NegInf);
+    expect_true(ell1.Intersects(ell2));
   }
 
   test_that("Two non-overlapping ellipsoids") {
@@ -117,8 +111,7 @@ context("Ellipsoid class - basic functionality") {
     bounding::Ellipsoid ell1(center1, shape);
     bounding::Ellipsoid ell2(center2, shape);
 
-    double dist = ell1.Distance(ell2);
-    expect_true(almost_equal(dist, 0.01));
+    expect_false(ell1.Intersects(ell2));
   }
 }
 

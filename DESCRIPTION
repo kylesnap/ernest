@@ -23,10 +23,10 @@ Imports:
     prettyunits,
     rlang (>= 1.1.0),
     tibble,
+    uniformly,
     utils,
     vctrs
 Suggests: 
-    cluster,
     ggdist,
     knitr,
     LaplacesDemon,

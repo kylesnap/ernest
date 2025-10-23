@@ -7,36 +7,51 @@
 unif_ellipsoid(enlarge = 1.25)
 }
 \arguments{
-\item{enlarge}{Double, larger or equal to 1. Factor to inflate the bounding
-ellipsoid's volume before sampling (see Details).}
+\item{enlarge}{Double, greater than or equal to 1. Factor by which to inflate
+the bounding ellipsoid's volume before sampling (see Details).}
 }
 \value{
 A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Use with
 \code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
-Uses the bounding ellipsoid of live points to define the prior region for new
-samples. Effective for unimodal, roughly Gaussian posteriors.
+Uses the bounding ellipsoid of the live points to define the region of prior
+space that contains new points. Effective for unimodal and roughly-Gaussian
+posteriors.
 }
 \details{
 Nested likelihood contours rarely form perfect ellipses, so sampling
 from the spanning ellipsoid without enlargement may exclude valid regions.
-This can bias proposals toward the ellipsoid centre and overestimate
+This can bias proposals towards the ellipsoid centre and overestimate
 evidence. Setting \code{enlarge = 1} will produce a warning.
 
-Ellipsoids are stored in the LRPS cache in quadric representation. That is,
-an ellipsoid with center \eqn{c} and shape matrix \eqn{Q} contains points
-\eqn{x \in R^n} that satisfy the inequality
-\deqn{(x - c) Q^-1 (x - c)^T \leq 1}
-The square root of the precision matrix \eqn{Q}, scaled by \code{enlarge}, is
-also stored for efficient point generation.
-
-The covariance matrix of the points is used estimate \eqn{Q}. In exceptional
-cases (e.g. perfect collinearity), this matrix may be singular. Should this
-occur, the covariance matrix is reconditioned by adjusting its eigenvalues.
-Should this also fail, the algorithm falls back to sampling from the
-circumscribed sphere bounding the unit hypercube.
+The covariance matrix of the points is used to estimate the ellipsoid's
+shape. In exceptional cases (e.g., perfect collinearity), this matrix may be
+singular. Should this occur, the covariance matrix is reconditioned by
+adjusting its eigenvalues. Should this also fail, the algorithm falls back
+to sampling from the circumscribed sphere bounding the unit hypercube.
 }
+\section{Ellipsoids}{
+
+Ellipsoids are stored in the \code{cache} environment of the LRPS object.
+Ellipsoids are defined by their centre \eqn{c} and shape matrix \eqn{A}.
+The set of points \eqn{x} contained within the ellipsoid is given by
+\deqn{ x \in {\bf{R}}^n | (x-c) A (x-c)' \leq 1 }
+
+The volume of the ellipsoid is
+\eqn{V = \mathrm{Vol}(S_n) \sqrt{\det(A^{-1})}}, where
+\eqn{\mathrm{Vol}(S_n)} is the volume of the unit hypersphere.
+
+For sampling, we store the matrix \eqn{A^{-1/2}}, the inverse of the
+positive-semidefinite square root of \eqn{A}. The ellipsoid can equivalently
+be defined as the set of points \deqn{x = A^{-1/2} y + c,}
+where \eqn{y} are points from the unit hypersphere.
+
+For more on ellipsoids and their operations, see
+\href{http://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf}{Algorithms for Ellipsoids}
+by S.B. Pope, Cornell University Report FDA 08-01 (2008).
+}
+
 \examples{
 data(example_run)
 lrps <- unif_ellipsoid(enlarge = 1.25)
@@ -56,6 +71,7 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 \seealso{
 Other ernest_lrps: 
 \code{\link{adaptive_rwmh}()},
+\code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
 \code{\link{unif_cube}()}
 }

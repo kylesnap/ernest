@@ -1,33 +1,38 @@
 #include "KMeansRexCore.h"
-#include "bounding.h"
+#include "ellipsoid.h"
 
-/**
- * @brief Find the bounding ellipsoid of the given points.
- * @param X A matrix of points.
- * @returns A list, containing the mean, precision matrix,
- * transformation matrix, scale, and the log volume of the ellipsoid,
- * or just NULL if log volume is -Infy.
- */
+// Find the bounding ellipsoid of the given points in X. If X has no rows,
+// then return the bounding unit sphere in the appropriate dimension.
 [[cpp11::register]]
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
+  if (X.nrow() == 0) {
+    return bounding::Ellipsoid(X.ncol()).as_list();
+  }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
   bounding::Ellipsoid ell(X_eigen);
   return ell.as_list();
 }
 
-/**
- * @brief Find the bounding ellipsoid of the given points.
- * @param X A matrix of points.
- * @returns A list, containing the mean, covariance, transformation matrix,
- * and the log volume of the points, or just NULL if log volume is -Infy.
- */
+// Fit multiple bounding ellipsoids to the provided data points `X`,
+// returning their R list representations along with their scaled sampling
+// probabilities. If `X` has no rows, return a single unit sphere in the
+// appropriate dimension with probability 1.
 [[cpp11::register]]
 cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
                                     const double min_reduction,
                                     const bool allow_contact) {
+  if (X.nrow() == 0) {
+    bounding::Ellipsoid sphere(X.ncol());
+    using namespace cpp11::literals;
+    return cpp11::writable::list(
+        {"prob"_nm = cpp11::writable::doubles({1}),
+         "ellipsoid"_nm = cpp11::writable::list(sphere.as_list()),
+         "tot_log_vol"_nm = sphere.log_volume()});
+  }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
   std::vector<bounding::Ellipsoid> ellipsoids =
-      bounding::FitMultiEllipsoids(X_eigen, min_reduction, allow_contact);
+      bounding::Ellipsoid::FitMultiEllipsoids(X_eigen, min_reduction,
+                                              allow_contact);
   cpp11::writable::list ellipsoid_list;
   cpp11::writable::doubles prob;
   for (auto ell : ellipsoids) {
@@ -35,10 +40,10 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
     ellipsoid_list.push_back(ell.as_list());
   }
   double total_log_vol = logspace_sum(REAL(prob.data()), prob.size());
-  for (auto p : prob) {
-    p = exp(p - total_log_vol);
-  }
+  std::transform(prob.begin(), prob.end(), prob.begin(),
+                 [total_log_vol](double p) { return exp(p - total_log_vol); });
   using namespace cpp11::literals;
-  return cpp11::writable::list(
-      {"prob"_nm = prob, "ellipsoid"_nm = ellipsoid_list});
+  return cpp11::writable::list({"prob"_nm = prob,
+                                "ellipsoid"_nm = ellipsoid_list,
+                                "tot_log_vol"_nm = total_log_vol});
 }

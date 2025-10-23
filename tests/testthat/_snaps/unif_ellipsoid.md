@@ -37,8 +37,8 @@
       uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
       
       No. Dimensions: 2
-      Centre: 0.4989, 0.4975
-      Log Volume: -1.556
+      Centre: 0.4946, 0.4967
+      Log Volume: -1.733
       Enlargement Factor: 1.2
 
 # update_lrps.unif_ellipsoid: reports numerical errors

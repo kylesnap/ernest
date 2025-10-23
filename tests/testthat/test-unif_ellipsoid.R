@@ -13,11 +13,10 @@ describe("BoundingEllipsoid", {
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points)
-    expect_false(is.infinite(ell_fit$log_vol))
     expect_equal(ell_fit$error, 0)
 
     new_points <- uniformly::runif_in_sphere(n_points, 3, 1) %*%
-      ell_fit$sqrt_shape
+      ell_fit$inv_sqrt_shape
     new_points <- sweep(new_points, 2, ell_fit$center, "+")
 
     expect_equal(colMeans(new_points), c(0, 0, 0), tolerance = 0.05)
@@ -27,6 +26,7 @@ describe("BoundingEllipsoid", {
     fitted_cov <- cov(new_points)
     expect_equal(fitted_cov, theoretical_cov, tolerance = 0.05)
     expect_equal(fitted_cov, sample_cov, tolerance = 0.05)
+    expect_equal(ell_fit$log_vol, 2.248886, tolerance = 0.05)
   })
 
   it("fits points in 5D correctly", {
@@ -46,7 +46,7 @@ describe("BoundingEllipsoid", {
     expect_equal(ell_fit$error, 0)
 
     new_points <- uniformly::runif_in_sphere(n_points, 5, 1) %*%
-      ell_fit$sqrt_shape
+      ell_fit$inv_sqrt_shape
     expect_equal(colMeans(new_points), c(0, 0, 0, 0, 0), tolerance = 0.05)
     expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)
 
@@ -54,6 +54,7 @@ describe("BoundingEllipsoid", {
     fitted_cov <- cov(new_points)
     expect_equal(fitted_cov, theoretical_cov, tolerance = 0.05)
     expect_equal(fitted_cov, sample_cov, tolerance = 0.1)
+    expect_equal(ell_fit$log_vol, -16.13215, tolerance = 0.05)
   })
 
   it("Recovers from degenerate live point matrices", {
@@ -62,6 +63,8 @@ describe("BoundingEllipsoid", {
     ell_fit <- BoundingEllipsoid(xy)
     expect_equal(ell_fit$error, 2L)
     expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
+    eig_val <- eigen(ell_fit$shape)$values
+    expect_equal(eig_val, c(eig_val[1], eig_val[1] / 2))
   })
 })
 
@@ -84,22 +87,22 @@ describe("new_unif_ellipsoid", {
   })
 
   it("passes the correct defaults", {
-    obj <- new_unif_ellipsoid(fn, n_dim = 2)
+    obj <- new_unif_ellipsoid(fn, 2)
     expect_s3_class(obj, c("unif_ellipsoid", "ernest_lrps"), exact = TRUE)
     expect_equal(obj$unit_log_fn, fn)
-    expect_equal(obj$n_dim, 2L)
+    expect_equal(obj$n_dim, 2)
     expect_equal(obj$max_loop, 1e6L)
     expect_equal(obj$enlarge, 1.0)
     expect_mapequal(
       env_get_list(
         obj$cache,
-        c("shape", "center", "scaled_sqrt_shape", "log_volume")
+        c("shape", "center", "inv_sqrt_shape", "log_volume")
       ),
       list(
-        shape = diag(2),
         center = c(0.5, 0.5),
-        scaled_sqrt_shape = diag(2) * sqrt(0.5),
-        log_volume = log(pi * (sqrt(2) / 2)^2)
+        shape = diag(2, nrow = 2),
+        inv_sqrt_shape = diag(sqrt(2 / 4), nrow = 2),
+        log_volume = 0.4515827
       )
     )
     expect_snapshot(obj)

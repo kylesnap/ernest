@@ -50,9 +50,10 @@
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 multi_ellipsoid <- function(
-    enlarge = 1.25,
-    min_reduction = 0.7,
-    allow_contact = TRUE) {
+  enlarge = 1.25,
+  min_reduction = 0.7,
+  allow_contact = TRUE
+) {
   check_number_decimal(enlarge, min = 1)
   check_number_decimal(min_reduction, min = 0, max = 1)
   check_bool(allow_contact)
@@ -114,13 +115,14 @@ format.multi_ellipsoid <- function(x, ...) {
 #' `c("multi_ellipsoid", "ernest_lrps")`.
 #' @noRd
 new_multi_ellipsoid <- function(
-    unit_log_fn = NULL,
-    n_dim = NULL,
-    max_loop = 1e6L,
-    cache = NULL,
-    enlarge = 1.0,
-    min_reduction = 0.7,
-    allow_contact = FALSE) {
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = 1e6L,
+  cache = NULL,
+  enlarge = 1.0,
+  min_reduction = 0.7,
+  allow_contact = FALSE
+) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
   check_number_decimal(min_reduction, min = 0, max = 1, allow_infinite = FALSE)
   check_bool(allow_contact)
@@ -161,36 +163,25 @@ new_multi_ellipsoid <- function(
 #' @rdname propose
 #' @export
 propose.multi_ellipsoid <- function(
-    x,
-    original = NULL,
-    criterion = -Inf,
-    idx = NULL) {
+  x,
+  original = NULL,
+  criterion = -Inf,
+  idx = NULL
+) {
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    proposal <- double(x$n_dim)
-    radius <- x$enlarge^(1 / x$n_dim)
     ell_idx <- sample.int(length(x$cache$prob), size = 1, prob = x$cache$prob)
     ell <- x$cache$ellipsoid[[ell_idx]]
-    for (i in seq_len(x$max_loop)) {
-      proposal <- uniformly::runif_in_sphere(1, x$n_dim, r = radius)
-      proposal <- drop(tcrossprod(proposal, ell$inv_sqrt_shape)) + ell$center
-      if (any(proposal < 0) || any(proposal > 1)) {
-        next
-      }
-      log_lik <- x$unit_log_fn(proposal)
-      if (log_lik >= criterion) {
-        res <- list(
-          unit = proposal,
-          log_lik = log_lik,
-          ellipsoid_idx = ell_idx,
-          n_call = i
-        )
-        env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
-        return(res)
-      }
-    }
-    res <- list(n_call = x$max_loop, ellipsoid_idx = ell_idx)
+    res <- propose_ellipsoid(
+      unit_log_fn = x$unit_log_fn,
+      criterion = criterion,
+      center = ell$center,
+      inv_sqrt_shape = ell$inv_sqrt_shape,
+      enlarge = x$enlarge,
+      max_loop = x$max_loop
+    )
+    res <- c(res, ellipsoid_idx = ell_idx)
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }

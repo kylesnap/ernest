@@ -1,3 +1,12 @@
+// File: /Users/ksnap/Projects/ernest/src/test-bounding.cpp
+// Created Date: Monday, October 20th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Test cases for ellipsoid.h.
 #include <limits>
 
 #include "ellipsoid.h"
@@ -13,9 +22,9 @@ context("Ellipsoid class - basic functionality") {
     Eigen::Matrix2d inv_sqrt_shape{{0.8944272, -0.4472136},
                                    {-0.4472136, 1.3416408}};
     Eigen::RowVector2d center{0, 0};
-    bounding::Ellipsoid ell(center, shape);
+    ern::vol::Ellipsoid ell(center, shape);
     expect_true(ell.n_dim() == 2);
-    expect_true(ell.error() == bounding::Status::kOk);
+    expect_true(ell.error() == ern::vol::Status::kOk);
 
     expect_true(ell.center().isApproxToConstant(0));
     expect_true(ell.shape().isApprox(shape, 1e-3));
@@ -33,24 +42,24 @@ context("Ellipsoid class - basic functionality") {
     int n_dim = 10;
     int n_test = 100;  // Reduce number of tests for faster runtime
     double err_dist = 0.0, err_out = 0.0, err_in = 0.0;
-    random_generator::RandomEngine gen;
+    ern::RandomEngine gen;
 
     // Preallocate matrices/vectors to avoid repeated allocations
-    Vector center(n_dim);
-    Matrix u(n_dim, n_dim);
-    Vector p(n_dim);
+    Eigen::VectorXd center(n_dim);
+    Eigen::MatrixXd u(n_dim, n_dim);
+    Eigen::VectorXd p(n_dim);
 
     for (int i_test = 0; i_test < n_test; i_test++) {
       // Random ellipsoid center and SPD matrix
-      random_generator::RUnif(center);
+      ern::RUnif(center);
       std::generate(u.reshaped().begin(), u.reshaped().end(), unif_rand);
-      Matrix a = u * u.transpose();
+      Eigen::MatrixXd a = u * u.transpose();
 
-      bounding::Ellipsoid ell(center, a);
-      Matrix L = ell.matrixL();
+      ern::vol::Ellipsoid ell(center, a);
+      Eigen::MatrixXd L = ell.matrixL();
 
       // Random unit direction
-      random_generator::RUnif(p);
+      ern::RUnif(p);
       p.array() -= 0.5;
       p.normalize();
 
@@ -67,7 +76,7 @@ context("Ellipsoid class - basic functionality") {
       err_dist = Rf_fmax2(err_dist, err);
 
       // Compute closest point
-      Vector close = ell.Closest(p);
+      Eigen::VectorXd close = ell.Closest(p);
       double dist_closest = ell.Distance(close);
       if (s <= 1.0) {
         // If o is outside Ell, the dist(close) should be 1.
@@ -88,8 +97,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{2, 0};
 
-    bounding::Ellipsoid ell1(center1, shape);
-    bounding::Ellipsoid ell2(center2, shape);
+    ern::vol::Ellipsoid ell1(center1, shape);
+    ern::vol::Ellipsoid ell2(center2, shape);
 
     expect_true(ell1.Intersects(ell2));
   }
@@ -98,8 +107,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{1, 0};
 
-    bounding::Ellipsoid ell1(center1, shape);
-    bounding::Ellipsoid ell2(center2, shape);
+    ern::vol::Ellipsoid ell1(center1, shape);
+    ern::vol::Ellipsoid ell2(center2, shape);
 
     expect_true(ell1.Intersects(ell2));
   }
@@ -108,8 +117,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{2.01, 0};
 
-    bounding::Ellipsoid ell1(center1, shape);
-    bounding::Ellipsoid ell2(center2, shape);
+    ern::vol::Ellipsoid ell1(center1, shape);
+    ern::vol::Ellipsoid ell2(center2, shape);
 
     expect_false(ell1.Intersects(ell2));
   }
@@ -121,21 +130,21 @@ context("Ellipsoid class - geometric cases") {
     Eigen::MatrixXd X(4, 2);
     X << 0, 0, 1, 1, 2, 2, 3, 3;
 
-    bounding::Ellipsoid ell(2);
+    ern::vol::Ellipsoid ell(2);
     ell.Fit(X);
 
     expect_true(ell.log_volume() != R_NegInf);
-    expect_true(ell.error() == bounding::Status::kDegenerate);
+    expect_true(ell.error() == ern::vol::Status::kDegenerate);
   }
 
   test_that("Ellipsoid handles underconstrained case") {
     Eigen::MatrixXd X(2, 3);
     X << 0, 0, 0, 1, 0, 0;
 
-    bounding::Ellipsoid ell(3);
+    ern::vol::Ellipsoid ell(3);
     ell.Fit(X);
 
     expect_true(ell.log_volume() != R_NegInf);
-    expect_true(ell.error() == bounding::Status::kUnderdetermined);
+    expect_true(ell.error() == ern::vol::Status::kUnderdetermined);
   }
 }

@@ -12,7 +12,7 @@
 \usage{
 \method{propose}{adaptive_rwmh}(x, original = NULL, criterion = -Inf, idx = NULL)
 
-propose(x, original = NULL, criterion = -Inf, idx = NULL)
+propose(x, original = NULL, criterion = -Inf)
 
 \method{propose}{multi_ellipsoid}(x, original = NULL, criterion = -Inf, idx = NULL)
 

@@ -5,34 +5,6 @@
 #include "cpp11/declarations.hpp"
 #include <R_ext/Visibility.h>
 
-// CubeImpl.cpp
-cpp11::list CubeImpl(int n_dim, cpp11::function unit_log_fn, double criterion, int max_loop);
-extern "C" SEXP _ernest_CubeImpl(SEXP n_dim, SEXP unit_log_fn, SEXP criterion, SEXP max_loop) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(CubeImpl(cpp11::as_cpp<cpp11::decay_t<int>>(n_dim), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
-  END_CPP11
-}
-// EllipsoidImpl.cpp
-cpp11::list EllipsoidImpl(cpp11::function unit_log_fn, double criterion, cpp11::doubles_matrix<> scaledInvSqrtA, cpp11::doubles loc, int max_loop);
-extern "C" SEXP _ernest_EllipsoidImpl(SEXP unit_log_fn, SEXP criterion, SEXP scaledInvSqrtA, SEXP loc, SEXP max_loop) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(EllipsoidImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(scaledInvSqrtA), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(loc), cpp11::as_cpp<cpp11::decay_t<int>>(max_loop)));
-  END_CPP11
-}
-// RandomWalkImpl.cpp
-cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon);
-extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon)));
-  END_CPP11
-}
-// adaptive_rwmh.cpp
-cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon_init, double epsilon_min, double target_acceptance, cpp11::doubles mean, cpp11::doubles_matrix<> cov, double strength, double forgetfulness);
-extern "C" SEXP _ernest_AdaptiveRWImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon_init, SEXP epsilon_min, SEXP target_acceptance, SEXP mean, SEXP cov, SEXP strength, SEXP forgetfulness) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(AdaptiveRWImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_init), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_min), cpp11::as_cpp<cpp11::decay_t<double>>(target_acceptance), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(mean), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(cov), cpp11::as_cpp<cpp11::decay_t<double>>(strength), cpp11::as_cpp<cpp11::decay_t<double>>(forgetfulness)));
-  END_CPP11
-}
 // exported_utils.cpp
 double logaddexp(double x, double y);
 extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
@@ -40,14 +12,28 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
     return cpp11::as_sexp(logaddexp(cpp11::as_cpp<cpp11::decay_t<double>>(x), cpp11::as_cpp<cpp11::decay_t<double>>(y)));
   END_CPP11
 }
-// update_lrps.cpp
+// propose-impl.cpp
+cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon_init, double epsilon_min, double target_acceptance, cpp11::doubles mean, cpp11::doubles_matrix<> cov, double strength, double forgetfulness);
+extern "C" SEXP _ernest_AdaptiveRWImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon_init, SEXP epsilon_min, SEXP target_acceptance, SEXP mean, SEXP cov, SEXP strength, SEXP forgetfulness) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(AdaptiveRWImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_init), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_min), cpp11::as_cpp<cpp11::decay_t<double>>(target_acceptance), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(mean), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(cov), cpp11::as_cpp<cpp11::decay_t<double>>(strength), cpp11::as_cpp<cpp11::decay_t<double>>(forgetfulness)));
+  END_CPP11
+}
+// propose-impl.cpp
+cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon);
+extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon)));
+  END_CPP11
+}
+// update_lrps-impl.cpp
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X);
 extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X) {
   BEGIN_CPP11
     return cpp11::as_sexp(BoundingEllipsoid(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
   END_CPP11
 }
-// update_lrps.cpp
+// update_lrps-impl.cpp
 cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact);
 extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact) {
   BEGIN_CPP11
@@ -62,8 +48,6 @@ extern SEXP run_testthat_tests(void *);
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_AdaptiveRWImpl",          (DL_FUNC) &_ernest_AdaptiveRWImpl,          11},
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,        1},
-    {"_ernest_CubeImpl",                (DL_FUNC) &_ernest_CubeImpl,                 4},
-    {"_ernest_EllipsoidImpl",           (DL_FUNC) &_ernest_EllipsoidImpl,            5},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  3},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,           5},
     {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,                2},

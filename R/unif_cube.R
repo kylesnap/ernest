@@ -56,11 +56,10 @@ format.unif_cube <- function(x, ...) {
 #' `c("unif_cube", "ernest_lrps")`.
 #' @noRd
 new_unif_cube <- function(
-  unit_log_fn = NULL,
-  n_dim = NULL,
-  max_loop = 1e6L,
-  cache = NULL
-) {
+    unit_log_fn = NULL,
+    n_dim = NULL,
+    max_loop = 1e6L,
+    cache = NULL) {
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
     n_dim = n_dim,
@@ -73,18 +72,17 @@ new_unif_cube <- function(
 #' @rdname propose
 #' @export
 propose.unif_cube <- function(
-  x,
-  original = NULL,
-  criterion = -Inf,
-  idx = NULL
-) {
+    x,
+    original = NULL,
+    criterion = -Inf,
+    idx = NULL) {
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    res <- CubeImpl(
-      n_dim = x$n_dim,
+    res <- propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
+      n_dim = x$n_dim,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)

@@ -1,6 +1,17 @@
+// File: /Users/ksnap/Projects/ernest/src/adaptive_rwmh.cpp
+// Created Date: Tuesday, October 14th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Implements the adaptive random-walk Metropolis-Hastings (RWMH) sampler
+// for nested sampling, following Spencer (2021).
+
 #include "adaptive_rwmh.h"
 
-using namespace ernest;
+using namespace ern;
 
 AdaptiveRWMH::AdaptiveRWMH(cpp11::doubles mean, cpp11::doubles_matrix<> cov,
                            const double target_acceptance,
@@ -21,23 +32,29 @@ AdaptiveRWMH::AdaptiveRWMH(cpp11::doubles mean, cpp11::doubles_matrix<> cov,
       prior_strength_(prior_strength),
       target_acceptance_(target_acceptance),
       forgetfulness_(forgetfulness) {
-  double first_term = 1.0 - 1.0 / n_dim_;
+  // A = Φ^(-1)(target_acceptance / 2).
   double A = -Rf_qnorm5(target_acceptance_, 0.0, 1.0, 1, 0);
+
+  // Robbins-Munro scaling rate
+  double first_term = 1.0 - 1.0 / n_dim_;
   double second_term = (1.0 / A) * kSqrtPiDiv2 * std::exp(A * A / 2.0);
   double third_term =
       1.0 / (n_dim_ * target_acceptance_ * (1.0 - target_acceptance_));
   epsilon_scaling_ = first_term * second_term + third_term;
 }
 
+// Includes a new observation in the covariance estimate.
 void AdaptiveRWMH::IncludeObservation() {
+  // Eq. 3 in Spencer 2021
   int f_n = ForgetSeq(steps_);
   double weight = 1.0 / (steps_ - f_n + 1);
 
-  // Update mean
+  // Update mean: μ_n.
   Eigen::MatrixXd prev_mean_outer = outer(mean_);
   mean_ = ((steps_ - f_n) * weight) * mean_ + weight * cur_draw_;
 
-  // Update covariance
+  // Update covariance using Bayesian posterior mode with
+  // normal-inverse-Wishart.
   Eigen::MatrixXd cur_outer = outer(cur_draw_);
   Eigen::MatrixXd mean_outer = outer(mean_);
   cov_ = (1.0 / (steps_ - f_n + prior_strength_ + n_dim_ + 2)) *
@@ -46,13 +63,16 @@ void AdaptiveRWMH::IncludeObservation() {
 }
 
 void AdaptiveRWMH::ReplaceObservation() {
+  // Eq. 4 in Spencer 2021
   int f_n = ForgetSeq(steps_);
   double weight = 1.0 / (steps_ - f_n + 1);
 
+  // Update mean: μ_n = μ_{n-1} + w_n * (X_n - X_{f(n)}).
   Eigen::MatrixXd diff_mean = outer(mean_);
   mean_ += weight * (cur_draw_ - old_draw_);
   diff_mean -= outer(mean_);
 
+  // Update covariance by replacing the oldest point.
   Eigen::MatrixXd diff_draw = outer(cur_draw_) - outer(old_draw_);
   cov_ += (1.0 / (steps_ - f_n + prior_strength_ + n_dim_ + 2)) *
           (diff_draw + (steps_ - f_n + 1) * diff_mean);
@@ -66,10 +86,12 @@ void AdaptiveRWMH::Run(cpp11::doubles original, cpp11::function unit_log_fn,
 
   for (steps_ = 1; steps_ < steps; steps_++) {
     next_draw_ = cur_draw_;
-    random_generator::RNorm(rand_vec_);
+    // Generate proposal: X' = X_n + L_n * Z, where Z ~ N(0, I) and
+    // L_n L_n' = ε_n * c_n * Σ_n
+    ern::RNorm(rand_vec_);
     Eigen::LLT<Eigen::MatrixXd> llt(epsilon_cur_ * cov_scaling_ * cov_);
     next_draw_ += rand_vec_ * llt.matrixL();
-    if (random_generator::IsOutsideUnitCube(next_draw_)) {
+    if (ern::IsOutsideUnitCube(next_draw_)) {
       accept = false;
     } else {
       double log_lik = unit_log_fn(as_row_doubles(next_draw_));
@@ -79,6 +101,7 @@ void AdaptiveRWMH::Run(cpp11::doubles original, cpp11::function unit_log_fn,
       cur_draw_ = next_draw_;
       accept_++;
     }
+    // Special handling for first iteration to initialize covariance estimate.
     if (steps_ == 1) {
       UpdateFirstStep(original);
       UpdateScaling(accept, steps);
@@ -91,35 +114,7 @@ void AdaptiveRWMH::Run(cpp11::doubles original, cpp11::function unit_log_fn,
     } else if (f_n == f_n_prev + 1) {
       ReplaceObservation();
     }
+    // Update scaling factor ε_n using Robbins-Munro algorithm (Eq. 5)
     UpdateScaling(accept, steps);
   }
-}
-
-/**
- * @param original Initial point for the random walk (vector of doubles).
- * @param unit_log_fn Function that computes the log-likelihood for proposals.
- * @param criterion Minimum log-likelihood value required for acceptance
- *                  (log-likelihood constraint).
- * @param steps Number of random walk steps to perform.
- * @param epsilon_init Initial step-size.
- * @param epsilon_min Minimum allowed step-size parameter to prevent degeneracy.
- * @param target_acceptance Target acceptance rate for optimal efficiency.
- * @param mean Initial mean vector for the proposal distribution.
- * @param cov Initial cov matrix estimate (e.g., from live
- * points).
- * @param strength Prior strength for cov matrix (typically number of
- *                 parameters).
- * @param forgetfulness Forgetting parameter controlling memory length
- *                      (0 < forgetfulness <= 1).
- */
-[[cpp11::register]]
-cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                           double criterion, int steps, double epsilon_init,
-                           double epsilon_min, double target_acceptance,
-                           cpp11::doubles mean, cpp11::doubles_matrix<> cov,
-                           double strength, double forgetfulness) {
-  AdaptiveRWMH state(mean, cov, target_acceptance, strength, forgetfulness,
-                     epsilon_init, epsilon_min);
-  state.Run(original, unit_log_fn, criterion, steps);
-  return state.as_list(unit_log_fn);
 }

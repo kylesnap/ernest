@@ -1,10 +1,20 @@
+// File: /Users/ksnap/Projects/ernest/src/ellipsoid.h
+// Created Date: Monday, October 20th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Implements ellipsoid fitting and manipulation routines for nested sampling.
 #pragma once
 
 #include "KMeansRexCore.h"
 #include "Rmath.h"
 #include "utils.h"
 
-namespace bounding {
+namespace ern {
+namespace vol {
 
 // Numerical precision threshold for eigenvalue comparisons.
 constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
@@ -169,4 +179,5 @@ struct SubEllipsoid {
   std::vector<int> rows;
 };
 
-}  // namespace bounding
+}  // namespace vol
+}  // namespace ern

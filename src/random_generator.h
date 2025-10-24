@@ -1,12 +1,12 @@
-/**
- * @file random_generator.h
- * @brief Random number generation utilities for nested sampling algorithms.
- *
- * This module provides functions for generating random samples from various
- * distributions including uniform, normal, spherical, and ellipsoidal
- * distributions, with special support for unit cube constraints.
- */
-
+// File: /Users/ksnap/Projects/ernest/src/random_generator.h
+// Created Date: Monday, October 20th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Wrappers and utilities for R's random number generator.
 #pragma once
 #include <R_ext/Random.h>
 #include <Rmath.h>
@@ -16,70 +16,59 @@
 
 #include "utils.h"
 
-namespace random_generator {
+namespace ern {
 
-/**
- * @brief Wrapper for R's random number generator state.
- *
- * Ensures proper initialization and cleanup of R's RNG state
- * to maintain reproducibility and thread safety.
- */
+// Wrapper for R's random number generator state.
 struct RandomEngine {
   RandomEngine() { GetRNGstate(); }
   ~RandomEngine() { PutRNGstate(); }
 };
 
-/**
- * @brief Checks if a point lies outside the unit hypercube [0,1]^n.
- *
- * @param vec A vector to check.
- * @return true if any component of vec is outside [0,1], false otherwise.
- */
-inline bool IsOutsideUnitCube(ConstRef<RowVector> vec) {
-  return (vec.array() < 0.0).any() || (vec.array() > 1.0).any();
-}
-
-void ReflectWithinUnitCube(Ref<RowVector> vec);
-
-void UniformOnSphere(Ref<RowVector> vec, const double radius = 1);
-
-void UniformInBall(Ref<RowVector> vec, const double radius = 1);
-
-void UniformInEllipsoid(ConstRef<Matrix> _scaled_inv_sqrt_A,
-                        ConstRef<RowVector> loc, Ref<RowVector> vec);
-
-/**
- * @brief Fills a vector with uniformly distributed random numbers in [0,1].
- *
- * @tparam T Container type that supports begin() and end() iterators.
- * @param vec Vector to fill (modified in-place).
- */
+// Fill `vec` with a point from the uniform distribution U(0,1).
 template <class T>
 inline void RUnif(T& vec) {
   std::generate(vec.begin(), vec.end(), unif_rand);
 }
 
-/**
- * @brief Fills a vector with standard normally-distributed random numbers.
- *
- * Generates samples from N(0,1) distribution.
- *
- * @tparam T Container type that supports begin() and end() iterators.
- * @param vec Vector to fill (modified in-place).
- */
+// Fill `vec` with a point from the standard normal distribution N(0,1).
 template <class T>
 inline void RNorm(T& vec) {
   std::generate(vec.begin(), vec.end(), norm_rand);
 }
 
-/**
- * @brief Computes the outer product of a row vector with itself.
- *
- * For a row vector x, computes x^T * x, which produces a square matrix.
- *
- * @param x Input row vector.
- * @return Square matrix representing the outer product x^T * x.
- */
-inline Matrix outer(const ConstRef<RowVector> x) { return x.transpose() * x; }
+// Checks if any component of `vec` is outside the unit cube [0,1]^d.
+inline bool IsOutsideUnitCube(ConstRef<RowVector> vec) {
+  return (vec.array() < 0.0).any() || (vec.array() > 1.0).any();
+}
 
-}  // namespace random_generator
+// Reflects components of `vec` to ensure all lie within the unit cube [0,1]^d.
+inline void ReflectWithinUnitCube(Ref<RowVector> vec) {
+  for (size_t i = 0; i < vec.size(); ++i) {
+    double val = vec[i];
+    bool idx_even = std::fmod(val, 2.0) < 1.0;
+    if (idx_even) {
+      vec[i] = std::fabs(std::fmod(val, 1.0));
+    } else {
+      vec[i] = std::fabs(1.0 - std::fmod(val, 1.0));
+    }
+  }
+}
+
+// Fill `vec` with a point uniformly distributed on the surface of a sphere
+// with given `radius`.
+inline void UniformOnSphere(Ref<RowVector> vec, const double radius = 1) {
+  RNorm(vec);
+  double inv_norm = std::pow(vec.norm(), -1.0);
+  vec *= inv_norm;
+  vec *= radius;
+}
+
+// Fill `vec` with a point uniformly distributed inside a ball of given
+// `radius`.
+inline void UniformInBall(Ref<RowVector> vec, const double radius = 1) {
+  const int n_dim = vec.size();
+  UniformOnSphere(vec, pow(unif_rand(), 1.0 / n_dim));
+  vec *= radius;
+}
+
+}  // namespace ern

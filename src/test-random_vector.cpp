@@ -1,3 +1,12 @@
+// File: /Users/ksnap/Projects/ernest/src/test-random_vector.cpp
+// Created Date: Tuesday, October 14th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Test cases for random vector generation and reflection functions.
 #include <limits>
 
 #include "random_generator.h"
@@ -10,7 +19,7 @@ context("Reflect functionality") {
   test_that("All values transform to 0.5") {
     Eigen::RowVectorXd test(6);
     test << -2.5, -1.5, -0.5, 0.5, 1.5, 2.5;
-    random_generator::ReflectWithinUnitCube(test);
+    ern::ReflectWithinUnitCube(test);
     expect_true((test.array() - 0.5).abs().maxCoeff() < 1e-4);
   }
 
@@ -19,7 +28,7 @@ context("Reflect functionality") {
     test << -0.9, -0.1, -1.9;
     Eigen::RowVectorXd expected(3);
     expected << 0.9, 0.1, 0.9;
-    random_generator::ReflectWithinUnitCube(test);
+    ern::ReflectWithinUnitCube(test);
 
     expect_true(almost_equal(test[0], expected[0]));
     expect_true(almost_equal(test[1], expected[1]));
@@ -28,7 +37,7 @@ context("Reflect functionality") {
 }
 
 context("Point generators") {
-  random_generator::RandomEngine rng;
+  ern::RandomEngine rng;
   int n_points = 50;
   constexpr int kDimMax = 20;
 
@@ -37,7 +46,7 @@ context("Point generators") {
       Eigen::RowVectorXd test(n_dim);
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
-        random_generator::UniformOnSphere(test);
+        ern::UniformOnSphere(test);
         if (!almost_equal(test.norm(), 1.0)) {
           n_fail++;
         }
@@ -51,32 +60,8 @@ context("Point generators") {
       Eigen::RowVectorXd test(n_dim);
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
-        random_generator::UniformInBall(test);
+        ern::UniformInBall(test);
         if (test.norm() > 1.0) {
-          n_fail++;
-        }
-      }
-      expect_true(n_fail == 0);
-    }
-  }
-
-  test_that("UniformInEllipsoid") {
-    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
-      // Random scaledInvSqrtA matrix
-      Eigen::MatrixXd scaledInvSqrtA(n_dim, n_dim);
-      for (auto &a : scaledInvSqrtA.reshaped()) {
-        a = unif_rand();
-      }
-
-      Eigen::RowVectorXd loc(n_dim), test(n_dim);
-      loc.fill(0.5);
-
-      int n_fail = 0;
-      for (int i = 0; i < n_points; i++) {
-        random_generator::UniformInEllipsoid(scaledInvSqrtA, loc, test);
-        Eigen::RowVectorXd centered = test - loc;
-        Eigen::RowVectorXd unit_space = centered * scaledInvSqrtA.inverse();
-        if (unit_space.norm() > 1.0) {
           n_fail++;
         }
       }

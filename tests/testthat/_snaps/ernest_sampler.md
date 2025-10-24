@@ -21,7 +21,7 @@
       
       -- Results 
       No. Iterations: 1
-      No. Calls: 0
+      No. Calls: 1
       Log. Evidence: -10.50 (± 2.849)
 
 # Progress bar can be printed [ansi]
@@ -43,7 +43,7 @@
       
       -- Results 
       No. Iterations: 1
-      No. Calls: 0
+      No. Calls: 1
       Log. Evidence: -10.50 (± 2.849)
 
 # Progress bar can be printed [unicode]
@@ -65,7 +65,7 @@
       
       ── Results 
       No. Iterations: 1
-      No. Calls: 0
+      No. Calls: 1
       Log. Evidence: -10.50 (± 2.849)
 
 # Progress bar can be printed [fancy]
@@ -87,7 +87,7 @@
       
       ── Results 
       No. Iterations: 1
-      No. Calls: 0
+      No. Calls: 1
       Log. Evidence: -10.50 (± 2.849)
 
 # Fully-verbose output [plain]
@@ -106,12 +106,12 @@
       [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
       [2] ""                                                     
       [3] "No. Dimensions: 2"                                    
-      [4] "Current Step Size: 0.2855"                            
+      [4] "Current Step Size: 0.2460"                            
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 5130
-      Log. Evidence: -7.110 (± 1.925)
+      No. Calls: 10651
+      Log. Evidence: -6.921 (± 1.766)
 
 # Fully-verbose output [ansi]
 
@@ -129,12 +129,12 @@
       [1] "random walk in unit cube LRPS \033[34m<rwmh_cube/ernest_lrps>\033[39m"
       [2] ""                                                                     
       [3] "No. Dimensions: 2"                                                    
-      [4] "Current Step Size: 0.2855"                                            
+      [4] "Current Step Size: 0.2460"                                            
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 5130
-      Log. Evidence: -7.110 (± 1.925)
+      No. Calls: 10651
+      Log. Evidence: -6.921 (± 1.766)
 
 # Fully-verbose output [unicode]
 
@@ -152,12 +152,12 @@
       [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
       [2] ""                                                     
       [3] "No. Dimensions: 2"                                    
-      [4] "Current Step Size: 0.2855"                            
+      [4] "Current Step Size: 0.2460"                            
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 5130
-      Log. Evidence: -7.110 (± 1.925)
+      No. Calls: 10651
+      Log. Evidence: -6.921 (± 1.766)
 
 # Fully-verbose output [fancy]
 
@@ -175,10 +175,10 @@
       [1] "random walk in unit cube LRPS \033[34m<rwmh_cube/ernest_lrps>\033[39m"
       [2] ""                                                                     
       [3] "No. Dimensions: 2"                                                    
-      [4] "Current Step Size: 0.2855"                                            
+      [4] "Current Step Size: 0.2460"                                            
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 5130
-      Log. Evidence: -7.110 (± 1.925)
+      No. Calls: 10651
+      Log. Evidence: -6.921 (± 1.766)
 

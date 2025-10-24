@@ -1,3 +1,13 @@
+// File: /Users/ksnap/Projects/ernest/src/update_lrps-impl.cpp
+// Created Date: Tuesday, October 14th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Implements functions to compute bounding volumes for sets of points.
+// These are called from R.
 #include "KMeansRexCore.h"
 #include "ellipsoid.h"
 
@@ -6,10 +16,10 @@
 [[cpp11::register]]
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
   if (X.nrow() == 0) {
-    return bounding::Ellipsoid(X.ncol()).as_list();
+    return ern::vol::Ellipsoid(X.ncol()).as_list();
   }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  bounding::Ellipsoid ell(X_eigen);
+  ern::vol::Ellipsoid ell(X_eigen);
   return ell.as_list();
 }
 
@@ -22,7 +32,7 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
                                     const double min_reduction,
                                     const bool allow_contact) {
   if (X.nrow() == 0) {
-    bounding::Ellipsoid sphere(X.ncol());
+    ern::vol::Ellipsoid sphere(X.ncol());
     using namespace cpp11::literals;
     return cpp11::writable::list(
         {"prob"_nm = cpp11::writable::doubles({1}),
@@ -30,8 +40,8 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
          "tot_log_vol"_nm = sphere.log_volume()});
   }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  std::vector<bounding::Ellipsoid> ellipsoids =
-      bounding::Ellipsoid::FitMultiEllipsoids(X_eigen, min_reduction,
+  std::vector<ern::vol::Ellipsoid> ellipsoids =
+      ern::vol::Ellipsoid::FitMultiEllipsoids(X_eigen, min_reduction,
                                               allow_contact);
   cpp11::writable::list ellipsoid_list;
   cpp11::writable::doubles prob;

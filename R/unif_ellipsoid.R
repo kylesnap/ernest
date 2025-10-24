@@ -145,30 +145,62 @@ propose.unif_ellipsoid <- function(
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    proposal <- double(x$n_dim)
-    radius <- x$enlarge^(1 / x$n_dim)
-    for (i in seq_len(x$max_loop)) {
-      proposal <- uniformly::runif_in_sphere(1, x$n_dim, r = radius)
-      proposal <- drop(tcrossprod(proposal, x$cache$inv_sqrt_shape)) +
-        x$cache$center
-      if (any(proposal < 0) || any(proposal > 1)) {
-        next
-      }
-      log_lik <- x$unit_log_fn(proposal)
-      if (log_lik >= criterion) {
-        res <- list(
-          unit = proposal,
-          log_lik = log_lik,
-          n_call = i
-        )
-        env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
-        return(res)
-      }
-    }
-    res <- list(n_call = x$max_loop)
+    res <- propose_ellipsoid(
+      unit_log_fn = x$unit_log_fn,
+      criterion = criterion,
+      center = x$cache$center,
+      inv_sqrt_shape = x$cache$inv_sqrt_shape,
+      enlarge = x$enlarge,
+      max_loop = x$max_loop
+    )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
+}
+
+#' Generate a new point in an ellipsoid
+#'
+#' @param unit_log_fn Function to compute log-likelihood in unit space.
+#' @param criterion Double scalar. A log-likelihood value that proposed points
+#' must satisfy.
+#' @param center Vector. The center of the ellipsoid.
+#' @param inv_sqrt_shape Matrix. The inverse square root of the shape matrix.
+#' @param enlarge Double. Enlargement factor for the ellipsoid.
+#' @param max_loop Positive integer. Maximum number of attempts to generate
+#' a point.
+#'
+#' @returns A list with:
+#' * `unit`: Vector of proposed points in the prior space.
+#' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
+#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' @noRd
+propose_ellipsoid <- function(
+  unit_log_fn,
+  criterion,
+  center,
+  inv_sqrt_shape,
+  enlarge,
+  max_loop
+) {
+  n_dim <- length(center)
+  radius <- enlarge^(1 / n_dim)
+  proposal <- double(n_dim)
+  for (i in seq_len(max_loop)) {
+    proposal <- uniformly::runif_in_sphere(1, n_dim, r = radius)
+    proposal <- drop(tcrossprod(proposal, inv_sqrt_shape)) + center
+    if (any(proposal < 0) || any(proposal > 1)) {
+      next
+    }
+    log_lik <- unit_log_fn(proposal)
+    if (log_lik >= criterion) {
+      return(list(
+        unit = proposal,
+        log_lik = log_lik,
+        n_call = i
+      ))
+    }
+  }
+  list(n_call = max_loop)
 }
 
 #' @rdname update_lrps

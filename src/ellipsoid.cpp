@@ -1,3 +1,12 @@
+// File: /Users/ksnap/Projects/ernest/src/ellipsoid.cpp
+// Created Date: Monday, October 20th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Implements ellipsoid fitting and manipulation routines for nested sampling.
 #include "ellipsoid.h"
 
 #include <R_ext/BLAS.h>
@@ -6,10 +15,10 @@
 #include <functional>
 #include <numeric>
 
-using namespace bounding;
+using namespace ern;
 
 //// Ellipsoid Constructors
-Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
+vol::Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
   if (n_dim == 0) {
     error_ = kFatal;
     return;
@@ -22,12 +31,12 @@ Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
   log_volume_ = log_volume_sphere() - log_det_L;
 }
 
-bounding::Ellipsoid::Ellipsoid(const ConstRef<Matrix> X) : Ellipsoid(X.cols()) {
+vol::Ellipsoid::Ellipsoid(const ConstRef<Matrix> X) : Ellipsoid(X.cols()) {
   (*this).Fit(X);
 };
 
-Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
-                     const ConstRef<Matrix> shape)
+vol::Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
+                          const ConstRef<Matrix> shape)
     : Ellipsoid(center.size()) {
   if (!((shape.rows() == shape.cols()) && (shape.rows() == n_dim_))) {
     error_ = kFatal;
@@ -49,7 +58,7 @@ Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
 // Translation of the method "ell_pt_near_far" described in ELL_LIB.
 static Vector FindClosest(const ConstRef<Matrix> L,
                           const ConstRef<Vector> center,
-                          const ConstRef<Vector> point, Solver& solver) {
+                          const ConstRef<Vector> point, vol::Solver& solver) {
   Matrix gi = L.inverse();  // g_i = L^-1
   Vector b = center - point;
   b = gi * b;  // b = G^{-1} * [c-p]
@@ -65,7 +74,7 @@ static Vector FindClosest(const ConstRef<Matrix> L,
   return gi.transpose() * y + center;  // x = G^{-T} * y + c
 }
 
-double Ellipsoid::Distance(const ConstRef<Vector> point) const {
+double vol::Ellipsoid::Distance(const ConstRef<Vector> point) const {
   Vector y = point - center_;
   y = L_.transpose() * y;
   double y_sum = y.squaredNorm();
@@ -80,11 +89,11 @@ double Ellipsoid::Distance(const ConstRef<Vector> point) const {
   }
 }
 
-Vector Ellipsoid::Closest(const ConstRef<Vector> point) {
+Vector vol::Ellipsoid::Closest(const ConstRef<Vector> point) {
   return FindClosest(L_, center_, point, solve_);
 };
 
-bool Ellipsoid::Intersects(const Ellipsoid& other) {
+bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
   // An abbreviated Part 1 from ell_pair_separate in ELL_LIB
   Matrix g1 = L_;
   Matrix g2 = other.L_;
@@ -104,7 +113,7 @@ bool Ellipsoid::Intersects(const Ellipsoid& other) {
 
 // Ellipsoid Fitting
 
-void Ellipsoid::Fit(ConstRef<Matrix> X) {
+void vol::Ellipsoid::Fit(ConstRef<Matrix> X) {
   log_volume_ = R_NegInf;
   if (X.cols() != n_dim_ || X.rows() <= 1) {
     error_ = kFatal;
@@ -123,7 +132,7 @@ void Ellipsoid::Fit(ConstRef<Matrix> X) {
   SetShape(eig);
 }
 
-Eigendecomposition Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
+vol::Eigendecomposition vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   // Store the covariance matrix in L_.
   error_ = kOk;
   Matrix centered = X.rowwise() - center_.transpose();
@@ -160,7 +169,7 @@ Eigendecomposition Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   return {e_values.cwiseInverse(), work.eigenvectors()};
 }
 
-void Ellipsoid::ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig) {
+void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig) {
   // L_ now stores the full shape matrix.
   L_ = eig.vectors * eig.values.asDiagonal() * eig.vectors.transpose();
 
@@ -174,7 +183,7 @@ void Ellipsoid::ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig) {
   eig.values /= max_dist2;
 }
 
-void Ellipsoid::SetShape(Eigendecomposition& eig) {
+void vol::Ellipsoid::SetShape(Eigendecomposition& eig) {
   // L_ = V * D^{1/2};
   L_ = eig.vectors * eig.values.cwiseSqrt().asDiagonal();
   Eigen::HouseholderQR<Matrix> qr(L_.transpose());
@@ -206,8 +215,8 @@ static std::vector<int> find_clusters(const std::vector<int>& rows,
 // Splits the data points in `rows` into two sub-ellipsoids using K-means.
 // Returns true if both sub-ellipsoids were non-degenerate.
 static bool split_cluster(const ConstRef<Matrix> X,
-                          const std::vector<int>& rows, SubEllipsoid& lh,
-                          SubEllipsoid& rh) {
+                          const std::vector<int>& rows, vol::SubEllipsoid& lh,
+                          vol::SubEllipsoid& rh) {
   Matrix sub_X = X(rows, Eigen::all);
   Eigen::ArrayXd sub_idx(sub_X.rows());
   Eigen::ArrayXXd mu(2, sub_X.cols());
@@ -218,42 +227,42 @@ static bool split_cluster(const ConstRef<Matrix> X,
   rh.rows = find_clusters(rows, sub_idx, 1);
   rh.ell.Fit(X(rh.rows, Eigen::all));
 
-  return lh.ell.error() == kOk && rh.ell.error() == kOk;
+  return lh.ell.error() == vol::kOk && rh.ell.error() == vol::kOk;
 }
 
 // Moves the sub-ellipsoids onto the proposal queue and pops the pre-split
 // ellipsoid.
-static void split(std::deque<SubEllipsoid>& proposals, SubEllipsoid& lh,
-                  SubEllipsoid& rh) {
+static void split(std::deque<vol::SubEllipsoid>& proposals,
+                  vol::SubEllipsoid& lh, vol::SubEllipsoid& rh) {
   int n_dim = lh.ell.n_dim();
   proposals.emplace_back(std::move(lh));
   proposals.emplace_back(std::move(rh));
-  lh = SubEllipsoid({Ellipsoid(n_dim), std::vector<int>()});
-  rh = SubEllipsoid({Ellipsoid(n_dim), std::vector<int>()});
+  lh = vol::SubEllipsoid({vol::Ellipsoid(n_dim), std::vector<int>()});
+  rh = vol::SubEllipsoid({vol::Ellipsoid(n_dim), std::vector<int>()});
   proposals.pop_front();
 }
 
 // Move the pre-split ellipsoid onto the vector of finalized ellipsoids.
-static void merge(std::vector<Ellipsoid>& ellipsoids,
-                  std::deque<SubEllipsoid>& proposals) {
+static void merge(std::vector<vol::Ellipsoid>& ellipsoids,
+                  std::deque<vol::SubEllipsoid>& proposals) {
   ellipsoids.emplace_back(std::move(proposals.front().ell));
   proposals.pop_front();
 }
 
-std::vector<Ellipsoid> Ellipsoid::FitMultiEllipsoids(const ConstRef<Matrix> X,
-                                                     const double min_reduction,
-                                                     const bool allow_contact) {
+std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
+    const ConstRef<Matrix> X, const double min_reduction,
+    const bool allow_contact) {
   int n_dim = X.cols();
   int n_point = X.rows();
   std::vector<Ellipsoid> ellipsoids;
-  std::deque<SubEllipsoid> proposals;
+  std::deque<vol::SubEllipsoid> proposals;
 
-  SubEllipsoid lh{Ellipsoid(n_dim), std::vector<int>()};
-  SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
+  vol::SubEllipsoid lh{Ellipsoid(n_dim), std::vector<int>()};
+  vol::SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
   Ellipsoid intersect(n_dim);
 
   proposals.emplace_back(
-      SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
+      vol::SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
   proposals.front().ell.Fit(X);
   if (proposals.front().ell.error() != kOk) {
     // If the initial ellipsoid is invalid, return it as the only ellipsoid.

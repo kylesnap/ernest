@@ -34,14 +34,13 @@
 #' @keywords internal
 #' @export
 new_ernest_lrps <- function(
-  unit_log_fn = NULL,
-  n_dim = NULL,
-  max_loop = getOption("ernest.max_loop", 1e6L),
-  cache = NULL,
-  ...,
-  .class = NULL,
-  .call = caller_env()
-) {
+    unit_log_fn = NULL,
+    n_dim = NULL,
+    max_loop = getOption("ernest.max_loop", 1e6L),
+    cache = NULL,
+    ...,
+    .class = NULL,
+    .call = caller_env()) {
   check_function(unit_log_fn, allow_null = TRUE, call = .call)
   check_number_whole(n_dim, min = 1, allow_null = TRUE, call = .call)
   check_number_whole(
@@ -110,29 +109,56 @@ print.ernest_lrps <- function(x, ...) {
 #'
 #' @keywords internal
 #' @export
-propose <- function(x, original = NULL, criterion = -Inf, idx = NULL) {
+propose <- function(x, original = NULL, criterion = -Inf) {
   UseMethod("propose")
 }
 
 #' @noRd
 #' @export
 propose.ernest_lrps <- function(
-  x,
-  original = NULL,
-  criterion = -Inf,
-  idx = NULL
-) {
+    x,
+    original = NULL,
+    criterion = -Inf) {
   if (is.null(original)) {
-    res <- CubeImpl(
-      n_dim = x$n_dim,
+    propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
+      n_dim = x$n_dim,
       max_loop = x$max_loop
     )
-    res
   } else {
     cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")
   }
+}
+
+#' Generate a new point in a unit cube
+#'
+#' @param unit_log_fn Function to compute log-likelihood in unit space.
+#' @param criterion Double scalar. A log-likelihood value that proposed points
+#' must satisfy.
+#' @param n_dim Integer. Number of dimensions.
+#' @param max_loop Positive integer. Maximum number of attempts to generate
+#' a point.
+#'
+#' @returns A list with:
+#' * `unit`: Vector of proposed points in the prior space.
+#' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
+#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' @noRd
+propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
+  proposal <- double(n_dim)
+  for (i in seq_len(max_loop)) {
+    proposal <- runif(n_dim)
+    log_lik <- unit_log_fn(proposal)
+    if (is.finite(log_lik) && log_lik > criterion) {
+      return(list(
+        unit = proposal,
+        log_lik = log_lik,
+        n_call = i
+      ))
+    }
+  }
+  list(n_call = max_loop)
 }
 
 #' Update an LRPS

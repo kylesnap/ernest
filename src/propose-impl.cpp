@@ -1,0 +1,59 @@
+// File: /Users/ksnap/Projects/ernest/src/propose.cpp
+// Created Date: Friday, October 24th 2025
+// Author: Kyle Dewsnap
+//
+// Copyright (c) 2025 Kyle Dewsnap
+// GNU General Public License v3.0 or later
+// https://www.gnu.org/licenses/gpl-3.0-standalone.html
+//
+// Implements proposal mechanisms for MCMC sampling within nested sampling.
+// These are called from R.
+#include "adaptive_rwmh.h"
+
+// Runs the adaptive RWMH sampler with accelerated shaping and scaling.
+// Proposal: X' ~ N(X_n, ε_n * c_n * Σ_n) where c_n = 2.38^2 / d.
+[[cpp11::register]]
+cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
+                           double criterion, int steps, double epsilon_init,
+                           double epsilon_min, double target_acceptance,
+                           cpp11::doubles mean, cpp11::doubles_matrix<> cov,
+                           double strength, double forgetfulness) {
+  ern::AdaptiveRWMH state(mean, cov, target_acceptance, strength, forgetfulness,
+                          epsilon_init, epsilon_min);
+  state.Run(original, unit_log_fn, criterion, steps);
+  return state.as_list(unit_log_fn);
+}
+
+// Runs a basic Random Walk Metropolis-Hastings sampler with fixed step size.
+// Proposal: X' ~ N(X_n, ε I).
+[[cpp11::register]]
+cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
+                           double criterion, int steps, double epsilon) {
+  const int n_dim = original.size();
+  ern::RandomEngine rng;
+
+  // Setups
+  Eigen::RowVectorXd next_draw(n_dim), rand_vec(n_dim);
+  Eigen::RowVectorXd prev_draw = as_row_vector(original);
+  size_t n_accept = 0;
+
+  for (size_t draw = 0; draw < steps; draw++) {
+    next_draw = prev_draw;
+    ern::UniformInBall(rand_vec, epsilon);
+    next_draw += rand_vec;
+    if (ern::IsOutsideUnitCube(next_draw)) {
+      ern::ReflectWithinUnitCube(next_draw);
+    }
+    double log_lik = unit_log_fn(as_row_doubles(next_draw));
+    if (log_lik >= criterion) {
+      prev_draw = next_draw;
+      n_accept++;
+    }
+  }
+
+  using namespace cpp11::literals;
+  return cpp11::writable::list(
+      {"unit"_nm = as_row_doubles(prev_draw),
+       "log_lik"_nm = unit_log_fn(as_row_doubles(prev_draw)),
+       "n_call"_nm = steps, "n_accept"_nm = n_accept});
+}

@@ -6,7 +6,7 @@
 
 ---
 
-    `max_calls` must be strictly larger than 11.
+    `max_calls` must be strictly larger than 111.
     x `x` already contains previously-generated samples.
     i Should you use `clear` to erase previous samples from `x`?
 

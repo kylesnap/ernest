@@ -197,7 +197,7 @@ void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
 void kmeans_rex::RunKMeans(const double* X_IN, int N, int D, int K, int Niter,
                            const char* initname, double* Mu_OUT,
                            double* Z_OUT) {
-  random_generator::RandomEngine rand;
+  ern::RandomEngine rand;
 
   ExtMat X(const_cast<double*>(X_IN), N, D);
   ExtMat Mu(Mu_OUT, K, D);

@@ -10,17 +10,17 @@
 \alias{propose.unif_ellipsoid}
 \title{Generate a new point using LRPS}
 \usage{
-\method{propose}{adaptive_rwmh}(x, original = NULL, criterion = -Inf, idx = NULL)
+\method{propose}{adaptive_rwmh}(x, original = NULL, criterion = -Inf)
 
 propose(x, original = NULL, criterion = -Inf)
 
-\method{propose}{multi_ellipsoid}(x, original = NULL, criterion = -Inf, idx = NULL)
+\method{propose}{multi_ellipsoid}(x, original = NULL, criterion = -Inf)
 
-\method{propose}{rwmh_cube}(x, original = NULL, criterion = -Inf, idx = NULL)
+\method{propose}{rwmh_cube}(x, original = NULL, criterion = -Inf)
 
-\method{propose}{unif_cube}(x, original = NULL, criterion = -Inf, idx = NULL)
+\method{propose}{unif_cube}(x, original = NULL, criterion = -Inf)
 
-\method{propose}{unif_ellipsoid}(x, original = NULL, criterion = -Inf, idx = NULL)
+\method{propose}{unif_ellipsoid}(x, original = NULL, criterion = -Inf)
 }
 \arguments{
 \item{x}{An \code{ernest_lrps} object.}
@@ -31,9 +31,6 @@ sampling from the unconstrained unit cube (see \code{\link[=unif_cube]{unif_cube
 
 \item{criterion}{Double scalar. A log-likelihood value that proposed points
 must satisfy.}
-
-\item{idx}{Optional positive integer. The index of the original point in the
-live set. Must be provided if original is provided.}
 }
 \value{
 A list with:

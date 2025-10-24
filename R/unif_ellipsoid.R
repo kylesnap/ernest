@@ -139,8 +139,7 @@ new_unif_ellipsoid <- function(
 propose.unif_ellipsoid <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
     NextMethod(x)

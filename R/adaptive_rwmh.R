@@ -184,8 +184,7 @@ new_adaptive_rwmh <- function(
 propose.adaptive_rwmh <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
     NextMethod(x)

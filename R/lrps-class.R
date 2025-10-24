@@ -34,13 +34,14 @@
 #' @keywords internal
 #' @export
 new_ernest_lrps <- function(
-    unit_log_fn = NULL,
-    n_dim = NULL,
-    max_loop = getOption("ernest.max_loop", 1e6L),
-    cache = NULL,
-    ...,
-    .class = NULL,
-    .call = caller_env()) {
+  unit_log_fn = NULL,
+  n_dim = NULL,
+  max_loop = getOption("ernest.max_loop", 1e6L),
+  cache = NULL,
+  ...,
+  .class = NULL,
+  .call = caller_env()
+) {
   check_function(unit_log_fn, allow_null = TRUE, call = .call)
   check_number_whole(n_dim, min = 1, allow_null = TRUE, call = .call)
   check_number_whole(
@@ -98,8 +99,6 @@ print.ernest_lrps <- function(x, ...) {
 #' sampling from the unconstrained unit cube (see [unif_cube()]).
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
-#' @param idx Optional positive integer. The index of the original point in the
-#' live set. Must be provided if original is provided.
 #'
 #' @returns A list with:
 #' * `unit`: Matrix of proposed points in the prior space.
@@ -116,9 +115,10 @@ propose <- function(x, original = NULL, criterion = -Inf) {
 #' @noRd
 #' @export
 propose.ernest_lrps <- function(
-    x,
-    original = NULL,
-    criterion = -Inf) {
+  x,
+  original = NULL,
+  criterion = -Inf
+) {
   if (is.null(original)) {
     propose_cube(
       unit_log_fn = x$unit_log_fn,

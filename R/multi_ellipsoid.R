@@ -165,8 +165,7 @@ new_multi_ellipsoid <- function(
 propose.multi_ellipsoid <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
     NextMethod(x)

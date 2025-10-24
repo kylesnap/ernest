@@ -141,8 +141,7 @@ new_rwmh_cube <- function(
 propose.rwmh_cube <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
     NextMethod(x)

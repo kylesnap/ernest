@@ -87,6 +87,7 @@ Notices of the Royal Astronomical Society. 398(4), 1601–1614.
 Other ernest_lrps: 
 \code{\link{adaptive_rwmh}()},
 \code{\link{rwmh_cube}()},
+\code{\link{slice}()},
 \code{\link{unif_cube}()},
 \code{\link{unif_ellipsoid}()}
 }

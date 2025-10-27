@@ -13,8 +13,6 @@
 #include "testthat.h"
 #include "utils.h"
 
-using test::almost_equal;
-
 context("Reflect functionality") {
   test_that("All values transform to 0.5") {
     Eigen::RowVectorXd test(6);
@@ -30,9 +28,7 @@ context("Reflect functionality") {
     expected << 0.9, 0.1, 0.9;
     ern::ReflectWithinUnitCube(test);
 
-    expect_true(almost_equal(test[0], expected[0]));
-    expect_true(almost_equal(test[1], expected[1]));
-    expect_true(almost_equal(test[2], expected[2]));
+    expect_true(test.isApprox(expected));
   }
 }
 
@@ -47,7 +43,7 @@ context("Point generators") {
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
         ern::UniformOnSphere(test);
-        if (!almost_equal(test.norm(), 1.0)) {
+        if (!ern::WithinRel(test.norm(), 1)) {
           n_fail++;
         }
       }

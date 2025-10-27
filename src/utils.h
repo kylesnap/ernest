@@ -14,6 +14,7 @@
 #include <cpp11eigen.hpp>
 
 namespace ern {
+constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
 // Reference to nonmutable Eigen object.
 template <class T>
 using ConstRef = Eigen::Ref<const T>;
@@ -26,6 +27,21 @@ using RowVector = Eigen::RowVectorXd;
 using ColVector = Eigen::VectorXd;
 using Vector = Eigen::VectorXd;
 using Matrix = Eigen::MatrixXd;
+
+// Fuzzy compare `v` == `w`.
+inline bool WithinRel(
+    const double v, const double w,
+    const double prec = 100 * Eigen::NumTraits<double>::dummy_precision()) {
+  return abs(v - w) <= (prec * fmin2(abs(v), abs(w)));
+}
+
+// Fuzzy compare `v` to zero.
+inline bool isZero(
+    const double v,
+    const double prec = Eigen::NumTraits<double>::dummy_precision()) {
+  return abs(v) <= prec;
+}
+
 }  // namespace ern
 
 namespace cpp11 {
@@ -41,16 +57,3 @@ inline cpp11::doubles as_row_doubles(const ern::ConstRef<ern::RowVector>& x) {
 }
 
 }  // namespace cpp11
-
-namespace test {
-
-// Check if two doubles are almost equal, relative to their magnitude.
-inline bool almost_equal(double a, double b) {
-  const double rel_diff = 0.0001;
-  double greater = std::max(std::abs(a), std::abs(b));
-  double diff = std::abs(a - b);
-
-  return diff < rel_diff * greater;
-}
-
-}  // namespace test

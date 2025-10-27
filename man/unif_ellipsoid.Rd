@@ -73,6 +73,7 @@ Other ernest_lrps:
 \code{\link{adaptive_rwmh}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
+\code{\link{slice}()},
 \code{\link{unif_cube}()}
 }
 \concept{ernest_lrps}

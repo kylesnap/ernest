@@ -9,6 +9,7 @@
 // Implements proposal mechanisms for MCMC sampling within nested sampling.
 // These are called from R.
 #include "adaptive_rwmh.h"
+#include "rectangle.h"
 
 // Runs the adaptive RWMH sampler with accelerated shaping and scaling.
 // Proposal: X' ~ N(X_n, ε_n * c_n * Σ_n) where c_n = 2.38^2 / d.
@@ -56,4 +57,29 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
       {"unit"_nm = as_row_doubles(prev_draw),
        "log_lik"_nm = unit_log_fn(as_row_doubles(prev_draw)),
        "n_call"_nm = steps, "n_accept"_nm = n_accept});
+}
+
+// Runs a slice sampler within an initial hyperrectangle.
+[[cpp11::register]]
+cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
+                      double criterion, cpp11::doubles lower,
+                      cpp11::doubles upper, const int max_loop) {
+  // Setups
+  ern::vol::Rectangle rect(lower, upper);
+  Eigen::VectorXd next_draw = as_Matrix(original);
+  Eigen::VectorXd inner = next_draw;
+
+  size_t draw = 0;
+  for (; draw < max_loop; draw++) {
+    rect.UniformSample(next_draw);
+    double log_lik = unit_log_fn(as_row_doubles(next_draw));
+    if (log_lik >= criterion) break;
+    if (!rect.Clamp(inner, next_draw)) break;
+  }
+
+  using namespace cpp11::literals;
+  return cpp11::writable::list(
+      {"unit"_nm = as_doubles(next_draw),
+       "log_lik"_nm = unit_log_fn(as_doubles(next_draw)), "n_call"_nm = draw,
+       "rect"_nm = rect.as_list()});
 }

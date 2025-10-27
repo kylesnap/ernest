@@ -6,14 +6,13 @@
 // GNU General Public License v3.0 or later
 // https://www.gnu.org/licenses/gpl-3.0-standalone.html
 //
-// Test cases for ellipsoid.h.
+// Test cases for ellipsoids and rectangles.
 #include <limits>
 
 #include "ellipsoid.h"
+#include "rectangle.h"
 #include "testthat.h"
 #include "utils.h"
-
-using test::almost_equal;
 
 // Test utility functions
 context("Ellipsoid class - basic functionality") {
@@ -28,14 +27,14 @@ context("Ellipsoid class - basic functionality") {
 
     expect_true(ell.center().isApproxToConstant(0));
     expect_true(ell.shape().isApprox(shape, 1e-3));
-    expect_true(almost_equal(ell.log_volume(), 1.14473));
+    expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
     expect_true(ell.inv_sqrt_shape().isApprox(inv_sqrt_shape, 1e-3));
 
     Eigen::Vector2d oob{-0.5, -0.5}, inb{-0.5, 0.5};
     expect_false(ell.Covered(oob));
     expect_true(ell.Covered(inb));
     expect_true(ell.Covered(center));
-    expect_true(almost_equal(ell.log_volume(), 1.14473));
+    expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
   }
 
   test_that("Distance to point works") {
@@ -86,9 +85,9 @@ context("Ellipsoid class - basic functionality") {
         err_in = Rf_fmax2(err_in, std::abs(dist_closest - s));
       }
     }
-    expect_true(err_dist < 1e-3);
-    expect_true(err_in < 1e-3);
-    expect_true(err_out < 1e-3);
+    expect_true(ern::isZero(err_dist, 1e-3));
+    expect_true(ern::isZero(err_in, 1e-3));
+    expect_true(ern::isZero(err_out, 1e-3));
   }
 
   Eigen::Matrix2d shape = Eigen::Matrix2d::Identity();
@@ -146,5 +145,100 @@ context("Ellipsoid class - geometric cases") {
 
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == ern::vol::Status::kUnderdetermined);
+  }
+}
+
+context("Rectangle class - basic functionality") {
+  test_that("Rectangle coverage detection works") {
+    ern::vol::Rectangle rect(2);
+
+    // Points inside
+    expect_true(rect.Covered(Eigen::Vector2d{0.5, 0.5}));
+    expect_true(rect.Covered(Eigen::Vector2d{0.0, 0.0}));
+    expect_true(rect.Covered(Eigen::Vector2d{1.0, 1.0}));
+
+    // Points outside
+    expect_false(rect.Covered(Eigen::Vector2d{-0.1, 0.5}));
+    expect_false(rect.Covered(Eigen::Vector2d{0.5, 1.1}));
+    expect_false(rect.Covered(Eigen::Vector2d{1.5, 1.5}));
+  }
+
+  test_that("Rectangle uniform sampling produces valid points") {
+    int n_dim = 5;
+    int n_samples = 100;
+    ern::vol::Rectangle rect(n_dim);
+
+    Eigen::VectorXd sample(n_dim);
+    int n_oob = 0;
+    for (int i = 0; i < n_samples; i++) {
+      rect.UniformSample(sample);
+      n_oob += !(rect.Covered(sample));
+    }
+    expect_true(n_oob == 0);
+
+    n_oob = 0;
+    for (int i = 0; i < n_samples / 10; i++) {
+      sample = rect.UniformSample();
+      n_oob += !(rect.Covered(sample));
+    }
+    expect_true(n_oob == 0);
+  }
+}
+
+context("Rectangle class - shrinking") {
+  test_that("Rectangle shrinks correctly in two dimensions") {
+    ern::vol::Rectangle rect(2);
+    Eigen::Vector2d inner{0.5, 0.5};
+    Eigen::Vector2d outer{0.3, 0.9};
+    expect_true(rect.Clamp(inner, outer));
+
+    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
+    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
+
+    // Old maxima falls outside cube.
+    expect_false(rect.Covered(Eigen::Vector2d{1.0, 1.0}));
+    expect_true(rect.Covered(inner));
+    expect_true(rect.Covered(outer));
+  }
+
+  test_that("Rectangle doesn't react to OOB arguments") {
+    ern::vol::Rectangle rect(2);
+    Eigen::Vector2d inner{0.5, 0.5};
+    Eigen::Vector2d outer{0.3, 0.9};
+    expect_true(rect.Clamp(inner, outer));
+
+    expect_false(rect.Clamp(inner, Eigen::Vector2d{1.0, 1.0}));
+    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
+    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
+
+    expect_false(rect.Clamp(Eigen::Vector2d{1.0, 1.0}, outer));
+    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
+    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
+
+    expect_true(rect.Clamp(inner, outer));
+    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
+    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
+  };
+
+  test_that("Rectangle can be clamped in higher dimensions") {
+    typedef Eigen::Matrix<double, 5, 1> Vector5d;
+    int n_dim = 5;
+    ern::vol::Rectangle rect(n_dim);
+
+    // First clamp
+    Vector5d inner = Vector5d::Constant(0.5);
+    Vector5d outer{0.2, 0.8, 0.3, 0.9, 0.4};
+    expect_true(rect.Clamp(inner, outer));
+    expect_true(rect.lower().isApprox(Vector5d{0.2, 0, 0.3, 0, 0.4}));
+    expect_true(rect.upper().isApprox(Vector5d{1, 0.8, 1, 0.9, 1}));
+    expect_true(rect.Covered(outer));
+
+    // Second clamp with different inner/outer
+    inner << 0.5, 0.6, 0.5, 0.7, 0.6;
+    outer << 0.3, 0.6, 0.7, 0.7, 0.85;
+    expect_true(rect.Clamp(inner, outer));
+    expect_true(rect.lower().isApprox(Vector5d{0.3, 0, 0.3, 0, 0.4}));
+    expect_true(rect.upper().isApprox(Vector5d{1, 0.8, 0.7, 0.9, 0.85}));
+    expect_true(rect.Covered(outer));
   }
 }

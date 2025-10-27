@@ -17,7 +17,6 @@ namespace ern {
 namespace vol {
 
 // Numerical precision threshold for eigenvalue comparisons.
-constexpr double kPrecision = Eigen::NumTraits<double>::dummy_precision();
 const double kLnPi = 1.14472988584940017414342735135;  // ln(pi)
 
 // Status codes for ellipsoid computation operations.

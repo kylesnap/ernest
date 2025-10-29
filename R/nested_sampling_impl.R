@@ -52,6 +52,7 @@ nested_sampling_impl <- function(
   max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
   d_log_vol <- log((x$n_points + 1) / x$n_points)
+  initial_update <- FALSE
 
   dead_unit <- vctrs::list_of(.ptype = double(x$n_points))
   dead_birth <- vctrs::list_of(.ptype = integer())
@@ -114,9 +115,19 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (
-      call > x$first_update && (x$lrps$cache$n_call %||% 0L) > x$update_interval
-    ) {
+    if (!initial_update && call >= x$first_update) {
+      x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
+      if (!is.null(logger)) {
+        inject(log4r::info(
+          logger,
+          ITER = i,
+          !!!as.list(x$lrps$cache),
+          unit = live_env$unit
+        ))
+      }
+      initial_update <- TRUE
+    }
+    if (initial_update && (x$lrps$cache$n_call %||% 0L) > x$update_interval) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
       if (!is.null(logger)) {
         inject(log4r::info(

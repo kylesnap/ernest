@@ -47,6 +47,13 @@ extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP
     return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact)));
   END_CPP11
 }
+// update_lrps-impl.cpp
+double MinRadius(cpp11::doubles_matrix<> X);
+extern "C" SEXP _ernest_MinRadius(SEXP X) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(MinRadius(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X)));
+  END_CPP11
+}
 
 extern "C" {
 /* .Call calls */
@@ -55,6 +62,7 @@ extern SEXP run_testthat_tests(void *);
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_AdaptiveRWImpl",          (DL_FUNC) &_ernest_AdaptiveRWImpl,          11},
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,        1},
+    {"_ernest_MinRadius",               (DL_FUNC) &_ernest_MinRadius,                1},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  3},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,           5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,                6},

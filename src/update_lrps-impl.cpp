@@ -8,8 +8,13 @@
 //
 // Implements functions to compute bounding volumes for sets of points.
 // These are called from R.
-#include "KMeansRexCore.h"
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <vector>
+
 #include "ellipsoid.h"
+#include "point_sieve.h"
 
 // Find the bounding ellipsoid of the given points in X. If X has no rows,
 // then return the bounding unit sphere in the appropriate dimension.
@@ -56,4 +61,12 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
   return cpp11::writable::list({"prob"_nm = prob,
                                 "ellipsoid"_nm = ellipsoid_list,
                                 "tot_log_vol"_nm = total_log_vol});
+}
+
+// Find min radius.
+[[cpp11::register]]
+double MinRadius(cpp11::doubles_matrix<> X) {
+  Eigen::MatrixXd X_eigen = as_Matrix(X);
+  ern::PointSieve ps(X_eigen);
+  return ps();
 }

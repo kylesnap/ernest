@@ -53,6 +53,7 @@ Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 \seealso{
 Other ernest_lrps: 
 \code{\link{adaptive_rwmh}()},
+\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
 \code{\link{unif_cube}()},

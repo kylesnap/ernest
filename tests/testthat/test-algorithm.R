@@ -119,6 +119,25 @@ describe("gaussian_blobs", {
       weights()
     expect_equal(sum(weights), 1)
   })
+
+  it("works with mini_balls", {
+    sampler <- ernest_sampler(
+      log_lik_fn,
+      unif_prior,
+      sampler = mini_balls(),
+      n_points = 500
+    )
+    unif_result <- generate(sampler, min_logz = 0.5, seed = 42)
+    unif_smry <- summary(unif_result)
+
+    expect_lt(
+      abs(unif_smry$log_evidence - gaussian_blobs$analytic_z),
+      4.0 * unif_smry$log_evidence_err
+    )
+    weights <- as_draws(unif_result) |>
+      weights()
+    expect_equal(sum(weights), 1)
+  })
 })
 
 #' @srrstats {BS4.6} Test checks that the NS converegence criteria

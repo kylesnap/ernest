@@ -71,6 +71,7 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 \seealso{
 Other ernest_lrps: 
 \code{\link{adaptive_rwmh}()},
+\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice}()},

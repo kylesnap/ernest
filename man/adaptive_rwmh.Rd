@@ -112,6 +112,7 @@ Metropolis–Hastings Random Walk Algorithm. Aust. N. Z. J. Stat., 63: 468-484.
 }
 \seealso{
 Other ernest_lrps: 
+\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice}()},

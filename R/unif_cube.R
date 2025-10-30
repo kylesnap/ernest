@@ -33,11 +33,7 @@ unif_cube <- function() {
 #' @noRd
 #' @export
 format.unif_cube <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("uniform unit cube LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-  })
+  return()
 }
 
 #' Create a new unif_cube LRPS

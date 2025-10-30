@@ -4,7 +4,7 @@
 \alias{mini_balls}
 \title{Generate samples from a p-norm ball}
 \usage{
-mini_balls(enlarge = 1.1, method = "euclidean", p)
+mini_balls(enlarge = 1.1, method, p)
 }
 \arguments{
 \item{enlarge}{Double larger or equal to 1. Factor by which to inflate the
@@ -50,6 +50,15 @@ ernest_sampler(
   example_run$prior,
   sampler = euclid_balls
 )
+}
+\references{
+Buchner, J. (2014). A Statistical Test for Nested Sampling Algorithms.
+Statistics and Computing, 26(1–2), 383–392.
+\url{https://doi.org/10.1007/s11222-014-9512-y}
+
+Buchner, J. (2019). Collaborative Nested Sampling: Big Data versus Complex
+Physical Models. Publications of the Astronomical Society of the Pacific,
+131(1004), 108005. \url{https://doi.org/10.1088/1538-3873/aae7fc}
 }
 \seealso{
 Other ernest_lrps: 

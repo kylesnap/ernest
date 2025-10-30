@@ -41,15 +41,15 @@
 # new_ernest_lrps: initializes correctly
 
     Code
-      obj
+      lrps
     Output
       ! abstract LRPS sampler <ernest_lrps>
 
-# propose.ernest_lrps: errors if original is provided
+# propose.ernest_lrps can be called
 
     Code
-      propose(lrps, original, -1)
+      propose.ernest_lrps(lrps, c(0.5, 0.5), -1)
     Condition
-      Error in `propose()`:
+      Error in `propose.ernest_lrps()`:
       ! `x` must not be the abstract class <ernest_lrps>.
 

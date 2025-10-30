@@ -1,5 +1,58 @@
-fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
 set.seed(42)
+fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
+
+test_that("unif_ellipsoid can be called by user", {
+  default <- unif_ellipsoid()
+  expect_snapshot(unif_ellipsoid(enlarge = 0.5), error = TRUE)
+  expect_snapshot(unif_ellipsoid(enlarge = 1))
+  expect_equal(default$enlarge, 1.25)
+  expect_snapshot(default)
+})
+
+describe("unif_ellipsoid class", {
+  obj <- new_unif_ellipsoid(fn, 2)
+  it("Can be constructed with new_", {
+    check_valid_lrps(
+      obj,
+      add_names = "enlarge",
+      cache_names = c("center", "shape", "inv_sqrt_shape", "log_volume"),
+      cache_types = c("double", "double", "double", "double")
+    )
+    expect_equal(obj$enlarge, 1.0)
+    expect_equal(obj$cache$log_volume, 0.4515827)
+    expect_equal(obj$cache$inv_sqrt_shape, diag(sqrt(2 / 4), nrow = 2))
+  })
+
+  it("Can call propose", {
+    check_propose(obj, fn)
+  })
+
+  it("Can be updated", {
+    res <- check_update_lrps(
+      obj,
+      add_names = "enlarge",
+      cache_names = c("center", "shape", "inv_sqrt_shape", "log_volume"),
+      cache_types = c("double", "double", "double", "double")
+    )
+
+    skip_on_cran()
+    skip_extended_test()
+    fig <- \() {
+      plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
+      points(res$new, col = "red")
+    }
+    vdiffr::expect_doppelganger("update.unif_ellipsoid", fig)
+  })
+})
+
+test_that("update throws a warning when the points are all identical", {
+  obj <- new_unif_ellipsoid(fn, 2)
+  live <- matrix(rep(0.5, 500 * 2), nrow = 500)
+  expect_snapshot(update_lrps(obj, live))
+  expect_equal(obj$cache$log_volume, 0.4515827)
+  expect_equal(obj$cache$inv_sqrt_shape, diag(sqrt(2 / 4), nrow = 2))
+  expect_equal(obj$cache$center, c(0.5, 0.5))
+})
 
 describe("BoundingEllipsoid", {
   n_points <- 5000
@@ -65,121 +118,5 @@ describe("BoundingEllipsoid", {
     expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
     eig_val <- eigen(ell_fit$shape)$values
     expect_equal(eig_val, c(eig_val[1], eig_val[1] / 2))
-  })
-})
-
-test_that("unif_ellipsoid returns correct class and structure", {
-  obj <- unif_ellipsoid(1.5)
-  expect_s3_class(obj, c("unif_ellipsoid", "ernest_lrps"), exact = TRUE)
-  expect_null(obj$unit_log_fn)
-  expect_null(obj$n_dim)
-  expect_equal(obj$max_loop, 1e6L)
-  expect_equal(obj$enlarge, 1.5)
-  expect_mapequal(as.list(obj$cache), list(n_call = 0L))
-
-  obj <- unif_ellipsoid()
-  expect_equal(obj$enlarge, 1.25)
-})
-
-describe("new_unif_ellipsoid", {
-  it("fails when scale or n_dim are improper.", {
-    expect_snapshot(new_unif_ellipsoid(fn, 2L, enlarge = 0.5), error = TRUE)
-  })
-
-  it("passes the correct defaults", {
-    obj <- new_unif_ellipsoid(fn, 2)
-    expect_s3_class(obj, c("unif_ellipsoid", "ernest_lrps"), exact = TRUE)
-    expect_equal(obj$unit_log_fn, fn)
-    expect_equal(obj$n_dim, 2)
-    expect_equal(obj$max_loop, 1e6L)
-    expect_equal(obj$enlarge, 1.0)
-    expect_mapequal(
-      env_get_list(
-        obj$cache,
-        c("shape", "center", "inv_sqrt_shape", "log_volume")
-      ),
-      list(
-        center = c(0.5, 0.5),
-        shape = diag(2, nrow = 2),
-        inv_sqrt_shape = diag(sqrt(2 / 4), nrow = 2),
-        log_volume = 0.4515827
-      )
-    )
-    expect_snapshot(obj)
-  })
-})
-
-uniform <- new_unif_ellipsoid(fn, n_dim = 2, enlarge = 1.2)
-describe("propose.unif_ellipsoid", {
-  it("Proposes points in the unit cube", {
-    result <- propose(uniform, original = NULL, criterion = -Inf)
-    expect_length(result$unit, 2)
-    expect_equal(
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
-      result$log_lik
-    )
-    expect_equal(uniform$cache$n_call, 0L)
-  })
-
-  it("Proposes points in the unit sphere", {
-    result <- propose(uniform, original = c(0.5, 0.5), criterion = -99.3068)
-    expect_length(result$unit, 2)
-    expect_length(result$unit, 2)
-    expect_equal(
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
-      result$log_lik
-    )
-    expect_gt(uniform$cache$n_call, 0L)
-    expect_snapshot(uniform)
-  })
-})
-
-live <- replicate(
-  500,
-  propose(uniform, original = c(0.5, 0.5), criterion = -99.3068)
-)
-live <- do.call(rbind, live["unit", ])
-describe("update_lrps.unif_ellipsoid", {
-  it("is idempotent", {
-    new_uniform <- update_lrps(uniform)
-    expect_identical(new_uniform, uniform)
-  })
-
-  ell <<- NULL
-  it("can rebound to a matrix of live points", {
-    new_uniform <- update_lrps(uniform, live)
-    ell <<- list(
-      shape = new_uniform$cache$shape,
-      center = new_uniform$cache$center,
-      enlarge = new_uniform$enlarge
-    )
-    new_live <- replicate(
-      500,
-      propose(new_uniform, original = c(0.5, 0.5), criterion = -Inf)
-    )
-    new_live <- do.call(rbind, new_live["unit", ])
-
-    precision <- ell$shape
-    dists <- apply(new_live, 1, \(x) {
-      d <- x - ell$center
-      drop(d %*% precision %*% d)
-    })
-    n_oob <- sum(dists > 1 * ell$enlarge)
-    expect_equal(n_oob, 0)
-    expect_snapshot(uniform)
-
-    skip_extended_test()
-    skip_on_cran()
-    fig <- \() {
-      plot(live, xlim = c(0, 1), ylim = c(0, 1))
-      points(new_live, col = "red")
-    }
-    vdiffr::expect_doppelganger("propose.ellipsoid", fig)
-  })
-
-  it("reports numerical errors", {
-    x <- seq(0.01, 0.49, length.out = 500)
-    xy <- cbind(x, x * 2)
-    expect_snapshot(new_uniform <- update_lrps(uniform, xy))
   })
 })

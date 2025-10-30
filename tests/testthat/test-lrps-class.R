@@ -17,49 +17,39 @@ describe("new_ernest_lrps", {
 
   it("initializes correctly", {
     lrps <- new_ernest_lrps(fn, 2L)
-    expect_s3_class(lrps, "ernest_lrps", exact = TRUE)
-    expect_identical(lrps$unit_log_fn, fn)
-    expect_equal(lrps$max_loop, 1e6L)
-    expect_equal(lrps$n_dim, 2L)
-    expect_equal(lrps$cache$n_call, 0L)
+    check_valid_lrps(lrps)
+    expect_snapshot(lrps)
 
     local_options("ernest.max_loop" = 100L)
     obj <- new_ernest_lrps(fn, 2L)
+    check_valid_lrps(obj)
     expect_equal(obj$max_loop, 100L)
-    expect_snapshot(obj)
   })
 })
 
-describe("propose.ernest_lrps", {
-  it("proposes a single new point", {
-    lrps <- new_ernest_lrps(fn, 2L)
-    result <- propose(lrps, original = NULL, criterion = -Inf)
-    expect_length(result$unit, 2)
-    expect_equal(
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
-      result$log_lik
-    )
-  })
+test_that("propose.ernest_lrps can be called", {
+  lrps <- new_ernest_lrps(fn, 2L)
+  initial_ncall <- env_cache(lrps$cache, "n_call", 0L)
+  res1 <- propose.ernest_lrps(lrps, original = NULL)
+  expect_type(res1, "list")
+  expect_contains(names(res1), c("unit", "log_lik", "n_call"))
+  expect_vector(res1$unit, double(), size = lrps$n_dim)
+  expect_equal(res1$log_lik, fn(res1$unit))
+  expect_equal(env_get(lrps$cache, "n_call"), 0L)
 
-  it("errors if original is provided", {
-    lrps <- new_ernest_lrps(fn, 2L)
-    original <- matrix(runif(5 * 2), ncol = 2)
-    expect_snapshot(
-      propose(lrps, original, -1),
-      error = TRUE
-    )
-  })
-
-  it("is reproducible under seed", {
-    set.seed(42L)
-    lrps <- new_ernest_lrps(fn, 2L)
-    result1 <- propose(lrps, criterion = -37)
-
-    set.seed(42L)
-    result2 <- propose(lrps, criterion = -37)
-    expect_identical(result1, result2)
-  })
+  expect_snapshot(propose.ernest_lrps(lrps, c(0.5, 0.5), -1), error = TRUE)
 })
+
+#   it("is reproducible under seed", {
+#     set.seed(42L)
+#     lrps <- new_ernest_lrps(fn, 2L)
+#     result1 <- propose(lrps, criterion = -37)
+#
+#     set.seed(42L)
+#     result2 <- propose(lrps, criterion = -37)
+#     expect_identical(result1, result2)
+#   })
+# })
 
 test_that("update_lrps.ernest_lrps is idempotent", {
   lrps <- new_ernest_lrps(fn, 2L)

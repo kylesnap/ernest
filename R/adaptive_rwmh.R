@@ -108,11 +108,11 @@ adaptive_rwmh <- function(
 #' @export
 format.adaptive_rwmh <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("adaptive random walk LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    cli::cli_text("Current Step Size: {pretty(x$cache$epsilon %||% 1)}")
+    cli::cli_text("No. Accepted Proposals: {x$cache$n_accept %||% 0}")
+    cli::cli_text("No. Steps: {x$steps}")
     cli::cli_text("Target Acceptance: {x$target_acceptance}")
+    cli::cli_text("Step Size: {pretty(x$cache$epsilon %||% 1)}")
+    cli::cli_text("Min. Step Size: {x$min_epsilon}")
   })
 }
 
@@ -222,22 +222,10 @@ update_lrps.adaptive_rwmh <- function(x, unit = NULL) {
   if (is.null(unit)) {
     return(do.call(new_adaptive_rwmh, as.list(x)))
   }
-  try_fetch(
-    {
-      x$strength <- x$strength %||% nrow(unit)
-      cov <- stats::cov(unit)
-      mean <- colMeans(unit)
-      env_poke(x$cache, "mean", mean)
-      env_poke(x$cache, "covariance", cov)
-    },
-    error = function(cnd) {
-      cli::cli_warn(
-        "Using the identity matrix after encountering a rebounding error.",
-        parent = cnd
-      )
-      x$strength <- NULL
-      env_unbind(x$cache, c("covariance", "epsilon", "mean"))
-    }
-  )
+  x$strength <- x$strength %||% nrow(unit)
+  cov <- stats::cov(unit)
+  mean <- colMeans(unit)
+  env_poke(x$cache, "mean", mean)
+  env_poke(x$cache, "covariance", cov)
   do.call(new_adaptive_rwmh, as.list(x))
 }

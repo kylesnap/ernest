@@ -23,7 +23,3 @@ BoundingEllipsoid <- function(X) {
 MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact) {
   .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact)
 }
-
-MinRadius <- function(X) {
-  .Call(`_ernest_MinRadius`, X)
-}

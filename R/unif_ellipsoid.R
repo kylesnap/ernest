@@ -74,16 +74,9 @@ unif_ellipsoid <- function(enlarge = 1.25) {
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("uniform ellipsoid LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    if (all(env_has(x$cache, c("center", "log_volume")))) {
-      cli::cli_dl(c(
-        "Centre" = "{pretty(x$cache$center)}",
-        "Log Volume" = "{pretty(x$cache$log_volume)}",
-        "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL
-      ))
-    }
+    cli::cli_text("Center: {pretty(x$cache$center %||% 'Undefined')}")
+    cli::cli_text("Log Volume: {pretty(x$cache$log_volume %||% -Inf)}")
+    cli::cli_text("Enlargement: {x$enlarge}")
   })
 }
 
@@ -199,7 +192,7 @@ propose_ellipsoid <- function(
       ))
     }
   }
-  list(n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, n_call = max_loop)
 }
 
 #' @rdname update_lrps

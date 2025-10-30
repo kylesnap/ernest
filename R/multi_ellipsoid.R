@@ -58,12 +58,12 @@ multi_ellipsoid <- function(
   check_number_decimal(min_reduction, min = 0, max = 1)
   check_bool(allow_contact)
 
-  if (enlarge == 1.0) {
-    cli::cli_warn("`enlarge` is set to 1.0, which is not recommended.")
+  if (enlarge == 1) {
+    cli::cli_warn("`enlarge` is set to 1, which is not recommended.")
   }
-  if (min_reduction == 1.0 && allow_contact) {
+  if (min_reduction == 1 && allow_contact) {
     cli::cli_warn(c(
-      "`min_reduction` is set to 1.0, which may lead to over-splitting.",
+      "`min_reduction` is set to 1, which may lead to over-splitting.",
       "i" = "Should `allow_contact` be set to `FALSE`?"
     ))
   }
@@ -81,21 +81,14 @@ multi_ellipsoid <- function(
 #' @export
 #' @noRd
 format.multi_ellipsoid <- function(x, ...) {
+  n_ell <- length(env_get(x$cache, "prob", double()))
+  log_vol <- env_cache(x$cache, "total_log_volume", -Inf)
   cli::cli_format_method({
-    cli::cli_text("multi ellipsoid LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    if (env_has(x$cache, "ellipsoid")) {
-      n_ell <- length(x$cache$prob)
-      total_log_vol <- x$cache$total_log_volume %||% NA_real_
-      cli::cli_dl(c(
-        "No. Ellipsoids" = "{n_ell}",
-        "Total Log Volume" = "{pretty(total_log_vol)}",
-        "Min Reduction" = "{x$min_reduction}",
-        "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL,
-        "Allow Contact" = "{x$allow_contact}"
-      ))
-    }
+    cli::cli_text("No. Ellipsoids: {n_ell}")
+    cli::cli_text("Total Log Volume: {pretty(log_vol)}")
+    cli::cli_text("Min Reduction: {x$min_reduction}")
+    cli::cli_text("Allow Contact: {x$allow_contact}")
+    cli::cli_text("Enlargement: {x$enlarge}")
   })
 }
 

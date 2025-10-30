@@ -2,59 +2,31 @@ fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
 set.seed(42)
 
 test_that("unif_cube returns correct class and structure", {
-  obj <- unif_cube()
-  expect_s3_class(obj, c("unif_cube", "ernest_lrps"), exact = TRUE)
-  expect_null(obj$unit_log_fn)
-  expect_null(obj$n_dim)
-  expect_equal(obj$max_loop, 1e6L)
-  expect_snapshot(obj)
+  default <- unif_cube()
+  expect_equal(default$max_loop, 1e6L)
+  expect_snapshot(default)
 })
 
-describe("new_unif_cube", {
-  it("initializes correctly", {
-    uniform <- new_unif_cube(fn, 2L, max_loop = 100)
-    expect_s3_class(uniform, c("unif_cube", "ernest_lrps"), exact = TRUE)
-    expect_identical(uniform$unit_log_fn, fn)
-    expect_equal(uniform$max_loop, 100)
-    expect_equal(uniform$n_dim, 2L)
-  })
-})
-
-uniform <- new_unif_cube(fn, 2L, max_loop = 10000)
-describe("propose.unif_cube", {
-  it("proposes a single new point", {
-    result <- propose(uniform, original = NULL, criterion = -Inf)
-    expect_length(result$unit, 2)
-    expect_equal(
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
-      result$log_lik
-    )
-    expect_snapshot(uniform)
+describe("unif_cube class", {
+  obj <- new_unif_cube(fn, 2L, max_loop = 100)
+  it("Can be constructed with new_", {
+    check_valid_lrps(obj)
+    expect_equal(obj$max_loop, 100)
+    expect_equal(obj$n_dim, 2L)
   })
 
-  it("evolves a single point", {
-    result <- propose(
-      uniform,
-      original = c(0.5, 0.5),
-      criterion = -99.3068
-    )
-    expect_length(result$unit, 2)
-    expect_equal(
-      gaussian_blobs$log_lik(gaussian_blobs$prior$fn(result$unit)),
-      result$log_lik
-    )
-    expect_gt(uniform$cache$n_call, 0)
-    expect_snapshot(uniform)
+  it("Can call propose", {
+    check_propose(obj, fn)
   })
-})
 
-live <- replicate(500, propose(uniform))
-live <- do.call(rbind, live["unit", ])
-describe("update_lrps.unif_cube", {
-  it("resets and is idempotent", {
-    new_uniform <- update_lrps(uniform, live)
-    expect_equal(new_uniform$cache$n_call, 0L)
-    newer_uniform <- update_lrps(new_uniform)
-    expect_identical(new_uniform, newer_uniform)
+  it("Can be updated", {
+    res <- check_update_lrps(obj)
+    skip_on_cran()
+    skip_extended_test()
+    fig <- \() {
+      plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
+      points(res$new, col = "red")
+    }
+    vdiffr::expect_doppelganger("update.unif_cube", fig)
   })
 })

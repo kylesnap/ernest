@@ -50,15 +50,20 @@ slice <- function(enlarge = 1) {
 #' @noRd
 #' @export
 format.slice <- function(x, ...) {
+  center <- "Undefined"
+  log_vol <- -Inf
+  enlarge <- if (is.na(x$enlarge)) "Disabled" else x$enlarge
+  if (all(env_has(x$cache, c("lower", "upper")))) {
+    c(center, log_vol) %<-%
+      list(
+        (x$cache$upper + x$cache$lower) / 2,
+        sum(log(x$cache$rect$upper - x$cache$rect$lower))
+      )
+  }
   cli::cli_format_method({
-    cli::cli_text("slice sampler LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    if (!is.null(x$cache$lower) && !is.null(x$cache$upper)) {
-      cli::cli_text("Centre: {pretty((x$cache$upper + x$cache$lower)/ 2)}")
-      log_vol <- sum(log(x$cache$rect$upper - x$cache$rect$lower))
-      cli::cli_text("Log Volume: {pretty(log_vol)}")
-    }
+    cli::cli_text("Centre: {pretty(center)}")
+    cli::cli_text("Log Volume: {log_vol}")
+    cli::cli_text("Enlargement: {enlarge}")
   })
 }
 
@@ -82,7 +87,7 @@ new_slice <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
   max_loop = 1e6L,
-  enlarge = 1,
+  enlarge = 1.25,
   cache = NULL
 ) {
   check_number_decimal(enlarge, min = 1, allow_na = TRUE)

@@ -1,51 +1,51 @@
-# new_unif_ellipsoid: fails when scale or n_dim are improper.
+# unif_ellipsoid can be called by user
 
     Code
-      new_unif_ellipsoid(fn, 2L, enlarge = 0.5)
+      unif_ellipsoid(enlarge = 0.5)
     Condition
-      Error in `new_unif_ellipsoid()`:
+      Error in `unif_ellipsoid()`:
       ! `enlarge` must be a number larger than or equal to 1, not the number 0.5.
 
-# new_unif_ellipsoid: passes the correct defaults
+---
 
     Code
-      obj
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      unif_ellipsoid(enlarge = 1)
+    Message
+      ! `enlarge` is set to 1.0, which is not recommended.
+      <unif_ellipsoid> lrps:
+      No. Dimensions: Undefined
+      No. Calls Since Update: 0
+      Center: Undefined
+      Log Volume: -Inf
+      Enlargement: 1
       
-      No. Dimensions: 2
-      Centre: 0.5000, 0.5000
-      Log Volume: 0.4516
 
-# propose.unif_ellipsoid: Proposes points in the unit sphere
+---
 
     Code
-      uniform
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
+      default
+    Message
+      <unif_ellipsoid> lrps:
+      No. Dimensions: Undefined
+      No. Calls Since Update: 0
+      Center: Undefined
+      Log Volume: -Inf
+      Enlargement: 1.25
       
-      No. Dimensions: 2
-      Centre: 0.5000, 0.5000
-      Log Volume: 0.4516
-      Enlargement Factor: 1.2
 
-# update_lrps.unif_ellipsoid: can rebound to a matrix of live points
+# update throws a warning when the points are all identical
 
     Code
-      uniform
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
-      
-      No. Dimensions: 2
-      Centre: 0.4946, 0.4967
-      Log Volume: -1.733
-      Enlargement Factor: 1.2
-
-# update_lrps.unif_ellipsoid: reports numerical errors
-
-    Code
-      new_uniform <- update_lrps(uniform, xy)
+      update_lrps(obj, live)
     Condition
       Warning:
-      Ellipsoid fitting returned an error code (2).
+      Ellipsoid fitting returned an error code (1).
+    Message
+      <unif_ellipsoid> lrps:
+      No. Dimensions: 2
+      No. Calls Since Update: 0
+      Center: 0.5000, 0.5000
+      Log Volume: 0.4516
+      Enlargement: 1
+      
 

@@ -71,17 +71,17 @@ new_ernest_lrps <- function(
 
 #' @noRd
 #' @export
-format.ernest_lrps <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_alert_warning("abstract LRPS sampler {.cls {class(x)}}")
-  })
-}
-
-#' @noRd
-#' @export
 print.ernest_lrps <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+  cli::cli_text("{.cls {class(x)[1]}} lrps:")
+
+  cli::cli_par()
+  bullets <- c(
+    "No. Dimensions: {x$n_dim %||% 'Undefined'}",
+    "No. Calls Since Update: {x$cache$n_calls %||% 0}",
+    format(x)
+  )
+  cli::cli_bullets(bullets)
+  cli::cli_end()
 }
 
 #' Generate a new point using LRPS
@@ -137,6 +137,7 @@ propose.ernest_lrps <- function(
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
 #' @param n_dim Integer. Number of dimensions.
+#' @param p The p-norm to sample from.
 #' @param max_loop Positive integer. Maximum number of attempts to generate
 #' a point.
 #'
@@ -158,7 +159,7 @@ propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
       ))
     }
   }
-  list(n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, n_call = max_loop)
 }
 
 #' Update an LRPS

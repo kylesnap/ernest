@@ -1,17 +1,15 @@
-# rwmh_cube returns correct class and structure
+# rwmh_cube can be called by user
 
     Code
-      obj
-    Output
-      random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
-      
-      No. Dimensions: Uninitialized
-      Current Step Size: 1.000
+      rwmh_cube(steps = 1)
+    Condition
+      Error in `new_rwmh_cube()`:
+      ! `steps` must be a whole number larger than or equal to 2, not the number 1.
 
-# new_rwmh_cube: errors on invalid arguments
+---
 
     Code
-      new_rwmh_cube(fn, 2L, target_acceptance = 0)
+      rwmh_cube(target_acceptance = 0.01)
     Condition
       Error in `new_rwmh_cube()`:
       ! `target_acceptance` must be at least 1/25.
@@ -19,7 +17,7 @@
 ---
 
     Code
-      new_rwmh_cube(fn, 2L, target_acceptance = 1)
+      rwmh_cube(target_acceptance = 1.1)
     Condition
       Error in `new_rwmh_cube()`:
       ! `target_acceptance` must be smaller than 1.
@@ -27,18 +25,14 @@
 ---
 
     Code
-      new_rwmh_cube(fn, 2L, steps = 1)
-    Condition
-      Error in `new_rwmh_cube()`:
-      ! `steps` must be a whole number larger than or equal to 2, not the number 1.
-
-# propose.rwmh_cube: proposes a single new point
-
-    Code
-      rwcube
-    Output
-      random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
+      default
+    Message
+      <rwmh_cube> lrps:
+      No. Dimensions: Undefined
+      No. Calls Since Update: 0
+      No. Accepted Proposals: 0
+      No. Steps: 25
+      Target Acceptance: 0.5
+      Step Size: 1.000
       
-      No. Dimensions: 2
-      Current Step Size: 1.000
 

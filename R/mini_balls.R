@@ -51,23 +51,34 @@
 #' )
 #' @export
 mini_balls <- function(enlarge = 1.1, method, p) {
-  provided <- check_exclusive(method, p, .require = FALSE)
-  p <- switch(
-    provided,
-    method = {
-      method <- arg_match0(method, c("euclidean", "maximum", "manhattan"))
-      switch(method, euclidean = 2, maximum = Inf, manhattan = 1)
-    },
-    p = p,
-    2
-  )
+  arg <- check_exclusive(method, p, .require = FALSE)
+  if (arg == "p") {
+    check_number_decimal(p, min = 1)
+    method <- if (p == Inf) {
+      "maximum"
+    } else if (isTRUE(all.equal(p, 1))) {
+      "manhattan"
+    } else if (isTRUE(all.equal(p, 2))) {
+      "euclidean"
+    } else {
+      "minkowski"
+    }
+  } else if (arg == "method") {
+    method <- arg_match0(method, c("euclidean", "maximum", "manhattan"))
+    p <- switch(method, "manhattan" = 1, "euclidean" = 2, "maximum" = Inf)
+  } else {
+    method <- "euclidean"
+    p <- 2
+  }
   check_number_decimal(enlarge, min = 1)
   if (enlarge == 1.0) {
     cli::cli_alert_warning("`enlarge` is set to 1.0, which is not recommended.")
   }
+
   new_mini_balls(
     unit_log_fn = NULL,
     n_dim = NULL,
+    method = method,
     p = p,
     enlarge = enlarge,
     max_loop = getOption("ernest.max_loop", 1e6L)
@@ -77,18 +88,19 @@ mini_balls <- function(enlarge = 1.1, method, p) {
 #' @export
 #' @noRd
 format.mini_balls <- function(x, ...) {
+  norm_str <- if (x$p %in% c(1, 2, Inf)) {
+    x$method
+  } else {
+    glue::glue("{x$p}-norm")
+  }
+  radius <- env_cache(x$cache, "radius", -Inf)
+  if (radius == -Inf) {
+    radius <- "Undefined"
+  }
   cli::cli_format_method({
-    cli::cli_text("uniform p-norm ball LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    if (all(env_has(x$cache, c("center", "radius")))) {
-      cli::cli_dl(c(
-        "Centre" = "{pretty(x$cache$center)}",
-        "Radius" = "{pretty(x$cache$radius)}",
-        "p-norm" = "{x$p}",
-        "Enlargement Factor" = if (x$enlarge != 1) "{x$enlarge}" else NULL
-      ))
-    }
+    cli::cli_text("Distance: {norm_str}")
+    cli::cli_text("Radius: {radius}")
+    cli::cli_text("Enlargement: {x$enlarge}")
   })
 }
 
@@ -108,11 +120,13 @@ format.mini_balls <- function(x, ...) {
 new_mini_balls <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
+  method = "euclidean",
   p = 2,
   max_loop = 1e6L,
   cache = NULL,
   enlarge = 1.0
 ) {
+  arg_match0(method, c("euclidean", "maximum", "manhattan", "minkowski"))
   check_number_decimal(p, min = 1)
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
 
@@ -124,8 +138,9 @@ new_mini_balls <- function(
     n_dim = n_dim,
     max_loop = max_loop,
     cache = cache,
-    p = p,
-    enlarge = enlarge,
+    method = as.character(method),
+    p = as.double(p),
+    enlarge = as.double(enlarge),
     .class = "mini_balls"
   )
 }
@@ -139,7 +154,7 @@ propose.mini_balls <- function(x, original = NULL, criterion = -Inf) {
     radius <- env_cache(x$cache, "radius", -Inf)
     if (!is.finite(radius)) {
       cli::cli_warn(
-        "`mini_balls` does not have a valid radius to sample within."
+        "`x` does not have a valid radius to sample within."
       )
       return(propose.ernest_lrps(x, original = NULL, criterion))
     }
@@ -182,10 +197,15 @@ propose_pball <- function(
 ) {
   n_dim <- length(original)
   proposal <- double(n_dim)
+  sample_gen <- if (p == Inf) {
+    expr(stats::runif(!!n_dim, min = 0, max = !!radius))
+  } else if (p == 2) {
+    expr(uniformly::runif_in_sphere(1, !!n_dim, r = !!radius))
+  } else {
+    expr(uniformly::runif_in_pball(1, !!n_dim, !!p, r = !!radius))
+  }
   for (i in seq_len(max_loop)) {
-    proposal <- drop(
-      uniformly::runif_in_pball(1, n_dim, p, r = radius) + original
-    )
+    proposal <- drop(eval_bare(sample_gen) + original)
     if (any(proposal < 0) || any(proposal > 1)) {
       next
     }
@@ -198,7 +218,7 @@ propose_pball <- function(
       ))
     }
   }
-  list(n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, n_call = max_loop)
 }
 
 #' @rdname update_lrps
@@ -207,12 +227,13 @@ update_lrps.mini_balls <- function(x, unit = NULL) {
   if (is.null(unit)) {
     return(do.call(new_mini_balls, as.list(x)))
   }
-  distances <- stats::dist(unit, method = "minkowski", p = x$p)
+  distances <- stats::dist(unit, method = x$method, p = x$p)
   min_dist <- min(distances[distances > 0])
   if (!is.finite(min_dist)) {
     cli::cli_warn(
-      "Distances between points are non-finite. The radius will not be updated."
+      "Distances between points are non-finite. The radius is set to `-Inf`."
     )
+    min_dist <- -Inf
   }
   env_poke(x$cache, "radius", min_dist)
   do.call(new_mini_balls, as.list(x))

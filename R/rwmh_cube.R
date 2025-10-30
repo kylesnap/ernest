@@ -80,10 +80,10 @@ rwmh_cube <- function(
 #' @export
 format.rwmh_cube <- function(x, ...) {
   cli::cli_format_method({
-    cli::cli_text("random walk in unit cube LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-    cli::cli_text("Current Step Size: {pretty(x$cache$epsilon %||% 1)}")
+    cli::cli_text("No. Accepted Proposals: {x$cache$n_accept %||% 0}")
+    cli::cli_text("No. Steps: {x$steps}")
+    cli::cli_text("Target Acceptance: {x$target_acceptance}")
+    cli::cli_text("Step Size: {pretty(x$cache$epsilon %||% 1)}")
   })
 }
 
@@ -116,7 +116,7 @@ new_rwmh_cube <- function(
 ) {
   check_number_whole(steps, min = 2)
   check_number_decimal(target_acceptance)
-  if (target_acceptance < 1 / steps) {
+  if (target_acceptance < (1 / steps)) {
     cli::cli_abort("`target_acceptance` must be at least 1/{steps}.")
   }
   if (target_acceptance >= 1) {
@@ -163,11 +163,9 @@ propose.rwmh_cube <- function(
 #' @export
 update_lrps.rwmh_cube <- function(x, unit = NULL) {
   # Newton-like update to epsilon based on the acceptance ratio
-  cur_call <- NULL
-  cur_accept <- NULL
-  cur_eps <- NULL
-  c(cur_call, cur_accept, cur_eps) %<-%
-    env_get_list(x$cache, c("n_call", "n_accept", "epsilon"), c(0, 0, 1))
+  cur_call <- env_get(x$cache, "n_call", 0L)
+  cur_accept <- env_get(x$cache, "n_accept", 0L)
+  cur_eps <- env_get(x$cache, "epsilon", 1.0)
   if (cur_call != 0L) {
     acc_ratio <- cur_accept / cur_call
     new_eps <- cur_eps *

@@ -13,10 +13,10 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
   END_CPP11
 }
 // propose-impl.cpp
-cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon_init, double epsilon_min, double target_acceptance, cpp11::doubles mean, cpp11::doubles_matrix<> cov, double strength, double forgetfulness);
-extern "C" SEXP _ernest_AdaptiveRWImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon_init, SEXP epsilon_min, SEXP target_acceptance, SEXP mean, SEXP cov, SEXP strength, SEXP forgetfulness) {
+cpp11::list NURSImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double h, int M);
+extern "C" SEXP _ernest_NURSImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP h, SEXP M) {
   BEGIN_CPP11
-    return cpp11::as_sexp(AdaptiveRWImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_init), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon_min), cpp11::as_cpp<cpp11::decay_t<double>>(target_acceptance), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(mean), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(cov), cpp11::as_cpp<cpp11::decay_t<double>>(strength), cpp11::as_cpp<cpp11::decay_t<double>>(forgetfulness)));
+    return cpp11::as_sexp(NURSImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(h), cpp11::as_cpp<cpp11::decay_t<int>>(M)));
   END_CPP11
 }
 // propose-impl.cpp
@@ -53,13 +53,13 @@ extern "C" {
 extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_ernest_AdaptiveRWImpl",          (DL_FUNC) &_ernest_AdaptiveRWImpl,          11},
-    {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,        1},
-    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids,  3},
-    {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,           5},
-    {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,                6},
-    {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,                2},
-    {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,               1},
+    {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       1},
+    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 3},
+    {"_ernest_NURSImpl",                (DL_FUNC) &_ernest_NURSImpl,                6},
+    {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
+    {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
+    {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,               2},
+    {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,              1},
     {NULL, NULL, 0}
 };
 }

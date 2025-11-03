@@ -4,8 +4,8 @@ logaddexp <- function(x, y) {
   .Call(`_ernest_logaddexp`, x, y)
 }
 
-AdaptiveRWImpl <- function(original, unit_log_fn, criterion, steps, epsilon_init, epsilon_min, target_acceptance, mean, cov, strength, forgetfulness) {
-  .Call(`_ernest_AdaptiveRWImpl`, original, unit_log_fn, criterion, steps, epsilon_init, epsilon_min, target_acceptance, mean, cov, strength, forgetfulness)
+NURSImpl <- function(original, unit_log_fn, criterion, steps, h, M) {
+  .Call(`_ernest_NURSImpl`, original, unit_log_fn, criterion, steps, h, M)
 }
 
 RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {

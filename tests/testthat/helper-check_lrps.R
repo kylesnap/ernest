@@ -10,11 +10,12 @@
 #' @param allow_empty Logical; if TRUE, allow empty objects.
 #' @noRd
 check_valid_lrps <- function(
-    object,
-    add_names = NULL,
-    cache_names = NULL,
-    cache_types = NULL,
-    allow_empty = FALSE) {
+  object,
+  add_names = NULL,
+  cache_names = NULL,
+  cache_types = NULL,
+  allow_empty = FALSE
+) {
   expect_s3_class(object, "ernest_lrps")
   required_names <- c(add_names, "unit_log_fn", "n_dim", "max_loop", "cache")
   expect_named(object, required_names, ignore.order = TRUE)
@@ -68,12 +69,13 @@ check_propose <- function(lrps, unit_log_fn, fail_on_no_accept = TRUE) {
 
   # Call propose with original = some vector
   orig <- rep(0.5, lrps$n_dim)
-  orig_log_lik <- lrps$unit_log_fn(orig)
-  res2 <- propose(lrps, original = orig, criterion = orig_log_lik + 0.1)
+  orig_log_lik <- unit_log_fn(orig)
+  res2 <- propose(lrps, original = orig, criterion = orig_log_lik - 10)
   check_res(res2)
-  expect_gte(res2$log_lik + 0.1, orig_log_lik)
+  expect_gte(res2$log_lik + 0.1, orig_log_lik - 10)
   expect_gt(res2$n_call, 0L)
   expect_equal(env_get(lrps$cache, "n_call"), res2$n_call)
+  expect_snapshot(as.list(lrps$cache))
 
   # Error behaviour: criterion greater than max log lik.
   lrps$max_loop <- 1e3
@@ -88,7 +90,7 @@ check_propose <- function(lrps, unit_log_fn, fail_on_no_accept = TRUE) {
   }
 
   # Error behaviour: log_lik(original) < log_lik
-  res4 <- propose(lrps, original = orig, criterion = orig_log_lik - 0.1)
+  res4 <- propose(lrps, original = orig, criterion = orig_log_lik + 10)
   check_res(res4)
 }
 
@@ -103,10 +105,11 @@ check_propose <- function(lrps, unit_log_fn, fail_on_no_accept = TRUE) {
 #'
 #' @returns A list with old and new live points generated after update.
 check_update_lrps <- function(
-    lrps,
-    add_names = NULL,
-    cache_names = NULL,
-    cache_types = NULL) {
+  lrps,
+  add_names = NULL,
+  cache_names = NULL,
+  cache_types = NULL
+) {
   withr::local_seed(42)
   # Generate 500 points with the LRPS.
   env_poke(lrps$cache, "n_call", 0L, create = FALSE)

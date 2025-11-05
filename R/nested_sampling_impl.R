@@ -116,7 +116,7 @@ nested_sampling_impl <- function(
 
     # 4. If required, update the LRPS
     if (!initial_update && call >= x$first_update) {
-      x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
+      x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
       if (!is.null(logger)) {
         inject(log4r::info(
           logger,
@@ -128,7 +128,7 @@ nested_sampling_impl <- function(
       initial_update <- TRUE
     }
     if (initial_update && (x$lrps$cache$n_call %||% 0L) > x$update_interval) {
-      x$lrps <- update_lrps(x$lrps, unit = live_env$unit)
+      x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
       if (!is.null(logger)) {
         inject(log4r::info(
           logger,

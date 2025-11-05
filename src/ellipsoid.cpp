@@ -94,6 +94,16 @@ Vector vol::Ellipsoid::Closest(const ConstRef<Vector> point) {
   return FindClosest(L_, center_, point, solve_);
 };
 
+void vol::Ellipsoid::set_log_volume(double log_volume) {
+  double log_scale_factor = (log_volume - log_volume_) / n_dim_;
+  double scale_factor = exp(log_scale_factor);
+
+  L_ *= scale_factor;
+  eigensystem_.values *= (scale_factor * scale_factor);
+  inv_sqrt_shape_ /= scale_factor;
+  log_volume_ = log_volume;
+}
+
 bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
   // An abbreviated Part 1 from ell_pair_separate in ELL_LIB
   Matrix g1 = L_;
@@ -113,14 +123,14 @@ bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
 }
 
 Matrix ern::vol::Ellipsoid::major_axes() const {
-  Vector tmp = 1.0 / eigensystem_.values.array().sqrt();
-  Matrix axes = eigensystem_.vectors * tmp.asDiagonal();
-  Eigen::Index max_idx;
-  tmp.maxCoeff(&max_idx);
-  tmp = axes.col(max_idx);
+  // Largest axis
+  Vector axes = eigensystem_.values.cwiseInverse().cwiseSqrt();
+  Eigen::Index max_i;
+  axes.maxCoeff(&max_i);
+  axes = inv_sqrt_shape_.col(max_i);  // The major axis of the ellipsoid
   Matrix endpoints(2, n_dim_);
-  endpoints.row(0) = tmp - center_;
-  endpoints.row(1) = tmp + center_;
+  endpoints.row(0) = center_ + axes;
+  endpoints.row(1) = center_ - axes;
   return endpoints;
 }
 
@@ -213,105 +223,115 @@ void vol::Ellipsoid::SetShape() {
 }
 
 // Clustering Helpers
+// Helper function for recursive splitting
+static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
+                                            const double min_reduction,
+                                            const bool allow_contact,
+                                            const double point_volume) {
+  // Perform k-means clustering with k=2
+  size_t n_dim = cur.ell.n_dim();
+  size_t n_points = cur.data.rows();
+  Matrix endpoints = cur.ell.major_axes();
+  Vector labels(n_points);
+  kmeans_rex::RunKMeans(cur.data, 2, 10, endpoints, labels);
 
-// Finds the rows in `rows` that belong to `cluster` as indicated by `sub_idx`.
-static std::vector<int> find_clusters(const std::vector<int>& rows,
-                                      const ConstRef<Vector> sub_idx, const int cluster) {
-  std::vector<int> cluster_rows;
-  for (int i = 0; i < rows.size(); i++) {
-    if (sub_idx[i] == cluster) {
-      cluster_rows.push_back(rows[i]);
-    }
-  }
-  return cluster_rows;
-}
-
-// Splits the data points in `rows` into two sub-ellipsoids using K-means.
-// Returns true if both sub-ellipsoids were non-degenerate.
-static bool split_cluster(const ConstRef<Matrix> X, const std::vector<int>& rows,
-                          Matrix& mu, vol::SubEllipsoid& lh, vol::SubEllipsoid& rh) {
-  Matrix sub_X = X(rows, Eigen::all);
-  Eigen::ArrayXd sub_idx(sub_X.rows());
-  kmeans_rex::RunKMeans(sub_X, 2, 100, mu, sub_idx);
-
-  lh.rows = find_clusters(rows, sub_idx, 0);
-  lh.ell.Fit(X(lh.rows, Eigen::all));
-  rh.rows = find_clusters(rows, sub_idx, 1);
-  rh.ell.Fit(X(rh.rows, Eigen::all));
-
-  return lh.ell.error() == vol::kOk && rh.ell.error() == vol::kOk;
-}
-
-// Moves the sub-ellipsoids onto the proposal queue and pops the pre-split
-// ellipsoid.
-static void split(std::deque<vol::SubEllipsoid>& proposals, vol::SubEllipsoid& lh,
-                  vol::SubEllipsoid& rh) {
-  int n_dim = lh.ell.n_dim();
-  proposals.emplace_back(std::move(lh));
-  proposals.emplace_back(std::move(rh));
-  lh = vol::SubEllipsoid({vol::Ellipsoid(n_dim), std::vector<int>()});
-  rh = vol::SubEllipsoid({vol::Ellipsoid(n_dim), std::vector<int>()});
-  proposals.pop_front();
-}
-
-// Move the pre-split ellipsoid onto the vector of finalized ellipsoids.
-static void merge(std::vector<vol::Ellipsoid>& ellipsoids,
-                  std::deque<vol::SubEllipsoid>& proposals) {
-  ellipsoids.emplace_back(std::move(proposals.front().ell));
-  proposals.pop_front();
-}
-
-std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(const ConstRef<Matrix> X,
-                                                               const double min_reduction,
-                                                               const bool allow_contact) {
-  int n_dim = X.cols();
-  int n_point = X.rows();
-  std::vector<Ellipsoid> ellipsoids;
-  std::deque<vol::SubEllipsoid> proposals;
-
-  vol::SubEllipsoid lh{Ellipsoid(n_dim), std::vector<int>()};
-  vol::SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
-  Ellipsoid intersect(n_dim);
-
-  proposals.emplace_back(vol::SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
-  proposals.front().ell.Fit(X);
-  if (proposals.front().ell.error() != kOk) {
-    // If the initial ellipsoid is invalid, return it as the only ellipsoid.
-    merge(ellipsoids, proposals);
-    return ellipsoids;
-  }
-  std::iota(proposals.front().rows.begin(), proposals.front().rows.end(), 0);
-
-  while (!proposals.empty()) {
-    Ellipsoid& cur = proposals.front().ell;
-    std::vector<int>& rows = proposals.front().rows;
-    if (cur.error() != kOk) {
-      proposals.pop_front();
-      continue;
-    }
-
-    Matrix mu = cur.major_axes();
-    bool splitable = split_cluster(X, rows, mu, lh, rh);
-    if (!splitable) {
-      merge(ellipsoids, proposals);
-      continue;
-    }
-
-    // Check whether merging the two sub-ellipsoids reduces the volume.
-    double cur_log_vol = cur.log_volume() + log(min_reduction);
-    double tot_log_vol = Rf_logspace_add(lh.ell.log_volume(), rh.ell.log_volume());
-    bool less_volume = R_FINITE(tot_log_vol) && tot_log_vol <= cur_log_vol;
-    if (!less_volume) {
-      merge(ellipsoids, proposals);
-      continue;
-    }
-
-    // Check whether the two sub-ellipsoids intersect (if required).
-    if (!allow_contact && lh.ell.Intersects(rh.ell)) {
-      merge(ellipsoids, proposals);
+  // Split points into two clusters
+  std::vector<int> idx0, idx1;
+  for (int i = 0; i < n_points; ++i) {
+    if (labels[i] == 0) {
+      idx0.push_back(i);
     } else {
-      split(proposals, lh, rh);
+      idx1.push_back(i);
     }
   }
-  return ellipsoids;
+
+  // BASE CASE 1: Clusters get too small
+  if (idx0.size() < 2 * n_dim || idx1.size() < 2 * n_dim) {
+    return vol::PairedEllipsoids();
+  }
+
+  // Fit ellipsoids to each cluster
+  Matrix lh_data = cur.data(idx0, Eigen::all), rh_data = cur.data(idx1, Eigen::all);
+  vol::Ellipsoid lh_ell(lh_data), rh_ell(rh_data);
+
+  // BASE CASE 2: Ellipsoids are malformed or touch.
+  if (lh_ell.error() != vol::kOk || rh_ell.error() != vol::kOk) {
+    return vol::PairedEllipsoids();
+  }
+  if (!allow_contact && lh_ell.Intersects(rh_ell)) {
+    return vol::PairedEllipsoids();
+  }
+
+  // Recursive case: Ellipsoids have reduced volume and can be split further.
+  double total_log_vol = logspace_add(lh_ell.log_volume(), rh_ell.log_volume());
+  double log_vol_criterion = log(min_reduction) + cur.ell.log_volume();
+
+  vol::EllipsoidAndData lh{std::move(lh_ell), std::move(lh_data)};
+  vol::EllipsoidAndData rh{std::move(rh_ell), std::move(rh_data)};
+
+  // If total volume decreased significantly, accept split and recurse
+  if (total_log_vol < log_vol_criterion) {
+    vol::PairedEllipsoids split;
+    split.emplace_back(std::move(lh));
+    split.emplace_back(std::move(rh));
+    return split;
+  }
+
+  // If cur volume much larger than expected, try splitting again.
+  double double_expected_vol = M_LN2 + point_volume + log(cur.data.rows());
+  if (cur.ell.log_volume() > double_expected_vol) {
+    auto sum_log_vol = [](double prev, const vol::EllipsoidAndData& i) {
+      return logspace_add(prev, i.ell.log_volume());
+    };
+    vol::PairedEllipsoids lh_split =
+        SplitEllipsoid(lh, min_reduction, allow_contact, point_volume);
+    vol::PairedEllipsoids rh_split =
+        SplitEllipsoid(rh, min_reduction, allow_contact, point_volume);
+    double new_total_log_vol =
+        lh_split.empty()
+            ? lh.ell.log_volume()
+            : std::accumulate(lh_split.begin() + 1, lh_split.end(),
+                              lh_split.front().ell.log_volume(), sum_log_vol);
+    new_total_log_vol +=
+        rh_split.empty()
+            ? rh.ell.log_volume()
+            : std::accumulate(rh_split.begin() + 1, rh_split.end(),
+                              rh_split.front().ell.log_volume(), sum_log_vol);
+    if (new_total_log_vol < log_vol_criterion) {
+      lh_split.insert(lh_split.end(), rh_split.begin(), rh_split.end());
+      return lh_split;
+    }
+  }
+
+  // Otherwise, return single parent ellipsoid
+  return vol::PairedEllipsoids();
+}
+
+std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
+    const ConstRef<Matrix> X, const double min_reduction, const bool allow_contact,
+    const double expected_volume) {
+  MultiEllipsoid ell;
+  std::deque<EllipsoidAndData> partitions;
+
+  // Insert and check largest ellipsoid.
+  EllipsoidAndData& first = partitions.emplace_back(EllipsoidAndData{Ellipsoid(X), X});
+  if (first.ell.error() != kOk) {
+    ell.emplace_back(std::move(first.ell));
+    return ell;
+  }
+
+  double point_log_vol = expected_volume - log(X.rows());
+  while (!partitions.empty()) {
+    EllipsoidAndData first = std::move(partitions.front());
+    partitions.pop_front();
+    PairedEllipsoids splits =
+        SplitEllipsoid(first, min_reduction, allow_contact, point_log_vol);
+    if (splits.empty()) {  // The split failed
+      ell.emplace_back(std::move(first.ell));
+    } else {  // Split successful
+      partitions.emplace_back(std::move(splits[0]));
+      partitions.emplace_back(std::move(splits[1]));
+    }
+  }
+  return ell;
 }

@@ -223,7 +223,7 @@ propose_pball <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.mini_balls <- function(x, unit = NULL) {
+update_lrps.mini_balls <- function(x, unit = NULL, ...) {
   if (is.null(unit)) {
     return(do.call(new_mini_balls, as.list(x)))
   }

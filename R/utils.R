@@ -469,10 +469,3 @@ pretty <- function(x) {
   }
   paste0(strrep, collapse = ", ")
 }
-
-#' @noRd
-#' @export
-update_lrps.ernest_lrps <- function(x, unit = NULL) {
-  env_poke(x$cache, "n_call", 0L)
-  do.call(new_unif_cube, as.list(x))
-}

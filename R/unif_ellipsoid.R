@@ -197,7 +197,7 @@ propose_ellipsoid <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.unif_ellipsoid <- function(x, unit = NULL) {
+update_lrps.unif_ellipsoid <- function(x, unit = NULL, ...) {
   if (is.null(unit)) {
     return(do.call(new_unif_ellipsoid, as.list(x)))
   }

@@ -10,7 +10,8 @@ ernest_sampler(
   sampler = rwmh_cube(),
   n_points = 500,
   first_update = NULL,
-  update_interval = NULL
+  update_interval = NULL,
+  seed = NULL
 )
 }
 \arguments{
@@ -34,7 +35,10 @@ this is set to \code{n_points * 2.5}.}
 
 \item{update_interval}{An optional positive integer. The number of likelihood
 calls between updates to the \code{sampler} object. If \code{NULL}, this is set to
-\code{n_points * 1.5}.}
+\code{n_points * 1.5}.
+#' @param seed An optional integer. Sets the random seed controling the
+random number generator for nested sampling runs. If \code{NULL}, the \code{seed}
+attribute of the resulting object is set to a random integer.}
 }
 \value{
 An object of class \code{ernest_sampler}, which is a list containing the

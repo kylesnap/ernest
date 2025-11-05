@@ -32,9 +32,8 @@ cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
 // probabilities. If `X` has no rows, return a single unit sphere in the
 // appropriate dimension with probability 1.
 [[cpp11::register]]
-cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
-                                    const double min_reduction,
-                                    const bool allow_contact) {
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction,
+                                    const bool allow_contact, double expected_volume) {
   if (X.nrow() == 0) {
     ern::vol::Ellipsoid sphere(X.ncol());
     using namespace cpp11::literals;
@@ -44,9 +43,8 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
          "tot_log_vol"_nm = sphere.log_volume()});
   }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  std::vector<ern::vol::Ellipsoid> ellipsoids =
-      ern::vol::Ellipsoid::FitMultiEllipsoids(X_eigen, min_reduction,
-                                              allow_contact);
+  std::vector<ern::vol::Ellipsoid> ellipsoids = ern::vol::Ellipsoid::FitMultiEllipsoids(
+      X_eigen, min_reduction, allow_contact, expected_volume);
   cpp11::writable::list ellipsoid_list;
   cpp11::writable::doubles prob;
   for (auto ell : ellipsoids) {
@@ -57,7 +55,6 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X,
   std::transform(prob.begin(), prob.end(), prob.begin(),
                  [total_log_vol](double p) { return exp(p - total_log_vol); });
   using namespace cpp11::literals;
-  return cpp11::writable::list({"prob"_nm = prob,
-                                "ellipsoid"_nm = ellipsoid_list,
+  return cpp11::writable::list({"prob"_nm = prob, "ellipsoid"_nm = ellipsoid_list,
                                 "tot_log_vol"_nm = total_log_vol});
 }

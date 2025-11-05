@@ -41,10 +41,10 @@ extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X) {
   END_CPP11
 }
 // update_lrps-impl.cpp
-cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact);
-extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact) {
+cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction, const bool allow_contact, double expected_volume);
+extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP min_reduction, SEXP allow_contact, SEXP expected_volume) {
   BEGIN_CPP11
-    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact)));
+    return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<const double>>(min_reduction), cpp11::as_cpp<cpp11::decay_t<const bool>>(allow_contact), cpp11::as_cpp<cpp11::decay_t<double>>(expected_volume)));
   END_CPP11
 }
 
@@ -54,7 +54,7 @@ extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       1},
-    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 3},
+    {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 4},
     {"_ernest_NURSImpl",                (DL_FUNC) &_ernest_NURSImpl,                6},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},

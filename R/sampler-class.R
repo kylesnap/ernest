@@ -79,7 +79,7 @@ new_ernest_sampler <- function(
   if (is_environment(lrps$cache)) {
     env_unbind(lrps$cache, env_names(lrps$cache))
   }
-  lrps <- update_lrps(lrps, unit = NULL)
+  lrps <- update_lrps(lrps, ...)
 
   elems <- list(
     log_lik_fn = log_lik_fn,

@@ -161,7 +161,7 @@ propose.rwmh_cube <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.rwmh_cube <- function(x, unit = NULL) {
+update_lrps.rwmh_cube <- function(x, unit = NULL, ...) {
   # Newton-like update to epsilon based on the acceptance ratio
   cur_call <- env_get(x$cache, "n_call", 0L)
   cur_accept <- env_get(x$cache, "n_accept", 0L)

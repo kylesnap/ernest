@@ -20,6 +20,6 @@ BoundingEllipsoid <- function(X) {
   .Call(`_ernest_BoundingEllipsoid`, X)
 }
 
-MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact) {
-  .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact)
+MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact, expected_volume) {
+  .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact, expected_volume)
 }

@@ -189,7 +189,7 @@ propose.nurs <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.nurs <- function(x, unit = NULL) {
+update_lrps.nurs <- function(x, unit = NULL, ...) {
   if (is.null(unit) || is.null(x$adaptive_scale)) {
     return(do.call(new_nurs, as.list(x)))
   }

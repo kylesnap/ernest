@@ -42,6 +42,9 @@
 #' Notices of the Royal Astronomical Society. 398(4), 1601–1614.
 #' <https://doi.org/10.1111/j.1365-2966.2009.14548.x>
 #'
+#' For implementation, see:
+#' https://github.com/kbarbary/nestle/blob/master/runtests.py
+#'
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
@@ -131,7 +134,8 @@ new_multi_ellipsoid <- function(
     ell <- MultiBoundingEllipsoids(
       matrix(double(), nrow = 0, ncol = n_dim),
       min_reduction = min_reduction,
-      allow_contact = allow_contact
+      allow_contact = allow_contact,
+      expected_volume = -Inf
     )
     env_bind(
       cache,
@@ -181,14 +185,20 @@ propose.multi_ellipsoid <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.multi_ellipsoid <- function(x, unit = NULL) {
+update_lrps.multi_ellipsoid <- function(
+  x,
+  unit = NULL,
+  log_volume = NULL,
+  ...
+) {
   if (is.null(unit)) {
     return(do.call(new_multi_ellipsoid, as.list(x)))
   }
   splits <- MultiBoundingEllipsoids(
     unit,
     min_reduction = x$min_reduction,
-    allow_contact = x$allow_contact
+    allow_contact = x$allow_contact,
+    expected_volume = log_volume %||% -Inf
   )
   if (splits$ellipsoid[[1]]$error != 0L) {
     code <- splits$ellipsoid[[1]]$error

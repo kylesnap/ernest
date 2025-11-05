@@ -132,7 +132,7 @@ propose.slice <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.slice <- function(x, unit = NULL) {
+update_lrps.slice <- function(x, unit = NULL, ...) {
   if (is.null(unit) || is.na(x$enlarge)) {
     return(do.call(new_slice, as.list(x)))
   }

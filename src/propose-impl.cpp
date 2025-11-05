@@ -8,21 +8,17 @@
 //
 // Implements proposal mechanisms for MCMC sampling within nested sampling.
 // These are called from R.
-#include "adaptive_rwmh.h"
+#include "nurs.h"
 #include "rectangle.h"
 
-// Runs the adaptive RWMH sampler with accelerated shaping and scaling.
-// Proposal: X' ~ N(X_n, ε_n * c_n * Σ_n) where c_n = 2.38^2 / d.
+// Runs the No-Underrun Sampler (NURS).
 [[cpp11::register]]
-cpp11::list AdaptiveRWImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                           double criterion, int steps, double epsilon_init,
-                           double epsilon_min, double target_acceptance,
-                           cpp11::doubles mean, cpp11::doubles_matrix<> cov,
-                           double strength, double forgetfulness) {
-  ern::AdaptiveRWMH state(mean, cov, target_acceptance, strength, forgetfulness,
-                          epsilon_init, epsilon_min);
-  state.Run(original, unit_log_fn, criterion, steps);
-  return state.as_list(unit_log_fn);
+cpp11::list NURSImpl(cpp11::doubles original, cpp11::function unit_log_fn,
+                     double criterion, int steps, double h, int M) {
+  const int n_dim = original.size();
+  ern::NURSSampler sampler(unit_log_fn, original);
+  sampler.Run(criterion, steps, h, M);
+  return sampler.as_list();
 }
 
 // Runs a basic Random Walk Metropolis-Hastings sampler with fixed step size.
@@ -53,17 +49,16 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   }
 
   using namespace cpp11::literals;
-  return cpp11::writable::list(
-      {"unit"_nm = as_row_doubles(prev_draw),
-       "log_lik"_nm = unit_log_fn(as_row_doubles(prev_draw)),
-       "n_call"_nm = steps, "n_accept"_nm = n_accept});
+  return cpp11::writable::list({"unit"_nm = as_row_doubles(prev_draw),
+                                "log_lik"_nm = unit_log_fn(as_row_doubles(prev_draw)),
+                                "n_call"_nm = steps, "n_accept"_nm = n_accept});
 }
 
 // Runs a slice sampler within an initial hyperrectangle.
 [[cpp11::register]]
 cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                      double criterion, cpp11::doubles lower,
-                      cpp11::doubles upper, const int max_loop) {
+                      double criterion, cpp11::doubles lower, cpp11::doubles upper,
+                      const int max_loop) {
   // Setups
   ern::vol::Rectangle rect(lower, upper);
   Eigen::VectorXd next_draw = as_Matrix(original);
@@ -78,8 +73,7 @@ cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   }
 
   using namespace cpp11::literals;
-  return cpp11::writable::list(
-      {"unit"_nm = as_doubles(next_draw),
-       "log_lik"_nm = unit_log_fn(as_doubles(next_draw)), "n_call"_nm = draw,
-       "rect"_nm = rect.as_list()});
+  return cpp11::writable::list({"unit"_nm = as_doubles(next_draw),
+                                "log_lik"_nm = unit_log_fn(as_doubles(next_draw)),
+                                "n_call"_nm = draw, "rect"_nm = rect.as_list()});
 }

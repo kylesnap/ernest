@@ -140,12 +140,17 @@ class Ellipsoid {
   inline double log_volume() const { return log_volume_; }
   Matrix major_axes() const;
 
+  // Scale the ellipsoid to have the specified log volume.
+  // The shape is scaled uniformly while maintaining the center.
+  void set_log_volume(double log_volume);
+
   // Fit multiple ellipsoids to the dataset `X` using recursive splitting,
   // retaining only those that meet the `min_reduction` criterion.
   // If `allow_contact` is false, ellipsoids that touch are also avoided.
   static std::vector<Ellipsoid> FitMultiEllipsoids(const ConstRef<Matrix> X,
                                                    const double min_reduction,
-                                                   const bool allow_contact);
+                                                   const bool allow_contact,
+                                                   const double expected_volume);
 
  private:
   Vector center_;                   // Center of the ellipsoid (changed from RowVector).
@@ -173,11 +178,12 @@ class Ellipsoid {
   }
 };
 
-// Define an ellipsoid and the observations in a dataset it binds.
-struct SubEllipsoid {
+using MultiEllipsoid = std::vector<vol::Ellipsoid>;
+struct EllipsoidAndData {
   Ellipsoid ell;
-  std::vector<int> rows;
+  Matrix data;
 };
+using PairedEllipsoids = std::deque<EllipsoidAndData>;
 
 }  // namespace vol
 }  // namespace ern

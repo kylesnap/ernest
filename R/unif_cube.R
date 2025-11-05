@@ -33,7 +33,7 @@ unif_cube <- function() {
 #' @noRd
 #' @export
 format.unif_cube <- function(x, ...) {
-  return()
+  return(character(0L))
 }
 
 #' Create a new unif_cube LRPS

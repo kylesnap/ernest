@@ -178,18 +178,19 @@ propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
 #' @param x An `ernest_lrps` object.
 #' @param unit A matrix of live points within the sampler. If NULL, no LRPS
 #' updates based on the state of the live points will be made.
+#' @param log_volume The current log-volume of the nested sampling run.
 #'
 #' @returns An updated `ernest_lrps` object with the same class as `x`, possibly
 #' with updated parameters.
 #' @keywords internal
 #' @export
-update_lrps <- function(x, unit = NULL) {
+update_lrps <- function(x, ...) {
   UseMethod("update_lrps")
 }
 
 #' @noRd
 #' @export
-update_lrps.ernest_lrps <- function(x, unit = NULL) {
+update_lrps.ernest_lrps <- function(x, unit = NULL, ...) {
   env_poke(x$cache, "n_call", 0L)
   do.call(new_ernest_lrps, as.list(x))
 }

@@ -18,8 +18,8 @@ which remains constant throughout sampling.
 \item{steps}{Positive integer. Number of steps to take when generating a
 proposal point.}
 
-\item{max_orbits}{Positive integer. Maximum size of the orbit lattice built
-by the sampler.}
+\item{max_orbits}{Positive integer. Controls the maximum size of the orbit
+lattice built by the sampler (\code{2 ^ max_orbits}).}
 }
 \value{
 An object of class \code{c("nurs", "ernest_lrps")} for use with

@@ -20,6 +20,9 @@
 #' @param update_interval An optional positive integer. The number of likelihood
 #' calls between updates to the `sampler` object. If `NULL`, this is set to
 #' `n_points * 1.5`.
+#' #' @param seed An optional integer. Sets the random seed controling the
+#' random number generator for nested sampling runs. If `NULL`, the `seed`
+#' attribute of the resulting object is set to a random integer.
 #'
 #' @return An object of class `ernest_sampler`, which is a list containing the
 #' inputs used as arguments to this function, along with an environment
@@ -58,6 +61,9 @@
 #' samplers.
 #' @srrstats {BS2.12} Documents verbosity settings for all progress messages
 #' and warnings within ernest.
+#' @srrstats {BS5.0, BS5.1, BS5.2} Seed value stored as an attribute. Return
+#' values contain the objects used to generate a run, including the prior
+#' specification.
 #'
 #' @export
 #' @examples
@@ -80,7 +86,8 @@ ernest_sampler <- function(
   sampler = rwmh_cube(),
   n_points = 500,
   first_update = NULL,
-  update_interval = NULL
+  update_interval = NULL,
+  seed = NULL
 ) {
   if (!inherits(log_lik, "ernest_likelihood")) {
     log_lik <- create_likelihood(fn = log_lik)
@@ -91,7 +98,8 @@ ernest_sampler <- function(
     lrps = sampler,
     n_points = n_points,
     first_update = first_update %||% as.integer(n_points * 2.5),
-    update_interval = update_interval %||% as.integer(n_points * 1.5)
+    update_interval = update_interval %||% as.integer(n_points * 1.5),
+    seed = seed
   )
 
   try_fetch(

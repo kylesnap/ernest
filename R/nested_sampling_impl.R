@@ -161,6 +161,11 @@ nested_sampling_impl <- function(
         !!!new_unit
       ))
     }
+    if (is.null(new_unit$unit)) {
+      cli::cli_abort(
+        "`lrps` failed to generate a point in {x$lrps$max_loop} attempts."
+      )
+    }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
     live_env$birth[worst_idx] <- i + iter

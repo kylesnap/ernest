@@ -82,15 +82,16 @@ new_ernest_run_ <- function(x, parsed) {
     n_points = x$n_points,
     first_update = x$first_update,
     update_interval = x$update_interval,
-    run_env = x$run_env
+    run_env = x$run_env,
+    seed = attr(x, "seed")
   )
 
   obj <- do.call(
     new_ernest_sampler,
     list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
   )
-  attr(obj, "seed") <- env_get(x$run_env, "seed", default = NULL)
-  env_unbind(obj$run_env, c("unit", "log_lik", "birth", "seed"))
+  # Clear caches
+  env_unbind(obj$run_env, env_names(obj$run_env))
   obj
 }
 

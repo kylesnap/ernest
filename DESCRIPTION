@@ -25,7 +25,8 @@ Imports:
     tibble,
     uniformly,
     utils,
-    vctrs
+    vctrs,
+    withr
 Suggests: 
     ggdist,
     knitr,
@@ -36,7 +37,6 @@ Suggests:
     tidyselect,
     truncnorm,
     vdiffr,
-    withr,
     xml2
 LinkingTo:
     cpp11,

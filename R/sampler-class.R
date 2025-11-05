@@ -117,10 +117,9 @@ refresh_ernest_sampler <- function(x) {
 format.ernest_sampler <- function(x, ...) {
   cli::cli_format_method({
     cli::cli_text("nested sampling specification {.cls ernest_sampler}")
-    cli::cat_line()
     cli::cli_text("No. Points: {x$n_points}")
     cli::cli_h3("Sampling Method")
-    cli::cat_bullet(format(x$lrps))
+    cli::cat_print(x$lrps)
   })
 }
 

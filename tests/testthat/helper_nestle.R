@@ -87,18 +87,18 @@ mvm_3d <- local({
   )
 })
 
-
 #' Correctness Tests
 #'
-#' @srrstats {G5.4, G5.4b, G5.5} This function runs a correctness tests against
-#' results found by nestle and through analytic methods.
-
-run_gaussian_blobs <- function(sampler, ..., tolerance = 1) {
+#' @srrstats {G5.4, G5.4b, G5.5} These functions run correctness tests against
+#' results found by nestle and through analytic methods for each LRPS.
+#' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
+#' recovered under different seeds and with random noise added to the log-lik.
+run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
   sampler <- exec(
     ernest_sampler,
     gaussian_blobs$log_lik,
     prior = gaussian_blobs$prior,
-    sampler = sampler,
+    sampler = lrps,
     !!!list2(...),
     seed = 42
   )
@@ -125,14 +125,54 @@ run_gaussian_blobs <- function(sampler, ..., tolerance = 1) {
   res2_cpy <- generate(res1, max_iterations = 2000)
   expect_equal(cur_seed, .Random.seed[1])
   expect_identical(res2$log_lik, res2_cpy$log_lik)
+
+  # Test random seed changes
+  sampler <- exec(
+    ernest_sampler,
+    gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    sampler = lrps,
+    !!!list2(...),
+    seed = 84
+  )
+  result <- generate(sampler)
+  smry <- summary(result)
+
+  expect_lt(
+    abs(smry$log_evidence - gaussian_blobs$analytic_z),
+    log(tolerance) + smry$log_evidence_err
+  )
+  expect_snapshot(result)
+
+  # Robustness to noise
+  noisy_ll <- \(x) {
+    gaussian_blobs$log_lik(
+      x + rnorm(2, sd = .Machine$double.eps)
+    )
+  }
+  sampler_noise <- exec(
+    ernest_sampler,
+    gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    sampler = lrps,
+    !!!list2(...),
+    seed = 42
+  )
+  result_noise <- generate(sampler_noise)
+  smry_noise <- summary(result_noise)
+
+  expect_lt(
+    abs(smry_noise$log_evidence - gaussian_blobs$analytic_z),
+    log(tolerance) + smry_noise$log_evidence_err
+  )
 }
 
-run_eggbox <- function(sampler, ..., tolerance = 1) {
+run_eggbox <- function(lrps, ..., tolerance = 1) {
   sampler <- exec(
     ernest_sampler,
     eggbox$log_lik,
     eggbox$prior,
-    sampler = sampler,
+    sampler = lrps,
     !!!list2(...),
     seed = 42
   )
@@ -150,12 +190,12 @@ run_eggbox <- function(sampler, ..., tolerance = 1) {
   expect_equal(sum(weights), 1)
 }
 
-run_3d <- function(sampler, ..., tolerance = 1) {
+run_3d <- function(lrps, ..., tolerance = 1) {
   sampler <- exec(
     ernest_sampler,
     mvm_3d$log_lik,
     mvm_3d$prior,
-    sampler = sampler,
+    sampler = lrps,
     !!!list2(...),
     seed = 42
   )

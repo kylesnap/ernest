@@ -49,6 +49,18 @@
       Enlargement: 1.1
       
 
+# mini_balls class: Can call propose
+
+    Code
+      as.list(lrps$cache)
+    Output
+      $radius
+      [1] 0.5
+      
+      $n_call
+      [1] 7
+      
+
 # mini_balls works with non-euclidean norms:: manhattan
 
     Code
@@ -123,4 +135,72 @@
       $n_call
       [1] 1
       
+
+# mini_balls can provide good results
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
+      
+      -- Results 
+      No. Iterations: 4909
+      No. Calls: 5546
+      Log. Evidence: -7.277 (± 0.1235)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
+      
+      -- Results 
+      No. Iterations: 4838
+      No. Calls: 5484
+      Log. Evidence: -6.739 (± 0.1214)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
+      
+      -- Results 
+      No. Iterations: 5673
+      No. Calls: 6336
+      Log. Evidence: -9.607 (± 0.1354)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
+      
+      -- Results 
+      No. Iterations: 5352
+      No. Calls: 6022
+      Log. Evidence: 235.0 (± 0.1223)
 

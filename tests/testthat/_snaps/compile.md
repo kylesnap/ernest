@@ -91,12 +91,15 @@
       sampler
     Output
       nested sampling specification <ernest_sampler>
-      
       No. Points: 500
       
       -- Sampling Method 
-      * random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
-      * 
-      * No. Dimensions: 2
-      * Current Step Size: 1.000
+      <rwmh_cube> lrps:
+      No. Dimensions: 2
+      No. Calls Since Update: 0
+      No. Accepted Proposals: 0
+      No. Steps: 25
+      Target Acceptance: 0.5
+      Step Size: 1.000
+      
 

@@ -18,7 +18,6 @@ describe("new_ernest_lrps", {
   it("initializes correctly", {
     lrps <- new_ernest_lrps(fn, 2L)
     check_valid_lrps(lrps)
-    expect_snapshot(lrps)
 
     local_options("ernest.max_loop" = 100L)
     obj <- new_ernest_lrps(fn, 2L)
@@ -39,17 +38,6 @@ test_that("propose.ernest_lrps can be called", {
 
   expect_snapshot(propose.ernest_lrps(lrps, c(0.5, 0.5), -1), error = TRUE)
 })
-
-#   it("is reproducible under seed", {
-#     set.seed(42L)
-#     lrps <- new_ernest_lrps(fn, 2L)
-#     result1 <- propose(lrps, criterion = -37)
-#
-#     set.seed(42L)
-#     result2 <- propose(lrps, criterion = -37)
-#     expect_identical(result1, result2)
-#   })
-# })
 
 test_that("update_lrps.ernest_lrps is idempotent", {
   lrps <- new_ernest_lrps(fn, 2L)

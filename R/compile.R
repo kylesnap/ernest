@@ -87,27 +87,28 @@ compile.ernest_run <- function(
   seed = deprecated(),
   clear = FALSE
 ) {
-  withr::local_seed(attr(object, "seed"))
   check_dots_empty()
   check_bool(clear)
+  if (clear) {
+    elem <- list(
+      log_lik_fn = object$log_lik_fn,
+      prior = object$prior,
+      lrps = object$lrps,
+      n_points = object$n_points,
+      first_update = object$first_update,
+      update_interval = object$update_interval,
+      seed = attr(object, "seed")
+    )
+    object <- do.call(new_ernest_sampler, elem)
+    return(compile(object, ...))
+  }
+  withr::local_seed(attr(object, "seed"))
   if (lifecycle::is_present(seed)) {
     lifecycle::deprecate_warn(
       when = "1.1.0",
       what = "compile(seed)",
       details = "Use `ernest_sampler()`'s `seed` argument instead."
     )
-  }
-
-  if (clear) {
-    object <- list(
-      log_lik_fn = object$log_lik_fn,
-      prior = object$prior,
-      lrps = object$lrps,
-      n_points = object$n_points,
-      first_update = object$first_update,
-      update_interval = object$update_interval
-    )
-    return(compile.ernest_sampler(object, ...))
   }
 
   # Fill live points

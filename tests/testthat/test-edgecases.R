@@ -88,7 +88,7 @@ test_that("Missing values in the log-likelihood", {
   )
 
   skip_extended_test()
-  run <- generate(quiet_na_sampler, seed = 42L)
+  run <- generate(quiet_na_sampler)
   expect_false(anyNA(run$log_lik))
 })
 
@@ -114,6 +114,6 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
     "`log_lik` may contain a likelihood plateau"
   )
   expect_snapshot(
-    generate(sampler, seed = 42L)
+    generate(sampler)
   )
 })

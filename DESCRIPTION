@@ -46,7 +46,6 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: algorithm, p_recovery, correctness
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",

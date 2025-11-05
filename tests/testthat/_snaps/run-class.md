@@ -8,10 +8,8 @@
       No. Points: 1000
       
       -- Sampling Method 
-      [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
-      [2] ""                                                     
-      [3] "No. Dimensions: 3"                                    
-      [4] "Current Step Size: 0.02736"                           
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 0.02736"       
       
       -- Results 
       No. Iterations: 9473

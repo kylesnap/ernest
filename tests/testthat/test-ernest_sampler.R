@@ -1,3 +1,5 @@
+set.seed(42)
+
 test_that("ernest_sampler returns an ernest_sampler object", {
   prior <- create_uniform_prior(.n_dim = 2, lower = -1, upper = 1)
   ll_fn <- function(x) -sum(x^2)
@@ -23,7 +25,7 @@ cli::test_that_cli("Progress bar can be printed", {
   withr::local_options(cli.progress_handlers_only = "logger")
 
   expect_snapshot(
-    generate(sampler, max_iterations = 1, seed = 42, show_progress = TRUE),
+    generate(sampler, max_iterations = 1),
     transform = \(lines) {
       gsub("^.+cli.+$", "cli-line", lines)
     }
@@ -39,6 +41,6 @@ cli::test_that_cli("Fully-verbose output", {
   withr::local_options(rlib_message_verbosity = "verbose")
 
   expect_snapshot(
-    generate(sampler, max_iterations = 1000, seed = 42, show_progress = FALSE)
+    generate(sampler, max_iterations = 1000)
   )
 })

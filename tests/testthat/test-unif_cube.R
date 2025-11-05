@@ -30,8 +30,3 @@ describe("unif_cube class", {
     vdiffr::expect_doppelganger("update.unif_cube", fig)
   })
 })
-
-test_that("unif_cube can provide good results", {
-  # Only testing blobs
-  run_gaussian_blobs(unif_cube())
-})

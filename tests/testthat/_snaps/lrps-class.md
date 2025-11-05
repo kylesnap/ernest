@@ -38,13 +38,6 @@
       Error:
       ! `getOption('ernest.max_loop')` must be a whole number, not `Inf`.
 
-# new_ernest_lrps: initializes correctly
-
-    Code
-      lrps
-    Output
-      ! abstract LRPS sampler <ernest_lrps>
-
 # propose.ernest_lrps can be called
 
     Code

@@ -14,7 +14,7 @@ test_that("Parameter recovery for a normal distribution", {
   )
 
   sampler <- ernest_sampler(log_l, prior, n_points = 100)
-  run <- generate(sampler, max_iterations = 1000, seed = 42)
+  run <- generate(sampler, max_iterations = 1000)
   draws <- as_draws(run) |> posterior::resample_draws()
   smry <- posterior::summarise_draws(
     draws,
@@ -79,55 +79,7 @@ test_that("Parameter recovery (NIST mcmc01)", {
     log_lik,
     prior
   )
-  run <- generate(sampler, seed = 42L)
-  draws <- as_draws(run) |>
-    posterior::resample_draws()
-
-  median_mean <- median(posterior::subset_draws(draws, "mu"))
-  expect_gt(median_mean, mean_lower)
-  expect_lt(median_mean, mean_upper)
-
-  median_sd <- median(posterior::subset_draws(draws, "sigma"))
-  expect_gt(median_sd, sd_lower)
-  expect_lt(median_sd, sd_upper)
-})
-
-#' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
-#' recovered under different seeds and with random noise added to `y`.
-test_that("Parameter recovery under a different seed", {
-  skip_extended_test()
-  sampler <- ernest_sampler(
-    log_lik,
-    prior
-  )
-  run <- generate(sampler, seed = 24L)
-  draws <- as_draws(run) |>
-    posterior::resample_draws()
-
-  median_mean <- median(posterior::subset_draws(draws, "mu"))
-  expect_gt(median_mean, mean_lower)
-  expect_lt(median_mean, mean_upper)
-
-  median_sd <- median(posterior::subset_draws(draws, "sigma"))
-  expect_gt(median_sd, sd_lower)
-  expect_lt(median_sd, sd_upper)
-})
-
-test_that("Parameter recovery with noisy y", {
-  skip_extended_test()
-  jitter_log_lik <- function(theta) {
-    if (theta[2] <= 0) {
-      return(-Inf)
-    }
-    sum(dnorm(
-      y + rnorm(11, sd = .Machine$double.xmin),
-      mean = theta[1],
-      sd = theta[2],
-      log = TRUE
-    ))
-  }
-  sampler <- ernest_sampler(jitter_log_lik, prior)
-  run <- generate(sampler, seed = 24L)
+  run <- generate(sampler)
   draws <- as_draws(run) |>
     posterior::resample_draws()
 

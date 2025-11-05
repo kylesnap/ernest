@@ -6,7 +6,7 @@
 test_that("Eggbox", {
   skip_extended_test()
   sampler <- ernest_sampler(eggbox$log_lik, eggbox$prior)
-  run <- generate(sampler, seed = 42L)
+  run <- generate(sampler)
   smry <- summary(run)
 
   expect_lt(

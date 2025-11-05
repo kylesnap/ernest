@@ -39,7 +39,6 @@ test_that("logging works during generate() calls", {
       run <- generate(
         sampler,
         max_iterations = 10,
-        seed = 42,
         show_progress = FALSE
       )
     },

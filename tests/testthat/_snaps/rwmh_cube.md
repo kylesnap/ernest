@@ -36,3 +36,90 @@
       Step Size: 1.000
       
 
+# rwmh_cube class: Can call propose
+
+    Code
+      as.list(lrps$cache)
+    Output
+      $epsilon
+      [1] 1
+      
+      $n_call
+      [1] 25
+      
+      $n_accept
+      [1] 3
+      
+
+# rwmh_cube can provide good results
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
+      
+      -- Results 
+      No. Iterations: 4868
+      No. Calls: 107402
+      Log. Evidence: -6.713 (± 0.1236)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
+      
+      -- Results 
+      No. Iterations: 4756
+      No. Calls: 104976
+      Log. Evidence: -6.489 (± 0.1209)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
+      
+      -- Results 
+      No. Iterations: 5774
+      No. Calls: 130127
+      Log. Evidence: -8.824 (± 0.1370)
+
+---
+
+    Code
+      result
+    Output
+      nested sampling results <ernest_run/ernest_sampler>
+      
+      No. Points: 500
+      
+      -- Sampling Method 
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
+      
+      -- Results 
+      No. Iterations: 4899
+      No. Calls: 109001
+      Log. Evidence: 236.2 (± 0.1173)
+

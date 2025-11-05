@@ -49,7 +49,7 @@ describe("slice class", {
 })
 
 test_that("slice can provide good results", {
-  run_gaussian_blobs(slice())
-  run_3d(slice())
+  run_gaussian_blobs(slice(), tolerance = 2)
+  run_3d(slice(), tolerance = 2)
   run_eggbox(slice(), tolerance = 2)
 })

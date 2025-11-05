@@ -59,11 +59,11 @@
 # Ernest halts and warns when ll becomes flat during a run
 
     Code
-      generate(sampler, seed = 42L)
+      generate(sampler)
     Condition
       Warning in `compile()`:
       `log_lik` may contain a likelihood plateau; proceed with caution.
-      ! Only 130/500 likelihood values are unique.
+      ! Only 131/500 likelihood values are unique.
       Warning:
       Stopping run due to a likelihood plateau at 0.0000.
     Output
@@ -72,13 +72,11 @@
       No. Points: 500
       
       -- Sampling Method 
-      [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
-      [2] ""                                                     
-      [3] "No. Dimensions: 2"                                    
-      [4] "Current Step Size: 1.000"                             
+      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
       
       -- Results 
-      No. Iterations: 149
-      No. Calls: 179
-      Log. Evidence: -0.2973 (± 0.06362)
+      No. Iterations: 147
+      No. Calls: 171
+      Log. Evidence: -0.2950 (± 0.06344)
 

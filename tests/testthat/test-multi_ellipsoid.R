@@ -75,7 +75,8 @@ test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
   result <- MultiBoundingEllipsoids(
     data_all,
     min_reduction = 0.7,
-    allow_contact = TRUE
+    allow_contact = TRUE,
+    expected_volume = -Inf
   )
 
   # Check structure
@@ -84,20 +85,6 @@ test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
   expect_equal(sum(result$prob), 1)
 
   # Expect three ellipsoids
-  expect_equal(length(result$prob), 3)
-  centers <- lapply(result$ellipsoid, function(x) x[["center"]])
-  expect_equal(
-    sort(list_c(centers)),
-    c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
-    tolerance = 0.01
-  )
-
-  # Expect similar with allow_contact FALSE
-  result <- MultiBoundingEllipsoids(
-    data_all,
-    min_reduction = 1,
-    allow_contact = FALSE
-  )
   expect_equal(length(result$prob), 3)
   centers <- lapply(result$ellipsoid, function(x) x[["center"]])
   expect_equal(
@@ -126,6 +113,21 @@ test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
     points(new_all, col = "red")
   }
   vdiffr::expect_doppelganger("multi_ellipsoid", fig)
+
+  # Expect similar with allow_contact FALSE
+  result <- MultiBoundingEllipsoids(
+    data_all,
+    min_reduction = 1,
+    allow_contact = FALSE,
+    expected_volume = -Inf
+  )
+  expect_equal(length(result$prob), 3)
+  centers <- lapply(result$ellipsoid, function(x) x[["center"]])
+  expect_equal(
+    sort(list_c(centers)),
+    c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
+    tolerance = 0.01
+  )
 })
 
 test_that("update throws a warning when the points are all identical", {

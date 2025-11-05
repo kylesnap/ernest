@@ -159,22 +159,6 @@ describe("compile", {
     expect_snapshot(sampler)
   })
 
-  it("seed setting with ints produces expected matrices", {
-    sampler <- compile(sampler, seed = 42L)
-    matrix1 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-
-    sampler <- compile(sampler, seed = 42L)
-    matrix2 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-    expect_identical(matrix1, matrix2)
-
-    sampler <- compile(sampler, seed = NULL)
-    matrix3 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-    expect_false(identical(matrix1, matrix3))
-  })
-
   it("ernest_run works with clear = TRUE and FALSE", {
     # Setup a fake ernest_run object
     sampler <- ernest_sampler(
@@ -182,7 +166,7 @@ describe("compile", {
       prior = gaussian_blobs$prior,
       n_points = 10
     )
-    sampler <- compile(sampler, seed = 123L)
+    sampler <- compile(sampler)
     run <- generate(sampler, max_iterations = 1000L)
 
     # clear = TRUE should call compile.ernest_sampler

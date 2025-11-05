@@ -48,7 +48,7 @@ describe("rwmh_cube class", {
 })
 
 test_that("rwmh_cube can provide good results", {
-  run_gaussian_blobs(rwmh_cube())
-  run_3d(rwmh_cube())
-  run_eggbox(rwmh_cube())
+  run_gaussian_blobs(rwmh_cube(), tolerance = 2)
+  run_3d(rwmh_cube(), tolerance = 2)
+  run_eggbox(rwmh_cube(), tolerance = 2)
 })

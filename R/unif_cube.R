@@ -86,3 +86,9 @@ propose.unif_cube <- function(
     res
   }
 }
+
+#' @noRd
+#' @export
+update_lrps.unif_cube <- function(x, ...) {
+  do.call(new_unif_cube, as.list(x))
+}

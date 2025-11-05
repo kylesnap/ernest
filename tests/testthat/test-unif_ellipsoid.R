@@ -54,6 +54,12 @@ test_that("update throws a warning when the points are all identical", {
   expect_equal(obj$cache$center, c(0.5, 0.5))
 })
 
+test_that("unif_ellipsoid can provide good results", {
+  run_gaussian_blobs(unif_ellipsoid())
+  run_3d(unif_ellipsoid(), tolerance = 2)
+  # Not running eggbox--the orbs can't handle it
+})
+
 describe("BoundingEllipsoid", {
   n_points <- 5000
   it("fits points in 3D correctly", {

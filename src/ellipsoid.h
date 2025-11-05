@@ -45,8 +45,8 @@ struct Eigendecomposition {
 
 extern "C" {
 void dgqt_(int* n, double* a, int* lda, double* b, double* delta, double* rtol,
-           double* atol, int* itmax, double* par, double* f, double* x,
-           int* info, int* iter, double* z, double* wa1, double* wa2);
+           double* atol, int* itmax, double* par, double* f, double* x, int* info,
+           int* iter, double* z, double* wa1, double* wa2);
 };
 
 // Workspace for a solver for the constrained minimization problem
@@ -63,9 +63,8 @@ class Solver {
       return info_;
     }
     int info_int = static_cast<int>(info_);
-    dgqt_(&n_, A.data(), &n_, b.data(), &delta, &rtol_, &atol_, &it_max_, &par_,
-          &f_, x.data(), &info_int, &iter_, z_.data(), wa1_.data(),
-          wa2_.data());
+    dgqt_(&n_, A.data(), &n_, b.data(), &delta, &rtol_, &atol_, &it_max_, &par_, &f_,
+          x.data(), &info_int, &iter_, z_.data(), wa1_.data(), wa2_.data());
     info_ = static_cast<Info>(info_int);
     return info_;
   }
@@ -76,14 +75,14 @@ class Solver {
   inline int info() const { return info_; };
 
  private:
-  int n_;               // Rank of A, size of b and x.
-  double rtol_ = 1e-8;  // Relative accuracy
-  double atol_ = 1e-8;  // Absolute accuracy
-  double par_ = 0.0;    // Est. lagrange multiplier of ||x|| <= delta
-  double f_ = 0.0;      // Function value at solution.
-  Info info_;           // Status code.
-  int iter_ = 0;        // Number of iterations taken.
-  int it_max_ = 100;    // Maximum number of iterations.
+  int n_;                              // Rank of A, size of b and x.
+  double rtol_ = 1e-8;                 // Relative accuracy
+  double atol_ = 1e-8;                 // Absolute accuracy
+  double par_ = 0.0;                   // Est. lagrange multiplier of ||x|| <= delta
+  double f_ = 0.0;                     // Function value at solution.
+  Info info_;                          // Status code.
+  int iter_ = 0;                       // Number of iterations taken.
+  int it_max_ = 100;                   // Maximum number of iterations.
   std::vector<double> z_, wa1_, wa2_;  // Workspace variables.
 };
 
@@ -139,6 +138,7 @@ class Ellipsoid {
   inline int n_dim() const { return n_dim_; }
   inline Status error() const { return error_; }
   inline double log_volume() const { return log_volume_; }
+  Matrix major_axes() const;
 
   // Fit multiple ellipsoids to the dataset `X` using recursive splitting,
   // retaining only those that meet the `min_reduction` criterion.
@@ -148,23 +148,24 @@ class Ellipsoid {
                                                    const bool allow_contact);
 
  private:
-  Vector center_;          // Center of the ellipsoid (changed from RowVector).
-  Matrix L_;               // Lower triangular of shape matrix.
-  Matrix inv_sqrt_shape_;  // Inverse square root of shape matrix.
-  int n_dim_;              // Number of dimensions.
-  Status error_ = kOk;     // Status of most recent operation.
-  double log_volume_ = R_NegInf;  // Log volume of the ellipsoid.
-  Solver solve_;                  // A constrained minimization solver.
+  Vector center_;                   // Center of the ellipsoid (changed from RowVector).
+  Matrix L_;                        // Lower triangular of shape matrix.
+  Matrix inv_sqrt_shape_;           // Inverse square root of shape matrix.
+  int n_dim_;                       // Number of dimensions.
+  Status error_ = kOk;              // Status of most recent operation.
+  double log_volume_ = R_NegInf;    // Log volume of the ellipsoid.
+  Solver solve_;                    // A constrained minimization solver.
+  Eigendecomposition eigensystem_;  // Eigendecomposition of the shape matrix L_'L_
 
   // Computes the eigendecomposition of the covariance matrix of `X`.
-  Eigendecomposition FindAxes(const ConstRef<Matrix> X);
+  void FindAxes(const ConstRef<Matrix> X);
 
   // Scales the axes defined by `eig` to fit the data points `X`.
-  void ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig);
+  void ScaleAxes(ConstRef<Matrix> X);
 
   // Sets the shape matrix of the ellipsoid based on the eigendecomposition
   // `eig`.
-  void SetShape(Eigendecomposition& eig);
+  void SetShape();
 
   // Compute the constant term in the log volume formula.
   const inline double log_volume_sphere() {

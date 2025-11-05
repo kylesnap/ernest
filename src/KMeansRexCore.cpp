@@ -30,7 +30,7 @@ Date:   2 April 2013
 Altered by K Dewsnap (using R-based RNG)
 Date: October 8, 2025
 */
-
+// nocov start
 #include "KMeansRexCore.h"
 
 using namespace kmeans_rex;
@@ -195,8 +195,7 @@ void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
 // ===========================================================================
 
 void kmeans_rex::RunKMeans(const double* X_IN, int N, int D, int K, int Niter,
-                           const char* initname, double* Mu_OUT,
-                           double* Z_OUT) {
+                           const char* initname, double* Mu_OUT, double* Z_OUT) {
   ern::RandomEngine rand;
 
   ExtMat X(const_cast<double*>(X_IN), N, D);
@@ -208,8 +207,8 @@ void kmeans_rex::RunKMeans(const double* X_IN, int N, int D, int K, int Niter,
 }
 
 // Overload: accepts Eigen::Ref<Matrix> and Eigen::Ref<Vector>
-void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K,
-                           int Niter, Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
+void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K, int Niter,
+                           Eigen::Ref<Eigen::MatrixXd> Mu_OUT,
                            Eigen::Ref<Eigen::VectorXd> Z_OUT) {
   int N = X_IN.rows();
   int D = X_IN.cols();
@@ -219,6 +218,6 @@ void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K,
   ExtMat Mu(Mu_OUT.data(), K, D);
   ExtMat Z(Z_OUT.data(), N, 1);
 
-  init_Mu(X, Mu, initname);
   run_lloyd(X, Mu, Z, Niter);
 }
+// nocov end

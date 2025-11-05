@@ -106,6 +106,10 @@ describe("nurs with fixed scale", {
   })
 })
 
+test_that("nurs can provide good results", {
+  # TODO
+  skip()
+})
 
 test_that("Errors in distance recalculations are handled", {
   obj <- new_nurs(fn, 2, adaptive_scale = 0.01)

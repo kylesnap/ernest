@@ -26,6 +26,8 @@ vol::Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
   // Circumradius of unit hypercube is sqrt(n_dim)/2.
   center_ = Vector::Constant(n_dim_, 0.5);
   L_ = Matrix::Identity(n_dim_, n_dim_) * (2 / sqrt(n_dim_));
+  eigensystem_ = Eigendecomposition{Vector::Ones(n_dim_) * (2.0 / sqrt(n_dim_)),
+                                    Matrix::Identity(n_dim_, n_dim_)};
   inv_sqrt_shape_ = Matrix::Identity(n_dim_, n_dim_) * (sqrt(n_dim_) / 2.0);
   double log_det_L = n_dim_ * log(2.0) - 0.5 * n_dim_ * log(n_dim_);
   log_volume_ = log_volume_sphere() - log_det_L;
@@ -35,8 +37,7 @@ vol::Ellipsoid::Ellipsoid(const ConstRef<Matrix> X) : Ellipsoid(X.cols()) {
   (*this).Fit(X);
 };
 
-vol::Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
-                          const ConstRef<Matrix> shape)
+vol::Ellipsoid::Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape)
     : Ellipsoid(center.size()) {
   if (!((shape.rows() == shape.cols()) && (shape.rows() == n_dim_))) {
     error_ = kFatal;
@@ -48,16 +49,16 @@ vol::Ellipsoid::Ellipsoid(const ConstRef<Vector> center,
     error_ = kFatal;
     return;
   }
-  Eigendecomposition eig{work.eigenvalues(), work.eigenvectors()};
-  (*this).SetShape(eig);
+  eigensystem_.values = work.eigenvalues();
+  eigensystem_.vectors = work.eigenvectors();
+  (*this).SetShape();
 }
 
 //// Ellipsoid Tools
 
 // Find the closest point on the ellipsoid defined by (L, center) to `point`.
 // Translation of the method "ell_pt_near_far" described in ELL_LIB.
-static Vector FindClosest(const ConstRef<Matrix> L,
-                          const ConstRef<Vector> center,
+static Vector FindClosest(const ConstRef<Matrix> L, const ConstRef<Vector> center,
                           const ConstRef<Vector> point, vol::Solver& solver) {
   Matrix gi = L.inverse();  // g_i = L^-1
   Vector b = center - point;
@@ -111,6 +112,18 @@ bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
   return y2.squaredNorm() <= 1.0;
 }
 
+Matrix ern::vol::Ellipsoid::major_axes() const {
+  Vector tmp = 1.0 / eigensystem_.values.array().sqrt();
+  Matrix axes = eigensystem_.vectors * tmp.asDiagonal();
+  Eigen::Index max_idx;
+  tmp.maxCoeff(&max_idx);
+  tmp = axes.col(max_idx);
+  Matrix endpoints(2, n_dim_);
+  endpoints.row(0) = tmp - center_;
+  endpoints.row(1) = tmp + center_;
+  return endpoints;
+}
+
 // Ellipsoid Fitting
 
 void vol::Ellipsoid::Fit(ConstRef<Matrix> X) {
@@ -121,18 +134,18 @@ void vol::Ellipsoid::Fit(ConstRef<Matrix> X) {
   }
 
   center_ = X.colwise().mean().transpose();
-  Eigendecomposition eig = FindAxes(X);
-  if (eig.values.size() == 0) {
+  FindAxes(X);
+  if (error_ == kFatal || error_ == kNilpotent) {
     Status error = error_;
     *this = Ellipsoid(n_dim_);
     error_ = error;
     return;
   }
-  ScaleAxes(X, eig);
-  SetShape(eig);
+  ScaleAxes(X);
+  SetShape();
 }
 
-vol::Eigendecomposition vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
+void vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   // Store the covariance matrix in L_.
   error_ = kOk;
   Matrix centered = X.rowwise() - center_.transpose();
@@ -142,7 +155,7 @@ vol::Eigendecomposition vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   Eigen::SelfAdjointEigenSolver<Matrix> work(L_);
   if (work.info() != Eigen::Success) {
     error_ = kFatal;
-    return Eigendecomposition();
+    return;
   }
 
   // Condition the eigenvalues to avoid numerical issues.
@@ -151,7 +164,7 @@ vol::Eigendecomposition vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   int zero_ev = (e_values.array() <= kPrecision).count();
   if (zero_ev == e_values.size()) {
     error_ = kNilpotent;
-    return Eigendecomposition();
+    return;
   } else if (zero_ev != 0) {
     error_ = kDegenerate;
     e_values.head(zero_ev).setConstant(e_values[zero_ev] / 2.0);
@@ -166,12 +179,14 @@ vol::Eigendecomposition vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   }
 
   // Return the eigendecomposition of the corrected PRECISION matrix
-  return {e_values.cwiseInverse(), work.eigenvectors()};
+  eigensystem_.values = e_values.cwiseInverse();
+  eigensystem_.vectors = work.eigenvectors();
 }
 
-void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig) {
+void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X) {
   // L_ now stores the full shape matrix.
-  L_ = eig.vectors * eig.values.asDiagonal() * eig.vectors.transpose();
+  L_ = eigensystem_.vectors * eigensystem_.values.asDiagonal() *
+       eigensystem_.vectors.transpose();
 
   // Scale eigenvalues by the maximum squared distance from center to the data.
   Matrix diff = X.rowwise() - center_.transpose();
@@ -180,29 +195,28 @@ void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X, Eigendecomposition& eig) {
     double dist2 = row * L_ * row.transpose();
     max_dist2 = fmax2(dist2, max_dist2);
   }
-  eig.values /= max_dist2;
+  eigensystem_.values /= max_dist2;
 }
 
-void vol::Ellipsoid::SetShape(Eigendecomposition& eig) {
+void vol::Ellipsoid::SetShape() {
   // L_ = V * D^{1/2};
-  L_ = eig.vectors * eig.values.cwiseSqrt().asDiagonal();
+  L_ = eigensystem_.vectors * eigensystem_.values.cwiseSqrt().asDiagonal();
   Eigen::HouseholderQR<Matrix> qr(L_.transpose());
   // A = LQ, such that A^T = QR, so L = R^T
   L_ = qr.matrixQR().triangularView<Eigen::Upper>().transpose();
   log_volume_ = log_volume_sphere() + -qr.logAbsDeterminant();
 
   // inv_sqrt_shape_ = V * D^{-1/2} * V^T
-  inv_sqrt_shape_ = eig.vectors *
-                    eig.values.cwiseInverse().cwiseSqrt().asDiagonal() *
-                    eig.vectors.adjoint();
+  inv_sqrt_shape_ = eigensystem_.vectors *
+                    eigensystem_.values.cwiseInverse().cwiseSqrt().asDiagonal() *
+                    eigensystem_.vectors.adjoint();
 }
 
 // Clustering Helpers
 
 // Finds the rows in `rows` that belong to `cluster` as indicated by `sub_idx`.
 static std::vector<int> find_clusters(const std::vector<int>& rows,
-                                      const ConstRef<Vector> sub_idx,
-                                      const int cluster) {
+                                      const ConstRef<Vector> sub_idx, const int cluster) {
   std::vector<int> cluster_rows;
   for (int i = 0; i < rows.size(); i++) {
     if (sub_idx[i] == cluster) {
@@ -214,12 +228,10 @@ static std::vector<int> find_clusters(const std::vector<int>& rows,
 
 // Splits the data points in `rows` into two sub-ellipsoids using K-means.
 // Returns true if both sub-ellipsoids were non-degenerate.
-static bool split_cluster(const ConstRef<Matrix> X,
-                          const std::vector<int>& rows, vol::SubEllipsoid& lh,
-                          vol::SubEllipsoid& rh) {
+static bool split_cluster(const ConstRef<Matrix> X, const std::vector<int>& rows,
+                          Matrix& mu, vol::SubEllipsoid& lh, vol::SubEllipsoid& rh) {
   Matrix sub_X = X(rows, Eigen::all);
   Eigen::ArrayXd sub_idx(sub_X.rows());
-  Eigen::ArrayXXd mu(2, sub_X.cols());
   kmeans_rex::RunKMeans(sub_X, 2, 100, mu, sub_idx);
 
   lh.rows = find_clusters(rows, sub_idx, 0);
@@ -232,8 +244,8 @@ static bool split_cluster(const ConstRef<Matrix> X,
 
 // Moves the sub-ellipsoids onto the proposal queue and pops the pre-split
 // ellipsoid.
-static void split(std::deque<vol::SubEllipsoid>& proposals,
-                  vol::SubEllipsoid& lh, vol::SubEllipsoid& rh) {
+static void split(std::deque<vol::SubEllipsoid>& proposals, vol::SubEllipsoid& lh,
+                  vol::SubEllipsoid& rh) {
   int n_dim = lh.ell.n_dim();
   proposals.emplace_back(std::move(lh));
   proposals.emplace_back(std::move(rh));
@@ -249,9 +261,9 @@ static void merge(std::vector<vol::Ellipsoid>& ellipsoids,
   proposals.pop_front();
 }
 
-std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
-    const ConstRef<Matrix> X, const double min_reduction,
-    const bool allow_contact) {
+std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                                               const double min_reduction,
+                                                               const bool allow_contact) {
   int n_dim = X.cols();
   int n_point = X.rows();
   std::vector<Ellipsoid> ellipsoids;
@@ -261,8 +273,7 @@ std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
   vol::SubEllipsoid rh{Ellipsoid(n_dim), std::vector<int>()};
   Ellipsoid intersect(n_dim);
 
-  proposals.emplace_back(
-      vol::SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
+  proposals.emplace_back(vol::SubEllipsoid{Ellipsoid(n_dim), std::vector<int>(n_point)});
   proposals.front().ell.Fit(X);
   if (proposals.front().ell.error() != kOk) {
     // If the initial ellipsoid is invalid, return it as the only ellipsoid.
@@ -279,7 +290,8 @@ std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
       continue;
     }
 
-    bool splitable = split_cluster(X, rows, lh, rh);
+    Matrix mu = cur.major_axes();
+    bool splitable = split_cluster(X, rows, mu, lh, rh);
     if (!splitable) {
       merge(ellipsoids, proposals);
       continue;
@@ -287,8 +299,7 @@ std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
 
     // Check whether merging the two sub-ellipsoids reduces the volume.
     double cur_log_vol = cur.log_volume() + log(min_reduction);
-    double tot_log_vol =
-        Rf_logspace_add(lh.ell.log_volume(), rh.ell.log_volume());
+    double tot_log_vol = Rf_logspace_add(lh.ell.log_volume(), rh.ell.log_volume());
     bool less_volume = R_FINITE(tot_log_vol) && tot_log_vol <= cur_log_vol;
     if (!less_volume) {
       merge(ellipsoids, proposals);

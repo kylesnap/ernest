@@ -47,3 +47,9 @@ describe("slice class", {
     vdiffr::expect_doppelganger("update.slice", fig)
   })
 })
+
+test_that("slice can provide good results", {
+  run_gaussian_blobs(slice())
+  run_3d(slice())
+  run_eggbox(slice(), tolerance = 2)
+})

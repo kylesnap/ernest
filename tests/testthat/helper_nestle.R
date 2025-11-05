@@ -61,3 +61,114 @@ eggbox <- list(
   estimated_z = 236.027,
   estimated_z_err = 0.109
 )
+
+#' 3D Correlated Multivariate Normal (dynesty test)
+mvm_3d <- local({
+  n_dim <- 3
+  rho <- 0.95
+  prior_win <- 10
+  mean <- seq(-1, 1, length.out = n_dim)
+  cov <- matrix(rho, n_dim, n_dim)
+  diag(cov) <- 1
+  cov_inv <- solve(cov)
+  lnorm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
+  analytic_z <- n_dim * (-log(2 * prior_win))
+
+  list(
+    log_lik = function(x) {
+      -0.5 * drop((x - mean) %*% cov_inv %*% (x - mean)) + lnorm
+    },
+    prior = create_uniform_prior(
+      lower = -prior_win,
+      upper = prior_win,
+      names = LETTERS[1:n_dim]
+    ),
+    analytic_z = analytic_z
+  )
+})
+
+
+#' Correctness Tests
+#'
+#' @srrstats {G5.4, G5.4b, G5.5} This function runs a correctness tests against
+#' results found by nestle and through analytic methods.
+
+run_gaussian_blobs <- function(sampler, ..., tolerance = 1) {
+  sampler <- exec(
+    ernest_sampler,
+    gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    sampler = sampler,
+    !!!list2(...),
+    seed = 42
+  )
+  result <- generate(sampler)
+  smry <- summary(result)
+
+  expect_lt(
+    abs(smry$log_evidence - gaussian_blobs$analytic_z),
+    log(tolerance) + smry$log_evidence_err
+  )
+  expect_snapshot(result)
+
+  weights <- as_draws(result) |>
+    weights()
+  expect_equal(sum(weights), 1)
+
+  # Test seed and rerunning
+  withr::local_seed(45)
+  cur_seed <- .Random.seed[1]
+  res1 <- generate(sampler, max_iterations = 1000)
+  expect_equal(cur_seed, .Random.seed[1])
+  res2 <- generate(res1, max_iterations = 2000)
+  expect_equal(cur_seed, .Random.seed[1])
+  res2_cpy <- generate(res1, max_iterations = 2000)
+  expect_equal(cur_seed, .Random.seed[1])
+  expect_identical(res2$log_lik, res2_cpy$log_lik)
+}
+
+run_eggbox <- function(sampler, ..., tolerance = 1) {
+  sampler <- exec(
+    ernest_sampler,
+    eggbox$log_lik,
+    eggbox$prior,
+    sampler = sampler,
+    !!!list2(...),
+    seed = 42
+  )
+  result <- generate(sampler)
+  smry <- summary(result)
+
+  expect_lt(
+    abs(smry$log_evidence - eggbox$raster_z),
+    log(tolerance) + smry$log_evidence_err
+  )
+  expect_snapshot(result)
+
+  weights <- as_draws(result) |>
+    weights()
+  expect_equal(sum(weights), 1)
+}
+
+run_3d <- function(sampler, ..., tolerance = 1) {
+  sampler <- exec(
+    ernest_sampler,
+    mvm_3d$log_lik,
+    mvm_3d$prior,
+    sampler = sampler,
+    !!!list2(...),
+    seed = 42
+  )
+  result <- generate(sampler)
+  smry <- summary(result)
+
+  expect_lt(
+    abs(smry$log_evidence - mvm_3d$analytic_z),
+    log(tolerance) + smry$log_evidence_err
+  )
+  expect_snapshot(result)
+
+  weights <- as_draws(result) |>
+    weights()
+  expect_equal(sum(weights), 1)
+}

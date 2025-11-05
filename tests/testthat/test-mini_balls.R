@@ -111,3 +111,9 @@ test_that("update throws a warning when the points are all identical", {
   expect_equal(obj$cache$radius, -Inf)
   expect_snapshot(propose(obj, c(0.5, 0.5), -Inf))
 })
+
+test_that("mini_balls can provide good results", {
+  run_gaussian_blobs(mini_balls(), tolerance = 2)
+  run_3d(mini_balls(), tolerance = 2)
+  run_eggbox(mini_balls(), tolerance = 3)
+})

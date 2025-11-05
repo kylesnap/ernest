@@ -55,6 +55,12 @@ describe("multi_ellipsoid class", {
   })
 })
 
+test_that("multi_ellipsoid can provide good results", {
+  run_gaussian_blobs(multi_ellipsoid())
+  run_3d(multi_ellipsoid(), tolerance = 2)
+  run_eggbox(multi_ellipsoid(min_reduction = 0.5), tolerance = 2)
+})
+
 test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
   n_points <- 5000
   n_dim <- 3L

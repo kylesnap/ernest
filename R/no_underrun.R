@@ -49,7 +49,7 @@
 #' @references
 #' Bou-Rabee, N., Carpenter, B., Liu, S., & Oberdörster, S. (2025). The
 #' No-Underrun Sampler: A Locally-Adaptive, Gradient-Free MCMC Method
-#' (Version 2). arXiv. <https://doi.org/10.48550/ARXIV.2501.18548>
+#' (Version 2). arXiv. \doi{10.48550/ARXIV.2501.18548}
 #'
 #' @examples
 #' # Basic usage with default parameters

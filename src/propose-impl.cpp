@@ -15,8 +15,7 @@
 [[cpp11::register]]
 cpp11::list NURSImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                      double criterion, int steps, double h, int M) {
-  const int n_dim = original.size();
-  ern::NURSSampler sampler(unit_log_fn, original);
+  nurs::NURSSampler sampler(unit_log_fn, original);
   sampler.Run(criterion, steps, h, M);
   return sampler.as_list();
 }
@@ -30,8 +29,8 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   ern::RandomEngine rng;
 
   // Setups
-  Eigen::RowVectorXd next_draw(n_dim), rand_vec(n_dim);
-  Eigen::RowVectorXd prev_draw = as_row_vector(original);
+  ern::Vector next_draw(n_dim), rand_vec(n_dim);
+  ern::Vector prev_draw = as_Matrix(original);
   size_t n_accept = 0;
 
   for (size_t draw = 0; draw < steps; draw++) {
@@ -41,7 +40,7 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
     if (ern::IsOutsideUnitCube(next_draw)) {
       ern::ReflectWithinUnitCube(next_draw);
     }
-    double log_lik = unit_log_fn(as_row_doubles(next_draw));
+    double log_lik = unit_log_fn(as_doubles(next_draw));
     if (log_lik >= criterion) {
       prev_draw = next_draw;
       n_accept++;
@@ -49,8 +48,8 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   }
 
   using namespace cpp11::literals;
-  return cpp11::writable::list({"unit"_nm = as_row_doubles(prev_draw),
-                                "log_lik"_nm = unit_log_fn(as_row_doubles(prev_draw)),
+  return cpp11::writable::list({"unit"_nm = as_doubles(prev_draw),
+                                "log_lik"_nm = unit_log_fn(as_doubles(prev_draw)),
                                 "n_call"_nm = steps, "n_accept"_nm = n_accept});
 }
 
@@ -60,14 +59,14 @@ cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                       double criterion, cpp11::doubles lower, cpp11::doubles upper,
                       const int max_loop) {
   // Setups
-  ern::vol::Rectangle rect(lower, upper);
+  vol::Rectangle rect(lower, upper);
   Eigen::VectorXd next_draw = as_Matrix(original);
   Eigen::VectorXd inner = next_draw;
 
   size_t draw = 0;
   for (; draw < max_loop; draw++) {
     rect.UniformSample(next_draw);
-    double log_lik = unit_log_fn(as_row_doubles(next_draw));
+    double log_lik = unit_log_fn(as_doubles(next_draw));
     if (log_lik >= criterion) break;
     if (!rect.Clamp(inner, next_draw)) break;
   }

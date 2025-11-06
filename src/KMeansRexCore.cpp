@@ -107,7 +107,6 @@ void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K, 
                            Eigen::Ref<Eigen::VectorXd> Z_OUT) {
   int N = X_IN.rows();
   int D = X_IN.cols();
-  const char* initname = "plusplus";
 
   ExtMat X(const_cast<double*>(X_IN.data()), N, D);
   ExtMat Mu(Mu_OUT.data(), K, D);

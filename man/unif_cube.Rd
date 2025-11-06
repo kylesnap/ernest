@@ -26,7 +26,7 @@ ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 Royal Astronomical Society, 493, 3132–3158.
-\url{https://doi.org/10.1093/mnras/staa278}
+\doi{10.1093/mnras/staa278}
 }
 \seealso{
 Other ernest_lrps: 

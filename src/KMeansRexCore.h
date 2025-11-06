@@ -30,10 +30,10 @@ Date:   2 April 2013
 Altered by K Dewsnap (using R-based RNG)
 Date: October 8, 2025
 */
+#pragma once
 
 #include <iostream>
-
-#include "random_generator.h"
+#include "cpp11eigen.hpp"
 
 namespace kmeans_rex {
 using namespace Eigen;

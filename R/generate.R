@@ -60,8 +60,7 @@
 #' evidence.
 #'
 #' @references Skilling, J. (2006). Nested Sampling for General Bayesian
-#' Computation. Bayesian Analysis, 1(4), 833–859.
-#' <https://doi.org/10.1214/06-BA127>
+#' Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
 #'
 #' @srrstats {BS2.12} The `show_progress` indicator controls whether a simple
 #' spinner bar is shown during sampling.

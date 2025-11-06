@@ -18,12 +18,11 @@
 context("Ellipsoid class - basic functionality") {
   test_that("Ellipsoid replicates a known shape") {
     Eigen::Matrix2d shape{{2, 1}, {1, 1}};
-    Eigen::Matrix2d inv_sqrt_shape{{0.8944272, -0.4472136},
-                                   {-0.4472136, 1.3416408}};
+    Eigen::Matrix2d inv_sqrt_shape{{0.8944272, -0.4472136}, {-0.4472136, 1.3416408}};
     Eigen::RowVector2d center{0, 0};
-    ern::vol::Ellipsoid ell(center, shape);
+    vol::Ellipsoid ell(center, shape);
     expect_true(ell.n_dim() == 2);
-    expect_true(ell.error() == ern::vol::Status::kOk);
+    expect_true(ell.error() == vol::Status::kOk);
 
     expect_true(ell.center().isApproxToConstant(0));
     expect_true(ell.shape().isApprox(shape, 1e-3));
@@ -54,7 +53,7 @@ context("Ellipsoid class - basic functionality") {
       std::generate(u.reshaped().begin(), u.reshaped().end(), unif_rand);
       Eigen::MatrixXd a = u * u.transpose();
 
-      ern::vol::Ellipsoid ell(center, a);
+      vol::Ellipsoid ell(center, a);
       Eigen::MatrixXd L = ell.matrixL();
 
       // Random unit direction
@@ -96,8 +95,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{2, 0};
 
-    ern::vol::Ellipsoid ell1(center1, shape);
-    ern::vol::Ellipsoid ell2(center2, shape);
+    vol::Ellipsoid ell1(center1, shape);
+    vol::Ellipsoid ell2(center2, shape);
 
     expect_true(ell1.Intersects(ell2));
   }
@@ -106,8 +105,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{1, 0};
 
-    ern::vol::Ellipsoid ell1(center1, shape);
-    ern::vol::Ellipsoid ell2(center2, shape);
+    vol::Ellipsoid ell1(center1, shape);
+    vol::Ellipsoid ell2(center2, shape);
 
     expect_true(ell1.Intersects(ell2));
   }
@@ -116,8 +115,8 @@ context("Ellipsoid class - basic functionality") {
     Eigen::RowVector2d center1{0, 0};
     Eigen::RowVector2d center2{2.01, 0};
 
-    ern::vol::Ellipsoid ell1(center1, shape);
-    ern::vol::Ellipsoid ell2(center2, shape);
+    vol::Ellipsoid ell1(center1, shape);
+    vol::Ellipsoid ell2(center2, shape);
 
     expect_false(ell1.Intersects(ell2));
   }
@@ -129,28 +128,28 @@ context("Ellipsoid class - geometric cases") {
     Eigen::MatrixXd X(4, 2);
     X << 0, 0, 1, 1, 2, 2, 3, 3;
 
-    ern::vol::Ellipsoid ell(2);
+    vol::Ellipsoid ell(2);
     ell.Fit(X);
 
     expect_true(ell.log_volume() != R_NegInf);
-    expect_true(ell.error() == ern::vol::Status::kDegenerate);
+    expect_true(ell.error() == vol::Status::kDegenerate);
   }
 
   test_that("Ellipsoid handles underconstrained case") {
     Eigen::MatrixXd X(2, 3);
     X << 0, 0, 0, 1, 0, 0;
 
-    ern::vol::Ellipsoid ell(3);
+    vol::Ellipsoid ell(3);
     ell.Fit(X);
 
     expect_true(ell.log_volume() != R_NegInf);
-    expect_true(ell.error() == ern::vol::Status::kUnderdetermined);
+    expect_true(ell.error() == vol::Status::kUnderdetermined);
   }
 }
 
 context("Rectangle class - basic functionality") {
   test_that("Rectangle coverage detection works") {
-    ern::vol::Rectangle rect(2);
+    vol::Rectangle rect(2);
 
     // Points inside
     expect_true(rect.Covered(Eigen::Vector2d{0.5, 0.5}));
@@ -166,7 +165,7 @@ context("Rectangle class - basic functionality") {
   test_that("Rectangle uniform sampling produces valid points") {
     int n_dim = 5;
     int n_samples = 100;
-    ern::vol::Rectangle rect(n_dim);
+    vol::Rectangle rect(n_dim);
 
     Eigen::VectorXd sample(n_dim);
     int n_oob = 0;
@@ -187,7 +186,7 @@ context("Rectangle class - basic functionality") {
 
 context("Rectangle class - shrinking") {
   test_that("Rectangle shrinks correctly in two dimensions") {
-    ern::vol::Rectangle rect(2);
+    vol::Rectangle rect(2);
     Eigen::Vector2d inner{0.5, 0.5};
     Eigen::Vector2d outer{0.3, 0.9};
     expect_true(rect.Clamp(inner, outer));
@@ -202,7 +201,7 @@ context("Rectangle class - shrinking") {
   }
 
   test_that("Rectangle doesn't react to OOB arguments") {
-    ern::vol::Rectangle rect(2);
+    vol::Rectangle rect(2);
     Eigen::Vector2d inner{0.5, 0.5};
     Eigen::Vector2d outer{0.3, 0.9};
     expect_true(rect.Clamp(inner, outer));
@@ -223,7 +222,7 @@ context("Rectangle class - shrinking") {
   test_that("Rectangle can be clamped in higher dimensions") {
     typedef Eigen::Matrix<double, 5, 1> Vector5d;
     int n_dim = 5;
-    ern::vol::Rectangle rect(n_dim);
+    vol::Rectangle rect(n_dim);
 
     // First clamp
     Vector5d inner = Vector5d::Constant(0.5);

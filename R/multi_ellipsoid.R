@@ -40,7 +40,7 @@
 #' Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
 #' Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
 #' Notices of the Royal Astronomical Society. 398(4), 1601–1614.
-#' <https://doi.org/10.1111/j.1365-2966.2009.14548.x>
+#' \doi{10.1111/j.1365-2966.2009.14548.x}
 #'
 #' For implementation, see:
 #' https://github.com/kbarbary/nestle/blob/master/runtests.py

@@ -108,6 +108,5 @@ generate(sampler, max_calls = 2600)
 }
 \references{
 Skilling, J. (2006). Nested Sampling for General Bayesian
-Computation. Bayesian Analysis, 1(4), 833–859.
-\url{https://doi.org/10.1214/06-BA127}
+Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
 }

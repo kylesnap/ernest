@@ -12,7 +12,6 @@ on:
   push:
     branches:
       - main
-      - ropensci_submission
 
 jobs:
   pkgcheck:

@@ -9,12 +9,17 @@
 // Implements ellipsoid fitting and manipulation routines for nested sampling.
 #pragma once
 
+#include <deque>
+#include <vector>
+
 #include "KMeansRexCore.h"
 #include "Rmath.h"
 #include "utils.h"
 
-namespace ern {
 namespace vol {
+
+// Imported typedefs
+using ern::Matrix, ern::Vector, ern::RowVector, ern::Ref, ern::ConstRef;
 
 // Numerical precision threshold for eigenvalue comparisons.
 const double kLnPi = 1.14472988584940017414342735135;  // ln(pi)
@@ -124,7 +129,7 @@ class Ellipsoid {
   inline cpp11::list as_list() const {
     using namespace cpp11::literals;
     return cpp11::writable::list(
-        {"center"_nm = as_row_doubles(center_),
+        {"center"_nm = as_doubles(center_),
          "shape"_nm = as_doubles_matrix(L_ * L_.transpose()),
          "inv_sqrt_shape"_nm = as_doubles_matrix(inv_sqrt_shape_),
          "log_vol"_nm = log_volume_, "error"_nm = static_cast<int>(error_)});
@@ -139,14 +144,6 @@ class Ellipsoid {
   inline Status error() const { return error_; }
   inline double log_volume() const { return log_volume_; }
   Matrix major_axes() const;
-
-  // Fit multiple ellipsoids to the dataset `X` using recursive splitting,
-  // retaining only those that meet the `min_reduction` criterion.
-  // If `allow_contact` is false, ellipsoids that touch are also avoided.
-  static std::vector<Ellipsoid> FitMultiEllipsoids(const ConstRef<Matrix> X,
-                                                   const double min_reduction,
-                                                   const bool allow_contact,
-                                                   const double expected_volume);
 
  private:
   Vector center_;                   // Center of the ellipsoid (changed from RowVector).
@@ -174,12 +171,18 @@ class Ellipsoid {
   }
 };
 
-using MultiEllipsoid = std::vector<vol::Ellipsoid>;
+// Structure binding an ellipsoid to fitted data.
 struct EllipsoidAndData {
   Ellipsoid ell;
   Matrix data;
 };
-using PairedEllipsoids = std::deque<EllipsoidAndData>;
+
+// Fit multiple ellipsoids to the dataset `X` using recursive splitting,
+// retaining only those that meet the `min_reduction` criterion.
+// If `allow_contact` is false, ellipsoids that touch are also avoided.
+std::vector<Ellipsoid> FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                          const double min_reduction,
+                                          const bool allow_contact,
+                                          const double expected_volume);
 
 }  // namespace vol
-}  // namespace ern

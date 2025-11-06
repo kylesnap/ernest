@@ -48,7 +48,7 @@ patient_lrps <- slice_rectangle(enlarge = 1.25)
 }
 \references{
 Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
-\url{https://doi.org/10.48550/ARXIV.PHYSICS/0009028}
+\doi{10.48550/ARXIV.PHYSICS/0009028}
 }
 \seealso{
 Other ernest_lrps: 

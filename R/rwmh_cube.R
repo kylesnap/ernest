@@ -46,11 +46,11 @@
 #' @references
 #' * Skilling, J. (2006). Nested Sampling for General
 #'   Bayesian Computation. Bayesian Analysis, 1(4), 833–859.
-#'   <https://doi.org/10.1214/06-BA127>
+#'   \doi{10.1214/06-BA127}
 #' * Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
 #'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 #'   Royal Astronomical Society, 493, 3132–3158.
-#'   <https://doi.org/10.1093/mnras/staa278>
+#'   \doi{10.1093/mnras/staa278}
 #'
 #' @examples
 #' # Basic usage with default parameters

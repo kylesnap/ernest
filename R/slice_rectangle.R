@@ -31,7 +31,7 @@
 #'
 #' @references
 #' Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
-#' <https://doi.org/10.48550/ARXIV.PHYSICS/0009028>
+#' \doi{10.48550/ARXIV.PHYSICS/0009028}
 #'
 #' @examples
 #' # Basic usage with default parameters

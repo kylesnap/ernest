@@ -28,11 +28,11 @@
 #' @references
 #' Buchner, J. (2014). A Statistical Test for Nested Sampling Algorithms.
 #' Statistics and Computing, 26(1–2), 383–392.
-#' <https://doi.org/10.1007/s11222-014-9512-y>
+#' \doi{10.1007/s11222-014-9512-y}
 #'
 #' Buchner, J. (2019). Collaborative Nested Sampling: Big Data versus Complex
 #' Physical Models. Publications of the Astronomical Society of the Pacific,
-#' 131(1004), 108005. <https://doi.org/10.1088/1538-3873/aae7fc>
+#' 131(1004), 108005. \doi{10.1088/1538-3873/aae7fc}
 #'
 #' @family ernest_lrps
 #' @examples

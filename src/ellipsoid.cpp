@@ -9,16 +9,13 @@
 // Implements ellipsoid fitting and manipulation routines for nested sampling.
 #include "ellipsoid.h"
 
-#include <R_ext/BLAS.h>
-#include <R_ext/Lapack.h>
-
 #include <functional>
 #include <numeric>
 
-using namespace ern;
+using namespace vol;
 
 //// Ellipsoid Constructors
-vol::Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
+Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
   if (n_dim == 0) {
     error_ = kFatal;
     return;
@@ -112,7 +109,7 @@ bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
   return y2.squaredNorm() <= 1.0;
 }
 
-Matrix ern::vol::Ellipsoid::major_axes() const {
+Matrix Ellipsoid::major_axes() const {
   // Largest axis
   Vector axes = eigensystem_.values.cwiseInverse().cwiseSqrt();
   Eigen::Index max_i;
@@ -126,7 +123,7 @@ Matrix ern::vol::Ellipsoid::major_axes() const {
 
 // Ellipsoid Fitting
 
-void vol::Ellipsoid::Fit(ConstRef<Matrix> X) {
+void Ellipsoid::Fit(ConstRef<Matrix> X) {
   log_volume_ = R_NegInf;
   if (X.cols() != n_dim_ || X.rows() <= 1) {
     error_ = kFatal;
@@ -145,7 +142,7 @@ void vol::Ellipsoid::Fit(ConstRef<Matrix> X) {
   SetShape();
 }
 
-void vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
+void Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   // Store the covariance matrix in L_.
   error_ = kOk;
   Matrix centered = X.rowwise() - center_.transpose();
@@ -161,7 +158,7 @@ void vol::Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
   // Condition the eigenvalues to avoid numerical issues.
   // If possible, set small eigenvalues to half the smallest nonzero eigenvalue.
   Vector e_values = work.eigenvalues();
-  int zero_ev = (e_values.array() <= kPrecision).count();
+  int zero_ev = (e_values.array() <= ern::kPrecision).count();
   if (zero_ev == e_values.size()) {
     error_ = kNilpotent;
     return;
@@ -214,10 +211,10 @@ void vol::Ellipsoid::SetShape() {
 
 // Clustering Helpers
 // Helper function for recursive splitting
-static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
-                                            const double min_reduction,
-                                            const bool allow_contact,
-                                            const double point_volume) {
+static std::deque<EllipsoidAndData> SplitEllipsoid(const vol::EllipsoidAndData& cur,
+                                                   const double min_reduction,
+                                                   const bool allow_contact,
+                                                   const double point_volume) {
   // Perform k-means clustering with k=2
   size_t n_dim = cur.ell.n_dim();
   size_t n_points = cur.data.rows();
@@ -237,7 +234,7 @@ static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
 
   // BASE CASE 1: Clusters get too small
   if (idx0.size() < 2 * n_dim || idx1.size() < 2 * n_dim) {
-    return vol::PairedEllipsoids();
+    return std::deque<EllipsoidAndData>();
   }
 
   // Fit ellipsoids to each cluster
@@ -246,10 +243,10 @@ static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
 
   // BASE CASE 2: Ellipsoids are malformed or touch.
   if (lh_ell.error() != vol::kOk || rh_ell.error() != vol::kOk) {
-    return vol::PairedEllipsoids();
+    return std::deque<EllipsoidAndData>();
   }
   if (!allow_contact && lh_ell.Intersects(rh_ell)) {
-    return vol::PairedEllipsoids();
+    return std::deque<EllipsoidAndData>();
   }
 
   // Recursive case: Ellipsoids have reduced volume and can be split further.
@@ -261,7 +258,7 @@ static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
 
   // If total volume decreased significantly, accept split and recurse
   if (total_log_vol < log_vol_criterion) {
-    vol::PairedEllipsoids split;
+    std::deque<EllipsoidAndData> split;
     split.emplace_back(std::move(lh));
     split.emplace_back(std::move(rh));
     return split;
@@ -270,12 +267,12 @@ static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
   // If cur volume much larger than expected, try splitting again.
   double double_expected_vol = M_LN2 + point_volume + log(cur.data.rows());
   if (cur.ell.log_volume() > double_expected_vol) {
-    auto sum_log_vol = [](double prev, const vol::EllipsoidAndData& i) {
+    auto sum_log_vol = [](double prev, const EllipsoidAndData& i) {
       return logspace_add(prev, i.ell.log_volume());
     };
-    vol::PairedEllipsoids lh_split =
+    std::deque<EllipsoidAndData> lh_split =
         SplitEllipsoid(lh, min_reduction, allow_contact, point_volume);
-    vol::PairedEllipsoids rh_split =
+    std::deque<EllipsoidAndData> rh_split =
         SplitEllipsoid(rh, min_reduction, allow_contact, point_volume);
     double new_total_log_vol =
         lh_split.empty()
@@ -293,14 +290,15 @@ static vol::PairedEllipsoids SplitEllipsoid(const vol::EllipsoidAndData& cur,
     }
   }
 
-  // Otherwise, return single parent ellipsoid
-  return vol::PairedEllipsoids();
+  // Otherwise, return empty deque.
+  return std::deque<EllipsoidAndData>();
 }
 
-std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
-    const ConstRef<Matrix> X, const double min_reduction, const bool allow_contact,
-    const double expected_volume) {
-  MultiEllipsoid ell;
+std::vector<Ellipsoid> vol::FitMultiEllipsoids(const ConstRef<Matrix> X,
+                                               const double min_reduction,
+                                               const bool allow_contact,
+                                               const double expected_volume) {
+  std::vector<Ellipsoid> ell;
   std::deque<EllipsoidAndData> partitions;
 
   // Insert and check largest ellipsoid.
@@ -314,7 +312,7 @@ std::vector<vol::Ellipsoid> vol::Ellipsoid::FitMultiEllipsoids(
   while (!partitions.empty()) {
     EllipsoidAndData first = std::move(partitions.front());
     partitions.pop_front();
-    PairedEllipsoids splits =
+    std::deque<EllipsoidAndData> splits =
         SplitEllipsoid(first, min_reduction, allow_contact, point_log_vol);
     if (splits.empty()) {  // The split failed
       ell.emplace_back(std::move(first.ell));

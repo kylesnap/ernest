@@ -3,8 +3,9 @@
 on:
   workflow_dispatch:
   push:
-    branches: [main, master, dev]
+    branches: [main]
   pull_request:
+    branches: [main, dev]
 
 name: R-CMD-check.yaml
 

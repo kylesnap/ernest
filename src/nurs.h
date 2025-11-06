@@ -10,9 +10,11 @@
 #pragma once
 
 #include <deque>
-#include "random_generator.h"
+#include "utils.h"
 
-namespace ern {
+namespace nurs {
+
+using ern::Vector;
 
 // Type alias for a step from the NURS sampler
 struct StepResult {
@@ -35,9 +37,8 @@ class NURSSampler {
   // Converts the sampler state to an R list representation.
   inline cpp11::list as_list() const {
     using namespace cpp11::literals;
-    return cpp11::writable::list({"unit"_nm = as_row_doubles(cur_.unit),
-                                  "log_lik"_nm = cur_.log_lik, "n_call"_nm = n_call_,
-                                  "n_jump"_nm = n_jump_,
+    return cpp11::writable::list({"unit"_nm = cur_.unit, "log_lik"_nm = cur_.log_lik,
+                                  "n_call"_nm = n_call_, "n_jump"_nm = n_jump_,
                                   "n_considered"_nm = n_lattice_considered_,
                                   "n_candidates"_nm = n_lattice_valid_});
   }
@@ -86,4 +87,4 @@ class NURSSampler {
   void ChooseNewPoint(double criterion);
 };
 
-}  // namespace ern
+}  // namespace nurs

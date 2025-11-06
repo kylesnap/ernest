@@ -11,10 +11,9 @@
 
 #include <iostream>
 
-using namespace ern::vol;
+using namespace vol;
 
-bool Rectangle::Clamp(const ConstRef<Vector> inner,
-                      const ConstRef<Vector> outer) {
+bool Rectangle::Clamp(const ConstRef<Vector> inner, const ConstRef<Vector> outer) {
   if (!Covered(inner) || !Covered(outer) || inner.isApprox(outer)) {
     return false;
   }

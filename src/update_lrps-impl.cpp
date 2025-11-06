@@ -20,10 +20,10 @@
 [[cpp11::register]]
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
   if (X.nrow() == 0) {
-    return ern::vol::Ellipsoid(X.ncol()).as_list();
+    return vol::Ellipsoid(X.ncol()).as_list();
   }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  ern::vol::Ellipsoid ell(X_eigen);
+  vol::Ellipsoid ell(X_eigen);
   return ell.as_list();
 }
 
@@ -35,7 +35,7 @@ cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X) {
 cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_reduction,
                                     const bool allow_contact, double expected_volume) {
   if (X.nrow() == 0) {
-    ern::vol::Ellipsoid sphere(X.ncol());
+    vol::Ellipsoid sphere(X.ncol());
     using namespace cpp11::literals;
     return cpp11::writable::list(
         {"prob"_nm = cpp11::writable::doubles({1}),
@@ -43,8 +43,8 @@ cpp11::list MultiBoundingEllipsoids(cpp11::doubles_matrix<> X, const double min_
          "tot_log_vol"_nm = sphere.log_volume()});
   }
   Eigen::MatrixXd X_eigen = as_Matrix(X);
-  std::vector<ern::vol::Ellipsoid> ellipsoids = ern::vol::Ellipsoid::FitMultiEllipsoids(
-      X_eigen, min_reduction, allow_contact, expected_volume);
+  std::vector<vol::Ellipsoid> ellipsoids =
+      vol::FitMultiEllipsoids(X_eigen, min_reduction, allow_contact, expected_volume);
   cpp11::writable::list ellipsoid_list;
   cpp11::writable::doubles prob;
   for (auto ell : ellipsoids) {

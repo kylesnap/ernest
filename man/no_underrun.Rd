@@ -75,7 +75,7 @@ robust_lrps <- no_underrun(
 \references{
 Bou-Rabee, N., Carpenter, B., Liu, S., & Oberdörster, S. (2025). The
 No-Underrun Sampler: A Locally-Adaptive, Gradient-Free MCMC Method
-(Version 2). arXiv. \url{https://doi.org/10.48550/ARXIV.2501.18548}
+(Version 2). arXiv. \doi{10.48550/ARXIV.2501.18548}
 }
 \seealso{
 Other ernest_lrps: 

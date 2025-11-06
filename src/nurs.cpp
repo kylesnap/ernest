@@ -10,7 +10,8 @@
 #include "nurs.h"
 
 #include <numeric>
-using namespace ern;
+
+using namespace nurs;
 
 void NURSSampler::Run(double criterion, int steps, double h, int M) {
   for (size_t step = 0; step < steps; step++) {
@@ -46,7 +47,7 @@ void NURSSampler::TakeOneStep(double criterion, double h, int M) {
 
 void NURSSampler::HitAndRun(double criterion, double h) {
   // Hit step
-  UniformOnSphere(rho_);
+  ern::UniformOnSphere(rho_);
   // Run step
   double s = runif(-h / 2.0, h / 2.0);
   proposed_.unit = cur_.unit + (s * rho_);
@@ -119,16 +120,13 @@ void NURSSampler::ChooseNewPoint(double criterion) {
   size_t max_idx = 0;
   for (int idx = 0; idx < n_lattice; idx++) {
     StepResult& point = orbit_[idx];
-    double log_p;
     if (point.log_lik < criterion) {
       n_valid--;
       continue;
-    } else {
-      log_p = point.log_lik;
     }
-    double gumbel = -log(-log(unif_rand()));
-    if (gumbel > max_p) {
-      max_p = gumbel;
+    double p = unif_rand();
+    if (p > max_p) {
+      max_p = p;
       max_idx = idx;
     }
   }

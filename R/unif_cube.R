@@ -11,7 +11,7 @@
 #' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 #' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 #' Royal Astronomical Society, 493, 3132–3158.
-#' <https://doi.org/10.1093/mnras/staa278>
+#' \doi{10.1093/mnras/staa278}
 #'
 #' @srrstats {BS4.0} References the software containing the sampling algorithm.
 #'

@@ -9,7 +9,6 @@
 // Test cases for random vector generation and reflection functions.
 #include <limits>
 
-#include "random_generator.h"
 #include "testthat.h"
 #include "utils.h"
 

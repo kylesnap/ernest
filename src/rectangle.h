@@ -9,9 +9,8 @@
 // Describes the sampling space for multidimensional slice sampling.
 #pragma once
 
-#include "random_generator.h"
+#include "ellipsoid.h"
 
-namespace ern {
 namespace vol {
 
 class Rectangle {
@@ -23,8 +22,7 @@ class Rectangle {
         upper_(Eigen::ArrayXd::Ones(n_dim_)) {};
 
   // Construct a rectangle from initial vectors of boundaries.
-  inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper)
-      : n_dim_(lower.size()) {
+  inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper) : n_dim_(lower.size()) {
     Vector low = as_Matrix(lower), up = as_Matrix(upper);
     lower_ = low.cwiseMin(up);
     upper_ = up.cwiseMax(low);
@@ -50,8 +48,7 @@ class Rectangle {
 
   // Check whether `point` is within the rectangle.
   inline bool Covered(const Eigen::Ref<const Vector> p) const {
-    return (lower_.array() <= p.array()).all() &&
-           (p.array() <= upper_.array()).all();
+    return (lower_.array() <= p.array()).all() && (p.array() <= upper_.array()).all();
   }
 
   // Clamps the rectangle so the point `outer` falls on its boundary and
@@ -80,4 +77,3 @@ class Rectangle {
 };
 
 }  // namespace vol
-}  // namespace ern

@@ -23,9 +23,10 @@ sampler <- ernest_sampler(
     upper = 10,
     names = c("x", "y", "z")
   ),
-  n_points = 1000
+  n_points = 1000,
+  seed = 42
 )
 
-example_run <- generate(sampler, seed = 42L)
+example_run <- generate(sampler)
 
 usethis::use_data(example_run, overwrite = TRUE)

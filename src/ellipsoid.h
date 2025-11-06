@@ -140,10 +140,6 @@ class Ellipsoid {
   inline double log_volume() const { return log_volume_; }
   Matrix major_axes() const;
 
-  // Scale the ellipsoid to have the specified log volume.
-  // The shape is scaled uniformly while maintaining the center.
-  void set_log_volume(double log_volume);
-
   // Fit multiple ellipsoids to the dataset `X` using recursive splitting,
   // retaining only those that meet the `min_reduction` criterion.
   // If `allow_contact` is false, ellipsoids that touch are also avoided.

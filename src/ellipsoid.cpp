@@ -94,16 +94,6 @@ Vector vol::Ellipsoid::Closest(const ConstRef<Vector> point) {
   return FindClosest(L_, center_, point, solve_);
 };
 
-void vol::Ellipsoid::set_log_volume(double log_volume) {
-  double log_scale_factor = (log_volume - log_volume_) / n_dim_;
-  double scale_factor = exp(log_scale_factor);
-
-  L_ *= scale_factor;
-  eigensystem_.values *= (scale_factor * scale_factor);
-  inv_sqrt_shape_ /= scale_factor;
-  log_volume_ = log_volume;
-}
-
 bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
   // An abbreviated Part 1 from ell_pair_separate in ELL_LIB
   Matrix g1 = L_;

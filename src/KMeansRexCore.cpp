@@ -27,106 +27,13 @@ External "C" function interfaces (for calling from Python)
 Author: Mike Hughes (www.michaelchughes.com)
 Date:   2 April 2013
 
-Altered by K Dewsnap (using R-based RNG)
+Altered by K Dewsnap (removing unused routines/non-R rng)
 Date: October 8, 2025
 */
 // nocov start
 #include "KMeansRexCore.h"
 
 using namespace kmeans_rex;
-
-// ====================================================== Utility Functions
-/*
- * Return random integers from `low` (inclusive) to `high` (exclusive).
- */
-int randint(int low, int high) {
-  double r = R_unif_index(high - low);
-  int rint = static_cast<int>(r);
-  return rint + low;
-}
-
-int discrete_rand(Vec& p) {
-  double total = p.sum();
-  int K = (int)p.size();
-
-  double r = total * unif_rand();
-  double cursum = p(0);
-  int newk = 0;
-  while (r >= cursum && newk < K - 1) {
-    newk++;
-    cursum += p[newk];
-  }
-  if (newk < 0 || newk >= K) {
-    cerr << "Badness. Chose illegal discrete value." << endl;
-    return -1;
-  }
-  return newk;
-}
-
-void select_without_replacement(int N, int K, Vec& chosenIDs) {
-  Vec p = Vec::Ones(N);
-  for (int kk = 0; kk < K; kk++) {
-    int choice;
-    int doKeep = false;
-    while (doKeep == false) {
-      doKeep = true;
-      choice = discrete_rand(p);
-
-      for (int previd = 0; previd < kk; previd++) {
-        if (chosenIDs[previd] == choice) {
-          doKeep = false;
-          break;
-        }
-      }
-    }
-    chosenIDs[kk] = choice;
-  }
-}
-
-// ======================================================= Init Cluster Locs Mu
-
-void sampleRowsRandom(ExtMat& X, ExtMat& Mu) {
-  int N = X.rows();
-  int K = Mu.rows();
-  Vec ChosenIDs = Vec::Zero(K);
-  select_without_replacement(N, K, ChosenIDs);
-  for (int kk = 0; kk < K; kk++) {
-    Mu.row(kk) = X.row(ChosenIDs[kk]);
-  }
-}
-
-void sampleRowsPlusPlus(ExtMat& X, ExtMat& Mu) {
-  int N = X.rows();
-  int K = Mu.rows();
-  if (K > N) {
-    // User requested more clusters than we have available.
-    // So, we'll fill only first N rows of Mu
-    // and leave all remaining rows of Mu uninitialized.
-    K = N;
-  }
-  int choice = randint(0, N);
-  Mu.row(0) = X.row(choice);
-  Vec minDist(N);
-  Vec curDist(N);
-  for (int kk = 1; kk < K; kk++) {
-    curDist = (X.rowwise() - Mu.row(kk - 1)).square().rowwise().sum();
-    if (kk == 1) {
-      minDist = curDist;
-    } else {
-      minDist = curDist.min(minDist);
-    }
-    choice = discrete_rand(minDist);
-    Mu.row(kk) = X.row(choice);
-  }
-}
-
-void init_Mu(ExtMat& X, ExtMat& Mu, const char* initname) {
-  if (string(initname) == "random") {
-    sampleRowsRandom(X, Mu);
-  } else if (string(initname) == "plusplus") {
-    sampleRowsPlusPlus(X, Mu);
-  }
-}
 
 // ======================================================= Update Assignments Z
 void pairwise_distance(ExtMat& X, ExtMat& Mu, Mat& Dist) {
@@ -193,18 +100,6 @@ void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
 // ===========================  EXTERNALLY CALLABLE FUNCTIONS ================
 // ===========================================================================
 // ===========================================================================
-
-void kmeans_rex::RunKMeans(const double* X_IN, int N, int D, int K, int Niter,
-                           const char* initname, double* Mu_OUT, double* Z_OUT) {
-  ern::RandomEngine rand;
-
-  ExtMat X(const_cast<double*>(X_IN), N, D);
-  ExtMat Mu(Mu_OUT, K, D);
-  ExtMat Z(Z_OUT, N, 1);
-
-  init_Mu(X, Mu, initname);
-  run_lloyd(X, Mu, Z, Niter);
-}
 
 // Overload: accepts Eigen::Ref<Matrix> and Eigen::Ref<Vector>
 void kmeans_rex::RunKMeans(const Eigen::Ref<const Eigen::MatrixXd> X_IN, int K, int Niter,

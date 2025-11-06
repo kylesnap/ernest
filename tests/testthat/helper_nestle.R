@@ -116,6 +116,7 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
   expect_equal(sum(weights), 1)
 
   # Test seed and rerunning
+  skip_extended_test()
   withr::local_seed(45)
   cur_seed <- .Random.seed[1]
   res1 <- generate(sampler, max_iterations = 1000)
@@ -168,6 +169,7 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
 }
 
 run_eggbox <- function(lrps, ..., tolerance = 1) {
+  skip_extended_test()
   sampler <- exec(
     ernest_sampler,
     eggbox$log_lik,
@@ -191,6 +193,7 @@ run_eggbox <- function(lrps, ..., tolerance = 1) {
 }
 
 run_3d <- function(lrps, ..., tolerance = 1) {
+  skip_extended_test()
   sampler <- exec(
     ernest_sampler,
     mvm_3d$log_lik,

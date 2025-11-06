@@ -42,8 +42,7 @@ describe("mini_balls class", {
       cache_types = "double"
     )
 
-    skip_on_cran()
-    skip_extended_test()
+    skip_snapshot()
     fig <- \() {
       plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
       points(res$new, col = "red")

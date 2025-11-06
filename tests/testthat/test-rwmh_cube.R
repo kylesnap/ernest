@@ -37,8 +37,7 @@ describe("rwmh_cube class", {
       cache_types = c("integer", "double")
     )
 
-    skip_on_cran()
-    skip_extended_test()
+    skip_snapshot()
     fig <- \() {
       plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
       points(res$new, col = "red")

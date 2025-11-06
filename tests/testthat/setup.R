@@ -13,3 +13,9 @@ skip_extended_test <- function() {
     "Extended test"
   )
 }
+
+#' Skip snapshotting a vignette on CRAN and CI services.
+skip_snapshot <- function() {
+  skip_on_cran()
+  skip_on_ci()
+}

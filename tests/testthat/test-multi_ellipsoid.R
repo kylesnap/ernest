@@ -45,8 +45,7 @@ describe("multi_ellipsoid class", {
       cache_types = c("double", "list", "double")
     )
 
-    skip_on_cran()
-    skip_extended_test()
+    skip_snapshot()
     fig <- \() {
       plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
       points(res$new, col = "red")
@@ -94,8 +93,7 @@ test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
   )
 
   # Plot Test Points
-  skip_on_cran()
-  skip_extended_test()
+  skip_snapshot()
   ells <- result$ellipsoid
   new_1 <- ells[[1]]$center +
     (uniformly::runif_in_sphere(points_per_k, n_dim) %*%

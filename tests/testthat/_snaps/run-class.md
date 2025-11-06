@@ -9,12 +9,12 @@
       
       -- Sampling Method 
       [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
-      [3] "Target Acceptance: 0.5"    "Step Size: 0.02736"       
+      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
       
       -- Results 
-      No. Iterations: 9473
-      No. Calls: 198056
-      Log. Evidence: -9.135 (± 0.08330)
+      No. Iterations: 9398
+      No. Calls: 205628
+      Log. Evidence: -9.061 (± 0.08303)
 
 # summary.ernest_run run tibble columns
 
@@ -24,7 +24,7 @@
       nested sampling results <ernest_run>
       
       No. Points: 1000
-      No. Iterations: 9473
-      No. Lik. Calls: 198056
-      Log. Evidence: -9.135 (± 0.08330)
+      No. Iterations: 9398
+      No. Lik. Calls: 205628
+      Log. Evidence: -9.061 (± 0.08303)
 

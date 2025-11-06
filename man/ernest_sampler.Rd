@@ -35,10 +35,12 @@ this is set to \code{n_points * 2.5}.}
 
 \item{update_interval}{An optional positive integer. The number of likelihood
 calls between updates to the \code{sampler} object. If \code{NULL}, this is set to
-\code{n_points * 1.5}.
-#' @param seed An optional integer. Sets the random seed controling the
-random number generator for nested sampling runs. If \code{NULL}, the \code{seed}
-attribute of the resulting object is set to a random integer.}
+\code{n_points * 1.5}.}
+
+\item{seed}{An optional integer. Sets the random seed controlling the
+random number generator for nested sampling runs, which is stored in
+the resulting \code{ernest_sampler} as an attribute. If \code{NULL}, this is
+set to a random integer.}
 }
 \value{
 An object of class \code{ernest_sampler}, which is a list containing the
@@ -56,7 +58,8 @@ The \code{ernest_sampler} object is tested with \code{\link[=compile]{compile()}
 returned. This helps to catch errors with the likelihood and prior
 specifications. If this compilation step fails, review your \code{log_lik_fn} and
 \code{prior} objects for their compliance.
-\subsection{Verbosity}{
+}
+\section{Verbosity}{
 
 Messages from ernest can be silenced with the global options
 \code{rlib_message_verbosity} and \code{rlib_warning_verbosity}. These options take the
@@ -70,7 +73,7 @@ values:
 When set to quiet, messages are not displayed and the condition is not
 signaled. See \code{\link[rlang:abort]{rlang::abort()}} for more information.
 }
-}
+
 \examples{
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 ll_fn <- function(x) -sum(x^2)
@@ -92,6 +95,6 @@ unit_sampler
 parameter.
 \item \code{\link[=create_prior]{create_prior()}} describes the requriements of the \code{prior} parameter.
 \item \link{ernest_lrps} describes the general requirements of likelihood-restricted
-\item prior samplers.
+prior samplers.
 }
 }

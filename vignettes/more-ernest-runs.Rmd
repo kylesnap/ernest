@@ -25,6 +25,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ernest)
+set.seed(42)
 ```
 
 ernest uses comprehensive tests to verify its sampling behaviour against the Python package [nestle](https://github.com/kbarbary/nestle/blob/master/). This vignette describes some of these tests and demonstrates how to construct likelihood functions for ernest.
@@ -59,7 +60,7 @@ Set up the sampler and run nested sampling:
 
 ```{r}
 sampler <- ernest_sampler(gaussian_blobs_loglik, prior, n_points = 100)
-result <- generate(sampler, seed = 42, show_progress = FALSE)
+result <- generate(sampler, show_progress = FALSE)
 ```
 
 For this distribution, the analytical evidence is $\mathcal{Z} = \log(2^2 * \pi * 0.1^2 / 100) \approx -6.679$. Use `summary` to extract the log-evidence (`log_evidence`) and its uncertainty (`log_evidence_err`):
@@ -114,7 +115,7 @@ Run the sampler and compare the estimated log-evidence to the nestle result ($\a
 
 ```{r}
 sampler <- ernest_sampler(eggbox_loglik, eggbox_prior)
-result <- generate(sampler, seed = 42, show_progress = FALSE)
+result <- generate(sampler, show_progress = FALSE)
 smry <- summary(result)
 smry
 ```
@@ -168,7 +169,7 @@ prior <- create_uniform_prior(
   names = c("mu", "sigma")
 )
 sampler <- ernest_sampler(anon_log_lik, prior)
-result <- generate(sampler, seed = 42, show_progress = FALSE)
+result <- generate(sampler, show_progress = FALSE)
 ```
 
 Examine the estimated posterior distribution:

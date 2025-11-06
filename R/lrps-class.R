@@ -149,7 +149,7 @@ propose.ernest_lrps <- function(
 propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
   proposal <- double(n_dim)
   for (i in seq_len(max_loop)) {
-    proposal <- runif(n_dim)
+    proposal <- stats::runif(n_dim)
     log_lik <- unit_log_fn(proposal)
     if (is.finite(log_lik) && log_lik > criterion) {
       return(list(

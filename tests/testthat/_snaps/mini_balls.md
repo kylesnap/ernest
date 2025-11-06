@@ -166,23 +166,6 @@
       [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
       
       -- Results 
-      No. Iterations: 4838
-      No. Calls: 5484
-      Log. Evidence: -6.739 (± 0.1214)
-
----
-
-    Code
-      result
-    Output
-      nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
-      
-      -- Results 
       No. Iterations: 5673
       No. Calls: 6336
       Log. Evidence: -9.607 (± 0.1354)

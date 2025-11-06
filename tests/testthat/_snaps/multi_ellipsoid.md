@@ -149,25 +149,6 @@
       No. Points: 500
       
       -- Sampling Method 
-      [1] "No. Ellipsoids: 1"        "Total Log Volume: 0.4516"
-      [3] "Min Reduction: 0.7"       "Allow Contact: TRUE"     
-      [5] "Enlargement: 1.25"       
-      
-      -- Results 
-      No. Iterations: 4878
-      No. Calls: 9956
-      Log. Evidence: -6.733 (± 0.1235)
-
----
-
-    Code
-      result
-    Output
-      nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
       [1] "No. Ellipsoids: 1"       "Total Log Volume: 1.001"
       [3] "Min Reduction: 0.7"      "Allow Contact: TRUE"    
       [5] "Enlargement: 1.25"      

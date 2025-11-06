@@ -122,13 +122,13 @@ void NURSSampler::ChooseNewPoint(double criterion) {
     double log_p;
     if (point.log_lik < criterion) {
       n_valid--;
-      break;
+      continue;
     } else {
       log_p = point.log_lik;
     }
     double gumbel = -log(-log(unif_rand()));
-    if (log_p + gumbel > max_p) {
-      max_p = log_p + gumbel;
+    if (gumbel > max_p) {
+      max_p = gumbel;
       max_idx = idx;
     }
   }

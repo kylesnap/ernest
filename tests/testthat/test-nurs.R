@@ -105,8 +105,9 @@ describe("nurs with fixed scale", {
 })
 
 test_that("nurs can provide good results", {
-  # TODO
-  skip()
+  run_gaussian_blobs(nurs(adaptive_scale = 0.01), tolerance = 2)
+  run_3d(nurs(adaptive_scale = 0.01), tolerance = 2)
+  run_eggbox(nurs(adaptive_scale = 0.01), tolerance = 2)
 })
 
 test_that("Errors in distance recalculations are handled", {

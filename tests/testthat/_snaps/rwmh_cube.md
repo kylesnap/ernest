@@ -83,24 +83,6 @@
       [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
       
       -- Results 
-      No. Iterations: 4756
-      No. Calls: 104976
-      Log. Evidence: -6.489 (± 0.1209)
-
----
-
-    Code
-      result
-    Output
-      nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
-      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
-      
-      -- Results 
       No. Iterations: 5774
       No. Calls: 130127
       Log. Evidence: -8.824 (± 0.1370)

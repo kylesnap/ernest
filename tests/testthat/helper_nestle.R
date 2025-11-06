@@ -93,6 +93,53 @@ mvm_3d <- local({
 #' results found by nestle and through analytic methods for each LRPS.
 #' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
 #' recovered under different seeds and with random noise added to the log-lik.
+
+#' Does log-evidence for a run fall within expectations?
+#'
+#' @param object An `ernest_run` object.
+#' @param expected The expected evidence value.
+#' @param tolerance Scale of accepted range of values.
+#'
+#' @returns A failure if object isn't an `ernest_run` or if
+#' the relative value of object and expected falls outside
+#' some range.
+#' @noRd
+expect_evidence <- function(object, expected, tolerance = 1) {
+  stopifnot(tolerance > 0)
+  act <- quasi_label(rlang::enquo(object), arg = "object")
+  if (!inherits(object, "ernest_run")) {
+    message <- sprintf("%s must be an `ernest_run` object.", act$lab)
+  }
+
+  act$log_z <- tail(act$val$log_evidence, 1L)
+  act$log_z_var <- sqrt(tail(act$val$log_evidence_var, 1L))
+  if ((act$log_z - expected) < tolerance * act$log_z_var) {
+    succeed()
+    return(invisible(act$val))
+  }
+
+  message <- sprintf(
+    "%s has evidence %g (err. %g), which isn't equal to %g",
+    act$lab,
+    act$log_z,
+    act$log_z_var,
+    expected
+  )
+  fail(message)
+}
+
+#' Helper Functions for Testing Nested Samplers
+#'
+#' These helper functions are used in testthat tests to validate the
+#' behavior and correctness of different nested sampling algorithms
+#' on standard test problems (Gaussian blobs, eggbox,
+#' 3D multivariate normal).
+#'
+#' @param lrps The sampler or sampler configuration to use.
+#' @param ... Additional arguments passed to the sampler.
+#' @param tolerance Numeric tolerance for evidence comparison.
+#'
+#' @noRd
 run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
   sampler <- exec(
     ernest_sampler,
@@ -103,12 +150,8 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
     seed = 42
   )
   result <- generate(sampler)
-  smry <- summary(result)
 
-  expect_lt(
-    abs(smry$log_evidence - gaussian_blobs$analytic_z),
-    log(tolerance) + smry$log_evidence_err
-  )
+  expect_evidence(result, gaussian_blobs$analytic_z, tolerance)
   expect_snapshot(result)
 
   weights <- as_draws(result) |>
@@ -137,13 +180,8 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
     seed = 84
   )
   result <- generate(sampler)
-  smry <- summary(result)
 
-  expect_lt(
-    abs(smry$log_evidence - gaussian_blobs$analytic_z),
-    log(tolerance) + smry$log_evidence_err
-  )
-  expect_snapshot(result)
+  expect_evidence(result, gaussian_blobs$analytic_z, tolerance)
 
   # Robustness to noise
   noisy_ll <- \(x) {
@@ -153,19 +191,15 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
   }
   sampler_noise <- exec(
     ernest_sampler,
-    gaussian_blobs$log_lik,
+    noisy_ll,
     prior = gaussian_blobs$prior,
     sampler = lrps,
     !!!list2(...),
     seed = 42
   )
   result_noise <- generate(sampler_noise)
-  smry_noise <- summary(result_noise)
 
-  expect_lt(
-    abs(smry_noise$log_evidence - gaussian_blobs$analytic_z),
-    log(tolerance) + smry_noise$log_evidence_err
-  )
+  expect_evidence(result_noise, gaussian_blobs$analytic_z, tolerance)
 }
 
 run_eggbox <- function(lrps, ..., tolerance = 1) {
@@ -179,12 +213,8 @@ run_eggbox <- function(lrps, ..., tolerance = 1) {
     seed = 42
   )
   result <- generate(sampler)
-  smry <- summary(result)
 
-  expect_lt(
-    abs(smry$log_evidence - eggbox$raster_z),
-    log(tolerance) + smry$log_evidence_err
-  )
+  expect_evidence(result, eggbox$estimated_z, tolerance)
   expect_snapshot(result)
 
   weights <- as_draws(result) |>
@@ -203,12 +233,8 @@ run_3d <- function(lrps, ..., tolerance = 1) {
     seed = 42
   )
   result <- generate(sampler)
-  smry <- summary(result)
 
-  expect_lt(
-    abs(smry$log_evidence - mvm_3d$analytic_z),
-    log(tolerance) + smry$log_evidence_err
-  )
+  expect_evidence(result, mvm_3d$analytic_z, tolerance)
   expect_snapshot(result)
 
   weights <- as_draws(result) |>

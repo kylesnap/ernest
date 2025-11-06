@@ -101,23 +101,6 @@
       No. Points: 500
       
       -- Sampling Method 
-      [1] "Center: 0.5000, 0.5000" "Log Volume: 0.4516"     "Enlargement: 1.25"     
-      
-      -- Results 
-      No. Iterations: 4802
-      No. Calls: 73846
-      Log. Evidence: -6.580 (± 0.1219)
-
----
-
-    Code
-      result
-    Output
-      nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
       [1] "Center: 0.5000, 0.5000, 0.5000" "Log Volume: 1.001"             
       [3] "Enlargement: 1.25"             
       

@@ -63,9 +63,9 @@ Physical Models. Publications of the Astronomical Society of the Pacific,
 \seealso{
 Other ernest_lrps: 
 \code{\link{multi_ellipsoid}()},
-\code{\link{nurs}()},
+\code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
-\code{\link{slice}()},
+\code{\link{slice_rectangle}()},
 \code{\link{unif_cube}()},
 \code{\link{unif_ellipsoid}()}
 }

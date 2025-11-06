@@ -36,26 +36,27 @@
 #'    exceeds the unit hypercube, or (b) the recursive condition
 #'    \deqn{max(l_{left}, l_{right}) < c} fails, where \eqn{l_{left}} and
 #'    \eqn{l_{right}} are the likelihoods at the lattice ends.
-#' 4. Select one point from the final lattice as the new live point, weighted
-#'    by likelihood.
+#' 4. Randomly select one point from the final lattice as the new live point.
 #'
 #' Choose `fixed_scale` to keep \eqn{h} constant, or `adaptive_scale` to update
 #' \eqn{h} from inter-point distances. See References for details on tuning.
 #'
-#' @note A detailed comparison of `fixed_scale` and `adaptive_scale` will be
-#' provided once it is available. This method has not yet been validated.
+#' @note Please don't use this function for analyses; the NURS method has not
+#' yet been validated for correctness. A more detailed comparison of
+#' `fixed_scale` and `adaptive_scale` will be provided once it is
+#' available.
 #'
 #' @references
 #' Bou-Rabee, N., Carpenter, B., Liu, S., & Oberdörster, S. (2025). The
-#' No-Underrun Sampler: A Locally-Adaptive, Gradient-Free MCMC Method (Version 2).
-#' arXiv. <https://doi.org/10.48550/ARXIV.2501.18548>
+#' No-Underrun Sampler: A Locally-Adaptive, Gradient-Free MCMC Method
+#' (Version 2). arXiv. <https://doi.org/10.48550/ARXIV.2501.18548>
 #'
 #' @examples
 #' # Basic usage with default parameters
-#' lrps <- nurs(adaptive_scale = 0.01)
+#' lrps <- no_underrun(adaptive_scale = 0.01)
 #'
 #' # Conservative settings for difficult problems
-#' robust_lrps <- nurs(
+#' robust_lrps <- no_underrun(
 #'   fixed_scale = 0.01,
 #'   steps = 5
 #' )
@@ -63,7 +64,7 @@
 #' @family ernest_lrps
 #' @keywords internal
 #' @export
-nurs <- function(
+no_underrun <- function(
   adaptive_scale,
   fixed_scale,
   steps = 3,
@@ -75,7 +76,7 @@ nurs <- function(
   } else {
     adaptive_scale <- NULL
   }
-  new_nurs(
+  new_no_underrun(
     adaptive_scale = adaptive_scale,
     fixed_scale = fixed_scale,
     steps = steps,
@@ -85,7 +86,7 @@ nurs <- function(
 
 #' @noRd
 #' @export
-format.nurs <- function(x, ...) {
+format.no_underrun <- function(x, ...) {
   scale_str <- if (is.null(x$adaptive_scale)) {
     "Fixed"
   } else {
@@ -111,9 +112,9 @@ format.nurs <- function(x, ...) {
 #' scaling for proposals.
 #'
 #' @return An LRPS specification, a list with class
-#' `c("nurs", "ernest_lrps")`.
+#' `c("no_underrun", "ernest_lrps")`.
 #' @noRd
-new_nurs <- function(
+new_no_underrun <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
   max_loop = 1e6L,
@@ -158,13 +159,13 @@ new_nurs <- function(
     fixed_scale = fixed_scale,
     steps = as.integer(steps),
     max_orbits = as.integer(max_orbits),
-    .class = "nurs"
+    .class = "no_underrun"
   )
 }
 
 #' @rdname propose
 #' @export
-propose.nurs <- function(
+propose.no_underrun <- function(
   x,
   original = NULL,
   criterion = -Inf
@@ -189,9 +190,9 @@ propose.nurs <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.nurs <- function(x, unit = NULL, ...) {
+update_lrps.no_underrun <- function(x, unit = NULL, ...) {
   if (is.null(unit) || is.null(x$adaptive_scale)) {
-    return(do.call(new_nurs, as.list(x)))
+    return(do.call(new_no_underrun, as.list(x)))
   }
 
   try_fetch(
@@ -210,5 +211,5 @@ update_lrps.nurs <- function(x, unit = NULL, ...) {
       env_unbind(x$cache, "epsilon")
     }
   )
-  do.call(new_nurs, as.list(x))
+  do.call(new_no_underrun, as.list(x))
 }

@@ -1,6 +1,6 @@
 Package: ernest
 Title: A Toolkit for Nested Sampling
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2132-8083"))

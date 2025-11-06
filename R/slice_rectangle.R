@@ -7,7 +7,7 @@
 #' @param enlarge Optional double, greater than or equal to 1. Factor by which
 #' to inflate the hyperrectangle's volume before sampling (see Details).
 #'
-#' @returns An object of class `c("slice", "ernest_lrps")` that can be
+#' @returns An object of class `c("slice_rectangle", "ernest_lrps")` that can be
 #' used with [ernest_sampler()] to specify the sampling behaviour.
 #'
 #' @details
@@ -35,21 +35,21 @@
 #'
 #' @examples
 #' # Basic usage with default parameters
-#' lrps <- slice()
+#' lrps <- slice_rectangle()
 #'
 #' # More patient sampler for complex posteriors
-#' patient_lrps <- slice(enlarge = 1.25)
+#' patient_lrps <- slice_rectangle(enlarge = 1.25)
 #'
 #' @family ernest_lrps
 #' @export
-slice <- function(enlarge = 1) {
+slice_rectangle <- function(enlarge = 1) {
   check_number_decimal(enlarge, min = 1, allow_na = TRUE)
-  new_slice(enlarge = enlarge)
+  new_slice_rectangle(enlarge = enlarge)
 }
 
 #' @noRd
 #' @export
-format.slice <- function(x, ...) {
+format.slice_rectangle <- function(x, ...) {
   center <- "Undefined"
   log_vol <- -Inf
   enlarge <- if (is.na(x$enlarge)) "Disabled" else x$enlarge
@@ -81,9 +81,9 @@ format.slice <- function(x, ...) {
 #' types or error messages for univariate inputs.
 #'
 #' @return An LRPS specification, a list with class
-#' `c("slice", "ernest_lrps")`.
+#' `c("slice_rectangle", "ernest_lrps")`.
 #' @noRd
-new_slice <- function(
+new_slice_rectangle <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
   max_loop = 1e6L,
@@ -103,13 +103,13 @@ new_slice <- function(
     max_loop = max_loop,
     cache = cache,
     enlarge = as.double(enlarge),
-    .class = "slice"
+    .class = "slice_rectangle"
   )
 }
 
 #' @rdname propose
 #' @export
-propose.slice <- function(
+propose.slice_rectangle <- function(
   x,
   original = NULL,
   criterion = -Inf
@@ -132,9 +132,9 @@ propose.slice <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.slice <- function(x, unit = NULL, ...) {
+update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
   if (is.null(unit) || is.na(x$enlarge)) {
-    return(do.call(new_slice, as.list(x)))
+    return(do.call(new_slice_rectangle, as.list(x)))
   }
   lower <- matrixStats::colMins(unit)
   upper <- matrixStats::colMaxs(unit)
@@ -146,5 +146,5 @@ update_lrps.slice <- function(x, unit = NULL, ...) {
     upper <- pmin(center + new_radius, 1.0)
   }
   env_bind(x$cache, lower = lower, upper = upper)
-  do.call(new_slice, as.list(x))
+  do.call(new_slice_rectangle, as.list(x))
 }

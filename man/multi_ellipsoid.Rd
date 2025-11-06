@@ -89,9 +89,9 @@ https://github.com/kbarbary/nestle/blob/master/runtests.py
 \seealso{
 Other ernest_lrps: 
 \code{\link{mini_balls}()},
-\code{\link{nurs}()},
+\code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
-\code{\link{slice}()},
+\code{\link{slice_rectangle}()},
 \code{\link{unif_cube}()},
 \code{\link{unif_ellipsoid}()}
 }

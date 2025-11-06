@@ -4,13 +4,19 @@ set.seed(42)
 #' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages
 test_that("nurs can be called by user", {
-  default <- nurs(adaptive_scale = 0.1)
-  expect_snapshot(nurs(adaptive_scale = -0.1), error = TRUE)
-  expect_snapshot(nurs(adaptive_scale = 1.1), error = TRUE)
-  expect_snapshot(nurs(fixed_scale = 0), error = TRUE)
-  expect_snapshot(nurs(adaptive_scale = 0.1, fixed_scale = 0.3), error = TRUE)
-  expect_snapshot(nurs(adaptive_scale = 0.1, steps = 0), error = TRUE)
-  expect_snapshot(nurs(adaptive_scale = 0.1, max_orbits = 0), error = TRUE)
+  default <- no_underrun(adaptive_scale = 0.1)
+  expect_snapshot(no_underrun(adaptive_scale = -0.1), error = TRUE)
+  expect_snapshot(no_underrun(adaptive_scale = 1.1), error = TRUE)
+  expect_snapshot(no_underrun(fixed_scale = 0), error = TRUE)
+  expect_snapshot(
+    no_underrun(adaptive_scale = 0.1, fixed_scale = 0.3),
+    error = TRUE
+  )
+  expect_snapshot(no_underrun(adaptive_scale = 0.1, steps = 0), error = TRUE)
+  expect_snapshot(
+    no_underrun(adaptive_scale = 0.1, max_orbits = 0),
+    error = TRUE
+  )
   expect_equal(default$steps, 3L)
   expect_equal(default$adaptive_scale, 0.1)
   expect_null(default$fixed_scale)
@@ -18,7 +24,7 @@ test_that("nurs can be called by user", {
 })
 
 describe("nurs class", {
-  obj <- new_nurs(fn, 2, adaptive_scale = 0.01)
+  obj <- new_no_underrun(fn, 2, adaptive_scale = 0.01)
   it("Can be constructed with new_", {
     check_valid_lrps(
       obj,
@@ -56,12 +62,12 @@ describe("nurs class", {
       plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
       points(res$new, col = "red")
     }
-    vdiffr::expect_doppelganger("update.nurs", fig)
+    vdiffr::expect_doppelganger("update.no_underrun", fig)
   })
 })
 
 describe("nurs with fixed scale", {
-  obj <- new_nurs(fn, 2, fixed_scale = 0.01)
+  obj <- new_no_underrun(fn, 2, fixed_scale = 0.01)
   expect_snapshot(obj)
   it("Can be constructed with new_", {
     check_valid_lrps(
@@ -105,13 +111,13 @@ describe("nurs with fixed scale", {
 })
 
 test_that("nurs can provide good results", {
-  run_gaussian_blobs(nurs(adaptive_scale = 0.01), tolerance = 2)
-  run_3d(nurs(adaptive_scale = 0.01), tolerance = 2)
-  run_eggbox(nurs(adaptive_scale = 0.01), tolerance = 2)
+  run_gaussian_blobs(no_underrun(adaptive_scale = 0.01), tolerance = 2)
+  run_3d(no_underrun(adaptive_scale = 0.01), tolerance = 2)
+  run_eggbox(no_underrun(adaptive_scale = 0.01), tolerance = 2)
 })
 
 test_that("Errors in distance recalculations are handled", {
-  obj <- new_nurs(fn, 2, adaptive_scale = 0.01)
+  obj <- new_no_underrun(fn, 2, adaptive_scale = 0.01)
   env_poke(obj$cache, "epsilon", 0.005)
   expect_snapshot(new_obj <- update_lrps(obj, unit = matrix()))
   expect_equal(obj$cache$epsilon, 0.01)

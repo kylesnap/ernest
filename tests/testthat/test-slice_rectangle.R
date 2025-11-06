@@ -4,15 +4,15 @@ set.seed(42)
 #' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages
 test_that("slice can be called by user", {
-  default <- slice()
-  expect_snapshot(slice(enlarge = 0.5), error = TRUE)
-  expect_snapshot(slice(enlarge = NA))
+  default <- slice_rectangle()
+  expect_snapshot(slice_rectangle(enlarge = 0.5), error = TRUE)
+  expect_snapshot(slice_rectangle(enlarge = NA))
   expect_equal(default$enlarge, 1)
   expect_snapshot(default)
 })
 
 describe("slice class", {
-  obj <- new_slice(fn, 2)
+  obj <- new_slice_rectangle(fn, 2)
   it("Can be constructed with new_", {
     check_valid_lrps(
       obj,
@@ -48,7 +48,7 @@ describe("slice class", {
 })
 
 test_that("slice can provide good results", {
-  run_gaussian_blobs(slice(), tolerance = 2)
-  run_3d(slice(), tolerance = 2)
-  run_eggbox(slice(), tolerance = 2)
+  run_gaussian_blobs(slice_rectangle(), tolerance = 2)
+  run_3d(slice_rectangle(), tolerance = 2)
+  run_eggbox(slice_rectangle(), tolerance = 2)
 })

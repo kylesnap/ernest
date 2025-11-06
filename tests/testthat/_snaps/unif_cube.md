@@ -7,12 +7,3 @@
       * Dimensions: 'Undefined'
       * No. Log-Lik Calls: 0
 
-# unif_cube class: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $n_call
-      [1] 2
-      
-

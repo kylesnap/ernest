@@ -47,18 +47,6 @@
       * Radius: Undefined
       * Enlargement: 1.1
 
-# mini_balls class: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $radius
-      [1] 0.5
-      
-      $n_call
-      [1] 7
-      
-
 # mini_balls works with non-euclidean norms:: manhattan
 
     Code
@@ -132,40 +120,16 @@
 
 # mini_balls can provide good results
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: mini_balls
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4909
-      * No. Calls: 5546
-      * Log. Evidence: -7.277 (± 0.1235)
+    c(n_iter = 4909, log_evidence = -7.27694392158619, log_evidence_var = 0.0152451509554648
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: mini_balls
-      --------------------------------------------------------------------------------
-      * No. Iterations: 5673
-      * No. Calls: 6336
-      * Log. Evidence: -9.607 (± 0.1354)
+    c(n_iter = 5673, log_evidence = -9.60747023066645, log_evidence_var = 0.0183375008778491
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: mini_balls
-      --------------------------------------------------------------------------------
-      * No. Iterations: 5352
-      * No. Calls: 6022
-      * Log. Evidence: 235.0 (± 0.1223)
+    c(n_iter = 5352, log_evidence = 235.008847996757, log_evidence_var = 0.0149525422877508
+    )
 

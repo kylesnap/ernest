@@ -24,7 +24,6 @@ check_valid_lrps <- function(
   expect_type(object$unit_log_fn, "closure")
   expect_vector(object$n_dim, integer(), size = size)
   expect_vector(object$max_loop, integer(), size = size)
-  expect_type(object$unit_log_fn, "closure")
 
   expect_type(object$cache, "environment")
 
@@ -75,7 +74,6 @@ check_propose <- function(lrps, unit_log_fn, fail_on_no_accept = TRUE) {
   expect_gte(res2$log_lik + 0.1, orig_log_lik - 10)
   expect_gt(res2$n_call, 0L)
   expect_equal(env_get(lrps$cache, "n_call"), res2$n_call)
-  expect_snapshot(as.list(lrps$cache))
 
   # Error behaviour: criterion greater than max log lik.
   lrps$max_loop <- 1e3

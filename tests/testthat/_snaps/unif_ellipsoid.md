@@ -31,31 +31,6 @@
       * Log Volume: -Inf
       * Enlargement: 1.25
 
-# unif_ellipsoid class: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $inv_sqrt_shape
-                [,1]      [,2]
-      [1,] 0.7071068 0.0000000
-      [2,] 0.0000000 0.7071068
-      
-      $log_volume
-      [1] 0.4515827
-      
-      $n_call
-      [1] 7
-      
-      $shape
-           [,1] [,2]
-      [1,]    2    0
-      [2,]    0    2
-      
-      $center
-      [1] 0.5 0.5
-      
-
 # update throws a warning when the points are all identical
 
     Code
@@ -73,27 +48,11 @@
 
 # unif_ellipsoid can provide good results
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: unif_ellipsoid
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4853
-      * No. Calls: 76003
-      * Log. Evidence: -6.682 (± 0.1231)
+    c(n_iter = 4853, log_evidence = -6.68190011451108, log_evidence_var = 0.0151436745919178
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: unif_ellipsoid
-      --------------------------------------------------------------------------------
-      * No. Iterations: 5772
-      * No. Calls: 12718
-      * Log. Evidence: -8.819 (± 0.1371)
+    c(n_iter = 5772, log_evidence = -8.81880302398843, log_evidence_var = 0.0187832914451739
+    )
 

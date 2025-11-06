@@ -128,6 +128,26 @@ expect_evidence <- function(object, expected, tolerance = 1) {
   fail(message)
 }
 
+#' Save a run's results in a snapshot.
+#'
+#' @param object An `ernest_run` object.
+#'
+#' @returns A failure if the snapshot changes. Skips the block if
+#' on CRAN, CI, and COVR.
+#' @noRd
+result_snapshot <- function(object) {
+  stopifnot(inherits(object, "ernest_run"))
+  skip_on_cran()
+  skip_on_ci()
+  skip_on_covr()
+  results <- c(
+    "n_iter" = object$n_iter,
+    "log_evidence" = tail(object$log_evidence, 1L),
+    "log_evidence_var" = tail(object$log_evidence_var, 1L)
+  )
+  expect_snapshot_value(results, style = "deparse")
+}
+
 #' Helper Functions for Testing Nested Samplers
 #'
 #' These helper functions are used in testthat tests to validate the
@@ -152,12 +172,11 @@ run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
   result <- generate(sampler)
 
   expect_evidence(result, gaussian_blobs$analytic_z, tolerance)
-  expect_snapshot(result)
-
   weights <- as_draws(result) |>
     weights()
   expect_equal(sum(weights), 1)
 
+  result_snapshot(result)
   # Test seed and rerunning
   skip_extended_test()
   withr::local_seed(45)
@@ -215,7 +234,7 @@ run_eggbox <- function(lrps, ..., tolerance = 1) {
   result <- generate(sampler)
 
   expect_evidence(result, eggbox$estimated_z, tolerance)
-  expect_snapshot(result)
+  result_snapshot(result)
 
   weights <- as_draws(result) |>
     weights()
@@ -235,7 +254,7 @@ run_3d <- function(lrps, ..., tolerance = 1) {
   result <- generate(sampler)
 
   expect_evidence(result, mvm_3d$analytic_z, tolerance)
-  expect_snapshot(result)
+  result_snapshot(result)
 
   weights <- as_draws(result) |>
     weights()

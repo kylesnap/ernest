@@ -63,7 +63,6 @@ test_that("Missing values in the prior", {
 #' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
 #' @srrstats {G5.3} Ernest results do not contain NA even when log-lik produces
 #' NA values.
-NULL
 
 test_that("Missing values in the log-likelihood", {
   set.seed(42)

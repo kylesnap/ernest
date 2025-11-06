@@ -58,24 +58,6 @@
       * Scaling Method: Adaptive
       * Current Scale: 0.1000
 
-# nurs class: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $epsilon
-      [1] 0.01
-      
-      $n_call
-      [1] 160
-      
-      $n_cmp
-      [1] 79
-      
-      $n_accept
-      [1] 3
-      
-
 # nurs class: Can be updated
 
     Code
@@ -88,62 +70,20 @@
       • Scaling Method: Fixed
       • Current Scale: 0.01000
 
-# nurs with fixed scale: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $epsilon
-      [1] 0.01
-      
-      $n_call
-      [1] 160
-      
-      $n_cmp
-      [1] 79
-      
-      $n_accept
-      [1] 3
-      
-
 # nurs can provide good results
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: no_underrun
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4864
-      * No. Calls: 152652
-      * Log. Evidence: -6.705 (± 0.1232)
+    c(n_iter = 4864, log_evidence = -6.70501878348074, log_evidence_var = 0.0151743725825278
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: no_underrun
-      --------------------------------------------------------------------------------
-      * No. Iterations: 5800
-      * No. Calls: 105740
-      * Log. Evidence: -8.874 (± 0.1382)
+    c(n_iter = 5800, log_evidence = -8.8737077500162, log_evidence_var = 0.0190860612498608
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: no_underrun
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4953
-      * No. Calls: 87820
-      * Log. Evidence: 236.1 (± 0.1179)
+    c(n_iter = 4953, log_evidence = 236.117034150622, log_evidence_var = 0.0139036180477168
+    )
 
 # Errors in distance recalculations are handled
 

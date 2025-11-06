@@ -1,6 +1,7 @@
 sampler <- ernest_sampler(
   log_lik = gaussian_blobs$log_lik,
-  prior = gaussian_blobs$prior
+  prior = gaussian_blobs$prior,
+  seed = 42
 )
 run1 <- generate(sampler, max_iterations = 100)
 

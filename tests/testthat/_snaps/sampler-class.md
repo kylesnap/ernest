@@ -18,45 +18,89 @@
 
 # invalid samplers are caught
 
-    `n_points` must be a whole number larger than or equal to 1, not the number 0.
+    Code
+      eval(points_call)
+    Condition
+      Error:
+      ! `n_points` must be a whole number larger than or equal to 1, not the number 0.
 
 ---
 
-    `n_points` must be a whole number, not `Inf`.
+    Code
+      refresh_ernest_sampler(bad_sampler)
+    Condition
+      Error in `refresh_ernest_sampler()`:
+      ! `n_points` must be a whole number, not `Inf`.
 
 ---
 
-    `first_update` must be a whole number larger than or equal to 0, not the number -1.
+    Code
+      eval(first_update_call)
+    Condition
+      Error:
+      ! `first_update` must be a whole number larger than or equal to 0, not the number -1.
 
 ---
 
-    `n_points` must be a whole number, not `Inf`.
+    Code
+      refresh_ernest_sampler(bad_sampler)
+    Condition
+      Error in `refresh_ernest_sampler()`:
+      ! `n_points` must be a whole number, not `Inf`.
 
 ---
 
-    `update_interval` must be a whole number larger than or equal to 0, not the number -1.
+    Code
+      eval(update_interval_call)
+    Condition
+      Error:
+      ! `update_interval` must be a whole number larger than or equal to 0, not the number -1.
 
 ---
 
-    `n_points` must be a whole number, not `Inf`.
+    Code
+      refresh_ernest_sampler(bad_sampler)
+    Condition
+      Error in `refresh_ernest_sampler()`:
+      ! `n_points` must be a whole number, not `Inf`.
 
 ---
 
-    `log_lik_fn` must be an object with class ernest_likelihood, not an empty list.
+    Code
+      eval(loglik_call)
+    Condition
+      Error:
+      ! `log_lik_fn` must be an object with class ernest_likelihood, not an empty list.
 
 ---
 
-    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+    Code
+      refresh_ernest_sampler(bad_sampler)
+    Condition
+      Error in `refresh_ernest_sampler()`:
+      ! `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
 
 ---
 
-    `prior` must be an object with class ernest_prior, not an empty list.
+    Code
+      eval(prior_call)
+    Condition
+      Error:
+      ! `prior` must be an object with class ernest_prior, not an empty list.
 
 ---
 
-    `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
+    Code
+      refresh_ernest_sampler(bad_sampler)
+    Condition
+      Error in `refresh_ernest_sampler()`:
+      ! `log_lik_fn` must be an object with class ernest_likelihood, not the string "sum".
 
 ---
 
-    `lrps` must be an object with class ernest_lrps, not an empty list.
+    Code
+      eval(lrps_call)
+    Condition
+      Error:
+      ! `lrps` must be an object with class ernest_lrps, not an empty list.
 

@@ -14,29 +14,59 @@
 
 # create_likelihood throws errors
 
-    object 'fn' of mode 'function' was not found
+    Code
+      create_likelihood("fn")
+    Condition
+      Error in `get()`:
+      ! object 'fn' of mode 'function' was not found
 
 ---
 
-    `on_nonfinite` must be one of "warn", "quiet", or "abort", not "blob".
+    Code
+      create_likelihood(test, on_nonfinite = "blob")
+    Condition
+      Error in `new_ernest_likelihood()`:
+      ! `on_nonfinite` must be one of "warn", "quiet", or "abort", not "blob".
 
 # non_finite action options
 
-    log-lik. values must be either finite or `-Inf`, not NaN.
+    Code
+      fail_ll(c(0, 1, 2))
+    Condition
+      Error in `safe_log_lik()`:
+      ! log-lik. values must be either finite or `-Inf`, not NaN.
 
 ---
 
-    Replacing `NaN` with `-Inf`.
+    Code
+      warn_ll(c(0, 1, 2))
+    Condition
+      Warning:
+      Replacing `NaN` with `-Inf`.
+    Output
+      [1] -Inf
 
 # fn fails if a non-double is returned
 
-    Can't convert `log-lik.` <character> to <double>.
+    Code
+      fail_ll(c(0, 1, 2))
+    Condition
+      Error in `safe_log_lik()`:
+      ! Can't convert `log-lik.` <character> to <double>.
 
 ---
 
-    Can't convert `log-lik.` <character> to <double>.
+    Code
+      warn_ll(c(0, 1, 2))
+    Condition
+      Error in `safe_log_lik()`:
+      ! Can't convert `log-lik.` <character> to <double>.
 
 ---
 
-    Can't convert `log-lik.` <character> to <double>.
+    Code
+      result <- pass_ll(c(0, 1, 2))
+    Condition
+      Error in `safe_log_lik()`:
+      ! Can't convert `log-lik.` <character> to <double>.
 

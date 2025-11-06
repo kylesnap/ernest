@@ -17,10 +17,10 @@ test_that("create_likelihood with simple function", {
 })
 
 test_that("create_likelihood throws errors", {
-  expect_snapshot_error(create_likelihood("fn"))
+  expect_snapshot(create_likelihood("fn"), error = TRUE)
 
   test <- function(x) -sum((x - 1)^2)
-  expect_snapshot_error(create_likelihood(test, on_nonfinite = "blob"))
+  expect_snapshot(create_likelihood(test, on_nonfinite = "blob"), error = TRUE)
 })
 
 test_that("create_likelihood can rebuild itself", {
@@ -43,11 +43,11 @@ test_that("non_finite action options", {
 
   fail_ll <- create_likelihood(fn, on_nonfinite = "abort")
   expect_equal(fail_ll(c(1, 2, 3)), -5)
-  expect_snapshot_error(fail_ll(c(0, 1, 2)))
+  expect_snapshot(fail_ll(c(0, 1, 2)), error = TRUE)
 
   warn_ll <- create_likelihood(fn, on_nonfinite = "warn")
   expect_equal(warn_ll(c(1, 2, 3)), -5)
-  expect_snapshot_warning(warn_ll(c(0, 1, 2)))
+  expect_snapshot(warn_ll(c(0, 1, 2)))
 
   pass_ll <- create_likelihood(fn, on_nonfinite = "quiet")
   expect_equal(pass_ll(c(1, 2, 3)), -5)
@@ -60,13 +60,13 @@ test_that("fn fails if a non-double is returned", {
 
   fail_ll <- create_likelihood(fn, on_nonfinite = "abort")
   expect_equal(fail_ll(c(1, 2, 3)), -5)
-  expect_snapshot_error(fail_ll(c(0, 1, 2)))
+  expect_snapshot(fail_ll(c(0, 1, 2)), error = TRUE)
 
   warn_ll <- create_likelihood(fn, on_nonfinite = "warn")
   expect_equal(warn_ll(c(1, 2, 3)), -5)
-  expect_snapshot_error(warn_ll(c(0, 1, 2)))
+  expect_snapshot(warn_ll(c(0, 1, 2)), error = TRUE)
 
   pass_ll <- create_likelihood(fn, on_nonfinite = "quiet")
   expect_equal(pass_ll(c(1, 2, 3)), -5)
-  expect_snapshot_error(result <- pass_ll(c(0, 1, 2)))
+  expect_snapshot(result <- pass_ll(c(0, 1, 2)), error = TRUE)
 })

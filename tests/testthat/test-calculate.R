@@ -1,3 +1,5 @@
+withr::local_seed(42)
+
 #' Testing calculate against values produced by `nestcheck` when provided
 #' a sample run from PolyChord.
 gold <- readRDS(test_path("calculate-gold.rds"))

@@ -231,7 +231,7 @@ check_stopping_criteria <- function(
       )
     }
   }
-  if (!is.null(cur_calls) & !is.null(max_calls)) {
+  if (!is.null(cur_calls) && !is.null(max_calls)) {
     if (cur_calls >= max_calls) {
       cli::cli_abort(
         c(

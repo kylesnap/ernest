@@ -1,8 +1,16 @@
 # plotting an ernest_estimate object
 
-    `ndraws` should be above 100 to accurately plot credible intervals.
+    Code
+      tbl_1 <- calc_hdi_tbl(calc_1)
+    Condition
+      Warning:
+      `ndraws` should be above 100 to accurately plot credible intervals.
 
 ---
 
-    `ndraws` should be above 100 to accurately plot credible intervals.
+    Code
+      tbl_2 <- calc_hdi_tbl(calc_2)
+    Condition
+      Warning:
+      `ndraws` should be above 100 to accurately plot credible intervals.
 

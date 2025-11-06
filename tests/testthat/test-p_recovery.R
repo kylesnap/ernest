@@ -13,7 +13,7 @@ test_that("Parameter recovery for a normal distribution", {
     }
   )
 
-  sampler <- ernest_sampler(log_l, prior, n_points = 100)
+  sampler <- ernest_sampler(log_l, prior, n_points = 100, seed = 42)
   run <- generate(sampler, max_iterations = 1000)
   draws <- as_draws(run) |> posterior::resample_draws()
   smry <- posterior::summarise_draws(
@@ -77,7 +77,8 @@ sd_upper <- 0.175493354741336
 test_that("Parameter recovery (NIST mcmc01)", {
   sampler <- ernest_sampler(
     log_lik,
-    prior
+    prior,
+    seed = 42
   )
   run <- generate(sampler)
   draws <- as_draws(run) |>

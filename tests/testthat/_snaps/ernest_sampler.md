@@ -18,7 +18,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -7.557 (± 2.432)
+      Log. Evidence: -7.235 (± 2.259)
 
 # Progress bar can be printed [ansi]
 
@@ -36,7 +36,7 @@
       -- Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -7.440 (± 2.369)
+      Log. Evidence: -7.235 (± 2.259)
 
 # Progress bar can be printed [unicode]
 
@@ -54,7 +54,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.443 (± 2.029)
+      Log. Evidence: -7.235 (± 2.259)
 
 # Progress bar can be printed [fancy]
 
@@ -72,7 +72,7 @@
       ── Results 
       No. Iterations: 1
       No. Calls: 1
-      Log. Evidence: -6.209 (± 2.042)
+      Log. Evidence: -7.235 (± 2.259)
 
 # Fully-verbose output [plain]
 
@@ -92,8 +92,8 @@
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 11036
-      Log. Evidence: -6.621 (± 1.473)
+      No. Calls: 10702
+      Log. Evidence: -6.684 (± 1.550)
 
 # Fully-verbose output [ansi]
 
@@ -113,8 +113,8 @@
       
       -- Results 
       No. Iterations: 1000
-      No. Calls: 9902
-      Log. Evidence: -6.438 (± 1.424)
+      No. Calls: 10702
+      Log. Evidence: -6.684 (± 1.550)
 
 # Fully-verbose output [unicode]
 
@@ -134,8 +134,8 @@
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10376
-      Log. Evidence: -7.188 (± 1.807)
+      No. Calls: 10702
+      Log. Evidence: -6.684 (± 1.550)
 
 # Fully-verbose output [fancy]
 
@@ -155,6 +155,6 @@
       
       ── Results 
       No. Iterations: 1000
-      No. Calls: 10301
-      Log. Evidence: -6.670 (± 1.672)
+      No. Calls: 10702
+      Log. Evidence: -6.684 (± 1.550)
 

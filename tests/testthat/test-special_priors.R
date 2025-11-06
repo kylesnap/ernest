@@ -1,7 +1,7 @@
 set.seed(42)
 
 test_that("create_normal_prior error handling", {
-  expect_snapshot_error(create_normal_prior(3, sd = c(0, 1, 1)))
+  expect_snapshot(create_normal_prior(3, sd = c(0, 1, 1)), error = TRUE)
 })
 
 test_that("vector recycling behaves as expected", {

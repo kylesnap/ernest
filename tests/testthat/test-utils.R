@@ -34,7 +34,8 @@ test_that("logging works during generate() calls", {
       sampler <- ernest_sampler(
         gaussian_blobs$log_lik,
         gaussian_blobs$prior,
-        n_points = 100
+        n_points = 100,
+        seed = 42
       )
       run <- generate(
         sampler,
@@ -82,7 +83,7 @@ test_that("check_class works as expected", {
     check_class(structure(list(), class = c("foo", "bar")), c("foo", "bar"))
   )
   expect_invisible(check_class(NULL, "foo", allow_null = TRUE))
-  expect_snapshot_error(check_class(1, "foo"))
+  expect_snapshot(check_class(1, "foo"), error = TRUE)
   expect_error(check_class(NULL, "foo", allow_null = FALSE), "not `NULL`")
 })
 
@@ -93,7 +94,7 @@ test_that("check_matrix works as expected", {
   expect_error(check_matrix(matrix("a", 2, 2), nrow = 2, ncol = 2), "matrix")
   mat_nan <- mat
   mat_nan[1, 1] <- NaN
-  expect_snapshot_error(check_matrix(mat_nan, nrow = 2, ncol = 3))
+  expect_snapshot(check_matrix(mat_nan, nrow = 2, ncol = 3), error = TRUE)
   mat_low <- mat
   mat_low[1, 1] <- -10
   expect_error(
@@ -110,7 +111,7 @@ test_that("check_matrix works as expected", {
 
 test_that("check_unique_names works as expected", {
   expect_invisible(check_unique_names(list(a = 1, b = 2)))
-  expect_snapshot_error(check_unique_names(list(a = 1, a = 2)))
+  expect_snapshot(check_unique_names(list(a = 1, a = 2)), error = TRUE)
   expect_error(check_unique_names(list(1, 2)), "unique names")
   expect_error(check_unique_names(list(a = 1, 2)), "unique names")
 })

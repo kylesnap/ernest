@@ -66,8 +66,12 @@
 
 # check_live_set: warns if log_lik has repeated values but not all identical
 
-    `log_lik` may contain a likelihood plateau; proceed with caution.
-    ! Only 250/500 likelihood values are unique.
+    Code
+      check_live_set(sampler)
+    Condition
+      Warning:
+      `log_lik` may contain a likelihood plateau; proceed with caution.
+      ! Only 250/500 likelihood values are unique.
 
 # check_live_set: errors if birth vector is wrong
 

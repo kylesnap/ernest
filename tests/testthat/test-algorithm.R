@@ -1,6 +1,4 @@
 #' Algorithmic Tests
-set.seed(42)
-
 log_lik_fn <- gaussian_blobs$log_lik
 unif_prior <- gaussian_blobs$prior
 
@@ -16,7 +14,7 @@ smry_base <- NULL
 #' is set to a fixed value.
 result <- NULL
 test_that("iterations and min_logz produce near-identical results", {
-  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
+  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100, seed = 42)
   result <<- generate(sampler)
   result_iter <- generate(
     sampler,
@@ -32,7 +30,8 @@ test_that("`n_points` changes the iterations needed for convergence", {
   sampler_500 <- ernest_sampler(
     log_lik_fn,
     unif_prior,
-    n_points = 500
+    n_points = 500,
+    seed = 42
   )
   run_500 <- generate(sampler_500)
 
@@ -44,7 +43,7 @@ test_that("`n_points` changes the iterations needed for convergence", {
 #' changes the number of iterations needed for the sampler to converge.
 test_that("increasing min_logz reduces the iterations needed to converge", {
   skip_extended_test()
-  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100)
+  sampler <- ernest_sampler(log_lik_fn, unif_prior, n_points = 100, seed = 42)
   run_01 <- generate(sampler, min_logz = 0.1)
 
   expect_evidence(run_01, gaussian_blobs$analytic_z, tolerance = 2)
@@ -56,7 +55,12 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
 test_that("increasing prior vol. increases iterations needed to converge", {
   skip_extended_test()
   wide_prior <- create_uniform_prior(lower = -10, upper = 10, .n_dim = 2)
-  sampler_wide <- ernest_sampler(log_lik_fn, wide_prior, n_points = 500)
+  sampler_wide <- ernest_sampler(
+    log_lik_fn,
+    wide_prior,
+    n_points = 500,
+    seed = 42
+  )
   run_wide <- generate(sampler_wide)
 
   expect_evidence(run_wide, gaussian_blobs$analytic_z, tolerance = 2)

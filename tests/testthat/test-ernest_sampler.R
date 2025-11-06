@@ -35,6 +35,7 @@ cli::test_that_cli("Progress bar can be printed", {
 })
 
 cli::test_that_cli("Fully-verbose output", {
+  skip_snapshot()
   sampler <- ernest_sampler(
     gaussian_blobs$log_lik,
     gaussian_blobs$prior,

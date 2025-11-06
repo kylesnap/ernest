@@ -174,7 +174,7 @@ describe("compile", {
     run <- generate(sampler, max_iterations = 1000L)
 
     # clear = TRUE should call compile.ernest_sampler
-    expect_s3_class(compile(run, clear = TRUE), "ernest_sampler")
+    expect_s3_class(compile(run, clear = TRUE), "ernest_sampler", exact = TRUE)
 
     # clear = FALSE should restore live points
     expect_s3_class(compile(run, clear = FALSE), "ernest_run")

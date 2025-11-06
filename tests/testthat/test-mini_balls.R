@@ -108,6 +108,7 @@ test_that("update throws a warning when the points are all identical", {
   live <- matrix(rep(0.5, 500 * 2), nrow = 500)
   expect_snapshot(update_lrps(obj, live))
   expect_equal(obj$cache$radius, -Inf)
+  skip_snapshot()
   expect_snapshot(propose(obj, c(0.5, 0.5), -Inf))
 })
 

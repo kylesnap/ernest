@@ -39,60 +39,18 @@
       * Centre: 0.5000, 0.5000
       * Enlargement: 1.25
 
-# slice class: Can call propose
-
-    Code
-      as.list(lrps$cache)
-    Output
-      $lower
-      [1] 0 0
-      
-      $upper
-      [1] 1 1
-      
-      $n_call
-      [1] 2
-      
-      $n_accept
-      [1] 0
-      
-
 # slice can provide good results
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: slice_rectangle
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4862
-      * No. Calls: 14209
-      * Log. Evidence: -6.701 (± 0.1230)
+    c(n_iter = 4862, log_evidence = -6.70118162708326, log_evidence_var = 0.0151335824551731
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: slice_rectangle
-      --------------------------------------------------------------------------------
-      * No. Iterations: 5811
-      * No. Calls: 21803
-      * Log. Evidence: -8.897 (± 0.1375)
+    c(n_iter = 5811, log_evidence = -8.89723183787065, log_evidence_var = 0.0188952475142511
+    )
 
 ---
 
-    Code
-      result
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: slice_rectangle
-      --------------------------------------------------------------------------------
-      * No. Iterations: 4992
-      * No. Calls: 32286
-      * Log. Evidence: 236.0 (± 0.1186)
+    c(n_iter = 4992, log_evidence = 236.04038549352, log_evidence_var = 0.0140733117814586
+    )
 

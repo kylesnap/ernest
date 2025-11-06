@@ -2,19 +2,20 @@
 
     Code
       sampler
-    Output
+    Message
       nested sampling specification <ernest_sampler>
-      No. Points: 500
+      * No. Points: 500
+      * LRPS Method: rwmh_cube
+    Output
       
-      -- Sampling Method 
-      <rwmh_cube> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Accepted Proposals: 0
-      No. Steps: 25
-      Target Acceptance: 0.5
-      Step Size: 1.000
-      
+    Message
+      ernest LRPS method <rwmh_cube/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * No. Accepted Proposals: 0
+      * No. Steps: 25
+      * Target Acceptance: 0.5
+      * Step Size: 1.000
 
 # invalid samplers are caught
 

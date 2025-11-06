@@ -100,24 +100,26 @@ new_ernest_run_ <- function(x, parsed) {
 format.ernest_run <- function(x, ...) {
   log_z <- pretty(tail(x$log_evidence, 1))
   log_z_sd <- pretty(sqrt(tail(x$log_evidence_var, 1)))
-  cli::cli_format_method({
-    cli::cli_text("nested sampling results {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Points: {x$n_points}")
-    cli::cli_h3("Sampling Method")
-    cli::cat_print(format(x$lrps))
-    cli::cli_h3("Results")
-    cli::cli_text("No. Iterations: {x$n_iter}")
-    cli::cli_text("No. Calls: {x$n_calls}")
-    cli::cli_text("Log. Evidence: {log_z} (\U00B1 {log_z_sd})")
-  })
+  glue::glue(
+    "No. Points: {x$n_points}",
+    "LRPS Method: {class(x$lrps)[[1]]}",
+    "No. Iterations: {x$n_iter}",
+    "No. Calls: {x$n_calls}",
+    "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
+    .sep = "\n"
+  )
 }
 
 #' @srrstats {BS6.0} Default print for return object.
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  cli::cli_text("nested sampling results {.cls {class(x)}}")
+  lines <- strsplit(format(x), split = "\n")[[1]]
+  names(lines) <- rep("*", length(lines))
+  cli::cli_bullets(lines[1:2])
+  cli::cli_rule()
+  cli::cli_bullets(lines[3:5])
   invisible(x)
 }
 
@@ -200,22 +202,25 @@ summary.ernest_run <- function(object, ...) {
 format.summary.ernest_run <- function(x, ...) {
   log_z <- pretty(x$log_evidence)
   log_z_sd <- pretty(x$log_evidence_err)
-  cli::cli_format_method({
-    cli::cli_text("nested sampling results {.cls ernest_run}")
-    cli::cat_line()
-    cli::cli_dl(c(
-      "No. Points" = "{x$n_points}",
-      "No. Iterations" = "{x$n_iter}",
-      "No. Lik. Calls" = "{x$n_call}",
-      "Log. Evidence" = "{log_z} (\U00B1 {log_z_sd})"
-    ))
-  })
+  glue::glue(
+    "No. Points: {x$n_points}",
+    "No. Iterations: {x$n_iter}",
+    "No. Calls: {x$n_calls}",
+    "Log. Volume: {pretty(x$log_volume)}",
+    "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
+    .sep = "\n"
+  )
 }
 
 #' @noRd
 #' @export
 print.summary.ernest_run <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  cli::cli_text("nested sampling result summary {.cls {class(x)}}")
+  lines <- strsplit(format(x), split = "\n")[[1]]
+  names(lines) <- rep("*", length(lines))
+  cli::cli_bullets(lines[1:2])
+  cli::cli_rule()
+  cli::cli_bullets(lines[3:5])
   invisible(x)
 }
 

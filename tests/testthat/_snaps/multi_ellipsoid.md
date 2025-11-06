@@ -14,15 +14,14 @@
       Warning:
       `enlarge` is set to 1, which is not recommended.
     Message
-      <multi_ellipsoid> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      No. Ellipsoids: 0
-      Total Log Volume: -Inf
-      Min Reduction: 0.7
-      Allow Contact: TRUE
-      Enlargement: 1
-      
+      ernest LRPS method <multi_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * No. Ellipsoids: 0
+      * Total Log Volume: -Inf
+      * Min Reduction: 0.7
+      * Allow Contact: TRUE
+      * Enlargement: 1
 
 ---
 
@@ -33,15 +32,14 @@
       `min_reduction` is set to 1, which may lead to over-splitting.
       i Should `allow_contact` be set to `FALSE`?
     Message
-      <multi_ellipsoid> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      No. Ellipsoids: 0
-      Total Log Volume: -Inf
-      Min Reduction: 1
-      Allow Contact: TRUE
-      Enlargement: 1.25
-      
+      ernest LRPS method <multi_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * No. Ellipsoids: 0
+      * Total Log Volume: -Inf
+      * Min Reduction: 1
+      * Allow Contact: TRUE
+      * Enlargement: 1.25
 
 ---
 
@@ -72,15 +70,14 @@
     Code
       default
     Message
-      <multi_ellipsoid> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      No. Ellipsoids: 0
-      Total Log Volume: -Inf
-      Min Reduction: 0.7
-      Allow Contact: TRUE
-      Enlargement: 1.25
-      
+      ernest LRPS method <multi_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * No. Ellipsoids: 0
+      * Total Log Volume: -Inf
+      * Min Reduction: 0.7
+      * Allow Contact: TRUE
+      * Enlargement: 1.25
 
 # multi_ellipsoid class: Can call propose
 
@@ -124,58 +121,40 @@
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Ellipsoids: 1"        "Total Log Volume: 0.4516"
-      [3] "Min Reduction: 0.7"       "Allow Contact: TRUE"     
-      [5] "Enlargement: 1.25"       
-      
-      -- Results 
-      No. Iterations: 4860
-      No. Calls: 10231
-      Log. Evidence: -6.697 (± 0.1232)
+      * No. Points: 500
+      * LRPS Method: multi_ellipsoid
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4860
+      * No. Calls: 10231
+      * Log. Evidence: -6.697 (± 0.1232)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Ellipsoids: 1"       "Total Log Volume: 1.001"
-      [3] "Min Reduction: 0.7"      "Allow Contact: TRUE"    
-      [5] "Enlargement: 1.25"      
-      
-      -- Results 
-      No. Iterations: 5775
-      No. Calls: 12523
-      Log. Evidence: -8.828 (± 0.1375)
+      * No. Points: 500
+      * LRPS Method: multi_ellipsoid
+      --------------------------------------------------------------------------------
+      * No. Iterations: 5775
+      * No. Calls: 12523
+      * Log. Evidence: -8.828 (± 0.1375)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Ellipsoids: 1"        "Total Log Volume: 0.4516"
-      [3] "Min Reduction: 0.5"       "Allow Contact: TRUE"     
-      [5] "Enlargement: 1.25"       
-      
-      -- Results 
-      No. Iterations: 4949
-      No. Calls: 25872
-      Log. Evidence: 236.1 (± 0.1182)
+      * No. Points: 500
+      * LRPS Method: multi_ellipsoid
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4949
+      * No. Calls: 25872
+      * Log. Evidence: 236.1 (± 0.1182)
 
 # update throws a warning when the points are all identical
 
@@ -185,13 +164,12 @@
       Warning:
       Multi-ellipsoid fitting returned an error code (1).
     Message
-      <multi_ellipsoid> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Ellipsoids: 1
-      Total Log Volume: 0.4516
-      Min Reduction: 0.7
-      Allow Contact: FALSE
-      Enlargement: 1
-      
+      ernest LRPS method <multi_ellipsoid/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * No. Ellipsoids: 1
+      * Total Log Volume: 0.4516
+      * Min Reduction: 0.7
+      * Allow Contact: FALSE
+      * Enlargement: 1
 

@@ -12,26 +12,24 @@
       unif_ellipsoid(enlarge = 1)
     Message
       ! `enlarge` is set to 1.0, which is not recommended.
-      <unif_ellipsoid> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Center: Undefined
-      Log Volume: -Inf
-      Enlargement: 1
-      
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Center: Undefined
+      * Log Volume: -Inf
+      * Enlargement: 1
 
 ---
 
     Code
       default
     Message
-      <unif_ellipsoid> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Center: Undefined
-      Log Volume: -Inf
-      Enlargement: 1.25
-      
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Center: Undefined
+      * Log Volume: -Inf
+      * Enlargement: 1.25
 
 # unif_ellipsoid class: Can call propose
 
@@ -66,46 +64,36 @@
       Warning:
       Ellipsoid fitting returned an error code (1).
     Message
-      <unif_ellipsoid> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      Center: 0.5000, 0.5000
-      Log Volume: 0.4516
-      Enlargement: 1
-      
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * Center: 0.5000, 0.5000
+      * Log Volume: 0.4516
+      * Enlargement: 1
 
 # unif_ellipsoid can provide good results
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Center: 0.5000, 0.5000" "Log Volume: 0.4516"     "Enlargement: 1.25"     
-      
-      -- Results 
-      No. Iterations: 4853
-      No. Calls: 76003
-      Log. Evidence: -6.682 (± 0.1231)
+      * No. Points: 500
+      * LRPS Method: unif_ellipsoid
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4853
+      * No. Calls: 76003
+      * Log. Evidence: -6.682 (± 0.1231)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Center: 0.5000, 0.5000, 0.5000" "Log Volume: 1.001"             
-      [3] "Enlargement: 1.25"             
-      
-      -- Results 
-      No. Iterations: 5772
-      No. Calls: 12718
-      Log. Evidence: -8.819 (± 0.1371)
+      * No. Points: 500
+      * LRPS Method: unif_ellipsoid
+      --------------------------------------------------------------------------------
+      * No. Iterations: 5772
+      * No. Calls: 12718
+      * Log. Evidence: -8.819 (± 0.1371)
 

@@ -60,11 +60,12 @@ format.slice_rectangle <- function(x, ...) {
         sum(log(x$cache$rect$upper - x$cache$rect$lower))
       )
   }
-  cli::cli_format_method({
-    cli::cli_text("Centre: {pretty(center)}")
-    cli::cli_text("Log Volume: {log_vol}")
-    cli::cli_text("Enlargement: {enlarge}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "Centre: {pretty(center)}",
+    "Enlargement: {enlarge}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new slice LRPS

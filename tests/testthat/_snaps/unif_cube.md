@@ -3,10 +3,9 @@
     Code
       default
     Message
-      <unif_cube> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      
+      ernest LRPS method <unif_cube/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
 
 # unif_cube class: Can call propose
 

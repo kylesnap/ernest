@@ -71,17 +71,24 @@ new_ernest_lrps <- function(
 
 #' @noRd
 #' @export
-print.ernest_lrps <- function(x, ...) {
-  cli::cli_text("{.cls {class(x)[1]}} lrps:")
-
-  cli::cli_par()
-  bullets <- c(
-    "No. Dimensions: {x$n_dim %||% 'Undefined'}",
-    "No. Calls Since Update: {x$cache$n_calls %||% 0}",
-    format(x)
+format.ernest_lrps <- function(x, ...) {
+  glue::glue(
+    "Sampler: {class(x)[1]}",
+    "Dimensions: {n_dim}",
+    "No. Log-Lik Calls: {env_get(x$cache, 'n_call', 0)}",
+    n_dim = x$n_dim %||% "{.emph 'Undefined'}",
+    .sep = "\n"
   )
-  cli::cli_bullets(bullets)
-  cli::cli_end()
+}
+
+#' @noRd
+#' @export
+print.ernest_lrps <- function(x, ...) {
+  lines <- strsplit(format(x), split = "\n")[[1]]
+  names(lines) <- rep("*", length(lines))
+  lines <- utils::tail(lines, -1)
+  cli::cli_text("ernest LRPS method {.cls {class(x)}}")
+  cli::cli_bullets(lines)
 }
 
 #' Generate a new point using LRPS

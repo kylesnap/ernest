@@ -115,17 +115,21 @@ refresh_ernest_sampler <- function(x) {
 #' @export
 #' @noRd
 format.ernest_sampler <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("nested sampling specification {.cls ernest_sampler}")
-    cli::cli_text("No. Points: {x$n_points}")
-    cli::cli_h3("Sampling Method")
-    cli::cat_print(x$lrps)
-  })
+  glue::glue(
+    "No. Points: {x$n_points}",
+    "LRPS Method: {class(x$lrps)[[1]]}",
+    .sep = "\n"
+  )
 }
 
 #' @export
 #' @noRd
 print.ernest_sampler <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  cli::cli_text("nested sampling specification {.cls ernest_sampler}")
+  lines <- strsplit(format(x), split = "\n")[[1]]
+  names(lines) <- rep("*", length(lines))
+  cli::cli_bullets(lines)
+  cli::cat_line()
+  print(x$lrps)
   invisible(x)
 }

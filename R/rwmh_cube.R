@@ -79,12 +79,14 @@ rwmh_cube <- function(
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("No. Accepted Proposals: {x$cache$n_accept %||% 0}")
-    cli::cli_text("No. Steps: {x$steps}")
-    cli::cli_text("Target Acceptance: {x$target_acceptance}")
-    cli::cli_text("Step Size: {pretty(x$cache$epsilon %||% 1)}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "No. Accepted Proposals: {x$cache$n_accept %||% 0}",
+    "No. Steps: {x$steps}",
+    "Target Acceptance: {x$target_acceptance}",
+    "Step Size: {pretty(x$cache$epsilon %||% 1)}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new rwmh_cube LRPS

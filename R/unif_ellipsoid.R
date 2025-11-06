@@ -73,11 +73,13 @@ unif_ellipsoid <- function(enlarge = 1.25) {
 #' @export
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("Center: {pretty(x$cache$center %||% 'Undefined')}")
-    cli::cli_text("Log Volume: {pretty(x$cache$log_volume %||% -Inf)}")
-    cli::cli_text("Enlargement: {x$enlarge}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "Center: {pretty(x$cache$center %||% 'Undefined')}",
+    "Log Volume: {pretty(x$cache$log_volume %||% -Inf)}",
+    "Enlargement: {x$enlarge}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new unif_ellipsoid LRPS

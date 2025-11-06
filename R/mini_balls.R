@@ -97,11 +97,13 @@ format.mini_balls <- function(x, ...) {
   if (radius == -Inf) {
     radius <- "Undefined"
   }
-  cli::cli_format_method({
-    cli::cli_text("Distance: {norm_str}")
-    cli::cli_text("Radius: {radius}")
-    cli::cli_text("Enlargement: {x$enlarge}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "Distance: {norm_str}",
+    "Radius: {radius}",
+    "Enlargement: {x$enlarge}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new mini_ball LRPS

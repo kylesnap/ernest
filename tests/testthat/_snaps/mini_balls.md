@@ -12,13 +12,12 @@
       mini_balls(enlarge = 1)
     Message
       ! `enlarge` is set to 1.0, which is not recommended.
-      <mini_balls> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Distance: euclidean
-      Radius: Undefined
-      Enlargement: 1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Distance: euclidean
+      * Radius: Undefined
+      * Enlargement: 1
 
 ---
 
@@ -41,13 +40,12 @@
     Code
       default
     Message
-      <mini_balls> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Distance: euclidean
-      Radius: Undefined
-      Enlargement: 1.1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Distance: euclidean
+      * Radius: Undefined
+      * Enlargement: 1.1
 
 # mini_balls class: Can call propose
 
@@ -66,39 +64,36 @@
     Code
       obj
     Message
-      <mini_balls> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Distance: manhattan
-      Radius: Undefined
-      Enlargement: 1.1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Distance: manhattan
+      * Radius: Undefined
+      * Enlargement: 1.1
 
 # mini_balls works with non-euclidean norms:: maximum
 
     Code
       obj
     Message
-      <mini_balls> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Distance: maximum
-      Radius: Undefined
-      Enlargement: 1.1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Distance: maximum
+      * Radius: Undefined
+      * Enlargement: 1.1
 
 # mini_balls works with non-euclidean norms:: 3-norm
 
     Code
       obj
     Message
-      <mini_balls> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      Distance: 3-norm
-      Radius: Undefined
-      Enlargement: 1.1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Distance: 3-norm
+      * Radius: Undefined
+      * Enlargement: 1.1
 
 # update throws a warning when the points are all identical
 
@@ -110,13 +105,12 @@
       Warning:
       Distances between points are non-finite. The radius is set to `-Inf`.
     Message
-      <mini_balls> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      Distance: euclidean
-      Radius: Undefined
-      Enlargement: 1
-      
+      ernest LRPS method <mini_balls/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * Distance: euclidean
+      * Radius: Undefined
+      * Enlargement: 1
 
 ---
 
@@ -140,50 +134,38 @@
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
-      
-      -- Results 
-      No. Iterations: 4909
-      No. Calls: 5546
-      Log. Evidence: -7.277 (± 0.1235)
+      * No. Points: 500
+      * LRPS Method: mini_balls
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4909
+      * No. Calls: 5546
+      * Log. Evidence: -7.277 (± 0.1235)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
-      
-      -- Results 
-      No. Iterations: 5673
-      No. Calls: 6336
-      Log. Evidence: -9.607 (± 0.1354)
+      * No. Points: 500
+      * LRPS Method: mini_balls
+      --------------------------------------------------------------------------------
+      * No. Iterations: 5673
+      * No. Calls: 6336
+      * Log. Evidence: -9.607 (± 0.1354)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "Distance: euclidean" "Radius: Undefined"   "Enlargement: 1.1"   
-      
-      -- Results 
-      No. Iterations: 5352
-      No. Calls: 6022
-      Log. Evidence: 235.0 (± 0.1223)
+      * No. Points: 500
+      * LRPS Method: mini_balls
+      --------------------------------------------------------------------------------
+      * No. Iterations: 5352
+      * No. Calls: 6022
+      * Log. Evidence: 235.0 (± 0.1223)
 

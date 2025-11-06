@@ -86,13 +86,15 @@ multi_ellipsoid <- function(
 format.multi_ellipsoid <- function(x, ...) {
   n_ell <- length(env_get(x$cache, "prob", double()))
   log_vol <- env_cache(x$cache, "total_log_volume", -Inf)
-  cli::cli_format_method({
-    cli::cli_text("No. Ellipsoids: {n_ell}")
-    cli::cli_text("Total Log Volume: {pretty(log_vol)}")
-    cli::cli_text("Min Reduction: {x$min_reduction}")
-    cli::cli_text("Allow Contact: {x$allow_contact}")
-    cli::cli_text("Enlargement: {x$enlarge}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "No. Ellipsoids: {n_ell}",
+    "Total Log Volume: {pretty(log_vol)}",
+    "Min Reduction: {x$min_reduction}",
+    "Allow Contact: {x$allow_contact}",
+    "Enlargement: {x$enlarge}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new multi_ellipsoid LRPS

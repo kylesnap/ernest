@@ -51,13 +51,12 @@
     Code
       default
     Message
-      <no_underrun> lrps:
-      No. Dimensions: Undefined
-      No. Calls Since Update: 0
-      No. Steps: 3
-      Scaling Method: Adaptive
-      Current Scale: 0.1000
-      
+      ernest LRPS method <no_underrun/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * No. Steps: 3
+      * Scaling Method: Adaptive
+      * Current Scale: 0.1000
 
 # nurs class: Can call propose
 
@@ -82,13 +81,12 @@
     Code
       obj
     Message
-      <no_underrun> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Steps: 3
-      Scaling Method: Fixed
-      Current Scale: 0.01000
-      
+      ernest LRPS method <no_underrun/ernest_lrps>
+      • Dimensions: 2
+      • No. Log-Lik Calls: 0
+      • No. Steps: 3
+      • Scaling Method: Fixed
+      • Current Scale: 0.01000
 
 # nurs with fixed scale: Can call propose
 
@@ -112,55 +110,40 @@
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Steps: 3"             "Scaling Method: Adaptive"
-      [3] "Current Scale: 0.01000"  
-      
-      -- Results 
-      No. Iterations: 4864
-      No. Calls: 152652
-      Log. Evidence: -6.705 (± 0.1232)
+      * No. Points: 500
+      * LRPS Method: no_underrun
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4864
+      * No. Calls: 152652
+      * Log. Evidence: -6.705 (± 0.1232)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Steps: 3"             "Scaling Method: Adaptive"
-      [3] "Current Scale: 0.01000"  
-      
-      -- Results 
-      No. Iterations: 5800
-      No. Calls: 105740
-      Log. Evidence: -8.874 (± 0.1382)
+      * No. Points: 500
+      * LRPS Method: no_underrun
+      --------------------------------------------------------------------------------
+      * No. Iterations: 5800
+      * No. Calls: 105740
+      * Log. Evidence: -8.874 (± 0.1382)
 
 ---
 
     Code
       result
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Steps: 3"             "Scaling Method: Adaptive"
-      [3] "Current Scale: 0.01000"  
-      
-      -- Results 
-      No. Iterations: 4953
-      No. Calls: 87820
-      Log. Evidence: 236.1 (± 0.1179)
+      * No. Points: 500
+      * LRPS Method: no_underrun
+      --------------------------------------------------------------------------------
+      * No. Iterations: 4953
+      * No. Calls: 87820
+      * Log. Evidence: 236.1 (± 0.1179)
 
 # Errors in distance recalculations are handled
 

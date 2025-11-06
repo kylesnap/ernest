@@ -80,19 +80,20 @@
       <ernest_sampler> threw a warning during compilation
       Caused by warning:
       ! Replacing `NA` with `-Inf`.
-    Output
+    Message
       nested sampling specification <ernest_sampler>
-      No. Points: 500
+      * No. Points: 500
+      * LRPS Method: rwmh_cube
+    Output
       
-      -- Sampling Method 
-      <rwmh_cube> lrps:
-      No. Dimensions: 2
-      No. Calls Since Update: 0
-      No. Accepted Proposals: 0
-      No. Steps: 25
-      Target Acceptance: 0.5
-      Step Size: 1.000
-      
+    Message
+      ernest LRPS method <rwmh_cube/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * No. Accepted Proposals: 0
+      * No. Steps: 25
+      * Target Acceptance: 0.5
+      * Step Size: 1.000
 
 # Ernest fails when ll is flat to begin with
 
@@ -112,17 +113,12 @@
       ! Only 152/500 likelihood values are unique.
       Warning:
       Stopping run due to a likelihood plateau at 0.0000.
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 500
-      
-      -- Sampling Method 
-      [1] "No. Accepted Proposals: 0" "No. Steps: 25"            
-      [3] "Target Acceptance: 0.5"    "Step Size: 1.000"         
-      
-      -- Results 
-      No. Iterations: 170
-      No. Calls: 216
-      Log. Evidence: -0.3409 (± 0.06819)
+      * No. Points: 500
+      * LRPS Method: rwmh_cube
+      --------------------------------------------------------------------------------
+      * No. Iterations: 170
+      * No. Calls: 216
+      * Log. Evidence: -0.3409 (± 0.06819)
 

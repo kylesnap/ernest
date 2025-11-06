@@ -92,11 +92,13 @@ format.no_underrun <- function(x, ...) {
   } else {
     "Adaptive"
   }
-  cli::cli_format_method({
-    cli::cli_text("No. Steps: {x$steps}")
-    cli::cli_text("Scaling Method: {scale_str}")
-    cli::cli_text("Current Scale: {pretty(x$cache$epsilon %||% 1)}")
-  })
+  glue::glue(
+    "{format.ernest_lrps(x)}",
+    "No. Steps: {x$steps}",
+    "Scaling Method: {scale_str}",
+    "Current Scale: {pretty(x$cache$epsilon %||% 1)}",
+    .sep = "\n"
+  )
 }
 
 #' Create a new adaptive_rwmh LRPS

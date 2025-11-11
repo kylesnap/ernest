@@ -69,12 +69,12 @@ Choose `fixed_scale` to keep \\h\\ constant, or `adaptive_scale` to
 update \\h\\ from inter-point distances. See References for details on
 tuning.
 
-## Note
+## Status
 
-Please don't use this function for analyses; the NURS method has not yet
-been validated for correctness. A more detailed comparison of
-`fixed_scale` and `adaptive_scale` will be provided once it is
-available.
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but
+please exercise caution interpretting results and report any issues or
+unexpected behaviour.
 
 ## References
 

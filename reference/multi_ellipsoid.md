@@ -1,9 +1,9 @@
 # Generate samples from multiple spanning ellipsoids
 
-Partitions the prior space into a set of ellipsoids whose union bounds
-the set of live points. Samples are created by randomly selecting an
-ellipsoid (weighted by their respective volumes), then using it to
-generate a random point as in
+**\[experimental\]** Partitions the prior space into a set of ellipsoids
+whose union bounds the set of live points. Samples are created by
+randomly selecting an ellipsoid (weighted by their respective volumes),
+then using it to generate a random point as in
 [unif_ellipsoid](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md).
 Effective for multimodal posteriors where a single ellipsoid would be
 inefficient.
@@ -86,6 +86,13 @@ where \\y\\ are points from the unit hypersphere.
 For more on ellipsoids and their operations, see [Algorithms for
 Ellipsoids](http://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf) by S.B.
 Pope, Cornell University Report FDA 08-01 (2008).
+
+## Status
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but
+please exercise caution interpretting results and report any issues or
+unexpected behaviour.
 
 ## References
 

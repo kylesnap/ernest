@@ -1,8 +1,8 @@
 # Generate samples from the spanning ellipsoid
 
-Uses the bounding ellipsoid of the live points to define the region of
-prior space that contains new points. Effective for unimodal and
-roughly-Gaussian posteriors.
+**\[experimental\]** Uses the bounding ellipsoid of the live points to
+define the region of prior space that contains new points. Effective for
+unimodal and roughly-Gaussian posteriors.
 
 ## Usage
 
@@ -56,6 +56,13 @@ where \\y\\ are points from the unit hypersphere.
 For more on ellipsoids and their operations, see [Algorithms for
 Ellipsoids](http://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf) by S.B.
 Pope, Cornell University Report FDA 08-01 (2008).
+
+## Status
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but
+please exercise caution interpretting results and report any issues or
+unexpected behaviour.
 
 ## References
 

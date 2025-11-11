@@ -1,8 +1,8 @@
 # Generate samples with slice sampling
 
-Create new live points by evolving a current live point through slice
-sampling within a bounding hyperrectangle, shrinking the rectangle when
-proposals are rejected.
+**\[experimental\]** Create new live points by evolving a current live
+point through slice sampling within a bounding hyperrectangle, shrinking
+the rectangle when proposals are rejected.
 
 ## Usage
 
@@ -44,6 +44,13 @@ multimodal or highly non-Gaussian. To mitigate this, set `enlarge > 1`,
 which inflates the hyperrectagle's volume by the specified factor before
 sampling. Setting `enlarge` to `NA` disables this behaviour, instead
 slicing from the unit hypercube at each iteration.
+
+## Status
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but
+please exercise caution interpretting results and report any issues or
+unexpected behaviour.
 
 ## References
 

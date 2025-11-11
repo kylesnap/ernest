@@ -1,7 +1,9 @@
 # Generate samples from a p-norm ball
 
-**\[experimental\]** Propose new live points by selecting a random live
-point `c` and drawing uniformly from a multidimensional p-norm ball.
+**\[experimental\]** Propose new live points from a multidimensional
+p-norm ball centered on a randomly selected live point. The radius of
+the balls are set such that each ball encompasses at least two live
+points.
 
 ## Usage
 
@@ -33,6 +35,13 @@ The p-norm ball is the set of all vectors such that the distance between
 itself and the ball's centre `c` is less than the radius `r`. The
 distance `r` is updated throughout a run to ensure that at least one
 other live point is contained within the ball.
+
+## Status
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but
+please exercise caution interpretting results and report any issues or
+unexpected behaviour.
 
 ## References
 

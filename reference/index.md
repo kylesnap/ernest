@@ -37,12 +37,6 @@
 - [`generate(`*`<ernest_sampler>`*`)`](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)
   : Run nested sampling to estimate Bayesian evidence
 
-- [`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md)
-  **\[experimental\]** : Generate samples from a p-norm ball
-
-- [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md)
-  : Generate samples from multiple spanning ellipsoids
-
 - [`plot(`*`<ernest_estimate>`*`)`](https://kylesnap.github.io/ernest/reference/plot.ernest.md)
   [`plot(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/plot.ernest.md)
   : Plot diagnostics for a nested sampling run
@@ -50,17 +44,11 @@
 - [`rwmh_cube()`](https://kylesnap.github.io/ernest/reference/rwmh_cube.md)
   : Generate samples with a random walk
 
-- [`slice_rectangle()`](https://kylesnap.github.io/ernest/reference/slice_rectangle.md)
-  : Generate samples with slice sampling
-
 - [`summary(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/summary.ernest_run.md)
   : Summarize a nested sampling run
 
 - [`unif_cube()`](https://kylesnap.github.io/ernest/reference/unif_cube.md)
   : Generate samples from the unconstrained prior distribution
-
-- [`unif_ellipsoid()`](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md)
-  : Generate samples from the spanning ellipsoid
 
 - [`visualize(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/visualize.ernest_run.md)
   :

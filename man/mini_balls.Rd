@@ -4,12 +4,9 @@
 \alias{mini_balls}
 \title{Generate samples from a p-norm ball}
 \usage{
-mini_balls(enlarge = 1.1, method, p)
+mini_balls(method, p)
 }
 \arguments{
-\item{enlarge}{Double larger or equal to 1. Factor by which to inflate the
-ball's volume before sampling.}
-
 \item{method, p}{Pick one of \code{method} and \code{p}:
 * \code{method} Sets the distance measure to be used. This must be one of
 \code{"euclidean"}, \code{"maximum"}, or \code{"manhattan"}.
@@ -20,30 +17,28 @@ A list with class \code{c("mini_ball", "ernest_lrps")}. Use with
 \code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
-Propose new live points by selecting a random live point \code{c} and drawing
-uniformly from a multidimensional p-norm ball with centre \code{c} and radius \code{r}.
-\code{r} is set such that the ball encompassess at least one other live point.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Propose new live points by selecting a
+random live point \code{c} and drawing uniformly from a multidimensional p-norm
+ball.
 }
 \details{
-The p-norm naturaly define a distance that makes the vector space a
-metric space. For two points \code{x} and \code{y}, their distance in \eqn{L^p} space
-is given by \deqn{||x-y||_p = \sigma{(x_i - y_i)^p}^{1/p}}.
+The p-norm naturally defines a distance that makes the vector space
+a metric space. For two points \code{x} and \code{y}, their distance in \eqn{L^p}
+space is given by \deqn{||x-y||_p = \sigma{(x_i - y_i)^p}^{1/p}}.
 
 The p-norm ball is the set of all vectors such that the distance between
 itself and the ball's centre \code{c} is less than the radius \code{r}. The distance
 \code{r} is updated throughout a run to ensure that at least one other live point
-is contained within the ball. To avoid biasing proposals toward the center,
-inflating the volume of the ball before sampling with \code{enlarge > 1} is
-recommended.
+is contained within the ball.
 }
 \examples{
 data(example_run)
 euclid_balls <- mini_balls(method = "euclidean")
 euclid_balls <- mini_balls(p = 2)
 
-# Suprenum balls (or L-infinity norm)
+# Supremum balls (or L-infinity norm)
 suprenum_balls <- mini_balls(method = "maximum")
-suprenum_balls <- mini_balls(p = Inf, enlarge = 1.1)
+suprenum_balls <- mini_balls(p = Inf)
 
 ernest_sampler(
   example_run$log_lik_fn,

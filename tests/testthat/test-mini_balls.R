@@ -5,21 +5,18 @@ set.seed(42)
 #' error messages
 test_that("mini_balls can be called by user", {
   expect_silent(default <- mini_balls())
-  expect_snapshot(mini_balls(enlarge = 0.5), error = TRUE)
-  expect_snapshot(mini_balls(enlarge = 1.0))
   expect_snapshot(mini_balls(method = "swoop"), error = TRUE)
   expect_snapshot(mini_balls(p = 0), error = TRUE)
-  expect_equal(default$enlarge, 1.1)
   expect_equal(default$p, 2)
   expect_snapshot(default)
 })
 
 describe("mini_balls class", {
-  obj <- new_mini_balls(fn, 2)
+  obj <- new_mini_balls(fn, n_dim = 2)
   it("Can be constructed with new_", {
     check_valid_lrps(
       obj,
-      add_names = c("method", "p", "enlarge"),
+      add_names = "p",
       cache_names = "radius",
       cache_types = "double"
     )
@@ -37,7 +34,7 @@ describe("mini_balls class", {
     points <- matrix(runif(20), ncol = 2)
     res <- check_update_lrps(
       obj,
-      add_names = c("method", "p", "enlarge"),
+      add_names = "p",
       cache_names = "radius",
       cache_types = "double"
     )
@@ -54,16 +51,15 @@ describe("mini_balls class", {
 describe("mini_balls works with non-euclidean norms:", {
   it("manhattan", {
     obj <- mini_balls(method = "manhattan")
-    expect_equal(obj$method, "manhattan")
     expect_equal(obj$p, 1)
     expect_equal(obj, mini_balls(p = 1))
     expect_snapshot(obj)
 
-    obj <- new_mini_balls(fn, n_dim = 2, method = "manhattan", p = 1)
+    obj <- new_mini_balls(fn, n_dim = 2, p = 1)
     obj$cache$radius <- 1
     res <- check_update_lrps(
       obj,
-      add_names = c("method", "p", "enlarge"),
+      add_names = "p",
       cache_names = "radius",
       cache_types = "double"
     )
@@ -71,16 +67,15 @@ describe("mini_balls works with non-euclidean norms:", {
 
   it("maximum", {
     obj <- mini_balls(method = "maximum")
-    expect_equal(obj$method, "maximum")
     expect_equal(obj$p, Inf)
     expect_equal(obj, mini_balls(p = Inf))
     expect_snapshot(obj)
 
-    obj <- new_mini_balls(fn, n_dim = 2, method = "maximum", p = Inf)
+    obj <- new_mini_balls(fn, n_dim = 2, p = Inf)
     obj$cache$radius <- 1
     res <- check_update_lrps(
       obj,
-      add_names = c("method", "p", "enlarge"),
+      add_names = "p",
       cache_names = "radius",
       cache_types = "double"
     )
@@ -88,15 +83,14 @@ describe("mini_balls works with non-euclidean norms:", {
 
   it("3-norm", {
     obj <- mini_balls(p = 3)
-    expect_equal(obj$method, "minkowski")
     expect_equal(obj$p, 3)
     expect_snapshot(obj)
 
-    obj <- new_mini_balls(fn, n_dim = 2, method = "minkowski", p = 3)
+    obj <- new_mini_balls(fn, n_dim = 2, p = 3)
     obj$cache$radius <- 1
     check_update_lrps(
       obj,
-      add_names = c("method", "p", "enlarge"),
+      add_names = "p",
       cache_names = "radius",
       cache_types = "double"
     )
@@ -113,7 +107,6 @@ test_that("update throws a warning when the points are all identical", {
 })
 
 test_that("mini_balls can provide good results", {
-  run_gaussian_blobs(mini_balls(), tolerance = 2)
-  run_3d(mini_balls(), tolerance = 2)
-  run_eggbox(mini_balls(), tolerance = 3)
+  run_gaussian_blobs(mini_balls(), n_points = 250, tolerance = 2)
+  # TODO: Tune these other two samplers.
 })

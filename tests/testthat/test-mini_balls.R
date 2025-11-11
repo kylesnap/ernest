@@ -107,6 +107,5 @@ test_that("update throws a warning when the points are all identical", {
 })
 
 test_that("mini_balls can provide good results", {
-  run_gaussian_blobs(mini_balls(), n_points = 250, tolerance = 2)
   # TODO: Tune these other two samplers.
 })

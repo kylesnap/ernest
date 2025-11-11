@@ -21,6 +21,7 @@ A list with class \code{c("multi_ellipsoid", "ernest_lrps")}. Use with
 \code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 Partitions the prior space into a set of ellipsoids whose union bounds
 the set of live points. Samples are created by randomly
 selecting an ellipsoid (weighted by their respective volumes), then using it
@@ -71,6 +72,14 @@ For more on ellipsoids and their operations, see
 by S.B. Pope, Cornell University Report FDA 08-01 (2008).
 }
 
+\section{Status}{
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but please
+exercise caution interpretting results and report any issues or unexpected
+behaviour.
+}
+
 \examples{
 data(example_run)
 lrps <- multi_ellipsoid(enlarge = 1.25, min_reduction = 0.5)
@@ -96,3 +105,4 @@ Other ernest_lrps:
 \code{\link{unif_ellipsoid}()}
 }
 \concept{ernest_lrps}
+\keyword{internal}

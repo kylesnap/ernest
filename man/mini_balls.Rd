@@ -17,9 +17,10 @@ A list with class \code{c("mini_ball", "ernest_lrps")}. Use with
 \code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Propose new live points by selecting a
-random live point \code{c} and drawing uniformly from a multidimensional p-norm
-ball.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Propose new live points from a multidimensional p-norm ball centered
+on a randomly selected live point. The radius of the balls are set
+such that each ball encompasses at least two live points.
 }
 \details{
 The p-norm naturally defines a distance that makes the vector space
@@ -31,6 +32,14 @@ itself and the ball's centre \code{c} is less than the radius \code{r}. The dist
 \code{r} is updated throughout a run to ensure that at least one other live point
 is contained within the ball.
 }
+\section{Status}{
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but please
+exercise caution interpretting results and report any issues or unexpected
+behaviour.
+}
+
 \examples{
 data(example_run)
 euclid_balls <- mini_balls(method = "euclidean")
@@ -65,3 +74,4 @@ Other ernest_lrps:
 \code{\link{unif_ellipsoid}()}
 }
 \concept{ernest_lrps}
+\keyword{internal}

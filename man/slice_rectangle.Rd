@@ -15,6 +15,7 @@ An object of class \code{c("slice_rectangle", "ernest_lrps")} that can be
 used with \code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 Create new live points by evolving a current live point through
 slice sampling within a bounding hyperrectangle, shrinking the rectangle
 when proposals are rejected.
@@ -38,6 +39,14 @@ hyperrectagle's volume by the specified factor before sampling. Setting
 \code{enlarge} to \code{NA} disables this behaviour, instead slicing from the unit
 hypercube at each iteration.
 }
+\section{Status}{
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but please
+exercise caution interpretting results and report any issues or unexpected
+behaviour.
+}
+
 \examples{
 # Basic usage with default parameters
 lrps <- slice_rectangle()
@@ -60,3 +69,4 @@ Other ernest_lrps:
 \code{\link{unif_ellipsoid}()}
 }
 \concept{ernest_lrps}
+\keyword{internal}

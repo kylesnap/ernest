@@ -1,5 +1,7 @@
 #' Generate samples from the spanning ellipsoid
 #'
+#' @description
+#' `r lifecycle::badge("experimental")`
 #' Uses the bounding ellipsoid of the live points to define the region of prior
 #' space that contains new points. Effective for unimodal and roughly-Gaussian
 #' posteriors.
@@ -50,12 +52,15 @@
 #' Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 #' 638(2), L51. \doi{10.1086/501068}
 #'
+#' @inheritSection mini_balls Status
+#'
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
 #' lrps <- unif_ellipsoid(enlarge = 1.25)
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
+#' @keywords internal
 #' @export
 unif_ellipsoid <- function(enlarge = 1.25) {
   check_number_decimal(enlarge, min = 1)

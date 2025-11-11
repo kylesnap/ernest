@@ -15,6 +15,7 @@ A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Use with
 \code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 Uses the bounding ellipsoid of the live points to define the region of prior
 space that contains new points. Effective for unimodal and roughly-Gaussian
 posteriors.
@@ -52,6 +53,14 @@ For more on ellipsoids and their operations, see
 by S.B. Pope, Cornell University Report FDA 08-01 (2008).
 }
 
+\section{Status}{
+
+This LRPS is experimental and has not been extensively validated across
+different nested sampling problems. You are encouraged to use it, but please
+exercise caution interpretting results and report any issues or unexpected
+behaviour.
+}
+
 \examples{
 data(example_run)
 lrps <- unif_ellipsoid(enlarge = 1.25)
@@ -78,3 +87,4 @@ Other ernest_lrps:
 \code{\link{unif_cube}()}
 }
 \concept{ernest_lrps}
+\keyword{internal}

@@ -1,9 +1,10 @@
 #' Generate samples from a p-norm ball
 #'
 #' @description
-#' `r lifecycle::badge("experimental")` Propose new live points by selecting a
-#' random live point `c` and drawing uniformly from a multidimensional p-norm
-#' ball.
+#' `r lifecycle::badge("experimental")`
+#' Propose new live points from a multidimensional p-norm ball centered
+#' on a randomly selected live point. The radius of the balls are set
+#' such that each ball encompasses at least two live points.
 #'
 #' @param method,p Pick one of `method` and `p`:
 #'     * `method` Sets the distance measure to be used. This must be one of
@@ -31,6 +32,12 @@
 #' Physical Models. Publications of the Astronomical Society of the Pacific,
 #' 131(1004), 108005. \doi{10.1088/1538-3873/aae7fc}
 #'
+#' @section Status:
+#' This LRPS is experimental and has not been extensively validated across
+#' different nested sampling problems. You are encouraged to use it, but please
+#' exercise caution interpretting results and report any issues or unexpected
+#' behaviour.
+#'
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
@@ -46,6 +53,7 @@
 #'   example_run$prior,
 #'   sampler = euclid_balls
 #' )
+#' @keywords internal
 #' @export
 mini_balls <- function(method, p) {
   arg <- check_exclusive(method, p, .require = FALSE)
@@ -207,7 +215,6 @@ update_lrps.mini_balls <- function(x, unit = NULL, ...) {
   # Calculate distances
   try_fetch(
     {
-      n <- nrow(unit)
       do <- if (is.finite(x$p)) {
         as.matrix(stats::dist(unit, method = "minkowski", p = x$p))
       } else {

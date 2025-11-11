@@ -1,5 +1,7 @@
 #' Generate samples from multiple spanning ellipsoids
 #'
+#' @description
+#' `r lifecycle::badge("experimental")`
 #' Partitions the prior space into a set of ellipsoids whose union bounds
 #' the set of live points. Samples are created by randomly
 #' selecting an ellipsoid (weighted by their respective volumes), then using it
@@ -45,7 +47,10 @@
 #' For implementation, see:
 #' https://github.com/kbarbary/nestle/blob/master/runtests.py
 #'
+#' @inheritSection mini_balls Status
+#'
 #' @family ernest_lrps
+#' @keywords internal
 #' @examples
 #' data(example_run)
 #' lrps <- multi_ellipsoid(enlarge = 1.25, min_reduction = 0.5)

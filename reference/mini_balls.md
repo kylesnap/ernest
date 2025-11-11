@@ -1,22 +1,15 @@
 # Generate samples from a p-norm ball
 
-Propose new live points by selecting a random live point `c` and drawing
-uniformly from a multidimensional p-norm ball with centre `c` and radius
-`r`. `r` is set such that the ball encompassess at least one other live
-point.
+**\[experimental\]** Propose new live points by selecting a random live
+point `c` and drawing uniformly from a multidimensional p-norm ball.
 
 ## Usage
 
 ``` r
-mini_balls(enlarge = 1.1, method, p)
+mini_balls(method, p)
 ```
 
 ## Arguments
-
-- enlarge:
-
-  Double larger or equal to 1. Factor by which to inflate the ball's
-  volume before sampling.
 
 - method, p:
 
@@ -32,16 +25,14 @@ to specify nested sampling behaviour.
 
 ## Details
 
-The p-norm naturaly define a distance that makes the vector space a
+The p-norm naturally defines a distance that makes the vector space a
 metric space. For two points `x` and `y`, their distance in \\L^p\\
 space is given by \$\$\|\|x-y\|\|\_p = \sigma{(x_i - y_i)^p}^{1/p}\$\$.
 
 The p-norm ball is the set of all vectors such that the distance between
 itself and the ball's centre `c` is less than the radius `r`. The
 distance `r` is updated throughout a run to ensure that at least one
-other live point is contained within the ball. To avoid biasing
-proposals toward the center, inflating the volume of the ball before
-sampling with `enlarge > 1` is recommended.
+other live point is contained within the ball.
 
 ## References
 
@@ -71,9 +62,9 @@ data(example_run)
 euclid_balls <- mini_balls(method = "euclidean")
 euclid_balls <- mini_balls(p = 2)
 
-# Suprenum balls (or L-infinity norm)
+# Supremum balls (or L-infinity norm)
 suprenum_balls <- mini_balls(method = "maximum")
-suprenum_balls <- mini_balls(p = Inf, enlarge = 1.1)
+suprenum_balls <- mini_balls(p = Inf)
 
 ernest_sampler(
   example_run$log_lik_fn,
@@ -87,7 +78,6 @@ ernest_sampler(
 #> ernest LRPS method <mini_balls/ernest_lrps>
 #> • Dimensions: 3
 #> • No. Log-Lik Calls: 0
-#> • Distance: euclidean
+#> • Distance: Euclidean
 #> • Radius: Undefined
-#> • Enlargement: 1.1
 ```

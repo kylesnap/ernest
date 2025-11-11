@@ -38,7 +38,7 @@
   : Run nested sampling to estimate Bayesian evidence
 
 - [`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md)
-  : Generate samples from a p-norm ball
+  **\[experimental\]** : Generate samples from a p-norm ball
 
 - [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md)
   : Generate samples from multiple spanning ellipsoids

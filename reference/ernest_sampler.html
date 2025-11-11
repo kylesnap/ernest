@@ -11,7 +11,7 @@ nested samples with generate()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,8 @@ nested samples with <code><a href="https://generics.r-lib.org/reference/generate
 <span>  sampler <span class="op">=</span> <span class="fu"><a href="rwmh_cube.html">rwmh_cube</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  n_points <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  first_update <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  update_interval <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  update_interval <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,6 +97,13 @@ this is set to <code>n_points * 2.5</code>.</p></dd>
 calls between updates to the <code>sampler</code> object. If <code>NULL</code>, this is set to
 <code>n_points * 1.5</code>.</p></dd>
 
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>An optional integer. Sets the random seed controlling the
+random number generator for nested sampling runs, which is stored in
+the resulting <code>ernest_sampler</code> as an attribute. If <code>NULL</code>, this is
+set to a random integer.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -109,8 +117,10 @@ a nested sampling run.</p>
     <p>The <code>ernest_sampler</code> object is tested with <code><a href="https://generics.r-lib.org/reference/compile.html" class="external-link">compile()</a></code> before it is
 returned. This helps to catch errors with the likelihood and prior
 specifications. If this compilation step fails, review your <code>log_lik_fn</code> and
-<code>prior</code> objects for their compliance.</p><div class="section">
-<h3 id="verbosity">Verbosity<a class="anchor" aria-label="anchor" href="#verbosity"></a></h3>
+<code>prior</code> objects for their compliance.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="verbosity">Verbosity<a class="anchor" aria-label="anchor" href="#verbosity"></a></h2>
 
 
 <p>Messages from ernest can be silenced with the global options
@@ -120,8 +130,6 @@ values:</p><ul><li><p>"default": Verbose unless the <code>.frequency</code> argu
 <li><p>"quiet": Always quiet.</p></li>
 </ul><p>When set to quiet, messages are not displayed and the condition is not
 signaled. See <code><a href="https://rlang.r-lib.org/reference/abort.html" class="external-link">rlang::abort()</a></code> for more information.</p>
-</div>
-
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -129,8 +137,8 @@ signaled. See <code><a href="https://rlang.r-lib.org/reference/abort.html" class
 <ul><li><p><code><a href="create_likelihood.html">create_likelihood()</a></code> describes the requirements of the <code>log_lik_fn</code>
 parameter.</p></li>
 <li><p><code><a href="create_prior.html">create_prior()</a></code> describes the requriements of the <code>prior</code> parameter.</p></li>
-<li><p><a href="new_ernest_lrps.html">ernest_lrps</a> describes the general requirements of likelihood-restricted</p></li>
-<li><p>prior samplers.</p></li>
+<li><p><a href="new_ernest_lrps.html">ernest_lrps</a> describes the general requirements of likelihood-restricted
+prior samplers.</p></li>
 </ul></div>
     </div>
 
@@ -143,15 +151,17 @@ parameter.</p></li>
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu">ernest_sampler</span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • Current Step Size: 1.000</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ernest LRPS method <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Dimensions: 2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Log-Lik Calls: 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Accepted Proposals: 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Steps: 25</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Target Acceptance: 0.5</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Step Size: 1.000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use a unit-cube LRPS (not recommended in practice)</span></span></span>
 <span class="r-in"><span><span class="va">unit_sampler</span> <span class="op">&lt;-</span> <span class="fu">ernest_sampler</span><span class="op">(</span></span></span>
@@ -161,14 +171,13 @@ parameter.</p></li>
 <span class="r-in"><span>  sampler <span class="op">=</span> <span class="fu"><a href="unif_cube.html">unif_cube</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">unit_sampler</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: unif_cube</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. Points: 100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ── Sampling Method </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • uniform unit cube LRPS <span style="color: #0000BB;">&lt;unif_cube/ernest_lrps&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> • No. Dimensions: 2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ernest LRPS method <span style="color: #0000BB;">&lt;unif_cube/ernest_lrps&gt;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Dimensions: 2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Log-Lik Calls: 0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -180,7 +189,7 @@ parameter.</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -336,40 +336,33 @@ exchange for longer run times.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">sampler</span></span>
 <span><span class="co">#&gt; nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; • random walk in unit cube LRPS <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
-<span><span class="co">#&gt; • </span></span>
-<span><span class="co">#&gt; • No. Dimensions: 3</span></span>
-<span><span class="co">#&gt; • Current Step Size: 1.000</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span></span>
+<span><span class="co">#&gt; ernest LRPS method <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Dimensions: 3</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Log-Lik Calls: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Accepted Proposals: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Steps: 25</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Target Acceptance: 0.5</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Step Size: 1.000</span></span></code></pre></div>
 <p>Run nested sampling for a fixed number of iterations or until the
 evidence estimate converges:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span></span>
 <span>  <span class="va">sampler</span>, </span>
 <span>  max_iterations <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">123</span>, </span>
 <span>  show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Created 500 live points.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `max_iterations` reached (2000).</span></span>
 <span><span class="va">run</span></span>
 <span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; [1] "random walk in unit cube LRPS \033[34m&lt;rwmh_cube/ernest_lrps&gt;\033[39m"</span></span>
-<span><span class="co">#&gt; [2] ""                                                                     </span></span>
-<span><span class="co">#&gt; [3] "No. Dimensions: 3"                                                    </span></span>
-<span><span class="co">#&gt; [4] "Current Step Size: 0.4862"                                            </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Results </span></span>
-<span><span class="co">#&gt; No. Iterations: 2000</span></span>
-<span><span class="co">#&gt; No. Calls: 30851</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.160 (± 1.689)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span></span>
+<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 2000</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 35706</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.170 (± 1.762)</span></span></code></pre></div>
 <p><code>generate</code> produces an <code>ernest_run</code> object that
 can be saved. You can continue a run by calling <code>generate</code> on
 a previously created <code>ernest_run</code>:</p>
@@ -381,22 +374,15 @@ a previously created <code>ernest_run</code>:</p>
 <span></span>
 <span><span class="va">run2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">continued_run</span>, min_logz <span class="op">=</span> <span class="fl">0.01</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Restored 500 live points from a previous run.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.00998162 &lt; 0.01).</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.00999454 &lt; 0.01).</span></span>
 <span><span class="va">run2</span></span>
 <span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Sampling Method </span></span>
-<span><span class="co">#&gt; [1] "random walk in unit cube LRPS \033[34m&lt;rwmh_cube/ernest_lrps&gt;\033[39m"</span></span>
-<span><span class="co">#&gt; [2] ""                                                                     </span></span>
-<span><span class="co">#&gt; [3] "No. Dimensions: 3"                                                    </span></span>
-<span><span class="co">#&gt; [4] "Current Step Size: 0.4925"                                            </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Results </span></span>
-<span><span class="co">#&gt; No. Iterations: 6604</span></span>
-<span><span class="co">#&gt; No. Calls: 145951</span></span>
-<span><span class="co">#&gt; Log. Evidence: -8.888 (± 0.1236)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span></span>
+<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6700</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 153206</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.078 (± 0.1249)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="inspecting-and-summarising-results">Inspecting and Summarising Results<a class="anchor" aria-label="anchor" href="#inspecting-and-summarising-results"></a>
@@ -406,27 +392,28 @@ evidence estimates, posterior samples, and diagnostics as a tidy
 <code>tibble</code>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run&gt;</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; No. Points: 500</span></span>
-<span><span class="co">#&gt; No. Iterations: 6604</span></span>
-<span><span class="co">#&gt; No. Lik. Calls: 145951</span></span>
-<span><span class="co">#&gt; Log. Evidence: -8.888 (± 0.1236)</span></span>
+<span><span class="co">#&gt; nested sampling result summary <span style="color: #0000BB;">&lt;summary.ernest_run&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6700</span></span>
+<span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 153206</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -20.19</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.078 (± 0.1249)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span><span class="op">$</span><span class="va">run</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,104 × 7</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,200 × 7</span></span></span>
 <span><span class="co">#&gt;     call log_lik log_volume log_weight log_evidence log_evidence_err information</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     0  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">447.</span>     -<span style="color: #BB0000;">0.002</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">444.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">453.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     0  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">356.</span>     -<span style="color: #BB0000;">0.004</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">353.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">362.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     0  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">272.</span>     -<span style="color: #BB0000;">0.006</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">269.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">278.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     0  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">184.</span>     -<span style="color: #BB0000;">0.008</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">182.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">191.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     0  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">004.</span>     -<span style="color: #BB0000;">0.01</span>      -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">002.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">011.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     0  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">966.</span>     -<span style="color: #BB0000;">0.012</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">964.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">973.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     0  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">939.</span>     -<span style="color: #BB0000;">0.014</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">937.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">946.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     0  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">929.</span>     -<span style="color: #BB0000;">0.016</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">927.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">935.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     0  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">916.</span>     -<span style="color: #BB0000;">0.018</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">913.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">922.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     0  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">916.</span>     -<span style="color: #BB0000;">0.02</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">913.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">921.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,094 more rows</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">307.</span>     -<span style="color: #BB0000;">0.002</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">304.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">313.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     2  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">239.</span>     -<span style="color: #BB0000;">0.004</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">236.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">245.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     3  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">027.</span>     -<span style="color: #BB0000;">0.006</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">024.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">033.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     4  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">998.</span>     -<span style="color: #BB0000;">0.008</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">995.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">004.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     5  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">937.</span>     -<span style="color: #BB0000;">0.01</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">934.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">943.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">886.</span>     -<span style="color: #BB0000;">0.012</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">883.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">892.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     7  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">865.</span>     -<span style="color: #BB0000;">0.014</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">862.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">871.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     8  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">831.</span>     -<span style="color: #BB0000;">0.016</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">828.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">837.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">829.</span>     -<span style="color: #BB0000;">0.018</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">826.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">835.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">803.</span>     -<span style="color: #BB0000;">0.02</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">800.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">810.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,190 more rows</span></span></span></code></pre></div>
 <p>The <code>posterior</code> package offers methods for inspecting the
 points generated during a run:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -441,11 +428,11 @@ sample to estimate the posterior distribution:</p>
 <span>  <span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarise_draws</a></span><span class="op">(</span><span class="va">weighted_post</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 10</span></span></span>
-<span><span class="co">#&gt;   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> x        0.016<span style="text-decoration: underline;">4</span> 0.024<span style="text-decoration: underline;">2</span> 0.971 0.959 -<span style="color: #BB0000;">1.61</span>  1.67  1.18    <span style="text-decoration: underline;">1</span>866.     15.7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> y        0.010<span style="text-decoration: underline;">8</span> 0.028<span style="text-decoration: underline;">1</span> 0.977 0.949 -<span style="color: #BB0000;">1.66</span>  1.59  1.19    <span style="text-decoration: underline;">1</span>982.     14.4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> z        0.012<span style="text-decoration: underline;">2</span> 0.011<span style="text-decoration: underline;">0</span> 0.976 0.968 -<span style="color: #BB0000;">1.63</span>  1.61  1.19    <span style="text-decoration: underline;">1</span>860.     14.7</span></span></code></pre></div>
+<span><span class="co">#&gt;   variable    mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> x        0.017<span style="text-decoration: underline;">9</span>  0.006<span style="text-decoration: underline;">11</span> 1.00  1.00  -<span style="color: #BB0000;">1.62</span>  1.69  1.20    <span style="text-decoration: underline;">1</span>960.     13.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> y        0.006<span style="text-decoration: underline;">45</span> 0.001<span style="text-decoration: underline;">34</span> 0.993 0.981 -<span style="color: #BB0000;">1.63</span>  1.66  1.18    <span style="text-decoration: underline;">1</span>837.     13.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> z        0.015<span style="text-decoration: underline;">9</span>  0.003<span style="text-decoration: underline;">88</span> 0.986 0.971 -<span style="color: #BB0000;">1.61</span>  1.62  1.17    <span style="text-decoration: underline;">1</span>838.     14.7</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="visualising-results">Visualising Results<a class="anchor" aria-label="anchor" href="#visualising-results"></a>
@@ -457,21 +444,21 @@ posterior distribution.</p>
 </h5>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" width="700"></p>
 </div>
 <div class="section level5">
 <h5 id="posterior-marginals">Posterior marginals<a class="anchor" aria-label="anchor" href="#posterior-marginals"></a>
 </h5>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run2</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" width="700"></p>
 </div>
 <div class="section level5">
 <h5 id="trace-plots">Trace plots<a class="anchor" aria-label="anchor" href="#trace-plots"></a>
 </h5>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run2</span>, type <span class="op">=</span> <span class="st">"trace"</span>, vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" width="700"></p>
 </div>
 </div>
 <div class="section level4">
@@ -486,24 +473,24 @@ this uncertainty with the estimate’s <code>plot</code> method.</p>
 <span><span class="co">#&gt; evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. of Simulated Draws: 500</span></span>
-<span><span class="co">#&gt; Log. Volume: -20 ± 1.2</span></span>
-<span><span class="co">#&gt; Log. Evidence: -8.9 ± 0.12</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,104 × 4</span></span></span>
+<span><span class="co">#&gt; Log. Volume: -20 ± 1.4</span></span>
+<span><span class="co">#&gt; Log. Evidence: -9.1 ± 0.12</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,200 × 4</span></span></span>
 <span><span class="co">#&gt;        log_lik        log_volume    log_weight  log_evidence</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  -2447 <span style="color: #949494;">± NA</span>  -0.0018 <span style="color: #949494;">± 0.0017</span>  -2453 <span style="color: #949494;">± 0.79</span>  -2453 <span style="color: #949494;">± 0.79</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -2356 <span style="color: #949494;">± NA</span>  -0.0039 <span style="color: #949494;">± 0.0026</span>  -2362 <span style="color: #949494;">± 0.80</span>  -2362 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -2272 <span style="color: #949494;">± NA</span>  -0.0058 <span style="color: #949494;">± 0.0033</span>  -2278 <span style="color: #949494;">± 0.82</span>  -2278 <span style="color: #949494;">± 0.82</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  -2184 <span style="color: #949494;">± NA</span>  -0.0078 <span style="color: #949494;">± 0.0039</span>  -2191 <span style="color: #949494;">± 0.81</span>  -2191 <span style="color: #949494;">± 0.81</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -2004 <span style="color: #949494;">± NA</span>  -0.0098 <span style="color: #949494;">± 0.0043</span>  -2011 <span style="color: #949494;">± 0.80</span>  -2011 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  -1966 <span style="color: #949494;">± NA</span>  -0.0119 <span style="color: #949494;">± 0.0048</span>  -1973 <span style="color: #949494;">± 0.89</span>  -1973 <span style="color: #949494;">± 0.89</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -1939 <span style="color: #949494;">± NA</span>  -0.0139 <span style="color: #949494;">± 0.0052</span>  -1946 <span style="color: #949494;">± 0.76</span>  -1946 <span style="color: #949494;">± 0.76</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  -1929 <span style="color: #949494;">± NA</span>  -0.0159 <span style="color: #949494;">± 0.0055</span>  -1936 <span style="color: #949494;">± 0.75</span>  -1936 <span style="color: #949494;">± 0.75</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  -1916 <span style="color: #949494;">± NA</span>  -0.0178 <span style="color: #949494;">± 0.0058</span>  -1923 <span style="color: #949494;">± 0.86</span>  -1923 <span style="color: #949494;">± 0.86</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -1916 <span style="color: #949494;">± NA</span>  -0.0199 <span style="color: #949494;">± 0.0062</span>  -1922 <span style="color: #949494;">± 0.84</span>  -1921 <span style="color: #949494;">± 0.69</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,094 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  -2307 <span style="color: #949494;">± NA</span>  -0.0019 <span style="color: #949494;">± 0.0019</span>  -2313 <span style="color: #949494;">± 0.82</span>  -2313 <span style="color: #949494;">± 0.82</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -2239 <span style="color: #949494;">± NA</span>  -0.0038 <span style="color: #949494;">± 0.0026</span>  -2246 <span style="color: #949494;">± 0.82</span>  -2246 <span style="color: #949494;">± 0.82</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -2027 <span style="color: #949494;">± NA</span>  -0.0060 <span style="color: #949494;">± 0.0034</span>  -2033 <span style="color: #949494;">± 0.86</span>  -2033 <span style="color: #949494;">± 0.86</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  -1998 <span style="color: #949494;">± NA</span>  -0.0080 <span style="color: #949494;">± 0.0040</span>  -2005 <span style="color: #949494;">± 0.75</span>  -2005 <span style="color: #949494;">± 0.75</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -1937 <span style="color: #949494;">± NA</span>  -0.0101 <span style="color: #949494;">± 0.0044</span>  -1943 <span style="color: #949494;">± 0.81</span>  -1943 <span style="color: #949494;">± 0.81</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  -1886 <span style="color: #949494;">± NA</span>  -0.0121 <span style="color: #949494;">± 0.0049</span>  -1893 <span style="color: #949494;">± 0.85</span>  -1893 <span style="color: #949494;">± 0.85</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -1865 <span style="color: #949494;">± NA</span>  -0.0142 <span style="color: #949494;">± 0.0053</span>  -1871 <span style="color: #949494;">± 0.82</span>  -1871 <span style="color: #949494;">± 0.82</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  -1831 <span style="color: #949494;">± NA</span>  -0.0162 <span style="color: #949494;">± 0.0057</span>  -1837 <span style="color: #949494;">± 0.80</span>  -1837 <span style="color: #949494;">± 0.80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  -1829 <span style="color: #949494;">± NA</span>  -0.0181 <span style="color: #949494;">± 0.0060</span>  -1836 <span style="color: #949494;">± 0.75</span>  -1836 <span style="color: #949494;">± 0.66</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -1803 <span style="color: #949494;">± NA</span>  -0.0201 <span style="color: #949494;">± 0.0062</span>  -1810 <span style="color: #949494;">± 0.76</span>  -1810 <span style="color: #949494;">± 0.76</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,190 more rows</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">calc_sim</span><span class="op">)</span></span></code></pre></div>
-<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" width="700"></p>
 <hr>
 <p>For more details on nested sampling, please refer to ernest’s
 documentation.</p>
@@ -551,7 +538,7 @@ Package for Estimating Bayesian Posteriors and Evidences.”</span>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -5,9 +5,9 @@
 \alias{compile.ernest_run}
 \title{Compile a set of live points for nested sampling}
 \usage{
-\method{compile}{ernest_sampler}(object, ..., seed = NA)
+\method{compile}{ernest_sampler}(object, ..., seed = deprecated())
 
-\method{compile}{ernest_run}(object, ..., seed = NA, clear = FALSE)
+\method{compile}{ernest_run}(object, ..., seed = deprecated(), clear = FALSE)
 }
 \arguments{
 \item{object}{An \link{ernest_sampler} or \link{ernest_run} object.
@@ -20,15 +20,8 @@ points.
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{seed}{An integer, \code{NULL}, or \code{NA}. Controls the random number
-generator:
-\itemize{
-\item Integer or \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, reinitializes the
-generator as if no seed has yet been set.
-\item \code{NA}: Makes no changes to the current seed. If \code{compile()} has been
-called on \code{object} before, \code{NA} ensures the seed remains identical
-between runs.
-}}
+\item{seed}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{seed} is no longer supported;
+set RNG with the \code{seed} argument of \code{\link[=ernest_sampler]{ernest_sampler()}}.}
 
 \item{clear}{Logical. If \code{TRUE}, clears results from previous runs before
 compiling. If \code{FALSE}, retains previous results and validates live points.}

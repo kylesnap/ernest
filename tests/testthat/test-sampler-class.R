@@ -36,37 +36,37 @@ test_that("invalid samplers are caught", {
 
   # Invalid Points
   points_call <- call_modify(sampler_call, n_points = 0L)
-  expect_snapshot_error(eval(points_call))
+  expect_snapshot(eval(points_call), error = TRUE)
   bad_sampler$n_points <- Inf
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid first update
   first_update_call <- call_modify(sampler_call, first_update = -1L)
-  expect_snapshot_error(eval(first_update_call))
+  expect_snapshot(eval(first_update_call), error = TRUE)
   bad_sampler$first_update <- Inf
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid update interval
   update_interval_call <- call_modify(sampler_call, update_interval = -1L)
-  expect_snapshot_error(eval(update_interval_call))
+  expect_snapshot(eval(update_interval_call), error = TRUE)
   bad_sampler$update_interval <- Inf
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid log_lik_fn
   loglik_call <- call_modify(sampler_call, log_lik_fn = list())
-  expect_snapshot_error(eval(loglik_call))
+  expect_snapshot(eval(loglik_call), error = TRUE)
   bad_sampler$log_lik_fn <- "sum"
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid prior
   prior_call <- call_modify(sampler_call, prior = list())
-  expect_snapshot_error(eval(prior_call))
+  expect_snapshot(eval(prior_call), error = TRUE)
   bad_sampler$prior <- "sum"
-  expect_snapshot_error(refresh_ernest_sampler(bad_sampler))
+  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid lrps
   lrps_call <- call_modify(sampler_call, lrps = list())
-  expect_snapshot_error(eval(lrps_call))
+  expect_snapshot(eval(lrps_call), error = TRUE)
 })
 
 test_that("refresh works as expected", {

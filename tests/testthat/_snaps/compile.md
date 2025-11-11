@@ -1,18 +1,10 @@
-# create_live: gives informative error when prior or log. lik. fails completely
+# create_live: gives informative error when unit_log_fn fails completely
 
     Code
       create_live(bad_lik, 10)
     Condition
       Error:
-      ! Bad Likelihood Job!
-
----
-
-    Code
-      create_live(bad_prior, 10)
-    Condition
-      Error:
-      ! Bad Prior Job!
+      ! Bad Job!
 
 # check_live_set: errors if unit is not a matrix of correct shape
 
@@ -74,8 +66,12 @@
 
 # check_live_set: warns if log_lik has repeated values but not all identical
 
-    `log_lik` may contain a likelihood plateau; proceed with caution.
-    ! Only 250/500 likelihood values are unique.
+    Code
+      check_live_set(sampler)
+    Condition
+      Warning:
+      `log_lik` may contain a likelihood plateau; proceed with caution.
+      ! Only 250/500 likelihood values are unique.
 
 # check_live_set: errors if birth vector is wrong
 
@@ -97,14 +93,18 @@
 
     Code
       sampler
-    Output
+    Message
       nested sampling specification <ernest_sampler>
+      * No. Points: 500
+      * LRPS Method: rwmh_cube
+    Output
       
-      No. Points: 500
-      
-      -- Sampling Method 
-      * random walk in unit cube LRPS <rwmh_cube/ernest_lrps>
-      * 
-      * No. Dimensions: 2
-      * Current Step Size: 1.000
+    Message
+      ernest LRPS method <rwmh_cube/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * No. Accepted Proposals: 0
+      * No. Steps: 25
+      * Target Acceptance: 0.5
+      * Step Size: 1.000
 

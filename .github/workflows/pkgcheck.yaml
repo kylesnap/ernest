@@ -12,7 +12,10 @@ on:
   push:
     branches:
       - main
-      - ropensci_submission
+  pull_request:
+    branches:
+      - main
+      - dev
 
 jobs:
   pkgcheck:

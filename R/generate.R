@@ -60,15 +60,11 @@
 #' evidence.
 #'
 #' @references Skilling, J. (2006). Nested Sampling for General Bayesian
-#' Computation. Bayesian Analysis, 1(4), 833–859.
-#' <https://doi.org/10.1214/06-BA127>
+#' Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
 #'
 #' @srrstats {BS2.12} The `show_progress` indicator controls whether a simple
 #' spinner bar is shown during sampling.
 #' @srrstats {BS4.0} References the paper containing the sampling algorithm.
-#' @srrstats {BS5.0, BS5.1, BS5.2} Seed value stored as an attribute. Return
-#' values contain the objects used to generate a run, including the prior
-#' specification.
 #'
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
@@ -95,6 +91,7 @@ generate.ernest_sampler <- function(
   min_logz = 0.05,
   show_progress = NULL
 ) {
+  withr::local_seed(attr(x, "seed"))
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
@@ -117,9 +114,10 @@ generate.ernest_sampler <- function(
   new_ernest_run(x, results)
 }
 
-#' @method generate ernest_run
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
 #' from the last known set of live points.
+#'
+#' @method generate ernest_run
 #' @export
 generate.ernest_run <- function(
   x,
@@ -129,6 +127,7 @@ generate.ernest_run <- function(
   min_logz = 0.05,
   show_progress = NULL
 ) {
+  withr::local_seed(attr(x, "seed"))
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
@@ -138,7 +137,6 @@ generate.ernest_run <- function(
     args <- list2(...)
     return(generate(
       x,
-      seed = args$seed,
       max_iterations = max_iterations,
       max_calls = max_calls,
       min_logz = min_logz,
@@ -233,7 +231,7 @@ check_stopping_criteria <- function(
       )
     }
   }
-  if (!is.null(cur_calls) & !is.null(max_calls)) {
+  if (!is.null(cur_calls) && !is.null(max_calls)) {
     if (cur_calls >= max_calls) {
       cli::cli_abort(
         c(

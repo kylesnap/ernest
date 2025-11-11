@@ -54,5 +54,5 @@ calculate(example_run, ndraws = 100)
 Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
 of the Royal Astronomical Society, 483(2), 2044–2056.
-\url{https://doi.org/10.1093/mnras/sty3090}
+\doi{10.1093/mnras/sty3090}
 }

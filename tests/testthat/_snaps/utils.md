@@ -10,8 +10,8 @@
 
     Code
       sampler <- ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior,
-      n_points = 100)
-      run <- generate(sampler, max_iterations = 10, seed = 42, show_progress = FALSE)
+      n_points = 100, seed = 42)
+      run <- generate(sampler, max_iterations = 10, show_progress = FALSE)
     Message
       i Created 100 live points.
       i Logging run to FILE
@@ -19,14 +19,26 @@
 
 # check_class works as expected
 
-    `1` must be an object with class foo, not the number 1.
+    Code
+      check_class(1, "foo")
+    Condition
+      Error:
+      ! `1` must be an object with class foo, not the number 1.
 
 # check_matrix works as expected
 
-    `mat_nan` must not contain missing or `NaN` values.
+    Code
+      check_matrix(mat_nan, nrow = 2, ncol = 3)
+    Condition
+      Error:
+      ! `mat_nan` must not contain missing or `NaN` values.
 
 # check_unique_names works as expected
 
-    All elements of `list(a = 1, a = 2)` must have unique names.
-    x Repeated names: a
+    Code
+      check_unique_names(list(a = 1, a = 2))
+    Condition
+      Error:
+      ! All elements of `list(a = 1, a = 2)` must have unique names.
+      x Repeated names: a
 

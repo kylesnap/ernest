@@ -171,7 +171,6 @@ Run nested sampling for a fixed number of iterations or until the evidence estim
 run <- generate(
   sampler, 
   max_iterations = 2000,
-  seed = 123, 
   show_progress = FALSE
 )
 run

@@ -11,7 +11,7 @@
 #' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 #' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 #' Royal Astronomical Society, 493, 3132–3158.
-#' <https://doi.org/10.1093/mnras/staa278>
+#' \doi{10.1093/mnras/staa278}
 #'
 #' @srrstats {BS4.0} References the software containing the sampling algorithm.
 #'
@@ -33,11 +33,7 @@ unif_cube <- function() {
 #' @noRd
 #' @export
 format.unif_cube <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("uniform unit cube LRPS {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("No. Dimensions: {x$n_dim %||% 'Uninitialized'}")
-  })
+  NextMethod()
 }
 
 #' Create a new unif_cube LRPS
@@ -75,19 +71,24 @@ new_unif_cube <- function(
 propose.unif_cube <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    res <- CubeImpl(
-      n_dim = x$n_dim,
+    res <- propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
+      n_dim = x$n_dim,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
     res
   }
+}
+
+#' @noRd
+#' @export
+update_lrps.unif_cube <- function(x, ...) {
+  do.call(new_unif_cube, as.list(x))
 }

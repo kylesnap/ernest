@@ -10,13 +10,8 @@
 #'   * For `ernest_run`: Regenerates live points from previous results, unless
 #'     `clear = TRUE`.
 #' @inheritParams rlang::args_dots_empty
-#' @param seed An integer, `NULL`, or `NA`. Controls the random number
-#' generator:
-#'   * Integer or `NULL`: Passed to [set.seed()]. If `NULL`, reinitializes the
-#'     generator as if no seed has yet been set.
-#'   * `NA`: Makes no changes to the current seed. If `compile()` has been
-#'     called on `object` before, `NA` ensures the seed remains identical
-#'     between runs.
+#' @param seed `r lifecycle::badge("deprecated")` `seed` is no longer supported;
+#' set RNG with the `seed` argument of [ernest_sampler()].
 #' @param clear Logical. If `TRUE`, clears results from previous runs before
 #' compiling. If `FALSE`, retains previous results and validates live points.
 #'
@@ -58,12 +53,20 @@
 #' # Make a new sampler from a previous run
 #' sampler_3 <- compile(example_run, clear = TRUE)
 #' sampler_3
+#' @importFrom lifecycle deprecated
 #' @rdname compile
 #' @export
-compile.ernest_sampler <- function(object, ..., seed = NA) {
+compile.ernest_sampler <- function(object, ..., seed = deprecated()) {
+  withr::local_seed(attr(object, "seed"))
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
-  set_ernest_seed(seed, object$run_env)
+  if (lifecycle::is_present(seed)) {
+    lifecycle::deprecate_warn(
+      when = "1.1.0",
+      what = "compile(seed)",
+      details = "Use `ernest_sampler()`'s `seed` argument instead."
+    )
+  }
 
   # Fill live points
   live <- create_live(object$lrps, object$n_points)
@@ -78,26 +81,37 @@ compile.ernest_sampler <- function(object, ..., seed = NA) {
 
 #' @rdname compile
 #' @export
-compile.ernest_run <- function(object, ..., seed = NA, clear = FALSE) {
+compile.ernest_run <- function(
+  object,
+  ...,
+  seed = deprecated(),
+  clear = FALSE
+) {
   check_dots_empty()
   check_bool(clear)
-
   if (clear) {
-    object <- list(
+    elem <- list(
       log_lik_fn = object$log_lik_fn,
       prior = object$prior,
       lrps = object$lrps,
       n_points = object$n_points,
       first_update = object$first_update,
-      update_interval = object$update_interval
+      update_interval = object$update_interval,
+      seed = attr(object, "seed")
     )
-    return(compile.ernest_sampler(object, ..., seed = seed))
+    object <- do.call(new_ernest_sampler, elem)
+    return(compile(object, ...))
+  }
+  withr::local_seed(attr(object, "seed"))
+  if (lifecycle::is_present(seed)) {
+    lifecycle::deprecate_warn(
+      when = "1.1.0",
+      what = "compile(seed)",
+      details = "Use `ernest_sampler()`'s `seed` argument instead."
+    )
   }
 
   # Fill live points
-  env_poke(object$run_env, "cache", attr(object, "seed"))
-  set_ernest_seed(seed, object$run_env)
-
   live_positions <- vctrs::vec_as_location(
     seq(object$n_iter),
     vctrs::vec_size(object$log_lik)
@@ -221,33 +235,5 @@ check_live_set <- function(sampler, call = caller_env()) {
     )
   }
 
-  invisible(NULL)
-}
-
-#' Set a seed for nested sampling.
-#'
-#' @param seed An integer, `NULL`, or `NA`.
-#' @param cache The cache from `object`, used to detect previous seeds.
-#'
-#' @returns NULL, invisibly.
-#' @noRd
-set_ernest_seed <- function(seed, cache, call = caller_env()) {
-  if (is.null(seed)) {
-    alert_info("Reset the RNG state (`seed = NULL`).")
-    set.seed(NULL)
-    env_unbind(cache, "seed")
-  } else if (!is.na(seed)) {
-    check_number_whole(seed, allow_null = TRUE, call = call)
-    env_poke(cache, "seed", seed)
-  } else if (env_has(cache, "seed")) {
-    alert_info("Restored a previously saved RNG state.")
-  }
-  if (env_has(cache, "seed")) {
-    set.seed(env_has(cache, "seed"))
-  } else {
-    seed <- sample.int(999, size = 1)
-    set.seed(seed)
-    env_poke(cache, "seed", seed)
-  }
   invisible(NULL)
 }

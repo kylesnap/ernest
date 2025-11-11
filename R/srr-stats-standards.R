@@ -30,6 +30,9 @@ NULL
 #' @srrstatsNA {G2.7, G2.8, G2.9, G2.10, G2.11, G2.12} Ernest does not directly
 #' accept tabular data. Instead, data are provided through the
 #' `ernest_likelihood` object (see examples of `create_likelihood`).
+#' @srrstatsNA {G3.1, G3.1a} ernest only calculates COV matrices with C++
+#' routines (see: ellipsoid fitting). Currently, these routines are untested
+#' with other cov. estimation techniques.
 #' @srrstatsNA {BS1.0} The term 'hyperparameter' is avoided.
 #' @srrstatsNA {BS1.4, BS1.5} Ernest does not currently use an MCMC convergence
 #' checker (due to NS's primary focus on estimating evidence).

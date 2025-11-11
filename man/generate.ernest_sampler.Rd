@@ -20,15 +20,8 @@
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
   \describe{
-    \item{\code{seed}}{An integer, \code{NULL}, or \code{NA}. Controls the random number
-generator:
-\itemize{
-\item Integer or \code{NULL}: Passed to \code{\link[=set.seed]{set.seed()}}. If \code{NULL}, reinitializes the
-generator as if no seed has yet been set.
-\item \code{NA}: Makes no changes to the current seed. If \code{compile()} has been
-called on \code{object} before, \code{NA} ensures the seed remains identical
-between runs.
-}}
+    \item{\code{seed}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{seed} is no longer supported;
+set RNG with the \code{seed} argument of \code{\link[=ernest_sampler]{ernest_sampler()}}.}
     \item{\code{clear}}{Logical. If \code{TRUE}, clears results from previous runs before
 compiling. If \code{FALSE}, retains previous results and validates live points.}
   }}
@@ -115,6 +108,5 @@ generate(sampler, max_calls = 2600)
 }
 \references{
 Skilling, J. (2006). Nested Sampling for General Bayesian
-Computation. Bayesian Analysis, 1(4), 833–859.
-\url{https://doi.org/10.1214/06-BA127}
+Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
 }

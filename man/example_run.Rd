@@ -33,7 +33,7 @@ This run uses the following non-default settings:
 \item \code{log_lik}: A 3D multivariate Gaussian with mean zero and covariance
 matrix \code{diag(0.95, 3)}.
 \item \code{prior}: Uniform over each dimension (x, y, z) in the range [-10, 10].
-Seed: 42
+\item \code{seed}: 42
 }
 
 View the \verb{$spec} element of \code{example_run} to see the full R specification

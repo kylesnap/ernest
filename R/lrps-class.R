@@ -59,7 +59,7 @@ new_ernest_lrps <- function(
     max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
-  env_cache(elem$cache, "n_call", 0L)
+  env_poke(elem$cache, "n_call", 0L)
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)
@@ -72,16 +72,23 @@ new_ernest_lrps <- function(
 #' @noRd
 #' @export
 format.ernest_lrps <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_alert_warning("abstract LRPS sampler {.cls {class(x)}}")
-  })
+  glue::glue(
+    "Sampler: {class(x)[1]}",
+    "Dimensions: {n_dim}",
+    "No. Log-Lik Calls: {env_get(x$cache, 'n_call', 0)}",
+    n_dim = x$n_dim %||% "{.emph 'Undefined'}",
+    .sep = "\n"
+  )
 }
 
 #' @noRd
 #' @export
 print.ernest_lrps <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+  lines <- strsplit(format(x), split = "\n")[[1]]
+  names(lines) <- rep("*", length(lines))
+  lines <- utils::tail(lines, -1)
+  cli::cli_text("ernest LRPS method {.cls {class(x)}}")
+  cli::cli_bullets(lines)
 }
 
 #' Generate a new point using LRPS
@@ -99,8 +106,6 @@ print.ernest_lrps <- function(x, ...) {
 #' sampling from the unconstrained unit cube (see [unif_cube()]).
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
-#' @param idx Optional positive integer. The index of the original point in the
-#' live set. Must be provided if original is provided.
 #'
 #' @returns A list with:
 #' * `unit`: Matrix of proposed points in the prior space.
@@ -110,7 +115,7 @@ print.ernest_lrps <- function(x, ...) {
 #'
 #' @keywords internal
 #' @export
-propose <- function(x, original = NULL, criterion = -Inf, idx = NULL) {
+propose <- function(x, original = NULL, criterion = -Inf) {
   UseMethod("propose")
 }
 
@@ -119,20 +124,49 @@ propose <- function(x, original = NULL, criterion = -Inf, idx = NULL) {
 propose.ernest_lrps <- function(
   x,
   original = NULL,
-  criterion = -Inf,
-  idx = NULL
+  criterion = -Inf
 ) {
   if (is.null(original)) {
-    res <- CubeImpl(
-      n_dim = x$n_dim,
+    propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
+      n_dim = x$n_dim,
       max_loop = x$max_loop
     )
-    res
   } else {
     cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")
   }
+}
+
+#' Generate a new point in a unit cube
+#'
+#' @param unit_log_fn Function to compute log-likelihood in unit space.
+#' @param criterion Double scalar. A log-likelihood value that proposed points
+#' must satisfy.
+#' @param n_dim Integer. Number of dimensions.
+#' @param p The p-norm to sample from.
+#' @param max_loop Positive integer. Maximum number of attempts to generate
+#' a point.
+#'
+#' @returns A list with:
+#' * `unit`: Vector of proposed points in the prior space.
+#' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
+#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' @noRd
+propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
+  proposal <- double(n_dim)
+  for (i in seq_len(max_loop)) {
+    proposal <- stats::runif(n_dim)
+    log_lik <- unit_log_fn(proposal)
+    if (is.finite(log_lik) && log_lik > criterion) {
+      return(list(
+        unit = proposal,
+        log_lik = log_lik,
+        n_call = i
+      ))
+    }
+  }
+  list(unit = NULL, log_lik = NULL, n_call = max_loop)
 }
 
 #' Update an LRPS
@@ -151,18 +185,19 @@ propose.ernest_lrps <- function(
 #' @param x An `ernest_lrps` object.
 #' @param unit A matrix of live points within the sampler. If NULL, no LRPS
 #' updates based on the state of the live points will be made.
+#' @param log_volume The current log-volume of the nested sampling run.
 #'
 #' @returns An updated `ernest_lrps` object with the same class as `x`, possibly
 #' with updated parameters.
 #' @keywords internal
 #' @export
-update_lrps <- function(x, unit = NULL) {
+update_lrps <- function(x, ...) {
   UseMethod("update_lrps")
 }
 
 #' @noRd
 #' @export
-update_lrps.ernest_lrps <- function(x, unit = NULL) {
+update_lrps.ernest_lrps <- function(x, unit = NULL, ...) {
   env_poke(x$cache, "n_call", 0L)
   do.call(new_ernest_lrps, as.list(x))
 }

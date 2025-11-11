@@ -1,65 +1,58 @@
-# new_unif_ellipsoid: fails when scale or n_dim are improper.
+# unif_ellipsoid can be called by user
 
     Code
-      new_unif_ellipsoid(fn, 2L, enlarge = 0.5)
+      unif_ellipsoid(enlarge = 0.5)
     Condition
-      Error in `new_unif_ellipsoid()`:
+      Error in `unif_ellipsoid()`:
       ! `enlarge` must be a number larger than or equal to 1, not the number 0.5.
 
 ---
 
     Code
-      new_unif_ellipsoid(fn, 1L)
-    Condition
-      Error in `new_unif_ellipsoid()`:
-      ! `n_dim` must be larger than 1.
+      unif_ellipsoid(enlarge = 1)
+    Message
+      ! `enlarge` is set to 1.0, which is not recommended.
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Center: Undefined
+      * Log Volume: -Inf
+      * Enlargement: 1
 
-# new_unif_ellipsoid: passes the correct defaults
-
-    Code
-      obj
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
-      
-      No. Dimensions: 2
-      Centre: 0.5000, 0.5000
-      Log Volume: 0.4516
-
-# propose.unif_ellipsoid: Proposes points in the unit sphere
+---
 
     Code
-      uniform
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
-      
-      No. Dimensions: 2
-      Centre: 0.5000, 0.5000
-      Log Volume: 0.4516
-      Enlargement Factor: 1.2
+      default
+    Message
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 'Undefined'
+      * No. Log-Lik Calls: 0
+      * Center: Undefined
+      * Log Volume: -Inf
+      * Enlargement: 1.25
 
-# update_lrps.unif_ellipsoid: can rebound to a matrix of live points
-
-    Code
-      uniform
-    Output
-      uniform ellipsoid LRPS <unif_ellipsoid/ernest_lrps>
-      
-      No. Dimensions: 2
-      Centre: 0.5003, 0.5052
-      Log Volume: -1.892
-      Enlargement Factor: 1.2
-
-# update_lrps.unif_ellipsoid: fails to a unit sphere when cluster fails
+# update throws a warning when the points are all identical
 
     Code
-      new_uniform <- update_lrps(uniform, xy)
-    Output
-      Error in Fortran routine computing the spanning ellipsoid,
-       probably collinear data
+      update_lrps(obj, live)
     Condition
       Warning:
-      Sampling from the unit sphere after encountering a rebounding error.
-      Caused by error in `update_lrps()`:
-      ! Failed to estimate the spanning ellipsoid.
-      x Error thrown by the Fortran routine.
+      Ellipsoid fitting returned an error code (1).
+    Message
+      ernest LRPS method <unif_ellipsoid/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 0
+      * Center: 0.5000, 0.5000
+      * Log Volume: 0.4516
+      * Enlargement: 1
+
+# unif_ellipsoid can provide good results
+
+    c(n_iter = 4853, log_evidence = -6.68190011451108, log_evidence_var = 0.0151436745919178
+    )
+
+---
+
+    c(n_iter = 5772, log_evidence = -8.81880302398843, log_evidence_var = 0.0187832914451739
+    )
 

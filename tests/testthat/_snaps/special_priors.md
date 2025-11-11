@@ -1,6 +1,10 @@
 # create_normal_prior error handling
 
-    All elements of `sd` must be strictly positive and non-missing.
+    Code
+      create_normal_prior(3, sd = c(0, 1, 1))
+    Condition
+      Error in `create_normal_prior()`:
+      ! All elements of `sd` must be strictly positive and non-missing.
 
 # create_normal_prior and create_uniform_prior: print methods
 

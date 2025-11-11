@@ -1,6 +1,6 @@
 Package: ernest
 Title: A Toolkit for Nested Sampling
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2132-8083"))
@@ -23,10 +23,11 @@ Imports:
     prettyunits,
     rlang (>= 1.1.0),
     tibble,
+    uniformly,
     utils,
-    vctrs
+    vctrs,
+    withr
 Suggests: 
-    cluster,
     ggdist,
     knitr,
     LaplacesDemon,
@@ -36,14 +37,16 @@ Suggests:
     tidyselect,
     truncnorm,
     vdiffr,
-    withr,
     xml2
 LinkingTo:
     cpp11,
+    cpp11eigen,
     testthat
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
+Config/testthat/parallel: true
+Config/testthat/start-first: algorithm, *_ellipsoid, mini_balls
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",

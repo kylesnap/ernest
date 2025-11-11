@@ -1,9 +1,12 @@
+withr::local_seed(42)
+
 sampler <- NULL
 test_that("Set up sampler", {
   expect_no_error(
     sampler <<- ernest_sampler(
       log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior
+      prior = gaussian_blobs$prior,
+      seed = 42
     )
   )
 })
@@ -127,7 +130,7 @@ describe("check_live_set", {
     log_lik_repeats <- seq(-10, -1, length.out = 500)
     log_lik_repeats[250:500] <- log_lik_repeats[250]
     env_bind(sampler$run_env, log_lik = log_lik_repeats)
-    expect_snapshot_warning(check_live_set(sampler))
+    expect_snapshot(check_live_set(sampler))
   })
 
   it("errors if birth vector is wrong", {
@@ -159,34 +162,19 @@ describe("compile", {
     expect_snapshot(sampler)
   })
 
-  it("seed setting with ints produces expected matrices", {
-    sampler <- compile(sampler, seed = 42L)
-    matrix1 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-
-    sampler <- compile(sampler, seed = 42L)
-    matrix2 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-    expect_identical(matrix1, matrix2)
-
-    sampler <- compile(sampler, seed = NULL)
-    matrix3 <- env_get(sampler$run_env, "unit")
-    env_unbind(sampler$run_env, "unit")
-    expect_false(identical(matrix1, matrix3))
-  })
-
   it("ernest_run works with clear = TRUE and FALSE", {
     # Setup a fake ernest_run object
     sampler <- ernest_sampler(
       log_lik = gaussian_blobs$log_lik,
       prior = gaussian_blobs$prior,
-      n_points = 10
+      n_points = 10,
+      seed = 42
     )
-    sampler <- compile(sampler, seed = 123L)
+    sampler <- compile(sampler)
     run <- generate(sampler, max_iterations = 1000L)
 
     # clear = TRUE should call compile.ernest_sampler
-    expect_s3_class(compile(run, clear = TRUE), "ernest_sampler")
+    expect_s3_class(compile(run, clear = TRUE), "ernest_sampler", exact = TRUE)
 
     # clear = FALSE should restore live points
     expect_s3_class(compile(run, clear = FALSE), "ernest_run")

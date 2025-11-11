@@ -18,7 +18,7 @@
 #' * `log_lik`: A 3D multivariate Gaussian with mean zero and covariance
 #' matrix `diag(0.95, 3)`.
 #' * `prior`: Uniform over each dimension (x, y, z) in the range [-10, 10].
-#' Seed: 42
+#' * `seed`: 42
 #'
 #' View the `$spec` element of `example_run` to see the full R specification
 #' of the likelihood and prior.

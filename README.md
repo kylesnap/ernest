@@ -108,7 +108,7 @@ sampler <- ernest_sampler(
   prior = prior,
   n_points = 500
 )
-run <- generate(sampler, seed = 42)
+run <- generate(sampler)
 
 # Summarise and visualise results
 summary(run)

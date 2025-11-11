@@ -2,31 +2,25 @@
 
     Code
       example_run
-    Output
+    Message
       nested sampling results <ernest_run/ernest_sampler>
-      
-      No. Points: 1000
-      
-      -- Sampling Method 
-      [1] "random walk in unit cube LRPS <rwmh_cube/ernest_lrps>"
-      [2] ""                                                     
-      [3] "No. Dimensions: 3"                                    
-      [4] "Current Step Size: 1.005"                             
-      
-      -- Results 
-      No. Iterations: 9495
-      No. Calls: 198606
-      Log. Evidence: -9.157 (± 0.08344)
+      * No. Points: 1000
+      * LRPS Method: rwmh_cube
+      --------------------------------------------------------------------------------
+      * No. Iterations: 9398
+      * No. Calls: 205628
+      * Log. Evidence: -9.061 (± 0.08303)
 
 # summary.ernest_run run tibble columns
 
     Code
       smry
-    Output
-      nested sampling results <ernest_run>
-      
-      No. Points: 1000
-      No. Iterations: 9495
-      No. Lik. Calls: 198606
-      Log. Evidence: -9.157 (± 0.08344)
+    Message
+      nested sampling result summary <summary.ernest_run>
+      * No. Points: 1000
+      * No. Iterations: 9398
+      --------------------------------------------------------------------------------
+      * No. Calls: 205628
+      * Log. Volume: -16.88
+      * Log. Evidence: -9.061 (± 0.08303)
 

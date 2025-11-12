@@ -81,17 +81,17 @@
 
 # multi_ellipsoid can provide good results
 
-    c(n_iter = 4860, log_evidence = -6.69660957773848, log_evidence_var = 0.0151723046798601
+    c(n_iter = 4847, log_evidence = -6.67107219743651, log_evidence_var = 0.015009469269827
     )
 
 ---
 
-    c(n_iter = 5775, log_evidence = -8.82770314962741, log_evidence_var = 0.0189156102684251
+    c(n_iter = 5766, log_evidence = -8.80668475191364, log_evidence_var = 0.0188300842712992
     )
 
 ---
 
-    c(n_iter = 4949, log_evidence = 236.125327999765, log_evidence_var = 0.0139697703521331
+    c(n_iter = 4900, log_evidence = 236.22452881544, log_evidence_var = 0.0136361369130663
     )
 
 # update throws a warning when the points are all identical

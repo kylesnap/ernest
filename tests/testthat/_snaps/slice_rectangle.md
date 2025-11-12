@@ -41,16 +41,16 @@
 
 # slice can provide good results
 
-    c(n_iter = 4862, log_evidence = -6.70118162708326, log_evidence_var = 0.0151335824551731
+    c(n_iter = 4918, log_evidence = -6.81173760181281, log_evidence_var = 0.0154197211431385
     )
 
 ---
 
-    c(n_iter = 5811, log_evidence = -8.89723183787065, log_evidence_var = 0.0188952475142511
+    c(n_iter = 5890, log_evidence = -9.05564065978505, log_evidence_var = 0.0193253765265505
     )
 
 ---
 
-    c(n_iter = 4992, log_evidence = 236.04038549352, log_evidence_var = 0.0140733117814586
+    c(n_iter = 5005, log_evidence = 236.013981005753, log_evidence_var = 0.0140930973443302
     )
 

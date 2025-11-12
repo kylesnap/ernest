@@ -118,7 +118,7 @@
       * No. Points: 500
       * LRPS Method: rwmh_cube
       --------------------------------------------------------------------------------
-      * No. Iterations: 170
-      * No. Calls: 216
-      * Log. Evidence: -0.3409 (± 0.06819)
+      * No. Iterations: 174
+      * No. Calls: 210
+      * Log. Evidence: -0.3490 (± 0.06899)
 

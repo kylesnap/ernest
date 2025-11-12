@@ -48,11 +48,11 @@
 
 # unif_ellipsoid can provide good results
 
-    c(n_iter = 4853, log_evidence = -6.68190011451108, log_evidence_var = 0.0151436745919178
+    c(n_iter = 4852, log_evidence = -6.68020446315307, log_evidence_var = 0.0150086922238039
     )
 
 ---
 
-    c(n_iter = 5772, log_evidence = -8.81880302398843, log_evidence_var = 0.0187832914451739
+    c(n_iter = 5842, log_evidence = -8.95796791701933, log_evidence_var = 0.0191623941779136
     )
 

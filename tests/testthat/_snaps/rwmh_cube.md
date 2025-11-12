@@ -37,16 +37,16 @@
 
 # rwmh_cube can provide good results
 
-    c(n_iter = 4868, log_evidence = -6.7129628504232, log_evidence_var = 0.0152651070257088
+    c(n_iter = 4928, log_evidence = -6.83131400467416, log_evidence_var = 0.0155273926462523
     )
 
 ---
 
-    c(n_iter = 5774, log_evidence = -8.82355135828063, log_evidence_var = 0.0187671313329496
+    c(n_iter = 5806, log_evidence = -8.88911918431688, log_evidence_var = 0.0190070444163182
     )
 
 ---
 
-    c(n_iter = 4899, log_evidence = 236.225012283386, log_evidence_var = 0.013758657893653
+    c(n_iter = 4944, log_evidence = 236.136248848103, log_evidence_var = 0.013928242406257
     )
 

@@ -43,8 +43,9 @@
 #'   each iteration.
 #' * `calls`: `integer(n_iter + n_points)`. Number of calls used to generate a
 #'   new live point at each iteration.
-#' * `birth`: `integer(n_iter + n_points)`. Iteration at which each sample was
-#'   first created (ranging from 0 to `n_iter`).
+#' * `birth`: `integer(n_iter + n_points)`. `id` of the live point that was used
+#' to create the given point. `0` if the point was created by `compile` at the
+#' beginning of a run.
 #'
 #' @details At least one of `max_iterations`, `max_calls`, or `min_logz` must
 #' specify a valid stopping criterion. Setting `min_logz` to zero while leaving

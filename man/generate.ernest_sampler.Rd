@@ -67,8 +67,9 @@ sample from the live set (ranging from 1 to \code{n_points}).
 each iteration.
 \item \code{calls}: \code{integer(n_iter + n_points)}. Number of calls used to generate a
 new live point at each iteration.
-\item \code{birth}: \code{integer(n_iter + n_points)}. Iteration at which each sample was
-first created (ranging from 0 to \code{n_iter}).
+\item \code{birth}: \code{integer(n_iter + n_points)}. \code{id} of the live point that was used
+to create the given point. \code{0} if the point was created by \code{compile} at the
+beginning of a run.
 }
 }
 \description{

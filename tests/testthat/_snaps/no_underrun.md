@@ -72,17 +72,17 @@
 
 # nurs can provide good results
 
-    c(n_iter = 4864, log_evidence = -6.70501878348074, log_evidence_var = 0.0151743725825278
+    c(n_iter = 4836, log_evidence = -6.64802524203653, log_evidence_var = 0.0149694817664634
     )
 
 ---
 
-    c(n_iter = 5800, log_evidence = -8.8737077500162, log_evidence_var = 0.0190860612498608
+    c(n_iter = 5789, log_evidence = -8.85468489468861, log_evidence_var = 0.0187579698879188
     )
 
 ---
 
-    c(n_iter = 4953, log_evidence = 236.117034150622, log_evidence_var = 0.0139036180477168
+    c(n_iter = 4973, log_evidence = 236.078388543111, log_evidence_var = 0.0139944849858656
     )
 
 # Errors in distance recalculations are handled

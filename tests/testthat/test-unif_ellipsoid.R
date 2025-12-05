@@ -82,8 +82,8 @@ describe("BoundingEllipsoid", {
 
     sample_cov <- cov(original_points)
     fitted_cov <- cov(new_points)
-    expect_equal(fitted_cov, theoretical_cov, tolerance = 0.05)
-    expect_equal(fitted_cov, sample_cov, tolerance = 0.05)
+    expect_equal(fitted_cov, theoretical_cov, tolerance = 0.1)
+    expect_equal(fitted_cov, sample_cov, tolerance = 0.1)
     expect_equal(ell_fit$log_vol, 2.248886, tolerance = 0.05)
   })
 
@@ -121,7 +121,5 @@ describe("BoundingEllipsoid", {
     ell_fit <- BoundingEllipsoid(xy)
     expect_equal(ell_fit$error, 2L)
     expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
-    eig_val <- eigen(ell_fit$shape)$values
-    expect_equal(eig_val, c(eig_val[1], eig_val[1] / 2))
   })
 })

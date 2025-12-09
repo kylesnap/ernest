@@ -127,18 +127,7 @@ class Ellipsoid {
     return (0.5 * n_dim_ * kLnPi) - lgamma1p(n_dim_ / 2.0);
   }
 
-  // Split an ellipsoid and its data with K-Mean clustering. Returns two
-  // ellipsoids if the split was successful, and an empty list otherwise.
   // Recursively splits the data points in `X` into ellipsoids using 2-means clustering.
-  // BASE CASES:
-  //   - If either cluster has fewer than 2 * n_dim points, return the current ellipsoid.
-  //   - If either child ellipsoid is malformed, return the current ellipsoid.
-  // RECURSIVE STEP:
-  //   - If the sum of child ellipsoid log-volumes is significantly less than the
-  //   parent's,
-  //     or if the parent's log-volume is much larger than the target, recursively split
-  //     children.
-  //   - Otherwise, return the current ellipsoid.
   std::list<Ellipsoid> Split(const ConstRef<Matrix> X, double point_log_volume,
                              int depth = 0) const;
 };

@@ -16,7 +16,7 @@ update_lrps(x, ...)
 
 \method{update_lrps}{mini_balls}(x, unit = NULL, ...)
 
-\method{update_lrps}{multi_ellipsoid}(x, unit = NULL, log_volume = NULL, ...)
+\method{update_lrps}{multi_ellipsoid}(x, unit = NULL, log_volume = NA, ...)
 
 \method{update_lrps}{no_underrun}(x, unit = NULL, ...)
 
@@ -24,7 +24,7 @@ update_lrps(x, ...)
 
 \method{update_lrps}{slice_rectangle}(x, unit = NULL, ...)
 
-\method{update_lrps}{unif_ellipsoid}(x, unit = NULL, ...)
+\method{update_lrps}{unif_ellipsoid}(x, unit = NULL, log_volume = NA, ...)
 }
 \arguments{
 \item{x}{An \code{ernest_lrps} object.}

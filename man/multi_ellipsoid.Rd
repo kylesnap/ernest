@@ -4,17 +4,11 @@
 \alias{multi_ellipsoid}
 \title{Generate samples from multiple spanning ellipsoids}
 \usage{
-multi_ellipsoid(enlarge = 1.25, min_reduction = 0.7, allow_contact = TRUE)
+multi_ellipsoid(enlarge = 1.25)
 }
 \arguments{
 \item{enlarge}{Double, greater than or equal to 1. Factor by which to inflate
 the bounding ellipsoid's volume before sampling (see Details).}
-
-\item{min_reduction}{Double between 0 and 1. The minimum reduction in total
-volume required for an ellipsoid to be split in two. Lower values lead to
-more aggressive splitting.}
-
-\item{allow_contact}{Logical. Whether to allow ellipsoids to overlap.}
 }
 \value{
 A list with class \code{c("multi_ellipsoid", "ernest_lrps")}. Use with
@@ -42,9 +36,9 @@ Ellipsoids are generated using the following procedure:
 met:
 \itemize{
 \item Both ellipsoids are non-degenerate
-\item The combined volume of the split ellipsoids is less than
-\eqn{min_{red.} * V}
-\item (If \code{allow_contact} is \code{FALSE}) the ellipsoids do not intersect.
+\item The combined volume of the split ellipsoids decreases the total covered
+volume significantly (defined using the Bayes' Information Criterion of
+a bounding ellipsoid model).
 }
 \item Steps 2–4 are repeated recursively on each new ellipsoid until no further
 splits are accepted, updating \eqn{V} to the volume of the currently split
@@ -82,7 +76,7 @@ behaviour.
 
 \examples{
 data(example_run)
-lrps <- multi_ellipsoid(enlarge = 1.25, min_reduction = 0.5)
+lrps <- multi_ellipsoid(enlarge = 1.25)
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 }

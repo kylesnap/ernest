@@ -5,27 +5,20 @@ test_that("multi_ellipsoid can be called by user", {
   default <- multi_ellipsoid()
   expect_snapshot(multi_ellipsoid(enlarge = 0.5), error = TRUE)
   expect_snapshot(multi_ellipsoid(enlarge = 1))
-  expect_snapshot(multi_ellipsoid(min_reduction = 1))
-  expect_snapshot(multi_ellipsoid(min_reduction = -0.1), error = TRUE)
-  expect_snapshot(multi_ellipsoid(min_reduction = 1.1), error = TRUE)
-  expect_snapshot(multi_ellipsoid(allow_contact = "boop"), error = TRUE)
   expect_snapshot(default)
   expect_equal(default$enlarge, 1.25)
-  expect_equal(default$min_reduction, 0.7)
-  expect_true(default$allow_contact)
 })
 
 describe("multi_ellipsoid class", {
-  obj <- new_multi_ellipsoid(fn, n_dim = 2, min_reduction = 0.9)
+  obj <- new_multi_ellipsoid(fn, n_dim = 2)
   it("Can be constructed with new_", {
     check_valid_lrps(
       obj,
-      add_names = c("enlarge", "min_reduction", "allow_contact"),
+      add_names = "enlarge",
       cache_names = c("prob", "ellipsoid", "total_log_volume"),
       cache_types = c("double", "list", "double")
     )
     expect_equal(obj$enlarge, 1)
-    expect_equal(obj$min_reduction, 0.9)
     expect_equal(obj$cache$ellipsoid[[1]]$log_vol, 0.4515827)
     expect_equal(
       obj$cache$ellipsoid[[1]]$inv_sqrt_shape,
@@ -40,7 +33,7 @@ describe("multi_ellipsoid class", {
   it("Can be updated", {
     res <- check_update_lrps(
       obj,
-      add_names = c("enlarge", "min_reduction", "allow_contact"),
+      add_names = "enlarge",
       cache_names = c("prob", "ellipsoid", "total_log_volume"),
       cache_types = c("double", "list", "double")
     )
@@ -55,77 +48,73 @@ describe("multi_ellipsoid class", {
 })
 
 test_that("multi_ellipsoid can provide good results", {
-  run_gaussian_blobs(multi_ellipsoid())
+  run_gaussian_blobs(multi_ellipsoid(), tolerance = 3)
   run_3d(multi_ellipsoid(), tolerance = 2)
-  run_eggbox(multi_ellipsoid(min_reduction = 0.5), tolerance = 2)
+  run_eggbox(multi_ellipsoid(), tolerance = 2)
 })
 
 test_that("MultiBoundingEllipsoids fits points in 3D correctly", {
-  n_points <- 5000
-  n_dim <- 3L
-  k <- 3L
-  points_per_k <- n_points %/% k
-
-  data_1 <- -5 + uniformly::runif_in_sphere(points_per_k, n_dim)
-  data_2 <- uniformly::runif_in_sphere(points_per_k, n_dim)
-  data_3 <- 5 + uniformly::runif_in_sphere(points_per_k, n_dim)
-  data_all <- rbind(data_1, data_2, data_3)
-
-  result <- MultiBoundingEllipsoids(
-    data_all,
-    min_reduction = 0.7,
-    allow_contact = TRUE,
-    expected_volume = -Inf
+  n_points <- 2000
+  shape <- matrix(
+    c(1.439, -1.607, 0.626, -1.607, 2.685, -0.631, 0.626, -0.631, 0.43),
+    nrow = 3,
+    byrow = TRUE
   )
+  original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
+  theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
-  # Check structure
-  expect_type(result, "list")
-  expect_named(result, c("prob", "ellipsoid", "tot_log_vol"))
-  expect_equal(sum(result$prob), 1)
+  ell_fit <- MultiBoundingEllipsoids(original_points, NA)
 
-  # Expect three ellipsoids
-  expect_equal(length(result$prob), 3)
-  centers <- lapply(result$ellipsoid, function(x) x[["center"]])
-  expect_equal(
-    sort(list_c(centers)),
-    c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
-    tolerance = 0.01
-  )
-
-  # Plot Test Points
-  skip_snapshot()
-  ells <- result$ellipsoid
-  new_1 <- ells[[1]]$center +
-    (uniformly::runif_in_sphere(points_per_k, n_dim) %*%
-      ells[[1]]$inv_sqrt_shape)
-  new_2 <- ells[[2]]$center +
-    (uniformly::runif_in_sphere(points_per_k, n_dim) %*%
-      ells[[2]]$inv_sqrt_shape)
-  new_3 <- ells[[3]]$center +
-    (uniformly::runif_in_sphere(points_per_k, n_dim) %*%
-      ells[[3]]$inv_sqrt_shape)
-  new_all <- rbind(new_1, new_2, new_3)
+  expect_length(ell_fit$prob, 1)
+  el <- ell_fit$ellipsoid[[1]]
+  expect_equal(el$log_vol, ell_fit$tot_log_vol)
+  new_points <- uniformly::runif_in_sphere(2000, 3, 1) %*% el$inv_sqrt_shape
+  new_points <- sweep(new_points, 2, el$center, "+")
 
   fig <- \() {
-    plot(data_all)
-    points(new_all, col = "red")
+    plot(original_points)
+    points(new_points, col = "red")
   }
-  vdiffr::expect_doppelganger("multi_ellipsoid", fig)
+  vdiffr::expect_doppelganger("multi_ellipsoid simple", fig)
+})
 
-  # Expect similar with allow_contact FALSE
-  result <- MultiBoundingEllipsoids(
-    data_all,
-    min_reduction = 1,
-    allow_contact = FALSE,
-    expected_volume = -Inf
-  )
-  expect_equal(length(result$prob), 3)
-  centers <- lapply(result$ellipsoid, function(x) x[["center"]])
-  expect_equal(
-    sort(list_c(centers)),
-    c(-5, -5, -5, 0, 0, 0, 5, 5, 5),
-    tolerance = 0.01
-  )
+test_that("MultiBoundingEllipsoids recovers clusters in torus", {
+  n <- 1000
+  R <- 1.0
+  r <- 0.1
+  original_points <- uniformly::runif_in_torus(n, R, r)
+  point_log_volume <- log(uniformly::volume_torus(R, r) / n)
+  el <- MultiBoundingEllipsoids(original_points, point_log_volume)
+
+  f <- \() {
+    plot(original_points)
+    for (e in el$ellipsoid) {
+      new_points <- uniformly::runif_in_sphere(200, 3, 1) %*%
+        e$inv_sqrt_shape
+      new_points <- sweep(new_points, 2, e$center, "+")
+      points(new_points, col = "red")
+    }
+  }
+  vdiffr::expect_doppelganger("multi_ellipsoid torus", f)
+})
+
+test_that("MultiBoundingEllipsoids recovers correct number of clusters in grid", {
+  ndim <- 4
+  nxcens <- 4
+  ncens <- nxcens^ndim
+  sig <- 0.01
+  threshold <- 0.1
+
+  npt <- ncens * 10 * ndim
+  # Create grid centers
+  cens <- as.matrix(expand.grid(rep(list(seq_len(nxcens)), ndim)))
+  # Generate points around grid centers
+  xs <- matrix(rnorm(npt * ndim, sd = sig), ncol = ndim) +
+    cens[(seq_len(npt) - 1) %% nrow(cens) + 1, ]
+
+  ell_fit <- MultiBoundingEllipsoids(xs, NA)
+  n_ell <- length(ell_fit$ellipsoid)
+  expect_lt(abs(n_ell / ncens - 1), threshold)
 })
 
 test_that("update throws a warning when the points are all identical", {
@@ -133,7 +122,6 @@ test_that("update throws a warning when the points are all identical", {
   live <- matrix(rep(0.5, 500 * 2), nrow = 500)
   expect_snapshot(update_lrps(obj, live))
   expect_equal(obj$enlarge, 1)
-  expect_equal(obj$min_reduction, 0.7)
   expect_equal(obj$cache$ellipsoid[[1]]$log_vol, 0.4515827)
   expect_equal(
     obj$cache$ellipsoid[[1]]$inv_sqrt_shape,

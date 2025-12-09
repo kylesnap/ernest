@@ -70,7 +70,7 @@ describe("BoundingEllipsoid", {
     original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
-    ell_fit <- BoundingEllipsoid(original_points)
+    ell_fit <- BoundingEllipsoid(original_points, NA)
     expect_equal(ell_fit$error, 0)
 
     new_points <- uniformly::runif_in_sphere(n_points, 3, 1) %*%
@@ -99,7 +99,7 @@ describe("BoundingEllipsoid", {
 
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
-    ell_fit <- BoundingEllipsoid(original_points)
+    ell_fit <- BoundingEllipsoid(original_points, NA)
     expect_false(is.infinite(ell_fit$log_vol))
     expect_equal(ell_fit$error, 0)
 
@@ -118,7 +118,7 @@ describe("BoundingEllipsoid", {
   it("Recovers from degenerate live point matrices", {
     x <- runif(100)
     xy <- unname(cbind(x, 2 * x))
-    ell_fit <- BoundingEllipsoid(xy)
+    ell_fit <- BoundingEllipsoid(xy, NA)
     expect_equal(ell_fit$error, 2L)
     expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
   })

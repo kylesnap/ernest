@@ -16,10 +16,10 @@ SliceImpl <- function(original, unit_log_fn, criterion, lower, upper, max_loop) 
   .Call(`_ernest_SliceImpl`, original, unit_log_fn, criterion, lower, upper, max_loop)
 }
 
-BoundingEllipsoid <- function(X) {
-  .Call(`_ernest_BoundingEllipsoid`, X)
+BoundingEllipsoid <- function(X, point_log_volume) {
+  .Call(`_ernest_BoundingEllipsoid`, X, point_log_volume)
 }
 
-MultiBoundingEllipsoids <- function(X, min_reduction, allow_contact, expected_volume) {
-  .Call(`_ernest_MultiBoundingEllipsoids`, X, min_reduction, allow_contact, expected_volume)
+MultiBoundingEllipsoids <- function(X, point_log_volume) {
+  .Call(`_ernest_MultiBoundingEllipsoids`, X, point_log_volume)
 }

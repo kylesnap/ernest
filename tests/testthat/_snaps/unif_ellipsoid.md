@@ -46,3 +46,13 @@
       * Log Volume: 0.4516
       * Enlargement: 1
 
+# unif_ellipsoid can provide good results
+
+    c(n_iter = 4834, log_evidence = -6.64322624240521, log_evidence_var = 0.0150031874114791
+    )
+
+---
+
+    c(n_iter = 5738, log_evidence = -8.75058360988815, log_evidence_var = 0.0186958939762136
+    )
+

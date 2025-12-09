@@ -104,6 +104,25 @@ context("Ellipsoid class - geometric cases") {
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == vol::Status::kDegenerate);
   }
+
+  test_that("Rescaling log_volume works") {
+    double scale = 1.5;
+    ern::RandomEngine gen;
+
+    for (int n_dim = 1; n_dim <= 5; n_dim++) {
+      Eigen::VectorXd center = Eigen::VectorXd::Zero(n_dim);
+      Eigen::VectorXd shape_d = Eigen::VectorXd::Ones(n_dim);
+      std::generate(shape_d.begin(), shape_d.end(), unif_rand);
+      Eigen::MatrixXd shape = shape_d.asDiagonal();
+      vol::Ellipsoid ell(center, shape);
+      vol::Ellipsoid rescaled(center, R_pow_di(scale, -2) * shape);
+      ell.log_volume(ell.log_volume() + n_dim * log(scale));
+      expect_true(ern::WithinRel(ell.log_volume(), rescaled.log_volume(), 1e-6));
+      expect_true(ell.shape().isApprox(rescaled.shape(), 1e-6));
+      expect_true(ell.major_axis().isApprox(rescaled.major_axis(), 1e-6));
+      expect_true(ell.inv_sqrt_shape().isApprox(rescaled.inv_sqrt_shape(), 1e-6));
+    }
+  }
 }
 
 context("Rectangle class - basic functionality") {

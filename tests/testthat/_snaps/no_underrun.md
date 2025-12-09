@@ -70,6 +70,18 @@
       • Scaling Method: Fixed
       • Current Scale: 0.01000
 
+---
+
+    Code
+      obj
+    Message
+      ernest LRPS method <no_underrun/ernest_lrps>
+      • Dimensions: 2
+      • No. Log-Lik Calls: 0
+      • No. Steps: 3
+      • Scaling Method: Fixed
+      • Current Scale: 0.01000
+
 # nurs can provide good results
 
     c(n_iter = 4836, log_evidence = -6.64802524203653, log_evidence_var = 0.0149694817664634

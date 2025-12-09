@@ -23,3 +23,7 @@ BoundingEllipsoid <- function(X, point_log_volume) {
 MultiBoundingEllipsoids <- function(X, point_log_volume) {
   .Call(`_ernest_MultiBoundingEllipsoids`, X, point_log_volume)
 }
+
+MiniBall <- function(X, n_bootstraps, method) {
+  .Call(`_ernest_MiniBall`, X, n_bootstraps, method)
+}

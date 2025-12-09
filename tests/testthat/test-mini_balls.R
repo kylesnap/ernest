@@ -6,8 +6,9 @@ set.seed(42)
 test_that("mini_balls can be called by user", {
   expect_silent(default <- mini_balls())
   expect_snapshot(mini_balls(method = "swoop"), error = TRUE)
-  expect_snapshot(mini_balls(p = 0), error = TRUE)
-  expect_equal(default$p, 2)
+  expect_snapshot(mini_balls(bootstrap = -1L), error = TRUE)
+  expect_equal(default$method, "euclidean")
+  expect_null(default$bootstrap)
   expect_snapshot(default)
 })
 
@@ -16,7 +17,7 @@ describe("mini_balls class", {
   it("Can be constructed with new_", {
     check_valid_lrps(
       obj,
-      add_names = "p",
+      add_names = c("method", "bootstrap"),
       cache_names = "radius",
       cache_types = "double"
     )
@@ -34,7 +35,7 @@ describe("mini_balls class", {
     points <- matrix(runif(20), ncol = 2)
     res <- check_update_lrps(
       obj,
-      add_names = "p",
+      add_names = c("method", "bootstrap"),
       cache_names = "radius",
       cache_types = "double"
     )
@@ -44,53 +45,44 @@ describe("mini_balls class", {
       plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
       points(res$new, col = "red")
     }
-    vdiffr::expect_doppelganger("update.mini_balls", fig)
+    vdiffr::expect_doppelganger("update.mini_balls euclidean", fig)
   })
 })
 
-describe("mini_balls works with non-euclidean norms:", {
-  it("manhattan", {
-    obj <- mini_balls(method = "manhattan")
-    expect_equal(obj$p, 1)
-    expect_equal(obj, mini_balls(p = 1))
-    expect_snapshot(obj)
-
-    obj <- new_mini_balls(fn, n_dim = 2, p = 1)
-    obj$cache$radius <- 1
-    res <- check_update_lrps(
-      obj,
-      add_names = "p",
-      cache_names = "radius",
-      cache_types = "double"
-    )
-  })
-
+describe("mini_balls works with non-defaults:", {
   it("maximum", {
     obj <- mini_balls(method = "maximum")
-    expect_equal(obj$p, Inf)
-    expect_equal(obj, mini_balls(p = Inf))
+    expect_equal(obj$method, "maximum")
+    expect_null(obj$bootstrap)
     expect_snapshot(obj)
 
-    obj <- new_mini_balls(fn, n_dim = 2, p = Inf)
+    obj <- new_mini_balls(fn, n_dim = 2, method = "maximum")
     obj$cache$radius <- 1
     res <- check_update_lrps(
       obj,
-      add_names = "p",
+      add_names = c("method", "bootstrap"),
       cache_names = "radius",
       cache_types = "double"
     )
+
+    skip_snapshot()
+    fig <- \() {
+      plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
+      points(res$new, col = "red")
+    }
+    vdiffr::expect_doppelganger("update.mini_balls maximum", fig)
   })
 
-  it("3-norm", {
-    obj <- mini_balls(p = 3)
-    expect_equal(obj$p, 3)
+  it("bootstrapped euclidean", {
+    obj <- mini_balls(bootstrap = 30)
+    expect_identical(obj$bootstrap, 30L)
     expect_snapshot(obj)
 
-    obj <- new_mini_balls(fn, n_dim = 2, p = 3)
+    obj <- new_mini_balls(fn, n_dim = 2, method = "maximum")
     obj$cache$radius <- 1
-    check_update_lrps(
+    res <- check_update_lrps(
       obj,
-      add_names = "p",
+      add_names = c("method", "bootstrap"),
       cache_names = "radius",
       cache_types = "double"
     )

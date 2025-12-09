@@ -4,13 +4,14 @@
 \alias{mini_balls}
 \title{Generate samples from a p-norm ball}
 \usage{
-mini_balls(method, p)
+mini_balls(method = c("euclidean", "maximum"), bootstrap = NULL)
 }
 \arguments{
-\item{method, p}{Pick one of \code{method} and \code{p}:
-* \code{method} Sets the distance measure to be used. This must be one of
-\code{"euclidean"}, \code{"maximum"}, or \code{"manhattan"}.
-* \code{p} A positive number, indicating the p-norm to use.}
+\item{method}{Sets the distance measure to be used. This must be one of
+\code{"euclidean"} or \code{"maximum"}.}
+
+\item{bootstrap}{Sets the number of bootstrap replications to use when estimating
+the largest empty p-ball. If \code{NULL}, jacknife estimation is used instead.}
 }
 \value{
 A list with class \code{c("mini_ball", "ernest_lrps")}. Use with
@@ -20,7 +21,8 @@ A list with class \code{c("mini_ball", "ernest_lrps")}. Use with
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 Propose new live points from a multidimensional p-norm ball centered
 on a randomly selected live point. The radius of the balls are set
-such that each ball encompasses at least two live points.
+such that each ball encompasses at least two live points (i.e., the
+largest empty p-ball).
 }
 \details{
 The p-norm naturally defines a distance that makes the vector space
@@ -43,11 +45,8 @@ behaviour.
 \examples{
 data(example_run)
 euclid_balls <- mini_balls(method = "euclidean")
-euclid_balls <- mini_balls(p = 2)
 
-# Supremum balls (or L-infinity norm)
 suprenum_balls <- mini_balls(method = "maximum")
-suprenum_balls <- mini_balls(p = Inf)
 
 ernest_sampler(
   example_run$log_lik_fn,

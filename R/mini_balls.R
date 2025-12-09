@@ -4,12 +4,13 @@
 #' `r lifecycle::badge("experimental")`
 #' Propose new live points from a multidimensional p-norm ball centered
 #' on a randomly selected live point. The radius of the balls are set
-#' such that each ball encompasses at least two live points.
+#' such that each ball encompasses at least two live points (i.e., the
+#' largest empty p-ball).
 #'
-#' @param method,p Pick one of `method` and `p`:
-#'     * `method` Sets the distance measure to be used. This must be one of
-#'        `"euclidean"`, `"maximum"`, or `"manhattan"`.
-#'     * `p` A positive number, indicating the p-norm to use.
+#' @param method Sets the distance measure to be used. This must be one of
+#' `"euclidean"` or `"maximum"`.
+#' @param bootstrap Sets the number of bootstrap replications to use when estimating
+#' the largest empty p-ball. If `NULL`, jacknife estimation is used instead.
 #'
 #' @returns A list with class `c("mini_ball", "ernest_lrps")`. Use with
 #' [ernest_sampler()] to specify nested sampling behaviour.
@@ -42,11 +43,8 @@
 #' @examples
 #' data(example_run)
 #' euclid_balls <- mini_balls(method = "euclidean")
-#' euclid_balls <- mini_balls(p = 2)
 #'
-#' # Supremum balls (or L-infinity norm)
 #' suprenum_balls <- mini_balls(method = "maximum")
-#' suprenum_balls <- mini_balls(p = Inf)
 #'
 #' ernest_sampler(
 #'   example_run$log_lik_fn,
@@ -55,21 +53,12 @@
 #' )
 #' @keywords internal
 #' @export
-mini_balls <- function(method, p) {
-  arg <- check_exclusive(method, p, .require = FALSE)
-  if (arg == "method") {
-    method <- arg_match0(method, c("euclidean", "maximum", "manhattan"))
-    p <- switch(method, "manhattan" = 1L, "euclidean" = 2L, "maximum" = Inf)
-  } else if (arg == "p") {
-    check_number_decimal(p, min = 1, allow_infinite = TRUE)
-  } else {
-    p <- 2
-  }
-
+mini_balls <- function(method = c("euclidean", "maximum"), bootstrap = NULL) {
   new_mini_balls(
     unit_log_fn = NULL,
     n_dim = NULL,
-    p = p,
+    method = method,
+    bootstrap = bootstrap,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
 }
@@ -77,20 +66,15 @@ mini_balls <- function(method, p) {
 #' @export
 #' @noRd
 format.mini_balls <- function(x, ...) {
-  norm_str <- switch(
-    as.character(x$p),
-    "1" = "Manhattan",
-    "2" = "Euclidean",
-    "Inf" = "Maximum",
-    glue::glue("{x$p}-norm")
-  )
+  boot <- if (is.null(x$bootstrap)) "Disabled" else x$bootstrap
   radius <- env_cache(x$cache, "radius", -Inf)
   if (radius == -Inf) {
     radius <- "Undefined"
   }
   glue::glue(
     "{format.ernest_lrps(x)}",
-    "Distance: {norm_str}",
+    "Method: {x$method}",
+    "Bootstrap: {boot}",
     "Radius: {radius}",
     .sep = "\n"
   )
@@ -102,7 +86,8 @@ format.mini_balls <- function(x, ...) {
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
 #' @param n_dim Integer. Number of dimensions.
-#' @param p Double. p-norm to use.
+#' @param method Character. p-norm to use.
+#' @param bootstrap Integer or NULL. Bootstrap replications.
 #' @param max_loop Integer. Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
@@ -112,20 +97,22 @@ format.mini_balls <- function(x, ...) {
 new_mini_balls <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
-  p = 2,
+  method = c("euclidean", "maximum"),
+  bootstrap = NULL,
   max_loop = 1e6L,
   cache = NULL
 ) {
-  check_number_decimal(p, min = 1)
+  method <- arg_match(method)
+  check_number_whole(bootstrap, min = 1, allow_null = TRUE)
   cache <- cache %||% new_environment()
   env_cache(cache, "radius", -Inf)
-
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
     n_dim = n_dim,
     max_loop = max_loop,
     cache = cache,
-    p = as.double(p),
+    method = as.character(method),
+    bootstrap = if (!is.null(bootstrap)) as.integer(bootstrap) else NULL,
     .class = "mini_balls"
   )
 }
@@ -148,7 +135,7 @@ propose.mini_balls <- function(x, original = NULL, criterion = -Inf) {
       criterion = criterion,
       original = original,
       radius = x$cache$radius,
-      p = x$p,
+      method = x$method,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
@@ -163,7 +150,7 @@ propose.mini_balls <- function(x, original = NULL, criterion = -Inf) {
 #' must satisfy.
 #' @param original Vector. The center of the ball.
 #' @param radius Double. The radius of the ball.
-#' @param p Double. The p-norm to use.
+#' @param method Character. The p-norm to use.
 #' @param max_loop Positive integer. Maximum number of attempts to generate a
 #' point.
 #'
@@ -177,16 +164,15 @@ propose_pball <- function(
   criterion,
   original,
   radius,
-  p,
+  method,
   max_loop
 ) {
   n_dim <- length(original)
   proposal <- double(n_dim)
   sample_gen <- switch(
-    as.character(p),
-    "Inf" = expr(stats::runif(!!n_dim, min = 0, max = !!radius)),
-    "2" = expr(uniformly::runif_in_sphere(1, !!n_dim, r = !!radius)),
-    expr(uniformly::runif_in_pball(1, !!n_dim, !!p, r = !!radius))
+    method,
+    "maximum" = expr(stats::runif(!!n_dim, min = 0, max = !!radius)),
+    "euclidean" = expr(uniformly::runif_in_sphere(1, !!n_dim, r = !!radius))
   )
   for (i in seq_len(max_loop)) {
     proposal <- drop(eval_bare(sample_gen) + original)
@@ -213,32 +199,17 @@ update_lrps.mini_balls <- function(x, unit = NULL, ...) {
   }
 
   # Calculate distances
-  try_fetch(
-    {
-      do <- if (is.finite(x$p)) {
-        as.matrix(stats::dist(unit, method = "minkowski", p = x$p))
-      } else {
-        as.matrix(stats::dist(unit, method = "maximum"))
-      }
-      diag(do) <- Inf
-      min_distances <- matrixStats::rowMins(do)
-      if (max(min_distances) < .Machine$double.eps) {
-        cli::cli_abort(
-          "The max. min. distance between live points can't be zero."
-        )
-      }
-      env_poke(x$cache, "radius", max(min_distances))
-    },
-    error = function(cnd) {
-      cli::cli_warn(
-        c(
-          "Encountered an error rebounding the sampler.",
-          "!" = "Setting `radius` to -Inf."
-        ),
-        parent = cnd
-      )
-      env_poke(x$cache, "radius", -Inf)
-    }
-  )
+  method <- switch(x$method, "euclidean" = "e", "maximum" = "c")
+  fit <- MiniBall(X = unit, n_bootstraps = x$bootstrap %||% 0L, method = method)
+  radius <- if (fit$max_radius <= 0 || !is.finite(fit$max_radius)) {
+    cli::cli_warn(c(
+      "`radius` must be a finite, positive value, not {fit$max_radius}.",
+      "!" = "Falling-back to uniform hypercube sampling."
+    ))
+    -Inf
+  } else {
+    fit$max_radius
+  }
+  env_poke(x$cache, "radius", radius)
   do.call(new_mini_balls, as.list(x))
 }

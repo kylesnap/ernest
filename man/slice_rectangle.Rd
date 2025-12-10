@@ -54,7 +54,6 @@ Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 \seealso{
 Other ernest_lrps: 
 \code{\link{multi_ellipsoid}()},
-\code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
 \code{\link{unif_cube}()},
 \code{\link{unif_ellipsoid}()}

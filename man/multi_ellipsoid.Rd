@@ -83,7 +83,6 @@ https://github.com/kbarbary/nestle/blob/master/runtests.py
 }
 \seealso{
 Other ernest_lrps: 
-\code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice_rectangle}()},
 \code{\link{unif_cube}()},

@@ -72,7 +72,6 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 \seealso{
 Other ernest_lrps: 
 \code{\link{multi_ellipsoid}()},
-\code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice_rectangle}()},
 \code{\link{unif_cube}()}

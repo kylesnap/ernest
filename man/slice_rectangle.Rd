@@ -39,14 +39,6 @@ hyperrectagle's volume by the specified factor before sampling. Setting
 \code{enlarge} to \code{NA} disables this behaviour, instead slicing from the unit
 hypercube at each iteration.
 }
-\section{Status}{
-
-This LRPS is experimental and has not been extensively validated across
-different nested sampling problems. You are encouraged to use it, but please
-exercise caution interpretting results and report any issues or unexpected
-behaviour.
-}
-
 \examples{
 # Basic usage with default parameters
 lrps <- slice_rectangle()
@@ -61,7 +53,6 @@ Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 }
 \seealso{
 Other ernest_lrps: 
-\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},

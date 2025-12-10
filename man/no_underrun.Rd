@@ -56,14 +56,6 @@ exceeds the unit hypercube, or (b) the recursive condition
 Choose \code{fixed_scale} to keep \eqn{h} constant, or \code{adaptive_scale} to update
 \eqn{h} from inter-point distances. See References for details on tuning.
 }
-\section{Status}{
-
-This LRPS is experimental and has not been extensively validated across
-different nested sampling problems. You are encouraged to use it, but please
-exercise caution interpretting results and report any issues or unexpected
-behaviour.
-}
-
 \examples{
 # Basic usage with default parameters
 lrps <- no_underrun(adaptive_scale = 0.01)
@@ -82,7 +74,6 @@ No-Underrun Sampler: A Locally-Adaptive, Gradient-Free MCMC Method
 }
 \seealso{
 Other ernest_lrps: 
-\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice_rectangle}()},

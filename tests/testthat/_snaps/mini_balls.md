@@ -26,18 +26,6 @@
       * Bootstrap: Disabled
       * Radius: Undefined
 
-# mini_balls works with non-defaults:: maximum
-
-    Code
-      obj
-    Message
-      ernest LRPS method <mini_balls/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * Method: maximum
-      * Bootstrap: Disabled
-      * Radius: Undefined
-
 # mini_balls works with non-defaults:: bootstrapped euclidean
 
     Code
@@ -70,15 +58,12 @@
 
     Code
       propose(obj, c(0.5, 0.5), -Inf)
-    Condition
-      Warning:
-      `x` does not have a valid radius to sample within.
     Output
       $unit
-      [1] 0.03375497 0.19464773
+      [1] 0.8975114 0.5099074
       
       $log_lik
-      [1] -881.5249
+      [1] -483.1485
       
       $n_call
       [1] 1

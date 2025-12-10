@@ -66,14 +66,6 @@ For more on ellipsoids and their operations, see
 by S.B. Pope, Cornell University Report FDA 08-01 (2008).
 }
 
-\section{Status}{
-
-This LRPS is experimental and has not been extensively validated across
-different nested sampling problems. You are encouraged to use it, but please
-exercise caution interpretting results and report any issues or unexpected
-behaviour.
-}
-
 \examples{
 data(example_run)
 lrps <- multi_ellipsoid(enlarge = 1.25)
@@ -91,7 +83,6 @@ https://github.com/kbarbary/nestle/blob/master/runtests.py
 }
 \seealso{
 Other ernest_lrps: 
-\code{\link{mini_balls}()},
 \code{\link{no_underrun}()},
 \code{\link{rwmh_cube}()},
 \code{\link{slice_rectangle}()},

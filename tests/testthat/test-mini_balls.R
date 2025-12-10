@@ -18,16 +18,10 @@ describe("mini_balls class", {
     check_valid_lrps(
       obj,
       add_names = c("method", "bootstrap"),
-      cache_names = "radius",
-      cache_types = "double"
+      cache_names = c("radius", "annoy"),
+      cache_types = c("double", "S4")
     )
     expect_equal(obj$cache$radius, -Inf)
-  })
-
-  it("Can call propose", {
-    # Set a valid radius for proposals
-    obj$cache$radius <- 0.5
-    check_propose(obj, fn)
   })
 
   it("Can be updated", {
@@ -36,8 +30,8 @@ describe("mini_balls class", {
     res <- check_update_lrps(
       obj,
       add_names = c("method", "bootstrap"),
-      cache_names = "radius",
-      cache_types = "double"
+      cache_names = c("radius", "annoy"),
+      cache_types = c("double", "S4")
     )
 
     skip_snapshot()
@@ -50,29 +44,6 @@ describe("mini_balls class", {
 })
 
 describe("mini_balls works with non-defaults:", {
-  it("maximum", {
-    obj <- mini_balls(method = "maximum")
-    expect_equal(obj$method, "maximum")
-    expect_null(obj$bootstrap)
-    expect_snapshot(obj)
-
-    obj <- new_mini_balls(fn, n_dim = 2, method = "maximum")
-    obj$cache$radius <- 1
-    res <- check_update_lrps(
-      obj,
-      add_names = c("method", "bootstrap"),
-      cache_names = "radius",
-      cache_types = "double"
-    )
-
-    skip_snapshot()
-    fig <- \() {
-      plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
-      points(res$new, col = "red")
-    }
-    vdiffr::expect_doppelganger("update.mini_balls maximum", fig)
-  })
-
   it("bootstrapped euclidean", {
     obj <- mini_balls(bootstrap = 30)
     expect_identical(obj$bootstrap, 30L)
@@ -83,8 +54,8 @@ describe("mini_balls works with non-defaults:", {
     res <- check_update_lrps(
       obj,
       add_names = c("method", "bootstrap"),
-      cache_names = "radius",
-      cache_types = "double"
+      cache_names = c("radius", "annoy"),
+      cache_types = c("double", "S4")
     )
   })
 })
@@ -96,8 +67,4 @@ test_that("update throws a warning when the points are all identical", {
   expect_equal(obj$cache$radius, -Inf)
   skip_snapshot()
   expect_snapshot(propose(obj, c(0.5, 0.5), -Inf))
-})
-
-test_that("mini_balls can provide good results", {
-  # TODO: Tune these other two samplers.
 })

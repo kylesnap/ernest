@@ -81,7 +81,6 @@ Royal Astronomical Society, 493, 3132–3158.
 }
 \seealso{
 Other ernest_lrps: 
-\code{\link{mini_balls}()},
 \code{\link{multi_ellipsoid}()},
 \code{\link{no_underrun}()},
 \code{\link{slice_rectangle}()},

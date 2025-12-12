@@ -215,11 +215,12 @@ get_information <- function(log_lik, log_volume, log_evidence) {
   h_part1 - max_logz * exp(log_evidence - max_logz)
 }
 
-#' Log Subtract Helper
+#' Log-space subtraction for nested sampling
 #'
-#' @param a,b Matrices, where (elementwise) a > b.
+#' @params a,b Numeric vectors of equal length.
 #'
-#' @returns LSE(a, b), or log(exp(a) + exp(b))
+#' @return `log(exp(a) - exp(b))`, computed in log-space to avoid numerical
+#' underflow. A warning is issued and `NaN` is returned when `b > a`.
 #' @noRd
 logspace_sub <- function(a, b) {
   a + log1p(-exp(b - a))

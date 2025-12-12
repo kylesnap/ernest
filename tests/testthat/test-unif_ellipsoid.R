@@ -67,6 +67,15 @@ describe("unif_ellipsoid class", {
     expect_equal(obj$cache$log_volume, 0.4515827)
     expect_equal(obj$cache$inv_sqrt_shape, diag(sqrt(2 / 4), nrow = 2))
     expect_equal(obj$cache$center, c(0.5, 0.5))
+
+    obj <- new_unif_ellipsoid(fn, n_dim = 2)
+    live <- matrix(rep(0.25, 0.25, 2), nrow = 1)
+    expect_warning(
+      update_lrps(obj, live),
+      "Ellipsoid fitting returned an error code"
+    )
+    expect_equal(obj$cache$log_volume, log(uniformly::volume_sphere(2)))
+    expect_equal(obj$cache$center, c(0.25, 0.25))
   })
 })
 

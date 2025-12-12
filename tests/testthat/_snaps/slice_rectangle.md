@@ -28,3 +28,14 @@
       * Centre: Undefined
       * Enlargement: 1
 
+# slice class / Can be built and propose points
+
+    Code
+      obj
+    Message
+      ernest LRPS method <slice_rectangle/ernest_lrps>
+      * Dimensions: 2
+      * No. Log-Lik Calls: 65
+      * Centre: 0.5000, 0.5000
+      * Enlargement: 1.25
+

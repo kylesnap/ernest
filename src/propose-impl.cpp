@@ -8,17 +8,7 @@
 //
 // Implements proposal mechanisms for MCMC sampling within nested sampling.
 // These are called from R.
-#include "nurs.h"
 #include "rectangle.h"
-
-// Runs the No-Underrun Sampler (NURS).
-[[cpp11::register]]
-cpp11::list NURSImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                     double criterion, int steps, double h, int M) {
-  nurs::NURSSampler sampler(unit_log_fn, original);
-  sampler.Run(criterion, steps, h, M);
-  return sampler.as_list();
-}
 
 // Runs a basic Random Walk Metropolis-Hastings sampler with fixed step size.
 // Proposal: X' ~ N(X_n, ε I).

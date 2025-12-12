@@ -4,10 +4,6 @@ logaddexp <- function(x, y) {
   .Call(`_ernest_logaddexp`, x, y)
 }
 
-NURSImpl <- function(original, unit_log_fn, criterion, steps, h, M) {
-  .Call(`_ernest_NURSImpl`, original, unit_log_fn, criterion, steps, h, M)
-}
-
 RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {
   .Call(`_ernest_RandomWalkImpl`, original, unit_log_fn, criterion, steps, epsilon)
 }
@@ -22,8 +18,4 @@ BoundingEllipsoid <- function(X, point_log_volume) {
 
 MultiBoundingEllipsoids <- function(X, point_log_volume) {
   .Call(`_ernest_MultiBoundingEllipsoids`, X, point_log_volume)
-}
-
-MiniBall <- function(X, n_bootstraps, method) {
-  .Call(`_ernest_MiniBall`, X, n_bootstraps, method)
 }

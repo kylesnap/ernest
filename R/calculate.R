@@ -35,8 +35,8 @@
 #' # Load an example run
 #' data(example_run)
 #'
-#' # View results as a tibble with `ndraws = FALSE` (the default).
-#' calculate(example_run)
+#' # View results as a tibble with `ndraws = 0`.
+#' calculate(example_run, ndraws = 0)
 #'
 #' # Generate 100 simulated log-volume values for each iteration.
 #' calculate(example_run, ndraws = 100)
@@ -122,12 +122,13 @@ get_logvol <- function(n_points, n_iter, ndraws = NULL) {
 
   if (is.null(ndraws)) {
     vol <- -1 * (points^-1)
-    matrix(cumsum(vol), nrow = 1)
-  } else {
-    vol <- matrix(stats::runif(ndraws * length(points)), nrow = ndraws)
-    vol <- log(vol)
-    matrixStats::rowCumsums(sweep(vol, 2, points, "/"))
+    return(matrix(cumsum(vol), nrow = 1))
   }
+  vol <- matrix(
+    log(stats::runif(ndraws * length(points))) / rep(points, each = ndraws),
+    nrow = ndraws
+  )
+  matrixStats::rowCumsums(vol)
 }
 
 #' Compute log weights for nested sampling

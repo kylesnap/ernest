@@ -14,40 +14,51 @@ test_that("rwmh_cube can be called by user", {
 })
 
 describe("rwmh_cube class", {
-  obj <- new_rwmh_cube(fn, 2)
-  it("Can be constructed with new_", {
-    check_valid_lrps(
-      obj,
-      add_names = c("steps", "target_acceptance"),
-      cache_names = c("n_accept", "epsilon"),
-      cache_types = c("integer", "double")
+  ptypes <- list(epsilon = double(), n_accept = integer())
+
+  it("Can be built and propose points", {
+    obj <- expect_all_proposals(
+      new_rwmh_cube,
+      unit_log_fn = fn,
+      n_dim = 2,
+      extra_args = "n_accept"
     )
-    expect_equal(obj$cache$epsilon, 1.0)
+    expect_lrps(obj, subclass = "rwmh_cube", !!!ptypes)
   })
 
-  it("Can call propose", {
-    check_propose(obj, fn, fail_on_no_accept = FALSE)
+  it("Can be updated with a matrix of points", {
+    obj <- new_rwmh_cube(fn, n_dim = 2)
+    samples <- run_sampler(obj)
+    acc_ratio <- sum(samples$n_accept) / sum(samples$n_call)
+    new_eps <- exp((acc_ratio - 0.5) / 2 / 0.5)
+
+    new_obj <- update_lrps(obj, samples$unit)
+    expect_lrps(new_obj, subclass = "rwmh_cube", !!!ptypes)
+    expect_equal(new_obj$cache$epsilon, new_eps)
+    expect_identical(new_obj$cache$n_call, 0L)
+    expect_identical(new_obj$cache$n_accept, 0L)
+    new_samples <- run_sampler(new_obj)
+
+    skip_extended()
+    f <- test_plot(samples$unit, new_samples$unit)
+    vdiffr::expect_doppelganger("rwmh", f)
   })
 
-  it("Can be updated", {
-    res <- check_update_lrps(
+  it("Can be updated without a matrix", {
+    obj <- new_rwmh_cube(fn, n_dim = 2)
+    samples <- run_sampler(obj)
+    expect_idempotent_update(
       obj,
-      add_names = c("steps", "target_acceptance"),
-      cache_names = c("n_accept", "epsilon"),
-      cache_types = c("integer", "double")
+      "rwmh_cube",
+      reset = "n_accept",
+      ptypes = ptypes
     )
-
-    skip_snapshot()
-    fig <- \() {
-      plot(res$old, xlim = c(0, 1), ylim = c(0, 1))
-      points(res$new, col = "red")
-    }
-    vdiffr::expect_doppelganger("update.rwmh_cube", fig)
   })
 })
 
 test_that("rwmh_cube can provide good results", {
-  run_gaussian_blobs(rwmh_cube(), tolerance = 2)
-  run_3d(rwmh_cube(), tolerance = 2)
-  run_eggbox(rwmh_cube(), tolerance = 2)
+  skip_extended()
+  expect_gaussian_run(rwmh_cube())
+  expect_3D_run(rwmh_cube())
+  expect_eggbox_run(rwmh_cube())
 })

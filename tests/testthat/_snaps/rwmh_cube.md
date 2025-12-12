@@ -35,18 +35,3 @@
       * Target Acceptance: 0.5
       * Step Size: 1.000
 
-# rwmh_cube can provide good results
-
-    c(n_iter = 4928, log_evidence = -6.83131400467416, log_evidence_var = 0.0155273926462523
-    )
-
----
-
-    c(n_iter = 5806, log_evidence = -8.88911918431688, log_evidence_var = 0.0190070444163182
-    )
-
----
-
-    c(n_iter = 4944, log_evidence = 236.136248848103, log_evidence_var = 0.013928242406257
-    )
-

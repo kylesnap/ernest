@@ -29,7 +29,7 @@ test_that("Trace tables", {
 })
 
 test_that("Density plot", {
-  skip_snapshot()
+  skip_extended()
   set.seed(42)
   data(example_run)
   vdiffr::expect_doppelganger(
@@ -43,7 +43,7 @@ test_that("Density plot", {
 })
 
 test_that("Trace plot", {
-  skip_snapshot()
+  skip_extended()
   set.seed(42)
   data(example_run)
   vdiffr::expect_doppelganger(

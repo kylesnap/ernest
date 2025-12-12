@@ -63,7 +63,7 @@ test_that("calculate works when ndraws = 1", {
 })
 
 test_that("calculate works when ndraws = 4000 (default)", {
-  skip_extended_test()
+  skip_extended()
   data(example_run)
   n_samp <- example_run$n_iter + example_run$n_points
 

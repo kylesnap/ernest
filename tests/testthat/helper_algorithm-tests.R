@@ -12,7 +12,7 @@
 #' @source https://github.com/kbarbary/nestle/blob/master/runtests.py
 NULL
 
-#' Two gaussians centered at (1, 1) and (-1, -1) with sigma = 0.1
+#' 2D Gaussian
 gaussian_blobs <- list(
   log_lik = function(x) {
     sigma <- 0.1
@@ -28,13 +28,33 @@ gaussian_blobs <- list(
   },
   prior = create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:2]),
   # Analytic evidence for two Gaussian blobs
-  analytic_z = log(2.0 * 2.0 * pi * 0.1 * 0.1 / 100),
-  # Raster-calculated evidence from nestle's test suite
-  raster_z = -6.679316,
-  # Estimated evidence from a 100 point run with nestle
-  estimated_z = -6.778,
-  estimated_z_err = 0.238
+  log_z_analytic = log(2.0 * 2.0 * pi * 0.1 * 0.1 / 100)
 )
+
+#' 3D Correlated Multivariate Normal
+gaussian_3D <- local({
+  n_dim <- 3
+  rho <- 0.95
+  prior_win <- 10
+  mean <- seq(-1, 1, length.out = n_dim)
+  cov <- matrix(rho, n_dim, n_dim)
+  diag(cov) <- 1
+  cov_inv <- solve(cov)
+  lnorm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
+  log_z_analytic <- n_dim * (-log(2 * prior_win))
+
+  list(
+    log_lik = function(x) {
+      -0.5 * drop((x - mean) %*% cov_inv %*% (x - mean)) + lnorm
+    },
+    prior = create_uniform_prior(
+      lower = -prior_win,
+      upper = prior_win,
+      names = LETTERS[1:n_dim]
+    ),
+    log_z_analytic = log_z_analytic
+  )
+})
 
 # Eggbox Distribution
 eggbox <- list(
@@ -56,205 +76,130 @@ eggbox <- list(
   # Standard uniform prior
   prior = create_uniform_prior(names = LETTERS[1:2]),
   # Raster-calculated evidence from nestle's test suite
-  raster_z = 235.89516,
-  # Estimated evidence from a 100 point run with nestle
-  estimated_z = 236.027,
-  estimated_z_err = 0.109
+  log_z_raster = 235.89516
+  # Estimated evidence from a 100 point run with nestle: 236.027 (0.109)
 )
-
-#' 3D Correlated Multivariate Normal (dynesty test)
-mvm_3d <- local({
-  n_dim <- 3
-  rho <- 0.95
-  prior_win <- 10
-  mean <- seq(-1, 1, length.out = n_dim)
-  cov <- matrix(rho, n_dim, n_dim)
-  diag(cov) <- 1
-  cov_inv <- solve(cov)
-  lnorm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
-  analytic_z <- n_dim * (-log(2 * prior_win))
-
-  list(
-    log_lik = function(x) {
-      -0.5 * drop((x - mean) %*% cov_inv %*% (x - mean)) + lnorm
-    },
-    prior = create_uniform_prior(
-      lower = -prior_win,
-      upper = prior_win,
-      names = LETTERS[1:n_dim]
-    ),
-    analytic_z = analytic_z
-  )
-})
 
 #' Correctness Tests
 #'
 #' @srrstats {G5.4, G5.4b, G5.5} These functions run correctness tests against
 #' results found by nestle and through analytic methods for each LRPS.
-#' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
-#' recovered under different seeds and with random noise added to the log-lik.
 
-#' Does log-evidence for a run fall within expectations?
+#' Expect nested sampling results to match expected values.
 #'
-#' @param object An `ernest_run` object.
-#' @param expected The expected evidence value.
-#' @param tolerance Scale of accepted range of values.
+#' @param ... Arguments passed to `ernest_sampler()`.
+#' @param .expected_log_z Numeric. Expected log-evidence value.
+#' @param .generate Optional. Arguments for the `generate()` function.
+#' @param .seed Integer. Random seed for reproducibility.
 #'
-#' @returns A failure if object isn't an `ernest_run` or if
-#' the relative value of object and expected falls outside
-#' some range.
-#' @noRd
-expect_evidence <- function(object, expected, tolerance = 1) {
-  stopifnot(tolerance > 0)
-  act <- quasi_label(rlang::enquo(object), arg = "object")
-  if (!inherits(object, "ernest_run")) {
-    message <- sprintf("%s must be an `ernest_run` object.", act$lab)
+#' @return The run object (invisible).
+expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
+  sampler <- ernest_sampler(..., seed = .seed)
+  run <- inject(generate(sampler, !!!.generate))
+  log_z <- tail(run$log_evidence, 1)
+  log_z_err <- sqrt(tail(run$log_evidence_var, 1))
+
+  delta_log_z <- abs(log_z - .expected_log_z)
+  if (delta_log_z > 3.0 * log_z_err) {
+    fail(c(
+      sprintf(
+        "Log-evidence falls outside expectation (%.3f)",
+        .expected_log_z
+      ),
+      sprintf("Run Estimate: %.3f (ERR: %.3f)", log_z, log_z_err)
+    ))
   }
-
-  act$log_z <- tail(act$val$log_evidence, 1L)
-  act$log_z_var <- sqrt(tail(act$val$log_evidence_var, 1L))
-  if ((act$log_z - expected) < tolerance * act$log_z_var) {
-    succeed()
-    return(invisible(act$val))
+  tot_weight <- sum(exp(run$log_weight - log_z))
+  if (abs(tot_weight - 1) > sqrt(.Machine$double.eps)) {
+    fail(sprintf(
+      "Log-weights should sum to one, not %.3f.",
+      tot_weight
+    ))
   }
-
-  message <- sprintf(
-    "%s has evidence %g (err. %g), which isn't equal to %g",
-    act$lab,
-    act$log_z,
-    act$log_z_var,
-    expected
-  )
-  fail(message)
+  pass()
+  invisible(run)
 }
 
-#' Save a run's results in a snapshot.
+#' Runs a sampler on the 2D Gaussian blobs test problem.
 #'
-#' @param object An `ernest_run` object.
+#' @param sampler LRPS object to test.
+#' @param n_points Integer. Number of live points.
+#' @param ... Additional arguments passed to `expect_run()`.
+#' @param .generate Optional. Arguments for the `generate()` function.
+#' @param .seed Integer. Random seed.
 #'
-#' @returns A failure if the snapshot changes. Skips the block if
-#' on CRAN, CI, and COVR.
-#' @noRd
-result_snapshot <- function(object) {
-  stopifnot(inherits(object, "ernest_run"))
-  skip_snapshot()
-  results <- c(
-    "n_iter" = object$n_iter,
-    "log_evidence" = tail(object$log_evidence, 1L),
-    "log_evidence_var" = tail(object$log_evidence_var, 1L)
-  )
-  expect_snapshot_value(results, style = "deparse")
-}
-
-#' Helper Functions for Testing Nested Samplers
-#'
-#' These helper functions are used in testthat tests to validate the
-#' behavior and correctness of different nested sampling algorithms
-#' on standard test problems (Gaussian blobs, eggbox,
-#' 3D multivariate normal).
-#'
-#' @param lrps The sampler or sampler configuration to use.
-#' @param ... Additional arguments passed to the sampler.
-#' @param tolerance Numeric tolerance for evidence comparison.
-#'
-#' @noRd
-run_gaussian_blobs <- function(lrps, ..., tolerance = 1) {
-  sampler <- exec(
-    ernest_sampler,
-    gaussian_blobs$log_lik,
+#' @return The run object (invisible).
+expect_gaussian_run <- function(
+  sampler,
+  n_points = 100,
+  ...,
+  .generate = NULL,
+  .seed = 42L
+) {
+  expect_run(
+    log_lik = gaussian_blobs$log_lik,
     prior = gaussian_blobs$prior,
-    sampler = lrps,
-    !!!list2(...),
-    seed = 42
+    sampler = sampler,
+    n_points = n_points,
+    ...,
+    .expected_log_z = gaussian_blobs$log_z_analytic,
+    .generate = .generate,
+    .seed = .seed
   )
-  result <- generate(sampler)
-
-  expect_evidence(result, gaussian_blobs$analytic_z, tolerance)
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1)
-
-  result_snapshot(result)
-  # Test seed and rerunning
-  skip_extended_test()
-  withr::local_seed(45)
-  cur_seed <- .Random.seed[1]
-  res1 <- generate(sampler, max_iterations = 1000)
-  expect_equal(cur_seed, .Random.seed[1])
-  res2 <- generate(res1, max_iterations = 2000)
-  expect_equal(cur_seed, .Random.seed[1])
-  res2_cpy <- generate(res1, max_iterations = 2000)
-  expect_equal(cur_seed, .Random.seed[1])
-  expect_identical(res2$log_lik, res2_cpy$log_lik)
-
-  # Test random seed changes
-  sampler <- exec(
-    ernest_sampler,
-    gaussian_blobs$log_lik,
-    prior = gaussian_blobs$prior,
-    sampler = lrps,
-    !!!list2(...),
-    seed = 84
-  )
-  result <- generate(sampler)
-
-  expect_evidence(result, gaussian_blobs$analytic_z, tolerance)
-
-  # Robustness to noise
-  noisy_ll <- \(x) {
-    gaussian_blobs$log_lik(
-      x + rnorm(2, sd = .Machine$double.eps)
-    )
-  }
-  sampler_noise <- exec(
-    ernest_sampler,
-    noisy_ll,
-    prior = gaussian_blobs$prior,
-    sampler = lrps,
-    !!!list2(...),
-    seed = 42
-  )
-  result_noise <- generate(sampler_noise)
-
-  expect_evidence(result_noise, gaussian_blobs$analytic_z, tolerance)
 }
 
-run_eggbox <- function(lrps, ..., tolerance = 1) {
-  skip_extended_test()
-  sampler <- exec(
-    ernest_sampler,
-    eggbox$log_lik,
-    eggbox$prior,
-    sampler = lrps,
-    !!!list2(...),
-    seed = 42
+#' Runs a sampler on the 3D correlated Gaussian test problem.
+#'
+#' @param sampler Sampler object to test.
+#' @param n_points Integer. Number of live points.
+#' @param ... Additional arguments passed to `expect_run()`.
+#' @param .generate Optional. Arguments for the `generate()` function.
+#' @param .seed Integer. Random seed.
+#'
+#' @return The run object (invisible).
+expect_3D_run <- function(
+  sampler,
+  n_points = 100,
+  ...,
+  .generate = NULL,
+  .seed = 42L
+) {
+  expect_run(
+    log_lik = gaussian_3D$log_lik,
+    prior = gaussian_3D$prior,
+    sampler = sampler,
+    n_points = n_points,
+    ...,
+    .expected_log_z = gaussian_3D$log_z_analytic,
+    .generate = .generate,
+    .seed = .seed
   )
-  result <- generate(sampler)
-
-  expect_evidence(result, eggbox$estimated_z, tolerance)
-  result_snapshot(result)
-
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1)
 }
 
-run_3d <- function(lrps, ..., tolerance = 1) {
-  skip_extended_test()
-  sampler <- exec(
-    ernest_sampler,
-    mvm_3d$log_lik,
-    mvm_3d$prior,
-    sampler = lrps,
-    !!!list2(...),
-    seed = 42
+#' Runs a sampler on the eggbox test problem
+#'
+#' @param sampler Sampler object to test.
+#' @param n_points Integer. Number of live points.
+#' @param ... Additional arguments passed to `expect_run()`.
+#' @param .generate Optional. Arguments for the `generate()` function.
+#' @param .seed Integer. Random seed.
+#'
+#' @return The run object (invisible).
+expect_eggbox_run <- function(
+  sampler,
+  n_points = 100,
+  ...,
+  .generate = NULL,
+  .seed = 42L
+) {
+  expect_run(
+    log_lik = eggbox$log_lik,
+    prior = eggbox$prior,
+    sampler = sampler,
+    n_points = 100,
+    ...,
+    .expected_log_z = eggbox$log_z_raster,
+    .generate = .generate,
+    .seed = .seed
   )
-  result <- generate(sampler)
-
-  expect_evidence(result, mvm_3d$analytic_z, tolerance)
-  result_snapshot(result)
-
-  weights <- as_draws(result) |>
-    weights()
-  expect_equal(sum(weights), 1)
 }

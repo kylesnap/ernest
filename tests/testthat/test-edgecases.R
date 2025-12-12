@@ -57,7 +57,10 @@ test_that("Fails on complex types", {
 test_that("Missing values in the prior", {
   set.seed(42)
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
-  expect_snapshot(create_prior(prior_fn, .n_dim = 2), error = TRUE)
+  expect_error(
+    create_prior(prior_fn, .n_dim = 2),
+    "`fn` failed a sanity check."
+  )
 })
 
 #' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
@@ -97,7 +100,6 @@ test_that("Missing values in the log-likelihood", {
     )
   )
 
-  skip_extended_test()
   run <- generate(quiet_na_sampler)
   expect_false(anyNA(run$log_lik))
 })
@@ -126,6 +128,12 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
     sampler <- ernest_sampler(ll_flat, prior = gaussian_blobs$prior, seed = 42),
     "`log_lik` may contain a likelihood plateau"
   )
-  skip_snapshot()
-  expect_snapshot(generate(sampler))
+  expect_warning(
+    expect_warning(
+      run <- generate(sampler),
+      "`log_lik` may contain a likelihood plateau"
+    ),
+    "Stopping run due to a likelihood plateau at 0"
+  )
+  expect_all_equal(tail(run$log_lik, 100), 0)
 })

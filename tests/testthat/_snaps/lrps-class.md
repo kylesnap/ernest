@@ -1,4 +1,4 @@
-# new_ernest_lrps: fails informatively
+# new_ernest_lrps / fails informatively
 
     Code
       new_ernest_lrps(unit_log_fn = 1)

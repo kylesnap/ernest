@@ -79,41 +79,50 @@ describe("create_prior", {
 
   it("catchers issues with prior function output length", {
     fn <- function(x) c(x[1], x[2], x[1] / x[2])
-    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    expect_error(
+      create_prior(fn, .n_dim = 2),
+      "`fn` must return a vector of length 2"
+    )
   })
 
   it("errors if prior returns non-finite values", {
     fn <- function(x) rep(NaN, length(x))
-    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    expect_error(
+      create_prior(fn, .n_dim = 2),
+      "`fn` must return vectors that only contain finite values"
+    )
     fn <- function(x) c(x[1], NA)
-    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    expect_error(
+      create_prior(fn, .n_dim = 2),
+      "`fn` must return vectors that only contain finite values"
+    )
     fn <- function(x) c(Inf, x[2])
-    expect_snapshot(create_prior(fn, .n_dim = 2), error = TRUE)
+    expect_error(
+      create_prior(fn, .n_dim = 2),
+      "`fn` must return vectors that only contain finite values"
+    )
   })
 
   it("errors if prior returns OOB values", {
     fn <- function(x) x
-    expect_snapshot(create_prior(fn, lower = 0.5, .n_dim = 2), error = TRUE)
-    expect_snapshot(create_prior(fn, upper = 0.5, .n_dim = 2), error = TRUE)
+    expect_error(
+      create_prior(fn, lower = 0.5, .n_dim = 2),
+      "`fn` must respect the `lower` bounds"
+    )
+    expect_error(
+      create_prior(fn, upper = 0.5, .n_dim = 2),
+      "`fn` must respect the `upper` bounds"
+    )
   })
 })
 
 test_that("new_ernest_prior repairs names as specified", {
   fn <- function(x) x
-  prior <- new_ernest_prior(
-    fn = fn,
-    n_dim = 2,
-    names = c("x", "x"),
-    name_repair = "universal"
-  )
+  prior <- create_prior(fn = fn, names = c("x", "x"))
   expect_equal(prior$names, c("x...1", "x...2"))
-  expect_snapshot(
-    new_ernest_prior(
-      fn = fn,
-      n_dim = 2,
-      names = c("x", "x"),
-      name_repair = "check_unique"
-    ),
-    error = TRUE
+
+  expect_error(
+    create_prior(fn = fn, names = c("x", "x"), .name_repair = "check_unique"),
+    "Names must be unique"
   )
 })

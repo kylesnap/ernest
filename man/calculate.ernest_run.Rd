@@ -5,17 +5,17 @@
 \alias{ernest_estimate}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
-\method{calculate}{ernest_run}(x, ..., ndraws = NULL)
+\method{calculate}{ernest_run}(x, ndraws = 1000L, ...)
 }
 \arguments{
 \item{x}{An \code{ernest_run} object.}
 
-\item{...}{These dots are for future extensions and must be empty.}
-
-\item{ndraws}{An optional positive integer. The number of log-volume
+\item{ndraws}{A positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log-volumes are produced from the estimates contained in
-\code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
+\code{x}.}
+
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{n_iter + n_points} rows
@@ -43,8 +43,8 @@ likelihood shell.
 # Load an example run
 data(example_run)
 
-# View results as a tibble with `ndraws = FALSE` (the default).
-calculate(example_run)
+# View results as a tibble with `ndraws = 0`.
+calculate(example_run, ndraws = 0)
 
 # Generate 100 simulated log-volume values for each iteration.
 calculate(example_run, ndraws = 100)

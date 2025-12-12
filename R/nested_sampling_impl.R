@@ -140,12 +140,11 @@ nested_sampling_impl <- function(
     }
 
     # 4. Replace the worst points in live with new points
-    copy <- NULL
+    available_idx <- setdiff(seq_len(x$n_points), worst_idx)
+    copy <- sample(available_idx, length(worst_idx), replace = FALSE)
     new_unit <- if (call <= x$first_update) {
       propose(x$lrps, criterion = live_env$log_lik[worst_idx])
     } else {
-      available_idx <- setdiff(seq_len(x$n_points), worst_idx)
-      copy <- sample(available_idx, length(worst_idx), replace = FALSE)
       propose(
         x$lrps,
         original = live_env$unit[copy, ],
@@ -168,7 +167,7 @@ nested_sampling_impl <- function(
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
-    live_env$birth[worst_idx] <- i + iter
+    live_env$birth[worst_idx] <- copy
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
   }

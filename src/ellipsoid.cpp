@@ -14,67 +14,25 @@
 
 using namespace vol;
 
-//// Ellipsoid Constructors
-Ellipsoid::Ellipsoid(const int n_dim) : n_dim_(n_dim), solve_(n_dim_) {
-  if (n_dim == 0) {
-    error_ = kFatal;
-    return;
-  }
-  // Circumradius of unit hypercube is sqrt(n_dim)/2.
-  center_ = Vector::Constant(n_dim_, 0.5);
-  L_ = Matrix::Identity(n_dim_, n_dim_) * (2 / sqrt(n_dim_));
-  eigensystem_ = Eigendecomposition{Vector::Ones(n_dim_) * (2.0 / sqrt(n_dim_)),
-                                    Matrix::Identity(n_dim_, n_dim_)};
-  inv_sqrt_shape_ = Matrix::Identity(n_dim_, n_dim_) * (sqrt(n_dim_) / 2.0);
-  double log_det_L = n_dim_ * log(2.0) - 0.5 * n_dim_ * log(n_dim_);
-  log_volume_ = log_volume_sphere() - log_det_L;
-}
+//// CONSTRUCTORS
 
-vol::Ellipsoid::Ellipsoid(const ConstRef<Matrix> X) : Ellipsoid(X.cols()) {
-  (*this).Fit(X);
-};
-
-vol::Ellipsoid::Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape)
-    : Ellipsoid(center.size()) {
+Ellipsoid::Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape) {
+  n_dim_ = center.size();
   if (!((shape.rows() == shape.cols()) && (shape.rows() == n_dim_))) {
     error_ = kFatal;
     return;
   }
   center_ = center;
-  Eigen::SelfAdjointEigenSolver<Matrix> work(shape);
-  if (work.info() != Eigen::Success) {
-    error_ = kFatal;
-    return;
-  }
-  eigensystem_.values = work.eigenvalues();
-  eigensystem_.vectors = work.eigenvectors();
-  (*this).SetShape();
+  shape_ = shape;
+  work_ = Eigen::SelfAdjointEigenSolver<Matrix>(n_dim_);
+  SetShape();
 }
 
-//// Ellipsoid Tools
-
-// Find the closest point on the ellipsoid defined by (L, center) to `point`.
-// Translation of the method "ell_pt_near_far" described in ELL_LIB.
-static Vector FindClosest(const ConstRef<Matrix> L, const ConstRef<Vector> center,
-                          const ConstRef<Vector> point, vol::Solver& solver) {
-  Matrix gi = L.inverse();  // g_i = L^-1
-  Vector b = center - point;
-  b = gi * b;  // b = G^{-1} * [c-p]
-  Vector y(L.rows());
-
-  Matrix a = gi * gi.transpose();  // a = G^(-1) * G^(-T)
-  double delta = 1.0;
-
-  int info = solver.Solve(a, b, y, delta);
-  if (info != 1 && info != 2) {
-    cpp11::warning("dgqt incomplete convergence (%i)", info);
-  }
-  return gi.transpose() * y + center;  // x = G^{-T} * y + c
-}
+//// ELLIPSOIDAL CALCULUS
 
 double vol::Ellipsoid::Distance(const ConstRef<Vector> point) const {
   Vector y = point - center_;
-  y = L_.transpose() * y;
+  y = shape_.llt().matrixU() * y;
   double y_sum = y.squaredNorm();
   // y_sum Indicates whether the point is inside, on, or outside the ellipsoid
   if (y_sum > 0) {
@@ -87,239 +45,222 @@ double vol::Ellipsoid::Distance(const ConstRef<Vector> point) const {
   }
 }
 
-Vector vol::Ellipsoid::Closest(const ConstRef<Vector> point) {
-  return FindClosest(L_, center_, point, solve_);
+bool vol::Ellipsoid::Covered(const ConstRef<Vector> point) const {
+  double dist = Distance(point);
+  if (!R_FINITE(dist)) {
+    if (R_IsNaN(dist)) return true;
+    cpp11::stop("Numerical issue encountered.");
+    return false;
+  }
+  return dist >= 1.0;
 };
 
-bool vol::Ellipsoid::Intersects(const Ellipsoid& other) {
-  // An abbreviated Part 1 from ell_pair_separate in ELL_LIB
-  Matrix g1 = L_;
-  Matrix g2 = other.L_;
-
-  // Transform to y-space:  y = G1^T * (x-c1);  G2y = G1^{-1} * G2
-  Matrix g2y = g1.inverse() * g2;
-  Vector c2y = other.center_ - center_;
-  c2y = g1.transpose() * c2y;
-
-  // Find point in ell(c2y, g2y) closest to origin.
-  Vector v = Vector::Zero(n_dim_);
-  Vector y2 = FindClosest(g2y, c2y, v, solve_);
-
-  // If y2 is less than unity, the ellipsoids intersect.
-  return y2.squaredNorm() <= 1.0;
-}
-
-Matrix Ellipsoid::major_axes() const {
-  // Largest axis
-  Vector axes = eigensystem_.values.cwiseInverse().cwiseSqrt();
+Matrix Ellipsoid::major_axis() const {
   Eigen::Index max_i;
-  axes.maxCoeff(&max_i);
-  axes = inv_sqrt_shape_.col(max_i);  // The major axis of the ellipsoid
+  axial_lengths_.maxCoeff(&max_i);
+  Vector axes = inv_sqrt_shape_.col(max_i);
   Matrix endpoints(2, n_dim_);
   endpoints.row(0) = center_ + axes;
   endpoints.row(1) = center_ - axes;
   return endpoints;
 }
 
-// Ellipsoid Fitting
+//// MIN VOL FITTING
 
-void Ellipsoid::Fit(ConstRef<Matrix> X) {
+void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
   log_volume_ = R_NegInf;
-  if (X.cols() != n_dim_ || X.rows() <= 1) {
+  int n_points = X.rows();
+  if (X.cols() != n_dim_ || n_points < 1) {
     error_ = kFatal;
+    return;
+  }
+
+  if (n_points == 1) {
+    // Degenerate case: A n-dim sphere with volume `min_log_volume`
+    center_ = X.row(0).transpose();
+    if (R_IsNA(point_log_volume)) {
+      point_log_volume = 0.0;
+    }
+    double radius_ = R_pow_di(exp(point_log_volume - log_volume_sphere()), 1.0 / n_dim_);
+    shape_.setIdentity();
+    shape_ *= radius_;
+    error_ = kUnderdetermined;
+    SetShape();
     return;
   }
 
   center_ = X.colwise().mean().transpose();
-  FindAxes(X);
+  Matrix centered_ = X.rowwise() - center_.transpose();
+  shape_ = centered_.adjoint() * centered_ / double(X.rows() - 1);
+
+  // Adjust for O(1/n_dim) bias in sample covariance
+  shape_ *= n_dim_ + 2.0;
+
+  // Find the axes of the ellipsoid
+  double log_target = R_IsNA(point_log_volume)
+                          ? 0.0
+                          : 2 * (log(n_points) - log_volume_sphere() + point_log_volume);
+  FindAxes(shape_, log_target);
   if (error_ == kFatal || error_ == kNilpotent) {
-    Status error = error_;
+    Status prev_error = error_;
     *this = Ellipsoid(n_dim_);
-    error_ = error;
+    error_ = prev_error;
     return;
   }
+
+  // Scale the axes to fit the data.
   ScaleAxes(X);
   SetShape();
+
+  // Scale to target volume
+  if (!R_IsNA(point_log_volume)) {
+    double log_target = log(n_points) + point_log_volume;
+    if (log_volume_ < log_target) {
+      log_volume(log_target);
+    }
+  }
 }
 
-void Ellipsoid::FindAxes(const ConstRef<Matrix> X) {
-  // Store the covariance matrix in L_.
-  error_ = kOk;
-  Matrix centered = X.rowwise() - center_.transpose();
-  L_ = (centered.adjoint() * centered) / double(X.rows() - 1);
+// Inverts `cov` in-place, checking first for zero eigenvalues. If any (but not
+// all) eigenvalues are zero, they are set to a value such that the resulting
+// precision matrix has log-determinant `log_target`.
+void Ellipsoid::FindAxes(Ref<Matrix> cov, const double log_target) {
+  work_.compute(cov);
+  Eigen::VectorXd eigvals = work_.eigenvalues();
+  if ((eigvals.array() >= kAlmostZero).all()) {
+    cov = work_.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
+          work_.eigenvectors().adjoint();
+    return;
+  } else if ((eigvals.array() < kAlmostZero).all()) {
+    error_ = kNilpotent;
+    return;
+  }
 
-  // Perform eigendecomposition of the covariance matrix.
-  Eigen::SelfAdjointEigenSolver<Matrix> work(L_);
-  if (work.info() != Eigen::Success) {
+  error_ = kDegenerate;
+  double nonzero_prod = 1;
+  std::vector<int> zero;
+  for (int i = 0; i < eigvals.size(); ++i) {
+    if (eigvals[i] > kAlmostZero) {
+      nonzero_prod *= eigvals[i];
+    } else {
+      zero.push_back(i);
+    }
+  }
+
+  for (int idx : zero) {
+    eigvals[idx] = R_pow_di(exp(log_target - log(nonzero_prod)), 1 / zero.size());
+  }
+  cov = work_.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
+        work_.eigenvectors().adjoint();
+}
+
+// Calculates squared mahalanobis distances of points in `X` to the ellipsoid center,
+// then scales the shape matrix so that no point lies outside self.
+void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X) {
+  Eigen::MatrixXd diff = X.rowwise() - center_.transpose();
+  Eigen::VectorXd distances(diff.rows());
+  for (int i = 0; i < diff.rows(); ++i) {
+    Eigen::VectorXd point = diff.row(i).transpose();
+    distances(i) = point.transpose() * shape_ * point;
+  }
+
+  double max_dist = distances.maxCoeff();
+  if (max_dist <= kAlmostZero) {
     error_ = kFatal;
     return;
   }
-
-  // Condition the eigenvalues to avoid numerical issues.
-  // If possible, set small eigenvalues to half the smallest nonzero eigenvalue.
-  Vector e_values = work.eigenvalues();
-  int zero_ev = (e_values.array() <= ern::kPrecision).count();
-  if (zero_ev == e_values.size()) {
-    error_ = kNilpotent;
-    return;
-  } else if (zero_ev != 0) {
-    error_ = kDegenerate;
-    e_values.head(zero_ev).setConstant(e_values[zero_ev] / 2.0);
+  if (max_dist > kOneMinusEpsilon) {
+    shape_ *= kOneMinusEpsilon / max_dist;
   }
-
-  // Handle underdetermined case.
-  // Set underdetermined eigenvalues to the smallest determined eigenvalue.
-  if (X.rows() < n_dim_ + 1) {
-    error_ = kUnderdetermined;
-    int unconstrained = n_dim_ + 1 - X.rows();
-    e_values.head(unconstrained).setConstant(e_values[unconstrained]);
-  }
-
-  // Return the eigendecomposition of the corrected PRECISION matrix
-  eigensystem_.values = e_values.cwiseInverse();
-  eigensystem_.vectors = work.eigenvectors();
-}
-
-void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X) {
-  // L_ now stores the full shape matrix.
-  L_ = eigensystem_.vectors * eigensystem_.values.asDiagonal() *
-       eigensystem_.vectors.transpose();
-
-  // Scale eigenvalues by the maximum squared distance from center to the data.
-  Matrix diff = X.rowwise() - center_.transpose();
-  double max_dist2 = R_NegInf;
-  for (auto row : diff.rowwise()) {
-    double dist2 = row * L_ * row.transpose();
-    max_dist2 = fmax2(dist2, max_dist2);
-  }
-  eigensystem_.values /= max_dist2;
 }
 
 void vol::Ellipsoid::SetShape() {
-  // L_ = V * D^{1/2};
-  L_ = eigensystem_.vectors * eigensystem_.values.cwiseSqrt().asDiagonal();
-  Eigen::HouseholderQR<Matrix> qr(L_.transpose());
-  // A = LQ, such that A^T = QR, so L = R^T
-  L_ = qr.matrixQR().triangularView<Eigen::Upper>().transpose();
-  log_volume_ = log_volume_sphere() + -qr.logAbsDeterminant();
-
-  // inv_sqrt_shape_ = V * D^{-1/2} * V^T
-  inv_sqrt_shape_ = eigensystem_.vectors *
-                    eigensystem_.values.cwiseInverse().cwiseSqrt().asDiagonal() *
-                    eigensystem_.vectors.adjoint();
+  log_volume_ = log_volume_sphere() + (log(1 / shape_.determinant()) / 2.0);
+  work_.compute(shape_);
+  axial_lengths_ = work_.eigenvalues().cwiseInverse().cwiseSqrt();
+  inv_sqrt_shape_ = work_.operatorInverseSqrt();
 }
 
-// Clustering Helpers
-// Helper function for recursive splitting
-static std::deque<EllipsoidAndData> SplitEllipsoid(const vol::EllipsoidAndData& cur,
-                                                   const double min_reduction,
-                                                   const bool allow_contact,
-                                                   const double point_volume) {
-  // Perform k-means clustering with k=2
-  size_t n_dim = cur.ell.n_dim();
-  size_t n_points = cur.data.rows();
-  Matrix endpoints = cur.ell.major_axes();
-  Vector labels(n_points);
-  kmeans_rex::RunKMeans(cur.data, 2, 10, endpoints, labels);
+//// MULTI-ELLIPSOID FITTING
 
-  // Split points into two clusters
+std::list<Ellipsoid> vol::Ellipsoid::FitMany(const ConstRef<Matrix> X,
+                                             double point_log_volume) {
+  ern::RandomEngine rng;
+  Ellipsoid largest(X, point_log_volume);
+  return largest.Split(X, point_log_volume);
+}
+
+// 1. Perform k-means clustering with k=2 to split the points into two clusters.
+// 2. Fit ellipsoids to each cluster. Exit if either is malformed.
+// 3. If the sum of the log-volumes of the two ellipsoids is less than half the
+//    log-volume of the parent ellipsoid, recursively split each child.
+// 4. Else, if the parent ellipsoid's log-volume exceeds the target log-volume,
+//    recursively split each child to see whether it's possible to reduce volume further
+//    by some signficant volume (currently, by 1/2).
+// 5. Else, return the parent ellipsoid.
+std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
+                                           double point_log_volume, int depth) const {
+  int n_points = X.rows();
+  Matrix endpoints = major_axis();
+  Vector labels(n_points);
+  kmeans_rex::RunKMeans(X, 2, 10, endpoints, labels);
   std::vector<int> idx0, idx1;
   for (int i = 0; i < n_points; ++i) {
-    if (labels[i] == 0) {
+    if (labels[i] == 0)
       idx0.push_back(i);
-    } else {
+    else
       idx1.push_back(i);
-    }
   }
 
-  // BASE CASE 1: Clusters get too small
-  if (idx0.size() < 2 * n_dim || idx1.size() < 2 * n_dim) {
-    return std::deque<EllipsoidAndData>();
+  // BASE CASE 1: Clusters too small to split
+  if (idx0.size() < 2 * n_dim_ || idx1.size() < 2 * n_dim_) {
+    return {*this};
   }
 
   // Fit ellipsoids to each cluster
-  Matrix lh_data = cur.data(idx0, Eigen::all), rh_data = cur.data(idx1, Eigen::all);
-  vol::Ellipsoid lh_ell(lh_data), rh_ell(rh_data);
+  Ellipsoid left(X(idx0, Eigen::all), point_log_volume);
+  Ellipsoid right(X(idx1, Eigen::all), point_log_volume);
 
-  // BASE CASE 2: Ellipsoids are malformed or touch.
-  if (lh_ell.error() != vol::kOk || rh_ell.error() != vol::kOk) {
-    return std::deque<EllipsoidAndData>();
-  }
-  if (!allow_contact && lh_ell.Intersects(rh_ell)) {
-    return std::deque<EllipsoidAndData>();
+  // BASE CASE 2: Malformed ellipsoids
+  if (left.error() != kOk || right.error() != kOk) {
+    return {*this};
   }
 
-  // Recursive case: Ellipsoids have reduced volume and can be split further.
-  double total_log_vol = logspace_add(lh_ell.log_volume(), rh_ell.log_volume());
-  double log_vol_criterion = log(min_reduction) + cur.ell.log_volume();
+  // Expected min log volume decrease between two ellipsoids
+  // See `bounding_ellipsoids_` in dynesty and Feroz (2008) for mathematical details.
+  double log_volume_decrement = ((n_dim_ * (n_dim_ + 3)) / 2) * log(n_points) / n_points;
+  double child_log_vol = logspace_add(left.log_volume(), right.log_volume());
 
-  vol::EllipsoidAndData lh{std::move(lh_ell), std::move(lh_data)};
-  vol::EllipsoidAndData rh{std::move(rh_ell), std::move(rh_data)};
+  // RECURSIVE STEP: Split children into left and right lists
+  std::list<Ellipsoid> left_list =
+      left.Split(X(idx0, Eigen::all), point_log_volume, depth + 1);
+  std::list<Ellipsoid> right_list =
+      right.Split(X(idx1, Eigen::all), point_log_volume, depth + 1);
+  left_list.splice(left_list.end(), std::move(right_list));
 
-  // If total volume decreased significantly, accept split and recurse
-  if (total_log_vol < log_vol_criterion) {
-    std::deque<EllipsoidAndData> split;
-    split.emplace_back(std::move(lh));
-    split.emplace_back(std::move(rh));
-    return split;
+  if (child_log_vol - log_volume_ <= -log_volume_decrement) {
+    return left_list;
   }
-
-  // If cur volume much larger than expected, try splitting again.
-  double double_expected_vol = M_LN2 + point_volume + log(cur.data.rows());
-  if (cur.ell.log_volume() > double_expected_vol) {
-    auto sum_log_vol = [](double prev, const EllipsoidAndData& i) {
-      return logspace_add(prev, i.ell.log_volume());
-    };
-    std::deque<EllipsoidAndData> lh_split =
-        SplitEllipsoid(lh, min_reduction, allow_contact, point_volume);
-    std::deque<EllipsoidAndData> rh_split =
-        SplitEllipsoid(rh, min_reduction, allow_contact, point_volume);
-    double new_total_log_vol =
-        lh_split.empty()
-            ? lh.ell.log_volume()
-            : std::accumulate(lh_split.begin() + 1, lh_split.end(),
-                              lh_split.front().ell.log_volume(), sum_log_vol);
-    new_total_log_vol +=
-        rh_split.empty()
-            ? rh.ell.log_volume()
-            : std::accumulate(rh_split.begin() + 1, rh_split.end(),
-                              rh_split.front().ell.log_volume(), sum_log_vol);
-    if (new_total_log_vol < log_vol_criterion) {
-      lh_split.insert(lh_split.end(), rh_split.begin(), rh_split.end());
-      return lh_split;
-    }
+  double cum_log_vol = std::accumulate(
+      left_list.begin()++, left_list.end(), left_list.begin()->log_volume(),
+      [](double prev, const Ellipsoid& i) { return logspace_add(prev, i.log_volume()); });
+  if (cum_log_vol - log_volume_ <= -log_volume_decrement * (left_list.size() - 1)) {
+    return left_list;
   }
-
-  // Otherwise, return empty deque.
-  return std::deque<EllipsoidAndData>();
+  return {*this};
 }
 
-std::vector<Ellipsoid> vol::FitMultiEllipsoids(const ConstRef<Matrix> X,
-                                               const double min_reduction,
-                                               const bool allow_contact,
-                                               const double expected_volume) {
-  std::vector<Ellipsoid> ell;
-  std::deque<EllipsoidAndData> partitions;
-
-  // Insert and check largest ellipsoid.
-  EllipsoidAndData& first = partitions.emplace_back(EllipsoidAndData{Ellipsoid(X), X});
-  if (first.ell.error() != kOk) {
-    ell.emplace_back(std::move(first.ell));
-    return ell;
+cpp11::list vol::Ellipsoid::as_list(const std::list<Ellipsoid>& ellipsoids) {
+  cpp11::writable::doubles probs;
+  cpp11::writable::list ellipsoid_list;
+  double total_log_vol = 0.0;
+  for (auto ell : ellipsoids) {
+    probs.push_back(ell.log_volume());
+    total_log_vol += ell.log_volume();
+    ellipsoid_list.push_back(ell.as_list());
   }
-
-  double point_log_vol = expected_volume - log(X.rows());
-  while (!partitions.empty()) {
-    EllipsoidAndData first = std::move(partitions.front());
-    partitions.pop_front();
-    std::deque<EllipsoidAndData> splits =
-        SplitEllipsoid(first, min_reduction, allow_contact, point_log_vol);
-    if (splits.empty()) {  // The split failed
-      ell.emplace_back(std::move(first.ell));
-    } else {  // Split successful
-      partitions.emplace_back(std::move(splits[0]));
-      partitions.emplace_back(std::move(splits[1]));
-    }
-  }
-  return ell;
+  std::transform(probs.begin(), probs.end(), probs.begin(),
+                 [total_log_vol](double p) { return exp(p - total_log_vol); });
+  return cpp11::writable::list({"prob"_nm = probs, "ellipsoid"_nm = ellipsoid_list,
+                                "tot_log_vol"_nm = total_log_vol});
 }

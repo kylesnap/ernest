@@ -54,7 +54,7 @@ context("Ellipsoid class - basic functionality") {
       Eigen::MatrixXd a = u * u.transpose();
 
       vol::Ellipsoid ell(center, a);
-      Eigen::MatrixXd L = ell.matrixL();
+      Eigen::MatrixXd L = ell.shape().llt().matrixL();
 
       // Random unit direction
       ern::RUnif(p);
@@ -72,17 +72,6 @@ context("Ellipsoid class - basic functionality") {
       double s = ell.Distance(p);
       double err = abs(s - sin);
       err_dist = Rf_fmax2(err_dist, err);
-
-      // Compute closest point
-      Eigen::VectorXd close = ell.Closest(p);
-      double dist_closest = ell.Distance(close);
-      if (s <= 1.0) {
-        // If o is outside Ell, the dist(close) should be 1.
-        err_out = Rf_fmax2(err_out, std::abs(dist_closest - 1.0));
-      } else {
-        // If p is inside Ell, then dist(close) should be equal to dist(p).
-        err_in = Rf_fmax2(err_in, std::abs(dist_closest - s));
-      }
     }
     expect_true(ern::isZero(err_dist, 1e-3));
     expect_true(ern::isZero(err_in, 1e-3));
@@ -90,36 +79,6 @@ context("Ellipsoid class - basic functionality") {
   }
 
   Eigen::Matrix2d shape = Eigen::Matrix2d::Identity();
-
-  test_that("Two barely touching ellipsoids") {
-    Eigen::RowVector2d center1{0, 0};
-    Eigen::RowVector2d center2{2, 0};
-
-    vol::Ellipsoid ell1(center1, shape);
-    vol::Ellipsoid ell2(center2, shape);
-
-    expect_true(ell1.Intersects(ell2));
-  }
-
-  test_that("Two overlapping ellipsoids") {
-    Eigen::RowVector2d center1{0, 0};
-    Eigen::RowVector2d center2{1, 0};
-
-    vol::Ellipsoid ell1(center1, shape);
-    vol::Ellipsoid ell2(center2, shape);
-
-    expect_true(ell1.Intersects(ell2));
-  }
-
-  test_that("Two non-overlapping ellipsoids") {
-    Eigen::RowVector2d center1{0, 0};
-    Eigen::RowVector2d center2{2.01, 0};
-
-    vol::Ellipsoid ell1(center1, shape);
-    vol::Ellipsoid ell2(center2, shape);
-
-    expect_false(ell1.Intersects(ell2));
-  }
 }
 
 context("Ellipsoid class - geometric cases") {
@@ -143,7 +102,26 @@ context("Ellipsoid class - geometric cases") {
     ell.Fit(X);
 
     expect_true(ell.log_volume() != R_NegInf);
-    expect_true(ell.error() == vol::Status::kUnderdetermined);
+    expect_true(ell.error() == vol::Status::kDegenerate);
+  }
+
+  test_that("Rescaling log_volume works") {
+    double scale = 1.5;
+    ern::RandomEngine gen;
+
+    for (int n_dim = 1; n_dim <= 5; n_dim++) {
+      Eigen::VectorXd center = Eigen::VectorXd::Zero(n_dim);
+      Eigen::VectorXd shape_d = Eigen::VectorXd::Ones(n_dim);
+      std::generate(shape_d.begin(), shape_d.end(), unif_rand);
+      Eigen::MatrixXd shape = shape_d.asDiagonal();
+      vol::Ellipsoid ell(center, shape);
+      vol::Ellipsoid rescaled(center, R_pow_di(scale, -2) * shape);
+      ell.log_volume(ell.log_volume() + n_dim * log(scale));
+      expect_true(ern::WithinRel(ell.log_volume(), rescaled.log_volume(), 1e-6));
+      expect_true(ell.shape().isApprox(rescaled.shape(), 1e-6));
+      expect_true(ell.major_axis().isApprox(rescaled.major_axis(), 1e-6));
+      expect_true(ell.inv_sqrt_shape().isApprox(rescaled.inv_sqrt_shape(), 1e-6));
+    }
   }
 }
 

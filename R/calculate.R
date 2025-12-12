@@ -5,11 +5,11 @@
 #' likelihood shell.
 #'
 #' @param x An `ernest_run` object.
-#' @inheritParams rlang::args_dots_empty
-#' @param ndraws An optional positive integer. The number of log-volume
+#' @param ndraws A positive integer. The number of log-volume
 #' sequences to simulate. If equal to zero, no simulations will be made, and a
 #' one draw vector of log-volumes are produced from the estimates contained in
-#' `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used (default 4000).
+#' `x`.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @returns A [tibble::tibble()], containing `n_iter + n_points` rows
 #' and several columns:
@@ -35,17 +35,16 @@
 #' # Load an example run
 #' data(example_run)
 #'
-#' # View results as a tibble with `ndraws = FALSE` (the default).
-#' calculate(example_run)
+#' # View results as a tibble with `ndraws = 0`.
+#' calculate(example_run, ndraws = 0)
 #'
 #' # Generate 100 simulated log-volume values for each iteration.
 #' calculate(example_run, ndraws = 100)
 #'
 #' @aliases ernest_estimate
 #' @export
-calculate.ernest_run <- function(x, ..., ndraws = NULL) {
+calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
-  ndraws <- ndraws %||% getOption("posterior.rvar_ndraws", 4000L)
   check_number_whole(ndraws, lower = 0L)
 
   if (ndraws == 0L) {
@@ -122,12 +121,13 @@ get_logvol <- function(n_points, n_iter, ndraws = NULL) {
 
   if (is.null(ndraws)) {
     vol <- -1 * (points^-1)
-    matrix(cumsum(vol), nrow = 1)
-  } else {
-    vol <- matrix(stats::runif(ndraws * length(points)), nrow = ndraws)
-    vol <- log(vol)
-    matrixStats::rowCumsums(sweep(vol, 2, points, "/"))
+    return(matrix(cumsum(vol), nrow = 1))
   }
+  vol <- matrix(
+    log(stats::runif(ndraws * length(points))) / rep(points, each = ndraws),
+    nrow = ndraws
+  )
+  matrixStats::rowCumsums(vol)
 }
 
 #' Compute log weights for nested sampling
@@ -215,11 +215,12 @@ get_information <- function(log_lik, log_volume, log_evidence) {
   h_part1 - max_logz * exp(log_evidence - max_logz)
 }
 
-#' Log Subtract Helper
+#' Log-space subtraction for nested sampling
 #'
-#' @param a,b Matrices, where (elementwise) a > b.
+#' @param a,b Numeric vectors of equal length.
 #'
-#' @returns LSE(a, b), or log(exp(a) + exp(b))
+#' @return `log(exp(a) - exp(b))`, computed in log-space to avoid numerical
+#' underflow. A warning is issued and `NaN` is returned when `b > a`.
 #' @noRd
 logspace_sub <- function(a, b) {
   a + log1p(-exp(b - a))

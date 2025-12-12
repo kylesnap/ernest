@@ -52,15 +52,12 @@
 #' Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 #' 638(2), L51. \doi{10.1086/501068}
 #'
-#' @inheritSection mini_balls Status
-#'
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
 #' lrps <- unif_ellipsoid(enlarge = 1.25)
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-#' @keywords internal
 #' @export
 unif_ellipsoid <- function(enlarge = 1.25) {
   check_number_decimal(enlarge, min = 1)
@@ -114,7 +111,7 @@ new_unif_ellipsoid <- function(
     c("center", "shape", "inv_sqrt_shape", "log_volume")
   ))
   if (!has_ell && (is_integerish(n_dim) && n_dim > 0)) {
-    ell <- BoundingEllipsoid(matrix(double(), nrow = 0, ncol = n_dim))
+    ell <- BoundingEllipsoid(matrix(double(), nrow = 0, ncol = n_dim), NA)
     env_bind(
       cache,
       center = ell$center,
@@ -204,11 +201,14 @@ propose_ellipsoid <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.unif_ellipsoid <- function(x, unit = NULL, ...) {
+update_lrps.unif_ellipsoid <- function(x, unit = NULL, log_volume = NA, ...) {
   if (is.null(unit)) {
     return(do.call(new_unif_ellipsoid, as.list(x)))
   }
-  ell <- BoundingEllipsoid(unit)
+  ell <- BoundingEllipsoid(
+    unit,
+    point_log_volume = log_volume - log(nrow(unit))
+  )
   if (ell$error != 0L) {
     cli::cli_warn(
       "Ellipsoid fitting returned an error code ({ell$error})."

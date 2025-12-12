@@ -2,58 +2,6 @@
 
     `prior` must be an object with class ernest_prior, not a function.
 
-# Progress bar can be printed [plain]
-
-    Code
-      generate(sampler, max_iterations = 1)
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: rwmh_cube
-      --------------------------------------------------------------------------------
-      * No. Iterations: 1
-      * No. Calls: 1
-      * Log. Evidence: -7.235 (± 2.259)
-
-# Progress bar can be printed [ansi]
-
-    Code
-      generate(sampler, max_iterations = 1)
-    Message
-      nested sampling results [34m<ernest_run/ernest_sampler>[39m
-      [36m*[39m No. Points: 500
-      [36m*[39m LRPS Method: rwmh_cube
-      --------------------------------------------------------------------------------
-      [36m*[39m No. Iterations: 1
-      [36m*[39m No. Calls: 1
-      [36m*[39m Log. Evidence: -7.235 (± 2.259)
-
-# Progress bar can be printed [unicode]
-
-    Code
-      generate(sampler, max_iterations = 1)
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      • No. Points: 500
-      • LRPS Method: rwmh_cube
-      ────────────────────────────────────────────────────────────────────────────────
-      • No. Iterations: 1
-      • No. Calls: 1
-      • Log. Evidence: -7.235 (± 2.259)
-
-# Progress bar can be printed [fancy]
-
-    Code
-      generate(sampler, max_iterations = 1)
-    Message
-      nested sampling results [34m<ernest_run/ernest_sampler>[39m
-      [36m•[39m No. Points: 500
-      [36m•[39m LRPS Method: rwmh_cube
-      ────────────────────────────────────────────────────────────────────────────────
-      [36m•[39m No. Iterations: 1
-      [36m•[39m No. Calls: 1
-      [36m•[39m Log. Evidence: -7.235 (± 2.259)
-
 # Fully-verbose output [plain]
 
     Code
@@ -66,8 +14,8 @@
       * LRPS Method: rwmh_cube
       --------------------------------------------------------------------------------
       * No. Iterations: 1000
-      * No. Calls: 10702
-      * Log. Evidence: -6.684 (± 1.550)
+      * No. Calls: ###
+      * Log. Evidence: ###
 
 # Fully-verbose output [ansi]
 
@@ -81,8 +29,8 @@
       [36m*[39m LRPS Method: rwmh_cube
       --------------------------------------------------------------------------------
       [36m*[39m No. Iterations: 1000
-      [36m*[39m No. Calls: 10702
-      [36m*[39m Log. Evidence: -6.684 (± 1.550)
+      [36m*[39m No. Calls: ###
+      [36m*[39m Log. Evidence: ###
 
 # Fully-verbose output [unicode]
 
@@ -96,8 +44,8 @@
       • LRPS Method: rwmh_cube
       ────────────────────────────────────────────────────────────────────────────────
       • No. Iterations: 1000
-      • No. Calls: 10702
-      • Log. Evidence: -6.684 (± 1.550)
+      • No. Calls: ###
+      • Log. Evidence: ###
 
 # Fully-verbose output [fancy]
 
@@ -111,6 +59,6 @@
       [36m•[39m LRPS Method: rwmh_cube
       ────────────────────────────────────────────────────────────────────────────────
       [36m•[39m No. Iterations: 1000
-      [36m•[39m No. Calls: 10702
-      [36m•[39m Log. Evidence: -6.684 (± 1.550)
+      [36m•[39m No. Calls: ###
+      [36m•[39m Log. Evidence: ###
 

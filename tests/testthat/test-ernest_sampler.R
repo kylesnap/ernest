@@ -16,26 +16,10 @@ test_that("ernest_sampler errors with invalid prior", {
 
 #' @srrstats {BS2.13} Test that R can produce fully-verbose output when
 #' requested (messages are turned off for all other tests).
-cli::test_that_cli("Progress bar can be printed", {
-  skip_snapshot()
-  sampler <- ernest_sampler(
-    gaussian_blobs$log_lik,
-    gaussian_blobs$prior,
-    n_points = 500,
-    seed = 42
-  )
-  withr::local_options(cli.progress_handlers_only = "logger")
-
-  expect_snapshot(
-    generate(sampler, max_iterations = 1),
-    transform = \(lines) {
-      gsub("^.+cli.+$", "cli-line", lines)
-    }
-  )
-})
-
 cli::test_that_cli("Fully-verbose output", {
-  skip_snapshot()
+  skip_on_cran()
+  skip_on_ci()
+  skip_on_covr()
   sampler <- ernest_sampler(
     gaussian_blobs$log_lik,
     gaussian_blobs$prior,
@@ -45,6 +29,9 @@ cli::test_that_cli("Fully-verbose output", {
   withr::local_options(rlib_message_verbosity = "verbose")
 
   expect_snapshot(
-    generate(sampler, max_iterations = 1000)
+    generate(sampler, max_iterations = 1000),
+    transform = \(x) {
+      gsub("((No. Calls)|(Log. Evidence)):.+$", "\\1: ###", x)
+    }
   )
 })

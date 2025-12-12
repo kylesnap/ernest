@@ -1,4 +1,4 @@
-# new_ernest_prior: Explains dimensionality errors
+# new_ernest_prior / Explains dimensionality errors
 
     Code
       new_ernest_prior(fn, n_dim = 0)
@@ -26,7 +26,7 @@
 
     Can't recycle `names` (size 4) to size 2.
 
-# new_ernest_prior: explains type errors
+# new_ernest_prior / explains type errors
 
     Code
       new_ernest_prior(fn, lower = c("0", "0"))
@@ -42,7 +42,7 @@
       Error in `new_ernest_prior()`:
       ! Can't convert `names` <double> to <character>.
 
-# new_ernest_prior: explains errors with upper and lower
+# new_ernest_prior / explains errors with upper and lower
 
     Code
       new_ernest_prior(fn, lower = c(Inf, 0))
@@ -66,7 +66,7 @@
       Error:
       ! `lower` must be strictly smaller than `upper`.
 
-# create_prior: creates a custom prior
+# create_prior / creates a custom prior
 
     Code
       prior
@@ -79,82 +79,4 @@
       1 ...1    -10    10
       2 ...2    -10    10
       3 ...3    -10    10
-
-# create_prior: catchers issues with prior function output length
-
-    Code
-      create_prior(fn, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` must return a vector of length 2, not one of length 3.
-
-# create_prior: errors if prior returns non-finite values
-
-    Code
-      create_prior(fn, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.7736, 0.03207
-      x Output: NaN, NaN
-      Caused by error in `create_prior()`:
-      ! `fn` must return vectors that only contain finite values.
-
----
-
-    Code
-      create_prior(fn, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.02453, 0.1840
-      x Output: 0.02453, NA
-      Caused by error in `create_prior()`:
-      ! `fn` must return vectors that only contain finite values.
-
----
-
-    Code
-      create_prior(fn, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.01234, 0.9578
-      x Output: Inf, 0.9578
-      Caused by error in `create_prior()`:
-      ! `fn` must return vectors that only contain finite values.
-
-# create_prior: errors if prior returns OOB values
-
-    Code
-      create_prior(fn, lower = 0.5, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.1615, 0.1666
-      x Output: 0.1615, 0.1666
-      Caused by error in `create_prior()`:
-      ! `fn` must respect the `lower` bounds.
-
----
-
-    Code
-      create_prior(fn, upper = 0.5, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.03390, 0.5343
-      x Output: 0.03390, 0.5343
-      Caused by error in `create_prior()`:
-      ! `fn` must respect the `upper` bounds.
-
-# new_ernest_prior repairs names as specified
-
-    Code
-      new_ernest_prior(fn = fn, n_dim = 2, names = c("x", "x"), name_repair = "check_unique")
-    Condition
-      Error:
-      ! Names must be unique.
-      x These names are duplicated:
-        * "x" at locations 1 and 2.
 

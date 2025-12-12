@@ -17,11 +17,11 @@ describe("new_ernest_lrps", {
 
   it("initializes correctly", {
     lrps <- new_ernest_lrps(fn, 2L)
-    check_valid_lrps(lrps)
+    expect_lrps(lrps)
 
     local_options("ernest.max_loop" = 100L)
     obj <- new_ernest_lrps(fn, 2L)
-    check_valid_lrps(obj)
+    expect_lrps(obj)
     expect_equal(obj$max_loop, 100L)
   })
 })
@@ -30,7 +30,6 @@ test_that("propose.ernest_lrps can be called", {
   lrps <- new_ernest_lrps(fn, 2L)
   initial_ncall <- env_cache(lrps$cache, "n_call", 0L)
   res1 <- propose.ernest_lrps(lrps, original = NULL)
-  expect_type(res1, "list")
   expect_contains(names(res1), c("unit", "log_lik", "n_call"))
   expect_vector(res1$unit, double(), size = lrps$n_dim)
   expect_equal(res1$log_lik, fn(res1$unit))
@@ -41,9 +40,5 @@ test_that("propose.ernest_lrps can be called", {
 
 test_that("update_lrps.ernest_lrps is idempotent", {
   lrps <- new_ernest_lrps(fn, 2L)
-  lrps$cache$n_call <- 5L
-  new_lrps <- update_lrps(lrps)
-  expect_equal(new_lrps$cache$n_call, 0L)
-  newer_lrps <- update_lrps(new_lrps)
-  expect_identical(new_lrps, newer_lrps)
+  expect_idempotent_update(lrps)
 })

@@ -1,7 +1,6 @@
 #' Generate samples from multiple spanning ellipsoids
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
 #' Partitions the prior space into a set of ellipsoids whose union bounds
 #' the set of live points. Samples are created by randomly
 #' selecting an ellipsoid (weighted by their respective volumes), then using it
@@ -9,10 +8,6 @@
 #' posteriors where a single ellipsoid would be inefficient.
 #'
 #' @inheritParams unif_ellipsoid
-#' @param min_reduction Double between 0 and 1. The minimum reduction in total
-#' volume required for an ellipsoid to be split in two. Lower values lead to
-#' more aggressive splitting.
-#' @param allow_contact Logical. Whether to allow ellipsoids to overlap.
 #'
 #' @details
 #' Nested likelihood contours for multimodal distributions are poorly
@@ -23,65 +18,49 @@
 #' 1. A single ellipsoid is fit to the set of live points, with volume \eqn{V}.
 #' 2. The live points are clustered into two groups using k-means clustering.
 #' 3. Ellipsoids are fit to each cluster.
-#' 4. The split ellipsoids are accepted if all of the following conditions are
-#' met:
-#'     + Both ellipsoids are non-degenerate
-#'     + The combined volume of the split ellipsoids is less than
-#'     \eqn{min_{red.} * V}
-#'     + (If `allow_contact` is `FALSE`) the ellipsoids do not intersect.
+#' 4. The split ellipsoids are accepted if both ellipsoids are non-degenerate,
+#' and if the combined volume of the split ellipsoids is significantly
+#' smaller than the original ellipsoid (calculated using Bayes' Information
+#' Criterion).
 #' 5. Steps 2–4 are repeated recursively on each new ellipsoid until no further
 #' splits are accepted, updating \eqn{V} to the volume of the currently split
 #' ellipsoid.
-#'
-#' @inheritSection unif_ellipsoid Ellipsoids
 #'
 #' @returns A list with class `c("multi_ellipsoid", "ernest_lrps")`. Use with
 #' [ernest_sampler()] to specify nested sampling behaviour.
 #'
 #' @references
-#' Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
-#' Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
-#' Notices of the Royal Astronomical Society. 398(4), 1601–1614.
-#' \doi{10.1111/j.1365-2966.2009.14548.x}
+#' * Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
+#'   Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
+#'   Notices of the Royal Astronomical Society. 398(4), 1601–1614.
+#'   \doi{10.1111/j.1365-2966.2009.14548.x}
+#' * Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
+#'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+#'   Royal Astronomical Society, 493, 3132–3158.
+#'   \doi{10.1093/mnras/staa278}
 #'
-#' For implementation, see:
-#' https://github.com/kbarbary/nestle/blob/master/runtests.py
 #'
-#' @inheritSection mini_balls Status
 #'
 #' @family ernest_lrps
-#' @keywords internal
 #' @examples
 #' data(example_run)
-#' lrps <- multi_ellipsoid(enlarge = 1.25, min_reduction = 0.5)
+#' lrps <- multi_ellipsoid(enlarge = 1.25)
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 multi_ellipsoid <- function(
-  enlarge = 1.25,
-  min_reduction = 0.7,
-  allow_contact = TRUE
+  enlarge = 1.25
 ) {
   check_number_decimal(enlarge, min = 1)
-  check_number_decimal(min_reduction, min = 0, max = 1)
-  check_bool(allow_contact)
 
   if (enlarge == 1) {
     cli::cli_warn("`enlarge` is set to 1, which is not recommended.")
-  }
-  if (min_reduction == 1 && allow_contact) {
-    cli::cli_warn(c(
-      "`min_reduction` is set to 1, which may lead to over-splitting.",
-      "i" = "Should `allow_contact` be set to `FALSE`?"
-    ))
   }
 
   new_multi_ellipsoid(
     unit_log_fn = NULL,
     n_dim = NULL,
     enlarge = enlarge,
-    min_reduction = min_reduction,
-    allow_contact = allow_contact,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
 }
@@ -95,8 +74,6 @@ format.multi_ellipsoid <- function(x, ...) {
     "{format.ernest_lrps(x)}",
     "No. Ellipsoids: {n_ell}",
     "Total Log Volume: {pretty(log_vol)}",
-    "Min Reduction: {x$min_reduction}",
-    "Allow Contact: {x$allow_contact}",
     "Enlargement: {x$enlarge}",
     .sep = "\n"
   )
@@ -122,13 +99,9 @@ new_multi_ellipsoid <- function(
   n_dim = NULL,
   max_loop = 1e6L,
   cache = NULL,
-  enlarge = 1.0,
-  min_reduction = 0.7,
-  allow_contact = FALSE
+  enlarge = 1.0
 ) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
-  check_number_decimal(min_reduction, min = 0, max = 1, allow_infinite = FALSE)
-  check_bool(allow_contact)
 
   cache <- cache %||% new_environment()
   has_ell <- all(env_has(
@@ -140,14 +113,12 @@ new_multi_ellipsoid <- function(
   if (!valid_ell && (is_integerish(n_dim) && n_dim > 0)) {
     ell <- MultiBoundingEllipsoids(
       matrix(double(), nrow = 0, ncol = n_dim),
-      min_reduction = min_reduction,
-      allow_contact = allow_contact,
-      expected_volume = -Inf
+      point_log_volume = NA
     )
     env_bind(
       cache,
       prob = ell$prob,
-      ellipsoid = list(ell$ellipsoid),
+      ellipsoid = ell$ellipsoid,
       total_log_volume = ell$tot_log_vol
     )
   }
@@ -158,8 +129,6 @@ new_multi_ellipsoid <- function(
     max_loop = max_loop,
     cache = cache,
     enlarge = enlarge,
-    min_reduction = min_reduction,
-    allow_contact = allow_contact,
     .class = "multi_ellipsoid"
   )
 }
@@ -192,20 +161,13 @@ propose.multi_ellipsoid <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.multi_ellipsoid <- function(
-  x,
-  unit = NULL,
-  log_volume = NULL,
-  ...
-) {
+update_lrps.multi_ellipsoid <- function(x, unit = NULL, log_volume = NA, ...) {
   if (is.null(unit)) {
     return(do.call(new_multi_ellipsoid, as.list(x)))
   }
   splits <- MultiBoundingEllipsoids(
     unit,
-    min_reduction = x$min_reduction,
-    allow_contact = x$allow_contact,
-    expected_volume = log_volume %||% -Inf
+    point_log_volume = log_volume - log(nrow(unit))
   )
   if (splits$ellipsoid[[1]]$error != 0L) {
     code <- splits$ellipsoid[[1]]$error

@@ -81,13 +81,13 @@ visualize.ernest_run <- function(
 visualize_density_ <- function(draws, cols, plot) {
   resamp <- posterior::resample_draws(draws)
 
-  df <- tibble::tibble(
+  df <- data.frame(
     ".var" = names(cols),
     ".dist" = list_c(resamp[cols])
   )
 
   if (!plot) {
-    return(df)
+    return(tibble::as_tibble(df))
   }
 
   df |>
@@ -113,14 +113,14 @@ visualize_density_ <- function(draws, cols, plot) {
 visualize_trace_ <- function(draws, cols, log_vol, plot) {
   points <- lapply(draws[cols], posterior::draws_of)
 
-  df <- tibble::tibble(
+  df <- data.frame(
     ".var" = rep(names(cols), each = posterior::ndraws(draws)),
     ".point" = list_c(points),
     ".log_volume" = rep(log_vol, length(cols)),
     ".weight" = rep(stats::weights(draws), length(cols))
   )
   if (!plot) {
-    return(df)
+    return(tibble::as_tibble(df))
   }
 
   df |>

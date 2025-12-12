@@ -52,18 +52,6 @@
     Caused by error in `ernest_sampler()`:
     ! Can't convert `log-lik.` <complex> to <double>.
 
-# Missing values in the prior
-
-    Code
-      create_prior(prior_fn, .n_dim = 2)
-    Condition
-      Error in `create_prior()`:
-      ! `fn` failed a sanity check.
-      x Input: 0.2861, 0.8198
-      x Output: NaN, 0.8198
-      Caused by error in `create_prior()`:
-      ! `fn` must return vectors that only contain finite values.
-
 # Missing values in the log-likelihood
 
     <ernest_sampler> cannot compile.
@@ -102,23 +90,4 @@
     Condition
       Error in `create_uniform_prior()`:
       ! `lower` must be strictly smaller than `upper`.
-
-# Ernest halts and warns when ll becomes flat during a run
-
-    Code
-      generate(sampler)
-    Condition
-      Warning in `compile()`:
-      `log_lik` may contain a likelihood plateau; proceed with caution.
-      ! Only 152/500 likelihood values are unique.
-      Warning:
-      Stopping run due to a likelihood plateau at 0.0000.
-    Message
-      nested sampling results <ernest_run/ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: rwmh_cube
-      --------------------------------------------------------------------------------
-      * No. Iterations: 170
-      * No. Calls: 216
-      * Log. Evidence: -0.3409 (± 0.06819)
 

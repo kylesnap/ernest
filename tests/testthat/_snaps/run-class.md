@@ -7,9 +7,9 @@
       * No. Points: 1000
       * LRPS Method: rwmh_cube
       --------------------------------------------------------------------------------
-      * No. Iterations: 9398
-      * No. Calls: 205628
-      * Log. Evidence: -9.061 (± 0.08303)
+      * No. Iterations: 9384
+      * No. Calls: 205329
+      * Log. Evidence: -9.045 (± 0.08309)
 
 # summary.ernest_run run tibble columns
 
@@ -18,9 +18,9 @@
     Message
       nested sampling result summary <summary.ernest_run>
       * No. Points: 1000
-      * No. Iterations: 9398
+      * No. Iterations: 9384
       --------------------------------------------------------------------------------
-      * No. Calls: 205628
-      * Log. Volume: -16.88
-      * Log. Evidence: -9.061 (± 0.08303)
+      * No. Calls: 205329
+      * Log. Volume: -16.87
+      * Log. Evidence: -9.045 (± 0.08309)
 

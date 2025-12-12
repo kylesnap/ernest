@@ -128,7 +128,7 @@ visualize(result, type = "density")
 
 ## Adding Data
 
-Often, the likelihood depends on observed data. In ernest, you must incorporate the data within your likelihood function. Here, we show how to supply data using both `create_likelihood()` and an anonymous function, with a certified dataset from the U.S. National Institute of Science and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
+Often, the likelihood depends on observed data. In ernest, you must incorporate the data within your likelihood function. Here, we show how to supply data using `create_likelihood()` and an anonymous function, with a certified dataset from the U.S. National Institute of Science and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
 
 ```{r}
 # Sample data: vector of observations
@@ -142,19 +142,17 @@ log_lik <- function(theta, data) {
   if (theta[2] <= 0) {
     return(-Inf)
   }
-  sum(stats::dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
+  sum(stats::dnorm(data, mean = theta[1], sd = theta[2], log = TRUE))
 }
 ```
 
 Note: `log_lik` returns `-Inf` for non-positive standard deviations, explicitly censoring impossible parameter values.
 
-Supply data using either an anonymous function or the dots argument of `create_likelihood`:
+Supply the data by creating an annonymous function and wrapping it with `create_likelihood`:
 
 ```{r}
-# Anonymous function
 anon_log_lik <- \(theta) log_lik(theta, data = y)
 
-# Using dots for create_likelihood
 expected_mean <- 100000000.200000000000000
 expected_sd <- 0.108372230793914
 anon_log_lik(c(expected_mean, expected_sd))

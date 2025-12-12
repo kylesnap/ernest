@@ -1,5 +1,3 @@
-data(example_run)
-
 test_that("plotting an ernest_run object", {
   data(example_run)
   tbl <- calc_var_tbl(
@@ -20,7 +18,7 @@ test_that("plotting an ernest_run object", {
     c("log_vol", ".label", ".var", ".lower", ".upper", ".width")
   )
 
-  skip_snapshot()
+  skip_extended()
   vdiffr::expect_doppelganger("ernest_run plot", plot(example_run))
 })
 
@@ -50,16 +48,22 @@ test_that("plotting an ernest_estimate object", {
   )
   expect_equal(tbl_100$fill_name, "MCI")
 
-  skip_snapshot()
-  expect_warning(vdiffr::expect_doppelganger(
-    "ernest_estimate(ndraws = 1)",
-    plot(calculate(example_run, ndraws = 1))
-  ))
+  skip_extended()
+  expect_warning(
+    vdiffr::expect_doppelganger(
+      "ernest_estimate(ndraws = 1)",
+      plot(calculate(example_run, ndraws = 1))
+    ),
+    "`ndraws` should be above 100"
+  )
 
-  expect_warning(vdiffr::expect_doppelganger(
-    "ernest_estimate(ndraws = 2)",
-    plot(calculate(example_run, ndraws = 2))
-  ))
+  expect_warning(
+    vdiffr::expect_doppelganger(
+      "ernest_estimate(ndraws = 2)",
+      plot(calculate(example_run, ndraws = 2))
+    ),
+    "`ndraws` should be above 100"
+  )
 
   vdiffr::expect_doppelganger(
     "ernest_estimate(ndraws = 500)",
@@ -68,9 +72,9 @@ test_that("plotting an ernest_estimate object", {
 })
 
 test_that("ernest_run can be plotted after simulation", {
+  skip_extended()
   data(example_run)
   set.seed(42)
-  skip_snapshot()
   vdiffr::expect_doppelganger(
     "ernest_run(ndraws = 500)",
     plot(example_run, ndraws = 500)

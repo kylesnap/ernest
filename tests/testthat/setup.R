@@ -6,15 +6,9 @@ withr::local_options(
 )
 
 #' Skip extended tests using the "ERNEST_EXTENDED_TESTS" variable.
-skip_extended_test <- function() {
+skip_extended <- function() {
   skip_if(
     isFALSE(as.logical(Sys.getenv("ERNEST_EXTENDED_TESTS", "true"))),
     "Extended test"
   )
-}
-
-#' Skip snapshotting a vignette on CRAN and CI services.
-skip_snapshot <- function() {
-  skip_on_cran()
-  skip_on_ci()
 }

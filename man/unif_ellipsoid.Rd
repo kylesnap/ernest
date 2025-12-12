@@ -77,4 +77,3 @@ Other ernest_lrps:
 \code{\link{unif_cube}()}
 }
 \concept{ernest_lrps}
-\keyword{internal}

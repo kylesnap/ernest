@@ -5,11 +5,11 @@
 #' likelihood shell.
 #'
 #' @param x An `ernest_run` object.
-#' @inheritParams rlang::args_dots_empty
-#' @param ndraws An optional positive integer. The number of log-volume
+#' @param ndraws A positive integer. The number of log-volume
 #' sequences to simulate. If equal to zero, no simulations will be made, and a
 #' one draw vector of log-volumes are produced from the estimates contained in
-#' `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used (default 4000).
+#' `x`.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @returns A [tibble::tibble()], containing `n_iter + n_points` rows
 #' and several columns:
@@ -43,9 +43,8 @@
 #'
 #' @aliases ernest_estimate
 #' @export
-calculate.ernest_run <- function(x, ..., ndraws = NULL) {
+calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
-  ndraws <- ndraws %||% getOption("posterior.rvar_ndraws", 4000L)
   check_number_whole(ndraws, lower = 0L)
 
   if (ndraws == 0L) {
@@ -218,7 +217,7 @@ get_information <- function(log_lik, log_volume, log_evidence) {
 
 #' Log-space subtraction for nested sampling
 #'
-#' @params a,b Numeric vectors of equal length.
+#' @param a,b Numeric vectors of equal length.
 #'
 #' @return `log(exp(a) - exp(b))`, computed in log-space to avoid numerical
 #' underflow. A warning is issued and `NaN` is returned when `b > a`.

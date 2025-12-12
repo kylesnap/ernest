@@ -62,16 +62,16 @@ test_that("calculate works when ndraws = 1", {
   expect_snapshot(calc)
 })
 
-test_that("calculate works when ndraws = 4000 (default)", {
+test_that("calculate works when ndraws = 1000 (default)", {
   skip_extended()
   data(example_run)
   n_samp <- example_run$n_iter + example_run$n_points
 
   calc <- calculate(example_run)
   expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
-  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(4000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(4000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(4000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))
+  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1000, n_samp))
 
   expect_equal(
     abs(mean(calc$log_evidence) - example_run$log_evidence) <

@@ -35,8 +35,6 @@
 #' Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 #' \doi{10.48550/ARXIV.PHYSICS/0009028}
 #'
-#' @inheritSection mini_balls Status
-#'
 #' @examples
 #' # Basic usage with default parameters
 #' lrps <- slice_rectangle()
@@ -45,7 +43,6 @@
 #' patient_lrps <- slice_rectangle(enlarge = 1.25)
 #'
 #' @family ernest_lrps
-#' @keywords internal
 #' @export
 slice_rectangle <- function(enlarge = 1) {
   check_number_decimal(enlarge, min = 1, allow_na = TRUE)

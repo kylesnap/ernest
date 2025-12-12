@@ -1,7 +1,6 @@
 #' Generate samples from multiple spanning ellipsoids
 #'
 #' @description
-#' `r lifecycle::badge("experimental")`
 #' Partitions the prior space into a set of ellipsoids whose union bounds
 #' the set of live points. Samples are created by randomly
 #' selecting an ellipsoid (weighted by their respective volumes), then using it
@@ -19,34 +18,30 @@
 #' 1. A single ellipsoid is fit to the set of live points, with volume \eqn{V}.
 #' 2. The live points are clustered into two groups using k-means clustering.
 #' 3. Ellipsoids are fit to each cluster.
-#' 4. The split ellipsoids are accepted if all of the following conditions are
-#' met:
-#'     + Both ellipsoids are non-degenerate
-#'     + The combined volume of the split ellipsoids decreases the total covered
-#'     volume significantly (defined using the Bayes' Information Criterion of
-#'     a bounding ellipsoid model).
+#' 4. The split ellipsoids are accepted if both ellipsoids are non-degenerate,
+#' and if the combined volume of the split ellipsoids is significantly
+#' smaller than the original ellipsoid (calculated using Bayes' Information
+#' Criterion).
 #' 5. Steps 2–4 are repeated recursively on each new ellipsoid until no further
 #' splits are accepted, updating \eqn{V} to the volume of the currently split
 #' ellipsoid.
-#'
-#' @inheritSection unif_ellipsoid Ellipsoids
 #'
 #' @returns A list with class `c("multi_ellipsoid", "ernest_lrps")`. Use with
 #' [ernest_sampler()] to specify nested sampling behaviour.
 #'
 #' @references
-#' Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
-#' Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
-#' Notices of the Royal Astronomical Society. 398(4), 1601–1614.
-#' \doi{10.1111/j.1365-2966.2009.14548.x}
+#' * Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
+#'   Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
+#'   Notices of the Royal Astronomical Society. 398(4), 1601–1614.
+#'   \doi{10.1111/j.1365-2966.2009.14548.x}
+#' * Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package for
+#'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
+#'   Royal Astronomical Society, 493, 3132–3158.
+#'   \doi{10.1093/mnras/staa278}
 #'
-#' For implementation, see:
-#' https://github.com/kbarbary/nestle/blob/master/runtests.py
 #'
-#' @inheritSection mini_balls Status
 #'
 #' @family ernest_lrps
-#' @keywords internal
 #' @examples
 #' data(example_run)
 #' lrps <- multi_ellipsoid(enlarge = 1.25)

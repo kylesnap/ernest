@@ -59,4 +59,3 @@ Other ernest_lrps:
 \code{\link{unif_ellipsoid}()}
 }
 \concept{ernest_lrps}
-\keyword{internal}

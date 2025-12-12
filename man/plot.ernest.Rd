@@ -14,10 +14,10 @@
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{An optional positive integer. The number of log-volume
+\item{ndraws}{A positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log-volumes are produced from the estimates contained in
-\code{x}. If \code{NULL}, \code{getOption("posterior.rvar_ndraws")} is used (default 4000).}
+\code{x}.}
 }
 \value{
 Invisibly returns \code{x}. A \code{ggplot2::ggplot()} object is printed as a

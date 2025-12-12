@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,9 +70,9 @@
 <div class="section level2">
 <h2 id="why-use-ernest">Why use ernest?<a class="anchor" aria-label="anchor" href="#why-use-ernest"></a>
 </h2>
-<p>In Bayesian inference, evidence (<span class="math inline">$`\mathcal{Z}`$</span>, also called the <a href="https://en.wikipedia.org/wiki/Marginal_likelihood" class="external-link">marginal likelihood</a>) is the probability of observing data <span class="math inline">$`D`$</span> under a proposed model <span class="math inline">$`M`$</span>. This is obtained by integrating the model’s likelihood over the prior distribution of <span class="math inline">$`M`$</span>’s parameters. <span class="math inline">$`\mathcal{Z}`$</span> provides a parameter-independent way to assess the plausibility of <span class="math inline">$`D`$</span> given <span class="math inline">$`M`$</span>, and is key for Bayesian model comparison through methods such as <a href="https://en.wikipedia.org/wiki/Bayes_factor" class="external-link">Bayes factors</a>.</p>
-<p>Calculating <span class="math inline">$`\mathcal{Z}`$</span> is challenging, as it requires evaluating a high-dimensional integral over the parameter space. Nested sampling estimates this integral by dividing the space into a series of small volumes. It starts by drawing points from the prior and ranking them by likelihood. The least likely points are discarded and replaced with new samples from more restricted likelihood regions, gradually compressing the search space. Each round of discarding shrinks the explored volume in a predictable way, helping to approximate the integral.</p>
-<p>This approach to estimating <span class="math inline">$`Z`$</span> offers several advantages over methods like Markov chain Monte Carlo (MCMC):</p>
+<p>Often, statisticians are faced with multiple competing models that intend to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called <a href="https://en.wikipedia.org/wiki/Marginal_likelihood" class="external-link">marginal likelihood</a>), found by integrating a model’s likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using <a href="https://en.wikipedia.org/wiki/Bayes_factor" class="external-link">Bayes factors</a>, plays an important role in Bayesian inference.</p>
+<p>Calculating evidence directly is challenging, as it requires evaluating a high-dimensional integral over the parameter space. Nested sampling estimates this integral by dividing the space into a series of small volumes. It starts by drawing points from the prior and ranking them by likelihood. The least likely points are discarded and replaced with new samples from more restricted likelihood regions, gradually compressing the search space. Each round of discarding shrinks the explored volume in a predictable way, helping to approximate the integral.</p>
+<p>This approach to estimating evidence offers several advantages over methods like Markov chain Monte Carlo (MCMC):</p>
 <ul>
 <li>
 <strong>Robustness</strong>: NS handles complex likelihood surfaces that would otherwise be difficult to traverse, such as those with multiple modes or discontinuities.</li>
@@ -96,9 +96,8 @@
 </ul>
 </div>
 <div class="section level2">
-<h2 id="quick-example">Quick Example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>This example demonstrates a basic workflow: define a prior, specify a likelihood, run nested sampling, and summarise results.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span>
 <span></span>
@@ -110,10 +109,7 @@
 <span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">Sigma</span><span class="op">[</span><span class="va">Sigma</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.95</span></span>
 <span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_likelihood.html">create_likelihood</a></span><span class="op">(</span></span>
-<span>  rowwise_fn <span class="op">=</span> <span class="fu">LaplacesDemon</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/LaplacesDemon/man/dist.Multivariate.Normal.html" class="external-link">dmvn</a></span>,</span>
-<span>  mu <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">mu</span>,</span>
-<span>  Sigma <span class="op">=</span> <span class="op">!</span><span class="op">!</span><span class="va">Sigma</span>,</span>
-<span>  log <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">LaplacesDemon</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/LaplacesDemon/man/dist.Multivariate.Normal.html" class="external-link">dmvn</a></span><span class="op">(</span><span class="va">x</span>, mu <span class="op">=</span> <span class="va">mu</span>, Sigma <span class="op">=</span> <span class="va">Sigma</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Set up and run the sampler</span></span>

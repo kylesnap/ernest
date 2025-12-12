@@ -17,14 +17,8 @@ resets the likelihood call counter in the cache.
 ``` r
 update_lrps(x, ...)
 
-# S3 method for class 'mini_balls'
-update_lrps(x, unit = NULL, ...)
-
 # S3 method for class 'multi_ellipsoid'
-update_lrps(x, unit = NULL, log_volume = NULL, ...)
-
-# S3 method for class 'no_underrun'
-update_lrps(x, unit = NULL, ...)
+update_lrps(x, unit = NULL, log_volume = NA, ...)
 
 # S3 method for class 'rwmh_cube'
 update_lrps(x, unit = NULL, ...)
@@ -33,7 +27,7 @@ update_lrps(x, unit = NULL, ...)
 update_lrps(x, unit = NULL, ...)
 
 # S3 method for class 'unif_ellipsoid'
-update_lrps(x, unit = NULL, ...)
+update_lrps(x, unit = NULL, log_volume = NA, ...)
 ```
 
 ## Arguments

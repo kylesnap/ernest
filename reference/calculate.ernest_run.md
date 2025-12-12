@@ -7,7 +7,7 @@ optionally by simulating the volumes of each nested likelihood shell.
 
 ``` r
 # S3 method for class 'ernest_run'
-calculate(x, ..., ndraws = NULL)
+calculate(x, ndraws = 1000L, ...)
 ```
 
 ## Arguments
@@ -16,17 +16,15 @@ calculate(x, ..., ndraws = NULL)
 
   An `ernest_run` object.
 
+- ndraws:
+
+  A positive integer. The number of log-volume sequences to simulate. If
+  equal to zero, no simulations will be made, and a one draw vector of
+  log-volumes are produced from the estimates contained in `x`.
+
 - ...:
 
   These dots are for future extensions and must be empty.
-
-- ndraws:
-
-  An optional positive integer. The number of log-volume sequences to
-  simulate. If equal to zero, no simulations will be made, and a one
-  draw vector of log-volumes are produced from the estimates contained
-  in `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used
-  (default 4000).
 
 ## Value
 
@@ -66,47 +64,46 @@ the Royal Astronomical Society, 483(2), 2044–2056.
 # Load an example run
 data(example_run)
 
-# View results as a tibble with `ndraws = FALSE` (the default).
-calculate(example_run)
+# View results as a tibble with `ndraws = 0`.
+calculate(example_run, ndraws = 0)
 #> evidence estimates <ernest_estimate>
 #> 
-#> No. of Simulated Draws: 4000
-#> Log. Volume: -17 ± 1.3
-#> Log. Evidence: -9.1 ± 0.069
-#> # A tibble: 10,398 × 4
-#>       log_lik         log_volume   log_weight log_evidence
-#>    <rvar[1d]>         <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
-#>  1  -147 ± NA  -0.00099 ± 0.0010  -154 ± 0.81  -154 ± 0.81
-#>  2  -141 ± NA  -0.00199 ± 0.0014  -148 ± 0.80  -148 ± 0.80
-#>  3  -136 ± NA  -0.00301 ± 0.0017  -143 ± 0.81  -143 ± 0.80
-#>  4  -136 ± NA  -0.00402 ± 0.0020  -143 ± 0.82  -142 ± 0.67
-#>  5  -134 ± NA  -0.00504 ± 0.0022  -141 ± 0.79  -140 ± 0.66
-#>  6  -130 ± NA  -0.00604 ± 0.0025  -137 ± 0.79  -137 ± 0.75
-#>  7  -130 ± NA  -0.00701 ± 0.0027  -137 ± 0.81  -136 ± 0.63
-#>  8  -129 ± NA  -0.00804 ± 0.0028  -136 ± 0.81  -135 ± 0.58
-#>  9  -129 ± NA  -0.00902 ± 0.0030  -136 ± 0.81  -135 ± 0.53
-#> 10  -126 ± NA  -0.01000 ± 0.0031  -133 ± 0.80  -133 ± 0.69
-#> # ℹ 10,388 more rows
+#> Log. Volume: -17 ± NA
+#> Log. Evidence: -9 ± NA
+#> # A tibble: 10,384 × 5
+#>       log_lik   log_volume log_weight log_evidence log_evidence_err
+#>    <rvar[1d]>   <rvar[1d]> <rvar[1d]>   <rvar[1d]>       <rvar[1d]>
+#>  1  -147 ± NA  -0.001 ± NA  -154 ± NA    -154 ± NA     7.0e-33 ± NA
+#>  2  -141 ± NA  -0.002 ± NA  -148 ± NA    -148 ± NA     1.8e-31 ± NA
+#>  3  -136 ± NA  -0.003 ± NA  -143 ± NA    -143 ± NA     1.9e-30 ± NA
+#>  4  -136 ± NA  -0.004 ± NA  -142 ± NA    -142 ± NA     3.7e-30 ± NA
+#>  5  -134 ± NA  -0.005 ± NA  -140 ± NA    -140 ± NA     8.3e-30 ± NA
+#>  6  -130 ± NA  -0.006 ± NA  -137 ± NA    -137 ± NA     3.9e-29 ± NA
+#>  7  -130 ± NA  -0.007 ± NA  -137 ± NA    -136 ± NA     6.8e-29 ± NA
+#>  8  -129 ± NA  -0.008 ± NA  -136 ± NA    -135 ± NA     1.1e-28 ± NA
+#>  9  -129 ± NA  -0.009 ± NA  -136 ± NA    -135 ± NA     1.5e-28 ± NA
+#> 10  -126 ± NA  -0.010 ± NA  -132 ± NA    -132 ± NA     4.0e-28 ± NA
+#> # ℹ 10,374 more rows
 
 # Generate 100 simulated log-volume values for each iteration.
 calculate(example_run, ndraws = 100)
 #> evidence estimates <ernest_estimate>
 #> 
 #> No. of Simulated Draws: 100
-#> Log. Volume: -17 ± 1.2
-#> Log. Evidence: -9.1 ± 0.076
-#> # A tibble: 10,398 × 4
-#>       log_lik        log_volume   log_weight log_evidence
-#>    <rvar[1d]>        <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
-#>  1  -147 ± NA  -0.0013 ± 0.0013  -154 ± 0.92  -154 ± 0.92
-#>  2  -141 ± NA  -0.0022 ± 0.0017  -148 ± 0.77  -148 ± 0.77
-#>  3  -136 ± NA  -0.0032 ± 0.0019  -143 ± 0.65  -143 ± 0.64
-#>  4  -136 ± NA  -0.0041 ± 0.0020  -143 ± 0.95  -142 ± 0.62
-#>  5  -134 ± NA  -0.0050 ± 0.0023  -141 ± 0.89  -141 ± 0.72
-#>  6  -130 ± NA  -0.0060 ± 0.0027  -137 ± 0.80  -137 ± 0.78
-#>  7  -130 ± NA  -0.0070 ± 0.0030  -137 ± 0.79  -136 ± 0.67
-#>  8  -129 ± NA  -0.0081 ± 0.0031  -136 ± 0.76  -135 ± 0.60
-#>  9  -129 ± NA  -0.0092 ± 0.0031  -136 ± 0.84  -135 ± 0.53
-#> 10  -126 ± NA  -0.0104 ± 0.0033  -133 ± 0.81  -133 ± 0.72
-#> # ℹ 10,388 more rows
+#> Log. Volume: -17 ± 1.4
+#> Log. Evidence: -9 ± 0.07
+#> # A tibble: 10,384 × 4
+#>       log_lik          log_volume   log_weight log_evidence
+#>    <rvar[1d]>          <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
+#>  1  -147 ± NA  -0.00089 ± 0.00098  -154 ± 0.90  -154 ± 0.90
+#>  2  -141 ± NA  -0.00184 ± 0.00140  -148 ± 0.82  -148 ± 0.82
+#>  3  -136 ± NA  -0.00291 ± 0.00192  -143 ± 0.83  -143 ± 0.83
+#>  4  -136 ± NA  -0.00377 ± 0.00220  -143 ± 0.72  -142 ± 0.60
+#>  5  -134 ± NA  -0.00487 ± 0.00241  -141 ± 0.76  -140 ± 0.62
+#>  6  -130 ± NA  -0.00587 ± 0.00262  -137 ± 0.72  -137 ± 0.69
+#>  7  -130 ± NA  -0.00688 ± 0.00269  -137 ± 0.83  -136 ± 0.63
+#>  8  -129 ± NA  -0.00803 ± 0.00285  -136 ± 0.75  -135 ± 0.59
+#>  9  -129 ± NA  -0.00882 ± 0.00293  -136 ± 0.73  -135 ± 0.51
+#> 10  -126 ± NA  -0.00989 ± 0.00312  -133 ± 0.79  -133 ± 0.70
+#> # ℹ 10,374 more rows
 ```

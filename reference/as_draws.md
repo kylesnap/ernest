@@ -89,19 +89,19 @@ data(example_run)
 # View importance weights
 dm <- as_draws(example_run)
 weights(dm) |> head()
-#> [1] 1.246803e-63 5.418871e-61 5.769832e-59 1.153845e-58 8.313380e-58
-#> [6] 2.476344e-56
+#> [1] 1.227464e-63 5.334820e-61 5.680337e-59 1.135948e-58 8.184433e-58
+#> [6] 2.437934e-56
 
 # Summarise points after resampling
 dm |>
   resample_draws() |>
   summarize_draws()
 #> # A tibble: 3 × 10
-#>   variable     mean    median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-#>   <chr>       <dbl>     <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 x         0.00173  0.0183   0.970 0.955 -1.61  1.59  1.18    4286.     13.2
-#> 2 y        -0.00980 -0.0206   0.966 0.971 -1.60  1.56  1.19    4411.     12.7
-#> 3 z         0.0126  -0.000932 0.967 0.975 -1.56  1.58  1.20    4107.     12.7
+#>   variable     mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>       <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 x         0.00242  0.0197 0.957 0.938 -1.61  1.56  1.19    4441.     13.0
+#> 2 y        -0.00349  0.0220 0.955 0.950 -1.61  1.53  1.18    4308.     12.8
+#> 3 z        -0.0193  -0.0216 0.965 0.972 -1.62  1.55  1.20    4212.     13.1
 
 # View the radial coordinate in unit space over the run
 dm_rad <- as_draws_rvars(

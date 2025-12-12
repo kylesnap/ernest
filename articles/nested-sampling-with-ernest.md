@@ -265,8 +265,8 @@ run
 #> • LRPS Method: rwmh_cube
 #> ────────────────────────────────────────────────────────────────────────────────
 #> • No. Iterations: 2000
-#> • No. Calls: 35706
-#> • Log. Evidence: -9.170 (± 1.762)
+#> • No. Calls: 35680
+#> • Log. Evidence: -9.140 (± 1.595)
 ```
 
 `generate` produces an `ernest_run` object that can be saved. You can
@@ -281,15 +281,15 @@ continued_run <- readRDS(tmp_name)
 
 run2 <- generate(continued_run, min_logz = 0.01, show_progress = FALSE)
 #> ℹ Restored 500 live points from a previous run.
-#> ✔ `min_logz` reached (0.00999454 < 0.01).
+#> ✔ `min_logz` reached (0.00999455 < 0.01).
 run2
 #> nested sampling results <ernest_run/ernest_sampler>
 #> • No. Points: 500
 #> • LRPS Method: rwmh_cube
 #> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Iterations: 6700
-#> • No. Calls: 153206
-#> • Log. Evidence: -9.078 (± 0.1249)
+#> • No. Iterations: 6645
+#> • No. Calls: 151805
+#> • Log. Evidence: -8.968 (± 0.1243)
 ```
 
 #### Inspecting and Summarising Results
@@ -301,13 +301,13 @@ posterior samples, and diagnostics as a tidy `tibble`:
 summary(run2)
 #> nested sampling result summary <summary.ernest_run>
 #> • No. Points: 500
-#> • No. Iterations: 6700
+#> • No. Iterations: 6645
 #> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Calls: 153206
-#> • Log. Volume: -20.19
-#> • Log. Evidence: -9.078 (± 0.1249)
+#> • No. Calls: 151805
+#> • Log. Volume: -20.08
+#> • Log. Evidence: -8.968 (± 0.1243)
 summary(run2)$run
-#> # A tibble: 7,200 × 7
+#> # A tibble: 7,145 × 7
 #>     call log_lik log_volume log_weight log_evidence log_evidence_err information
 #>    <int>   <dbl>      <dbl>      <dbl>        <dbl>            <dbl>       <dbl>
 #>  1     1  -2307.     -0.002     -2304.       -2313.                0           0
@@ -318,9 +318,9 @@ summary(run2)$run
 #>  6     6  -1886.     -0.012     -1883.       -1892.                0           0
 #>  7     7  -1865.     -0.014     -1862.       -1871.                0           0
 #>  8     8  -1831.     -0.016     -1828.       -1837.                0           0
-#>  9     9  -1829.     -0.018     -1826.       -1835.                0           0
-#> 10    10  -1803.     -0.02      -1800.       -1810.                0           0
-#> # ℹ 7,190 more rows
+#>  9     9  -1829.     -0.018     -1827.       -1835.                0           0
+#> 10    10  -1803.     -0.02      -1801.       -1810.                0           0
+#> # ℹ 7,135 more rows
 ```
 
 The `posterior` package offers methods for inspecting the points
@@ -341,11 +341,11 @@ weighted_post <- unweighted_post |>
   resample_draws()
 posterior::summarise_draws(weighted_post)
 #> # A tibble: 3 × 10
-#>   variable    mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-#>   <chr>      <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 x        0.0179  0.00611 1.00  1.00  -1.62  1.69  1.20    1960.     13.6
-#> 2 y        0.00645 0.00134 0.993 0.981 -1.63  1.66  1.18    1837.     13.3
-#> 3 z        0.0159  0.00388 0.986 0.971 -1.61  1.62  1.17    1838.     14.7
+#>   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>     <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 x        -0.120 -0.111 0.963 0.955 -1.67  1.49  1.22    1843.     13.7
+#> 2 y        -0.127 -0.129 0.964 0.960 -1.70  1.49  1.23    1820.     13.4
+#> 3 z        -0.115 -0.107 0.973 0.962 -1.72  1.50  1.24    1716.     13.6
 ```
 
 #### Visualising Results
@@ -389,22 +389,22 @@ calc_sim
 #> evidence estimates <ernest_estimate>
 #> 
 #> No. of Simulated Draws: 500
-#> Log. Volume: -20 ± 1.4
-#> Log. Evidence: -9.1 ± 0.12
-#> # A tibble: 7,200 × 4
+#> Log. Volume: -20 ± 1.5
+#> Log. Evidence: -9 ± 0.12
+#> # A tibble: 7,145 × 4
 #>        log_lik        log_volume    log_weight  log_evidence
 #>     <rvar[1d]>        <rvar[1d]>    <rvar[1d]>    <rvar[1d]>
-#>  1  -2307 ± NA  -0.0019 ± 0.0019  -2313 ± 0.82  -2313 ± 0.82
-#>  2  -2239 ± NA  -0.0038 ± 0.0026  -2246 ± 0.82  -2246 ± 0.82
-#>  3  -2027 ± NA  -0.0060 ± 0.0034  -2033 ± 0.86  -2033 ± 0.86
-#>  4  -1998 ± NA  -0.0080 ± 0.0040  -2005 ± 0.75  -2005 ± 0.75
-#>  5  -1937 ± NA  -0.0101 ± 0.0044  -1943 ± 0.81  -1943 ± 0.81
-#>  6  -1886 ± NA  -0.0121 ± 0.0049  -1893 ± 0.85  -1893 ± 0.85
-#>  7  -1865 ± NA  -0.0142 ± 0.0053  -1871 ± 0.82  -1871 ± 0.82
-#>  8  -1831 ± NA  -0.0162 ± 0.0057  -1837 ± 0.80  -1837 ± 0.80
-#>  9  -1829 ± NA  -0.0181 ± 0.0060  -1836 ± 0.75  -1836 ± 0.66
-#> 10  -1803 ± NA  -0.0201 ± 0.0062  -1810 ± 0.76  -1810 ± 0.76
-#> # ℹ 7,190 more rows
+#>  1  -2307 ± NA  -0.0021 ± 0.0021  -2313 ± 0.83  -2313 ± 0.83
+#>  2  -2239 ± NA  -0.0041 ± 0.0029  -2246 ± 0.78  -2246 ± 0.78
+#>  3  -2027 ± NA  -0.0061 ± 0.0036  -2033 ± 0.79  -2033 ± 0.79
+#>  4  -1998 ± NA  -0.0082 ± 0.0041  -2005 ± 0.79  -2005 ± 0.79
+#>  5  -1937 ± NA  -0.0102 ± 0.0046  -1943 ± 0.81  -1943 ± 0.81
+#>  6  -1886 ± NA  -0.0122 ± 0.0050  -1893 ± 0.80  -1893 ± 0.80
+#>  7  -1865 ± NA  -0.0142 ± 0.0053  -1871 ± 0.80  -1871 ± 0.80
+#>  8  -1831 ± NA  -0.0161 ± 0.0057  -1837 ± 0.79  -1837 ± 0.79
+#>  9  -1829 ± NA  -0.0181 ± 0.0061  -1836 ± 0.82  -1836 ± 0.71
+#> 10  -1803 ± NA  -0.0201 ± 0.0065  -1810 ± 0.80  -1810 ± 0.80
+#> # ℹ 7,135 more rows
 plot(calc_sim)
 ```
 

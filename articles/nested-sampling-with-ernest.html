@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -361,8 +361,8 @@ evidence estimate converges:</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 2000</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 35706</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.170 (± 1.762)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 35680</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.140 (± 1.595)</span></span></code></pre></div>
 <p><code>generate</code> produces an <code>ernest_run</code> object that
 can be saved. You can continue a run by calling <code>generate</code> on
 a previously created <code>ernest_run</code>:</p>
@@ -374,15 +374,15 @@ a previously created <code>ernest_run</code>:</p>
 <span></span>
 <span><span class="va">run2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">continued_run</span>, min_logz <span class="op">=</span> <span class="fl">0.01</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Restored 500 live points from a previous run.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.00999454 &lt; 0.01).</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.00999455 &lt; 0.01).</span></span>
 <span><span class="va">run2</span></span>
 <span><span class="co">#&gt; nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6700</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 153206</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.078 (± 0.1249)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6645</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 151805</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -8.968 (± 0.1243)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="inspecting-and-summarising-results">Inspecting and Summarising Results<a class="anchor" aria-label="anchor" href="#inspecting-and-summarising-results"></a>
@@ -394,13 +394,13 @@ evidence estimates, posterior samples, and diagnostics as a tidy
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; nested sampling result summary <span style="color: #0000BB;">&lt;summary.ernest_run&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6700</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 6645</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 153206</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -20.19</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -9.078 (± 0.1249)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 151805</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -20.08</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -8.968 (± 0.1243)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run2</span><span class="op">)</span><span class="op">$</span><span class="va">run</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,200 × 7</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,145 × 7</span></span></span>
 <span><span class="co">#&gt;     call log_lik log_volume log_weight log_evidence log_evidence_err information</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1  -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">307.</span>     -<span style="color: #BB0000;">0.002</span>     -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">304.</span>       -<span style="color: #BB0000; text-decoration: underline;">2</span><span style="color: #BB0000;">313.</span>                0           0</span></span>
@@ -411,9 +411,9 @@ evidence estimates, posterior samples, and diagnostics as a tidy
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">886.</span>     -<span style="color: #BB0000;">0.012</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">883.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">892.</span>                0           0</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     7  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">865.</span>     -<span style="color: #BB0000;">0.014</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">862.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">871.</span>                0           0</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     8  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">831.</span>     -<span style="color: #BB0000;">0.016</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">828.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">837.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">829.</span>     -<span style="color: #BB0000;">0.018</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">826.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">835.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">803.</span>     -<span style="color: #BB0000;">0.02</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">800.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">810.</span>                0           0</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,190 more rows</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">829.</span>     -<span style="color: #BB0000;">0.018</span>     -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">827.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">835.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10  -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">803.</span>     -<span style="color: #BB0000;">0.02</span>      -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">801.</span>       -<span style="color: #BB0000; text-decoration: underline;">1</span><span style="color: #BB0000;">810.</span>                0           0</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,135 more rows</span></span></span></code></pre></div>
 <p>The <code>posterior</code> package offers methods for inspecting the
 points generated during a run:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
@@ -428,11 +428,11 @@ sample to estimate the posterior distribution:</p>
 <span>  <span class="fu"><a href="https://mc-stan.org/posterior/reference/resample_draws.html" class="external-link">resample_draws</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">posterior</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarise_draws</a></span><span class="op">(</span><span class="va">weighted_post</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 10</span></span></span>
-<span><span class="co">#&gt;   variable    mean  median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> x        0.017<span style="text-decoration: underline;">9</span>  0.006<span style="text-decoration: underline;">11</span> 1.00  1.00  -<span style="color: #BB0000;">1.62</span>  1.69  1.20    <span style="text-decoration: underline;">1</span>960.     13.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> y        0.006<span style="text-decoration: underline;">45</span> 0.001<span style="text-decoration: underline;">34</span> 0.993 0.981 -<span style="color: #BB0000;">1.63</span>  1.66  1.18    <span style="text-decoration: underline;">1</span>837.     13.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> z        0.015<span style="text-decoration: underline;">9</span>  0.003<span style="text-decoration: underline;">88</span> 0.986 0.971 -<span style="color: #BB0000;">1.61</span>  1.62  1.17    <span style="text-decoration: underline;">1</span>838.     14.7</span></span></code></pre></div>
+<span><span class="co">#&gt;   variable   mean median    sd   mad    q5   q95  rhat ess_bulk ess_tail</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> x        -<span style="color: #BB0000;">0.120</span> -<span style="color: #BB0000;">0.111</span> 0.963 0.955 -<span style="color: #BB0000;">1.67</span>  1.49  1.22    <span style="text-decoration: underline;">1</span>843.     13.7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> y        -<span style="color: #BB0000;">0.127</span> -<span style="color: #BB0000;">0.129</span> 0.964 0.960 -<span style="color: #BB0000;">1.70</span>  1.49  1.23    <span style="text-decoration: underline;">1</span>820.     13.4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> z        -<span style="color: #BB0000;">0.115</span> -<span style="color: #BB0000;">0.107</span> 0.973 0.962 -<span style="color: #BB0000;">1.72</span>  1.50  1.24    <span style="text-decoration: underline;">1</span>716.     13.6</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="visualising-results">Visualising Results<a class="anchor" aria-label="anchor" href="#visualising-results"></a>
@@ -473,22 +473,22 @@ this uncertainty with the estimate’s <code>plot</code> method.</p>
 <span><span class="co">#&gt; evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; No. of Simulated Draws: 500</span></span>
-<span><span class="co">#&gt; Log. Volume: -20 ± 1.4</span></span>
-<span><span class="co">#&gt; Log. Evidence: -9.1 ± 0.12</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,200 × 4</span></span></span>
+<span><span class="co">#&gt; Log. Volume: -20 ± 1.5</span></span>
+<span><span class="co">#&gt; Log. Evidence: -9 ± 0.12</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,145 × 4</span></span></span>
 <span><span class="co">#&gt;        log_lik        log_volume    log_weight  log_evidence</span></span>
 <span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  -2307 <span style="color: #949494;">± NA</span>  -0.0019 <span style="color: #949494;">± 0.0019</span>  -2313 <span style="color: #949494;">± 0.82</span>  -2313 <span style="color: #949494;">± 0.82</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -2239 <span style="color: #949494;">± NA</span>  -0.0038 <span style="color: #949494;">± 0.0026</span>  -2246 <span style="color: #949494;">± 0.82</span>  -2246 <span style="color: #949494;">± 0.82</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -2027 <span style="color: #949494;">± NA</span>  -0.0060 <span style="color: #949494;">± 0.0034</span>  -2033 <span style="color: #949494;">± 0.86</span>  -2033 <span style="color: #949494;">± 0.86</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  -1998 <span style="color: #949494;">± NA</span>  -0.0080 <span style="color: #949494;">± 0.0040</span>  -2005 <span style="color: #949494;">± 0.75</span>  -2005 <span style="color: #949494;">± 0.75</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -1937 <span style="color: #949494;">± NA</span>  -0.0101 <span style="color: #949494;">± 0.0044</span>  -1943 <span style="color: #949494;">± 0.81</span>  -1943 <span style="color: #949494;">± 0.81</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  -1886 <span style="color: #949494;">± NA</span>  -0.0121 <span style="color: #949494;">± 0.0049</span>  -1893 <span style="color: #949494;">± 0.85</span>  -1893 <span style="color: #949494;">± 0.85</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -1865 <span style="color: #949494;">± NA</span>  -0.0142 <span style="color: #949494;">± 0.0053</span>  -1871 <span style="color: #949494;">± 0.82</span>  -1871 <span style="color: #949494;">± 0.82</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  -1831 <span style="color: #949494;">± NA</span>  -0.0162 <span style="color: #949494;">± 0.0057</span>  -1837 <span style="color: #949494;">± 0.80</span>  -1837 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  -1829 <span style="color: #949494;">± NA</span>  -0.0181 <span style="color: #949494;">± 0.0060</span>  -1836 <span style="color: #949494;">± 0.75</span>  -1836 <span style="color: #949494;">± 0.66</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -1803 <span style="color: #949494;">± NA</span>  -0.0201 <span style="color: #949494;">± 0.0062</span>  -1810 <span style="color: #949494;">± 0.76</span>  -1810 <span style="color: #949494;">± 0.76</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,190 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  -2307 <span style="color: #949494;">± NA</span>  -0.0021 <span style="color: #949494;">± 0.0021</span>  -2313 <span style="color: #949494;">± 0.83</span>  -2313 <span style="color: #949494;">± 0.83</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  -2239 <span style="color: #949494;">± NA</span>  -0.0041 <span style="color: #949494;">± 0.0029</span>  -2246 <span style="color: #949494;">± 0.78</span>  -2246 <span style="color: #949494;">± 0.78</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  -2027 <span style="color: #949494;">± NA</span>  -0.0061 <span style="color: #949494;">± 0.0036</span>  -2033 <span style="color: #949494;">± 0.79</span>  -2033 <span style="color: #949494;">± 0.79</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  -1998 <span style="color: #949494;">± NA</span>  -0.0082 <span style="color: #949494;">± 0.0041</span>  -2005 <span style="color: #949494;">± 0.79</span>  -2005 <span style="color: #949494;">± 0.79</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  -1937 <span style="color: #949494;">± NA</span>  -0.0102 <span style="color: #949494;">± 0.0046</span>  -1943 <span style="color: #949494;">± 0.81</span>  -1943 <span style="color: #949494;">± 0.81</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  -1886 <span style="color: #949494;">± NA</span>  -0.0122 <span style="color: #949494;">± 0.0050</span>  -1893 <span style="color: #949494;">± 0.80</span>  -1893 <span style="color: #949494;">± 0.80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  -1865 <span style="color: #949494;">± NA</span>  -0.0142 <span style="color: #949494;">± 0.0053</span>  -1871 <span style="color: #949494;">± 0.80</span>  -1871 <span style="color: #949494;">± 0.80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  -1831 <span style="color: #949494;">± NA</span>  -0.0161 <span style="color: #949494;">± 0.0057</span>  -1837 <span style="color: #949494;">± 0.79</span>  -1837 <span style="color: #949494;">± 0.79</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  -1829 <span style="color: #949494;">± NA</span>  -0.0181 <span style="color: #949494;">± 0.0061</span>  -1836 <span style="color: #949494;">± 0.82</span>  -1836 <span style="color: #949494;">± 0.71</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  -1803 <span style="color: #949494;">± NA</span>  -0.0201 <span style="color: #949494;">± 0.0065</span>  -1810 <span style="color: #949494;">± 0.80</span>  -1810 <span style="color: #949494;">± 0.80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7,135 more rows</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">calc_sim</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" width="700"></p>
 <hr>

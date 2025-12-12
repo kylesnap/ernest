@@ -19,29 +19,30 @@ devtools::install_github("kylesnap/ernest")
 
 ## Why use ernest?
 
-In Bayesian inference, evidence (\$\`\mathcal{Z}\`\$, also called the
-[marginal
-likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)) is the
-probability of observing data \$\`D\`\$ under a proposed model
-\$\`M\`\$. This is obtained by integrating the model’s likelihood over
-the prior distribution of \$\`M\`\$’s parameters. \$\`\mathcal{Z}\`\$
-provides a parameter-independent way to assess the plausibility of
-\$\`D\`\$ given \$\`M\`\$, and is key for Bayesian model comparison
-through methods such as [Bayes
-factors](https://en.wikipedia.org/wiki/Bayes_factor).
+Often, statisticians are faced with multiple competing models that
+intend to describe or estimate a given data set. One way to compare
+these models against each other is by evaluating model evidence (also
+called [marginal
+likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found
+by integrating a model’s likelihood function across all possible values
+of its parameters. In Bayesian inference, evidence represents the
+parameter-independent probability of the data occurring under a given
+model—calculating and comparing evidence values across different models,
+such as through using [Bayes
+factors](https://en.wikipedia.org/wiki/Bayes_factor), plays an important
+role in Bayesian inference.
 
-Calculating \$\`\mathcal{Z}\`\$ is challenging, as it requires
-evaluating a high-dimensional integral over the parameter space. Nested
-sampling estimates this integral by dividing the space into a series of
-small volumes. It starts by drawing points from the prior and ranking
-them by likelihood. The least likely points are discarded and replaced
-with new samples from more restricted likelihood regions, gradually
-compressing the search space. Each round of discarding shrinks the
-explored volume in a predictable way, helping to approximate the
-integral.
+Calculating evidence directly is challenging, as it requires evaluating
+a high-dimensional integral over the parameter space. Nested sampling
+estimates this integral by dividing the space into a series of small
+volumes. It starts by drawing points from the prior and ranking them by
+likelihood. The least likely points are discarded and replaced with new
+samples from more restricted likelihood regions, gradually compressing
+the search space. Each round of discarding shrinks the explored volume
+in a predictable way, helping to approximate the integral.
 
-This approach to estimating \$\`Z\`\$ offers several advantages over
-methods like Markov chain Monte Carlo (MCMC):
+This approach to estimating evidence offers several advantages over
+methods like Markov chain Monte Carlo (MCMC):
 
 - **Robustness**: NS handles complex likelihood surfaces that would
   otherwise be difficult to traverse, such as those with multiple modes
@@ -75,10 +76,7 @@ ernest’s implementation of NS offers R users several benefits:
   posterior distributions using [ggplot2](https://ggplot2.tidyverse.org)
   and [posterior](https://mc-stan.org/posterior/).
 
-## Quick Example
-
-This example demonstrates a basic workflow: define a prior, specify a
-likelihood, run nested sampling, and summarise results.
+## Example
 
 ``` r
 library(ernest)
@@ -91,10 +89,7 @@ mu <- c(0, 0, 0)
 Sigma <- diag(1, 3)
 Sigma[Sigma == 0] <- 0.95
 loglike <- create_likelihood(
-  rowwise_fn = LaplacesDemon::dmvn,
-  mu = !!mu,
-  Sigma = !!Sigma,
-  log = TRUE
+  \(x) LaplacesDemon::dmvn(x, mu = mu, Sigma = Sigma, log = TRUE)
 )
 
 # Set up and run the sampler

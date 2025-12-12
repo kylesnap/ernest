@@ -13,13 +13,7 @@ constraint.
 ``` r
 propose(x, original = NULL, criterion = -Inf)
 
-# S3 method for class 'mini_balls'
-propose(x, original = NULL, criterion = -Inf)
-
 # S3 method for class 'multi_ellipsoid'
-propose(x, original = NULL, criterion = -Inf)
-
-# S3 method for class 'no_underrun'
 propose(x, original = NULL, criterion = -Inf)
 
 # S3 method for class 'rwmh_cube'

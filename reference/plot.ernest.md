@@ -29,11 +29,9 @@ plot(x, ..., ndraws = 0)
 
 - ndraws:
 
-  An optional positive integer. The number of log-volume sequences to
-  simulate. If equal to zero, no simulations will be made, and a one
-  draw vector of log-volumes are produced from the estimates contained
-  in `x`. If `NULL`, `getOption("posterior.rvar_ndraws")` is used
-  (default 4000).
+  A positive integer. The number of log-volume sequences to simulate. If
+  equal to zero, no simulations will be made, and a one draw vector of
+  log-volumes are produced from the estimates contained in `x`.
 
 ## Value
 

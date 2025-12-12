@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,7 +102,7 @@ sampling test problem, as the evidence can be solved analytically.</p>
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">gaussian_blobs_loglik</span>, <span class="va">prior</span>, n_points <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0498316 &lt; 0.05).</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0495272 &lt; 0.05).</span></span></code></pre></div>
 <p>For this distribution, the analytical evidence is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒵</mi><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mn>2</mn><mn>2</mn></msup><mo>*</mo><mi>π</mi><mo>*</mo><msup><mn>0.1</mn><mn>2</mn></msup><mi>/</mi><mn>100</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mo>−</mo><mn>6.679</mn></mrow><annotation encoding="application/x-tex">\mathcal{Z} = \log(2^2 * \pi * 0.1^2 / 100) \approx -6.679</annotation></semantics></math>.
 Use <code>summary</code> to extract the log-evidence
@@ -113,11 +113,11 @@ Use <code>summary</code> to extract the log-evidence
 <span><span class="va">smry</span></span>
 <span><span class="co">#&gt; nested sampling result summary <span style="color: #0000BB;">&lt;summary.ernest_run&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 100</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 1007</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 964</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 22258</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -15.26</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -7.030 (± 0.2709)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 21053</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -14.83</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: -6.595 (± 0.2631)</span></span></code></pre></div>
 <p>Plot the progress of the evidence estimate:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
@@ -148,16 +148,16 @@ result
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">eggbox_loglik</span>, <span class="va">eggbox_prior</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Created 500 live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499172 &lt; 0.05).</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499523 &lt; 0.05).</span></span>
 <span><span class="va">smry</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="va">smry</span></span>
 <span><span class="co">#&gt; nested sampling result summary <span style="color: #0000BB;">&lt;summary.ernest_run&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Points: 500</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 5103</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Iterations: 5034</span></span>
 <span><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 113177</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -17.00</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: 235.8 (± 0.1212)</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> No. Calls: 111935</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Volume: -16.86</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Log. Evidence: 236.0 (± 0.1200)</span></span></code></pre></div>
 <p>Plot the posterior distribution:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span></code></pre></div>
@@ -168,9 +168,9 @@ result
 </h2>
 <p>Often, the likelihood depends on observed data. In ernest, you must
 incorporate the data within your likelihood function. Here, we show how
-to supply data using both <code><a href="../reference/create_likelihood.html">create_likelihood()</a></code> and an
-anonymous function, with a certified dataset from the U.S. National
-Institute of Science and Technology (<a href="https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html" class="external-link">NIST</a>).</p>
+to supply data using <code><a href="../reference/create_likelihood.html">create_likelihood()</a></code> and an anonymous
+function, with a certified dataset from the U.S. National Institute of
+Science and Technology (<a href="https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html" class="external-link">NIST</a>).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Sample data: vector of observations</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -183,18 +183,16 @@ Institute of Science and Technology (<a href="https://www.itl.nist.gov/div898/st
 <span>  <span class="kw">if</span> <span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, mean <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">data</span>, mean <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Note: <code>log_lik</code> returns <code>-Inf</code> for non-positive
 standard deviations, explicitly censoring impossible parameter
 values.</p>
-<p>Supply data using either an anonymous function or the dots argument
-of <code>create_likelihood</code>:</p>
+<p>Supply the data by creating an annonymous function and wrapping it
+with <code>create_likelihood</code>:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Anonymous function</span></span>
-<span><span class="va">anon_log_lik</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, data <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">anon_log_lik</span> <span class="op">&lt;-</span> \<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, data <span class="op">=</span> <span class="va">y</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Using dots for create_likelihood</span></span>
 <span><span class="va">expected_mean</span> <span class="op">&lt;-</span> <span class="fl">100000000.200000000000000</span></span>
 <span><span class="va">expected_sd</span> <span class="op">&lt;-</span> <span class="fl">0.108372230793914</span></span>
 <span><span class="fu">anon_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">expected_mean</span>, <span class="va">expected_sd</span><span class="op">)</span><span class="op">)</span></span>
@@ -213,7 +211,7 @@ divergence</a> between prior and posterior.</p>
 <span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">anon_log_lik</span>, <span class="va">prior</span><span class="op">)</span></span>
 <span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Created 500 live points.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499724 &lt; 0.05).</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> `min_logz` reached (0.0499209 &lt; 0.05).</span></span></code></pre></div>
 <p>Examine the estimated posterior distribution:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -229,7 +227,7 @@ interval):</p>
 <span><span class="co">#&gt;   variable    `5%`         `50%`         `95%`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.71<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.109         0.169</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.81<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.172</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

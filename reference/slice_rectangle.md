@@ -45,13 +45,6 @@ which inflates the hyperrectagle's volume by the specified factor before
 sampling. Setting `enlarge` to `NA` disables this behaviour, instead
 slicing from the unit hypercube at each iteration.
 
-## Status
-
-This LRPS is experimental and has not been extensively validated across
-different nested sampling problems. You are encouraged to use it, but
-please exercise caution interpretting results and report any issues or
-unexpected behaviour.
-
 ## References
 
 Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
@@ -60,9 +53,7 @@ Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 ## See also
 
 Other ernest_lrps:
-[`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md),
 [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md),
-[`no_underrun()`](https://kylesnap.github.io/ernest/reference/no_underrun.md),
 [`rwmh_cube()`](https://kylesnap.github.io/ernest/reference/rwmh_cube.md),
 [`unif_cube()`](https://kylesnap.github.io/ernest/reference/unif_cube.md),
 [`unif_ellipsoid()`](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md)

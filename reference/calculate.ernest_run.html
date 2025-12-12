@@ -11,7 +11,7 @@ likelihood shell."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,7 @@ likelihood shell.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'ernest_run'</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, ndraws <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">x</span>, ndraws <span class="op">=</span> <span class="fl">1000L</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,15 +61,15 @@ likelihood shell.</p>
 <dd><p>An <code>ernest_run</code> object.</p></dd>
 
 
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>These dots are for future extensions and must be empty.</p></dd>
-
-
 <dt id="arg-ndraws">ndraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
-<dd><p>An optional positive integer. The number of log-volume
+<dd><p>A positive integer. The number of log-volume
 sequences to simulate. If equal to zero, no simulations will be made, and a
 one draw vector of log-volumes are produced from the estimates contained in
-<code>x</code>. If <code>NULL</code>, <code>getOption("posterior.rvar_ndraws")</code> is used (default 4000).</p></dd>
+<code>x</code>.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>These dots are for future extensions and must be empty.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -98,49 +98,48 @@ of the Royal Astronomical Society, 483(2), 2044–2056.
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Load an example run</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># View results as a tibble with `ndraws = FALSE` (the default).</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># View results as a tibble with `ndraws = 0`.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 4000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± 1.3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9.1 ± 0.069</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,398 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik         log_volume   log_weight log_evidence</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -147 <span style="color: #949494;">± NA</span>  -0.00099 <span style="color: #949494;">± 0.0010</span>  -154 <span style="color: #949494;">± 0.81</span>  -154 <span style="color: #949494;">± 0.81</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -141 <span style="color: #949494;">± NA</span>  -0.00199 <span style="color: #949494;">± 0.0014</span>  -148 <span style="color: #949494;">± 0.80</span>  -148 <span style="color: #949494;">± 0.80</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -136 <span style="color: #949494;">± NA</span>  -0.00301 <span style="color: #949494;">± 0.0017</span>  -143 <span style="color: #949494;">± 0.81</span>  -143 <span style="color: #949494;">± 0.80</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.00402 <span style="color: #949494;">± 0.0020</span>  -143 <span style="color: #949494;">± 0.82</span>  -142 <span style="color: #949494;">± 0.67</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -134 <span style="color: #949494;">± NA</span>  -0.00504 <span style="color: #949494;">± 0.0022</span>  -141 <span style="color: #949494;">± 0.79</span>  -140 <span style="color: #949494;">± 0.66</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -130 <span style="color: #949494;">± NA</span>  -0.00604 <span style="color: #949494;">± 0.0025</span>  -137 <span style="color: #949494;">± 0.79</span>  -137 <span style="color: #949494;">± 0.75</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.00701 <span style="color: #949494;">± 0.0027</span>  -137 <span style="color: #949494;">± 0.81</span>  -136 <span style="color: #949494;">± 0.63</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.00804 <span style="color: #949494;">± 0.0028</span>  -136 <span style="color: #949494;">± 0.81</span>  -135 <span style="color: #949494;">± 0.58</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -129 <span style="color: #949494;">± NA</span>  -0.00902 <span style="color: #949494;">± 0.0030</span>  -136 <span style="color: #949494;">± 0.81</span>  -135 <span style="color: #949494;">± 0.53</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -126 <span style="color: #949494;">± NA</span>  -0.01000 <span style="color: #949494;">± 0.0031</span>  -133 <span style="color: #949494;">± 0.80</span>  -133 <span style="color: #949494;">± 0.69</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,388 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9 ± NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,384 × 5</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik   log_volume log_weight log_evidence log_evidence_err</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -147 <span style="color: #949494;">± NA</span>  -0.001 <span style="color: #949494;">± NA</span>  -154 <span style="color: #949494;">± NA</span>    -154 <span style="color: #949494;">± NA</span>     7.0e-33 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -141 <span style="color: #949494;">± NA</span>  -0.002 <span style="color: #949494;">± NA</span>  -148 <span style="color: #949494;">± NA</span>    -148 <span style="color: #949494;">± NA</span>     1.8e-31 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -136 <span style="color: #949494;">± NA</span>  -0.003 <span style="color: #949494;">± NA</span>  -143 <span style="color: #949494;">± NA</span>    -143 <span style="color: #949494;">± NA</span>     1.9e-30 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.004 <span style="color: #949494;">± NA</span>  -142 <span style="color: #949494;">± NA</span>    -142 <span style="color: #949494;">± NA</span>     3.7e-30 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -134 <span style="color: #949494;">± NA</span>  -0.005 <span style="color: #949494;">± NA</span>  -140 <span style="color: #949494;">± NA</span>    -140 <span style="color: #949494;">± NA</span>     8.3e-30 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -130 <span style="color: #949494;">± NA</span>  -0.006 <span style="color: #949494;">± NA</span>  -137 <span style="color: #949494;">± NA</span>    -137 <span style="color: #949494;">± NA</span>     3.9e-29 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.007 <span style="color: #949494;">± NA</span>  -137 <span style="color: #949494;">± NA</span>    -136 <span style="color: #949494;">± NA</span>     6.8e-29 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.008 <span style="color: #949494;">± NA</span>  -136 <span style="color: #949494;">± NA</span>    -135 <span style="color: #949494;">± NA</span>     1.1e-28 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -129 <span style="color: #949494;">± NA</span>  -0.009 <span style="color: #949494;">± NA</span>  -136 <span style="color: #949494;">± NA</span>    -135 <span style="color: #949494;">± NA</span>     1.5e-28 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -126 <span style="color: #949494;">± NA</span>  -0.010 <span style="color: #949494;">± NA</span>  -132 <span style="color: #949494;">± NA</span>    -132 <span style="color: #949494;">± NA</span>     4.0e-28 <span style="color: #949494;">± NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,374 more rows</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Generate 100 simulated log-volume values for each iteration.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">example_run</span>, ndraws <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> evidence estimates <span style="color: #0000BB;">&lt;ernest_estimate&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> No. of Simulated Draws: 100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± 1.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9.1 ± 0.076</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,398 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik        log_volume   log_weight log_evidence</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -147 <span style="color: #949494;">± NA</span>  -0.0013 <span style="color: #949494;">± 0.0013</span>  -154 <span style="color: #949494;">± 0.92</span>  -154 <span style="color: #949494;">± 0.92</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -141 <span style="color: #949494;">± NA</span>  -0.0022 <span style="color: #949494;">± 0.0017</span>  -148 <span style="color: #949494;">± 0.77</span>  -148 <span style="color: #949494;">± 0.77</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -136 <span style="color: #949494;">± NA</span>  -0.0032 <span style="color: #949494;">± 0.0019</span>  -143 <span style="color: #949494;">± 0.65</span>  -143 <span style="color: #949494;">± 0.64</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.0041 <span style="color: #949494;">± 0.0020</span>  -143 <span style="color: #949494;">± 0.95</span>  -142 <span style="color: #949494;">± 0.62</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -134 <span style="color: #949494;">± NA</span>  -0.0050 <span style="color: #949494;">± 0.0023</span>  -141 <span style="color: #949494;">± 0.89</span>  -141 <span style="color: #949494;">± 0.72</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -130 <span style="color: #949494;">± NA</span>  -0.0060 <span style="color: #949494;">± 0.0027</span>  -137 <span style="color: #949494;">± 0.80</span>  -137 <span style="color: #949494;">± 0.78</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.0070 <span style="color: #949494;">± 0.0030</span>  -137 <span style="color: #949494;">± 0.79</span>  -136 <span style="color: #949494;">± 0.67</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.0081 <span style="color: #949494;">± 0.0031</span>  -136 <span style="color: #949494;">± 0.76</span>  -135 <span style="color: #949494;">± 0.60</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -129 <span style="color: #949494;">± NA</span>  -0.0092 <span style="color: #949494;">± 0.0031</span>  -136 <span style="color: #949494;">± 0.84</span>  -135 <span style="color: #949494;">± 0.53</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -126 <span style="color: #949494;">± NA</span>  -0.0104 <span style="color: #949494;">± 0.0033</span>  -133 <span style="color: #949494;">± 0.81</span>  -133 <span style="color: #949494;">± 0.72</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,388 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Volume: -17 ± 1.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log. Evidence: -9 ± 0.07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10,384 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       log_lik          log_volume   log_weight log_evidence</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  -147 <span style="color: #949494;">± NA</span>  -0.00089 <span style="color: #949494;">± 0.00098</span>  -154 <span style="color: #949494;">± 0.90</span>  -154 <span style="color: #949494;">± 0.90</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  -141 <span style="color: #949494;">± NA</span>  -0.00184 <span style="color: #949494;">± 0.00140</span>  -148 <span style="color: #949494;">± 0.82</span>  -148 <span style="color: #949494;">± 0.82</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  -136 <span style="color: #949494;">± NA</span>  -0.00291 <span style="color: #949494;">± 0.00192</span>  -143 <span style="color: #949494;">± 0.83</span>  -143 <span style="color: #949494;">± 0.83</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  -136 <span style="color: #949494;">± NA</span>  -0.00377 <span style="color: #949494;">± 0.00220</span>  -143 <span style="color: #949494;">± 0.72</span>  -142 <span style="color: #949494;">± 0.60</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  -134 <span style="color: #949494;">± NA</span>  -0.00487 <span style="color: #949494;">± 0.00241</span>  -141 <span style="color: #949494;">± 0.76</span>  -140 <span style="color: #949494;">± 0.62</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  -130 <span style="color: #949494;">± NA</span>  -0.00587 <span style="color: #949494;">± 0.00262</span>  -137 <span style="color: #949494;">± 0.72</span>  -137 <span style="color: #949494;">± 0.69</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  -130 <span style="color: #949494;">± NA</span>  -0.00688 <span style="color: #949494;">± 0.00269</span>  -137 <span style="color: #949494;">± 0.83</span>  -136 <span style="color: #949494;">± 0.63</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  -129 <span style="color: #949494;">± NA</span>  -0.00803 <span style="color: #949494;">± 0.00285</span>  -136 <span style="color: #949494;">± 0.75</span>  -135 <span style="color: #949494;">± 0.59</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  -129 <span style="color: #949494;">± NA</span>  -0.00882 <span style="color: #949494;">± 0.00293</span>  -136 <span style="color: #949494;">± 0.73</span>  -135 <span style="color: #949494;">± 0.51</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  -126 <span style="color: #949494;">± NA</span>  -0.00989 <span style="color: #949494;">± 0.00312</span>  -133 <span style="color: #949494;">± 0.79</span>  -133 <span style="color: #949494;">± 0.70</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 10,374 more rows</span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

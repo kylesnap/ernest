@@ -11,7 +11,7 @@ criterion is met."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -129,8 +129,9 @@ sample from the live set (ranging from 1 to <code>n_points</code>).</p></li>
 each iteration.</p></li>
 <li><p><code>calls</code>: <code>integer(n_iter + n_points)</code>. Number of calls used to generate a
 new live point at each iteration.</p></li>
-<li><p><code>birth</code>: <code>integer(n_iter + n_points)</code>. Iteration at which each sample was
-first created (ranging from 0 to <code>n_iter</code>).</p></li>
+<li><p><code>birth</code>: <code>integer(n_iter + n_points)</code>. <code>id</code> of the live point that was used
+to create the given point. <code>0</code> if the point was created by <code>compile</code> at the
+beginning of a run.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -181,8 +182,8 @@ Computation. Bayesian Analysis, 1(4), 833–859. <a href="https://doi.org/10.121
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────────────────</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Iterations: 100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Calls: 176</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6444 (± 0.1312)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Calls: 160</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6476 (± 0.1316)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The final number of calls may exceed `max_calls`, as `generate`</span></span></span>
 <span class="r-in"><span><span class="co"># only checks the number of calls when removing a live point.</span></span></span>
@@ -193,9 +194,9 @@ Computation. Bayesian Analysis, 1(4), 833–859. <a href="https://doi.org/10.121
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────────────────</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Iterations: 227</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Iterations: 225</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Calls: 2603</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6349 (± 0.07714)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6453 (± 0.07790)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use the default stopping criteria</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span>  <span class="co"># \dontrun{}</span></span></span>

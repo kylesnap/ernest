@@ -57,13 +57,6 @@ For more on ellipsoids and their operations, see [Algorithms for
 Ellipsoids](http://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf) by S.B.
 Pope, Cornell University Report FDA 08-01 (2008).
 
-## Status
-
-This LRPS is experimental and has not been extensively validated across
-different nested sampling problems. You are encouraged to use it, but
-please exercise caution interpretting results and report any issues or
-unexpected behaviour.
-
 ## References
 
 Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
@@ -78,9 +71,7 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 ## See also
 
 Other ernest_lrps:
-[`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md),
 [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md),
-[`no_underrun()`](https://kylesnap.github.io/ernest/reference/no_underrun.md),
 [`rwmh_cube()`](https://kylesnap.github.io/ernest/reference/rwmh_cube.md),
 [`slice_rectangle()`](https://kylesnap.github.io/ernest/reference/slice_rectangle.md),
 [`unif_cube()`](https://kylesnap.github.io/ernest/reference/unif_cube.md)

@@ -105,8 +105,9 @@ additional components:
 - `calls`: `integer(n_iter + n_points)`. Number of calls used to
   generate a new live point at each iteration.
 
-- `birth`: `integer(n_iter + n_points)`. Iteration at which each sample
-  was first created (ranging from 0 to `n_iter`).
+- `birth`: `integer(n_iter + n_points)`. `id` of the live point that was
+  used to create the given point. `0` if the point was created by
+  `compile` at the beginning of a run.
 
 ## Details
 
@@ -161,8 +162,8 @@ generate(sampler, max_iterations = 100)
 #> • LRPS Method: rwmh_cube
 #> ────────────────────────────────────────────────────────────────────────────────
 #> • No. Iterations: 100
-#> • No. Calls: 176
-#> • Log. Evidence: -0.6444 (± 0.1312)
+#> • No. Calls: 160
+#> • Log. Evidence: -0.6476 (± 0.1316)
 
 # The final number of calls may exceed `max_calls`, as `generate`
 # only checks the number of calls when removing a live point.
@@ -173,9 +174,9 @@ generate(sampler, max_calls = 2600)
 #> • No. Points: 100
 #> • LRPS Method: rwmh_cube
 #> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Iterations: 227
+#> • No. Iterations: 225
 #> • No. Calls: 2603
-#> • Log. Evidence: -0.6349 (± 0.07714)
+#> • Log. Evidence: -0.6453 (± 0.07790)
 
 # Use the default stopping criteria
 if (FALSE)  generate(sampler)  # \dontrun{}

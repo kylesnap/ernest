@@ -45,7 +45,7 @@ Set up the sampler and run nested sampling:
 sampler <- ernest_sampler(gaussian_blobs_loglik, prior, n_points = 100)
 result <- generate(sampler, show_progress = FALSE)
 #> ℹ Created 100 live points.
-#> ✔ `min_logz` reached (0.0498316 < 0.05).
+#> ✔ `min_logz` reached (0.0495272 < 0.05).
 ```
 
 For this distribution, the analytical evidence is
@@ -58,11 +58,11 @@ smry <- summary(result)
 smry
 #> nested sampling result summary <summary.ernest_run>
 #> • No. Points: 100
-#> • No. Iterations: 1007
+#> • No. Iterations: 964
 #> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Calls: 22258
-#> • Log. Volume: -15.26
-#> • Log. Evidence: -7.030 (± 0.2709)
+#> • No. Calls: 21053
+#> • Log. Volume: -14.83
+#> • Log. Evidence: -6.595 (± 0.2631)
 ```
 
 Plot the progress of the evidence estimate:
@@ -102,16 +102,16 @@ result ($\approx 235.895$):
 sampler <- ernest_sampler(eggbox_loglik, eggbox_prior)
 result <- generate(sampler, show_progress = FALSE)
 #> ℹ Created 500 live points.
-#> ✔ `min_logz` reached (0.0499172 < 0.05).
+#> ✔ `min_logz` reached (0.0499523 < 0.05).
 smry <- summary(result)
 smry
 #> nested sampling result summary <summary.ernest_run>
 #> • No. Points: 500
-#> • No. Iterations: 5103
+#> • No. Iterations: 5034
 #> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Calls: 113177
-#> • Log. Volume: -17.00
-#> • Log. Evidence: 235.8 (± 0.1212)
+#> • No. Calls: 111935
+#> • Log. Volume: -16.86
+#> • Log. Evidence: 236.0 (± 0.1200)
 ```
 
 Plot the posterior distribution:
@@ -126,7 +126,7 @@ visualize(result, type = "density")
 
 Often, the likelihood depends on observed data. In ernest, you must
 incorporate the data within your likelihood function. Here, we show how
-to supply data using both
+to supply data using
 [`create_likelihood()`](https://kylesnap.github.io/ernest/reference/create_likelihood.md)
 and an anonymous function, with a certified dataset from the U.S.
 National Institute of Science and Technology
@@ -144,21 +144,19 @@ log_lik <- function(theta, data) {
   if (theta[2] <= 0) {
     return(-Inf)
   }
-  sum(stats::dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
+  sum(stats::dnorm(data, mean = theta[1], sd = theta[2], log = TRUE))
 }
 ```
 
 Note: `log_lik` returns `-Inf` for non-positive standard deviations,
 explicitly censoring impossible parameter values.
 
-Supply data using either an anonymous function or the dots argument of
+Supply the data by creating an annonymous function and wrapping it with
 `create_likelihood`:
 
 ``` r
-# Anonymous function
 anon_log_lik <- \(theta) log_lik(theta, data = y)
 
-# Using dots for create_likelihood
 expected_mean <- 100000000.200000000000000
 expected_sd <- 0.108372230793914
 anon_log_lik(c(expected_mean, expected_sd))
@@ -181,7 +179,7 @@ prior <- create_uniform_prior(
 sampler <- ernest_sampler(anon_log_lik, prior)
 result <- generate(sampler, show_progress = FALSE)
 #> ℹ Created 500 live points.
-#> ✔ `min_logz` reached (0.0499724 < 0.05).
+#> ✔ `min_logz` reached (0.0499209 < 0.05).
 ```
 
 Examine the estimated posterior distribution:
@@ -203,5 +201,5 @@ posterior::summarise_draws(
 #>   variable    `5%`         `50%`         `95%`
 #>   <chr>      <dbl>         <dbl>         <dbl>
 #> 1 mu       1.00e+8 100000000.    100000000.   
-#> 2 sigma    7.71e-2         0.109         0.169
+#> 2 sigma    7.81e-2         0.110         0.172
 ```

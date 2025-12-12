@@ -26,9 +26,7 @@ Royal Astronomical Society, 493, 3132–3158.
 ## See also
 
 Other ernest_lrps:
-[`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md),
 [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md),
-[`no_underrun()`](https://kylesnap.github.io/ernest/reference/no_underrun.md),
 [`rwmh_cube()`](https://kylesnap.github.io/ernest/reference/rwmh_cube.md),
 [`slice_rectangle()`](https://kylesnap.github.io/ernest/reference/slice_rectangle.md),
 [`unif_ellipsoid()`](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md)

@@ -80,9 +80,7 @@ where \\S(0, \epsilon)\\ is a point drawn uniformly from the
 ## See also
 
 Other ernest_lrps:
-[`mini_balls()`](https://kylesnap.github.io/ernest/reference/mini_balls.md),
 [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md),
-[`no_underrun()`](https://kylesnap.github.io/ernest/reference/no_underrun.md),
 [`slice_rectangle()`](https://kylesnap.github.io/ernest/reference/slice_rectangle.md),
 [`unif_cube()`](https://kylesnap.github.io/ernest/reference/unif_cube.md),
 [`unif_ellipsoid()`](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md)

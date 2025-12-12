@@ -13,7 +13,7 @@ your sampler generates new points that satisfy the likelihood constraint."></hea
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,7 +39,7 @@ your sampler generates new points that satisfy the likelihood constraint."></hea
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Generate a new point using LRPS</h1>
-      <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/main/R/lrps-class.R" class="external-link"><code>R/lrps-class.R</code></a>, <a href="https://github.com/kylesnap/ernest/blob/main/R/mini_balls.R" class="external-link"><code>R/mini_balls.R</code></a>, <a href="https://github.com/kylesnap/ernest/blob/main/R/multi_ellipsoid.R" class="external-link"><code>R/multi_ellipsoid.R</code></a>, and 5 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/kylesnap/ernest/blob/main/R/lrps-class.R" class="external-link"><code>R/lrps-class.R</code></a>, <a href="https://github.com/kylesnap/ernest/blob/main/R/multi_ellipsoid.R" class="external-link"><code>R/multi_ellipsoid.R</code></a>, <a href="https://github.com/kylesnap/ernest/blob/main/R/rwmh_cube.R" class="external-link"><code>R/rwmh_cube.R</code></a>, and 3 more</small>
       <div class="d-none name"><code>propose.Rd</code></div>
     </div>
 
@@ -54,13 +54,7 @@ your sampler generates new points that satisfy the likelihood constraint.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">propose</span><span class="op">(</span><span class="va">x</span>, original <span class="op">=</span> <span class="cn">NULL</span>, criterion <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for class 'mini_balls'</span></span>
-<span><span class="fu">propose</span><span class="op">(</span><span class="va">x</span>, original <span class="op">=</span> <span class="cn">NULL</span>, criterion <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># S3 method for class 'multi_ellipsoid'</span></span>
-<span><span class="fu">propose</span><span class="op">(</span><span class="va">x</span>, original <span class="op">=</span> <span class="cn">NULL</span>, criterion <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for class 'no_underrun'</span></span>
 <span><span class="fu">propose</span><span class="op">(</span><span class="va">x</span>, original <span class="op">=</span> <span class="cn">NULL</span>, criterion <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'rwmh_cube'</span></span>

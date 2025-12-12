@@ -21,6 +21,7 @@ describe("slice class", {
       extra_args = "rect"
     )
     expect_lrps(obj, subclass = "slice_rectangle", !!!ptypes)
+    expect_snapshot(obj)
   })
 
   it("Can be updated with a matrix of points", {

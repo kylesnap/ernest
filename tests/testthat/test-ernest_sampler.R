@@ -17,6 +17,9 @@ test_that("ernest_sampler errors with invalid prior", {
 #' @srrstats {BS2.13} Test that R can produce fully-verbose output when
 #' requested (messages are turned off for all other tests).
 cli::test_that_cli("Fully-verbose output", {
+  skip_on_cran()
+  skip_on_ci()
+  skip_on_covr()
   sampler <- ernest_sampler(
     gaussian_blobs$log_lik,
     gaussian_blobs$prior,

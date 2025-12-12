@@ -50,7 +50,7 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
 
 #' @srrstats {BS7.3} The scale of the prior should impact the iterations
 #' needed for NS to converge an evidence estimate.
-test_that("Using a more informative prior lowers the time needed for convergence", {
+test_that("Using a more informative prior lowers time till convergence", {
   skip_extended()
   sampler_naive <- ernest_sampler(
     gaussian_blobs$log_lik,

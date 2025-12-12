@@ -13,13 +13,6 @@ extern "C" SEXP _ernest_logaddexp(SEXP x, SEXP y) {
   END_CPP11
 }
 // propose-impl.cpp
-cpp11::list NURSImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double h, int M);
-extern "C" SEXP _ernest_NURSImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP h, SEXP M) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(NURSImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(h), cpp11::as_cpp<cpp11::decay_t<int>>(M)));
-  END_CPP11
-}
-// propose-impl.cpp
 cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon);
 extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon) {
   BEGIN_CPP11
@@ -47,13 +40,6 @@ extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP point_log_volume) {
     return cpp11::as_sexp(MultiBoundingEllipsoids(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<double>>(point_log_volume)));
   END_CPP11
 }
-// update_lrps-impl.cpp
-cpp11::list MiniBall(cpp11::doubles_matrix<> X, int n_bootstraps, char method);
-extern "C" SEXP _ernest_MiniBall(SEXP X, SEXP n_bootstraps, SEXP method) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(MiniBall(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(X), cpp11::as_cpp<cpp11::decay_t<int>>(n_bootstraps), cpp11::as_cpp<cpp11::decay_t<char>>(method)));
-  END_CPP11
-}
 
 extern "C" {
 /* .Call calls */
@@ -61,9 +47,7 @@ extern SEXP run_testthat_tests(void *);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       2},
-    {"_ernest_MiniBall",                (DL_FUNC) &_ernest_MiniBall,                3},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
-    {"_ernest_NURSImpl",                (DL_FUNC) &_ernest_NURSImpl,                6},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
     {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,               2},

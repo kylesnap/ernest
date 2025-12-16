@@ -11,15 +11,15 @@ NULL
 #' return zero-lengths.
 test_that("Zero-length likelihood fails", {
   ll <- \(theta) double(0)
-  prior <- create_uniform_prior(.n_dim = 2)
+  prior <- create_uniform_prior(names = LETTERS[1:2])
 
   expect_snapshot(ernest_sampler(ll, prior, seed = 42), error = TRUE)
 })
 
 test_that("Zero-length prior fails", {
   prior_fn <- \(theta) double(0)
-  expect_snapshot(create_prior(prior_fn, .n_dim = 0), error = TRUE)
-  expect_snapshot(create_prior(prior_fn, .n_dim = 1), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = character()), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1]), error = TRUE)
 })
 
 #' Wrong types
@@ -29,24 +29,24 @@ NULL
 
 test_that("Fails on character types", {
   prior_fn <- \(theta) c("A", "B")
-  expect_snapshot(create_prior(prior_fn, .n_dim = 2), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
   expect_snapshot_error(ernest_sampler(
     ll,
-    create_uniform_prior(.n_dim = 2),
+    create_uniform_prior(names = LETTERS[1:2]),
     seed = 42
   ))
 })
 
 test_that("Fails on complex types", {
   prior_fn <- \(theta) 0.15i * theta
-  expect_snapshot(create_prior(prior_fn, .n_dim = 2), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) sum(0.15i * length(theta))
   expect_snapshot_error(ernest_sampler(
     ll,
-    create_uniform_prior(.n_dim = 2),
+    create_uniform_prior(names = LETTERS[1:2]),
     seed = 42
   ))
 })
@@ -58,8 +58,8 @@ test_that("Missing values in the prior", {
   set.seed(42)
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
   expect_error(
-    create_prior(prior_fn, .n_dim = 2),
-    "`fn` failed a sanity check."
+    create_prior(prior_fn, names = LETTERS[1:2]),
+    "`fn` cannot return non-numeric, missing, or `NaN` values."
   )
 })
 
@@ -111,7 +111,7 @@ test_that("Missing values in the log-likelihood", {
 test_that("Ernest fails when ll is flat to begin with", {
   ll <- \(theta) 0
   expect_snapshot(
-    ernest_sampler(ll, create_uniform_prior(2), seed = 42),
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
     error = TRUE
   )
 })

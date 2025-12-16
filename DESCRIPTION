@@ -28,6 +28,8 @@ Imports:
     vctrs,
     withr
 Suggests: 
+    brms,
+    extraDistr,
     ggdist,
     knitr,
     LaplacesDemon,

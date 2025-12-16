@@ -1,39 +1,24 @@
-#' Specify a prior with normally distributed marginals
+#' @srrstats {BS2.5} Special priors perform checks to ensure that their
+#' parameters are admissable to each distribution.
+
+#' Normally-Distributed Prior (Possibly Truncated)
 #'
-#' A specialisation of [create_prior()] where the parameter space is
-#' described by independent normal variables, possibly truncated.
-#'
+#' @rdname ernest_prior
 #' @inheritParams stats::qnorm
-#' @param mean Numeric vector of means.
-#' @param sd Numeric vector of standard deviations (must be strictly positive.)
-#' @param lower,upper Numeric vector of bounds for a truncated normal
-#' distribution.
-#' @inheritParams create_prior
-#'
-#' @returns A `normal_prior`, a subclass of `ernest_prior` with an efficient
-#' implementation of the unit hypercube transformation.
-#'
-#' @inherit create_prior note
-#'
-#' @srrstats {BS2.5} create_normal_prior performs checks to ensure that the sd
-#' parameter is strictly positive.
-#'
-#' @seealso
-#' * [create_prior()] for more on the `ernest_prior` object.
-#' * [truncnorm::qtruncnorm()] for the truncated normal quantile function.
-#' @family special_priors
 #' @export
-#' @examples
-#' prior <- create_normal_prior(.n_dim = 3)
-#' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
+  names = NULL,
   mean = 0,
   sd = 1,
-  names = "Normal",
   lower = -Inf,
   upper = Inf,
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
+  )
 ) {
   mean <- vctrs::vec_cast(mean, double())
   sd <- vctrs::vec_cast(sd, double())
@@ -42,107 +27,124 @@ create_normal_prior <- function(
       "All elements of {.arg sd} must be strictly positive and non-missing."
     )
   }
-  n_dim <- vctrs::vec_size_common(
-    mean = mean,
-    sd = sd,
+  params <- recycle_params(
+    names = names,
     lower = lower,
     upper = upper,
-    names = names,
-    .size = .n_dim
-  )
-
-  prior <- new_ernest_prior(
-    fn = \(x) x,
-    n_dim = n_dim,
-    lower = lower,
-    upper = upper,
-    names = names,
-    name_repair = .name_repair,
-    class = "uniform_prior"
-  )
-  params <- vctrs::vec_recycle_common(
     mean = mean,
-    sd = sd,
-    .size = n_dim
+    sd = sd
   )
+  truncated <- any(is.finite(params$lower)) || any(is.finite(params$upper))
+  names <- names %||%
+    sprintf(
+      "Normal_%s_%s",
+      gsub("-", "m", prettyunits::pretty_round(params$mean, 1)),
+      prettyunits::pretty_round(params$sd, 1)
+    )
 
-  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$upper))
-  unit <- NULL
-  prior$fn <- if (truncated) {
+  x <- NULL
+  fn <- if (truncated) {
     check_installed(
-      "truncnorm",
-      "calculate the quantile function of the truncated normal distribution"
+      "extraDistr",
+      "calculate quantiles for the truncated normal distribution"
     )
     new_function(
-      exprs(unit = ),
-      expr((!!truncnorm::qtruncnorm)(
-        unit,
-        mean = !!params$mean,
-        sd = !!params$sd,
-        a = !!prior$lower,
-        b = !!prior$upper
-      )),
+      exprs(x = ),
+      expr(
+        (!!extraDistr::qtnorm)(
+          x,
+          mean = !!params$mean,
+          sd = !!params$sd,
+          a = !!params$lower,
+          b = !!params$upper
+        )
+      ),
       env = empty_env()
     )
   } else {
     new_function(
-      exprs(unit = ),
-      expr((!!stats::qnorm)(unit, mean = !!params$mean, sd = !!params$sd)),
+      exprs(x = ),
+      expr(
+        (!!stats::qnorm)(
+          x,
+          mean = !!params$mean,
+          sd = !!params$sd
+        )
+      ),
       env = empty_env()
     )
   }
 
-  do.call(
-    new_ernest_prior,
-    c(
-      as.list(prior),
-      "mean" = params$mean,
-      "sd" = params$sd,
-      class = "normal_prior"
-    )
+  new_ernest_prior(
+    fn = fn,
+    names = names,
+    lower = params$lower,
+    upper = params$upper,
+    .class = c(if (truncated) "trunc_prior", "normal_prior"),
+    .repair = repair
   )
 }
 
-#' Specify a prior with uniformly distributed marginals
+#' Uniform Prior
 #'
-#' A specialisation of [create_prior()] where the parameter space is
-#' described by independent uniform marginals.
-#'
-#' @param lower,upper Numeric vector of bounds for the uniform distribution.
-#' @inheritParams create_prior
-#'
-#' @returns A `uniform_prior`, a subclass of `ernest_prior` with an efficient
-#' implementation of the unit hypercube transformation.
-#'
-#' @inherit create_prior note
-#'
-#' @family special_priors
+#' @rdname ernest_prior
+#' @inheritParams stats::qnorm
 #' @export
-#' @examples
-#' prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))
-#' prior$fn(c(0.33, 0.67))
 create_uniform_prior <- function(
+  names = NULL,
   lower = 0,
   upper = 1,
-  names = "Uniform",
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
+  )
 ) {
-  prior <- new_ernest_prior(
-    fn = \(x) x,
-    n_dim = .n_dim,
+  if (!is_double(lower, finite = TRUE)) {
+    stop_input_type(lower, "a double vector with finite values")
+  }
+  if (!is_double(upper, finite = TRUE)) {
+    stop_input_type(upper, "a double vector with finite values")
+  }
+  params <- recycle_params(names, lower = lower, upper = upper)
+  names <- names %||%
+    sprintf(
+      "Uniform_%s_%s",
+      gsub("-", "m", prettyunits::pretty_round(params$lower, 1)),
+      gsub("-", "m", prettyunits::pretty_round(params$upper, 1))
+    )
+  diff <- params$upper - params$lower
+  # Evaluating in the empty-environment requires prefix operators
+  fn <- new_function(
+    exprs(x = ),
+    expr(
+      (!!`+`)(!!params$lower, (!!`*`)(x, !!diff))
+    ),
+    env = empty_env()
+  )
+
+  new_ernest_prior(
+    fn = fn,
+    names = names,
+    lower = params$lower,
+    upper = params$upper,
+    .class = "uniform_prior",
+    .repair = repair
+  )
+}
+
+#' Recycle prior parameters to the right length
+recycle_params <- function(names, lower, upper, ..., .call = caller_env()) {
+  n_dim <- if (is.null(names)) NULL else length(names)
+  params <- vctrs::vec_recycle_common(
     lower = lower,
     upper = upper,
-    names = names,
-    class = "uniform_prior"
+    ...,
+    .size = n_dim,
+    .call = .call
   )
-  diff <- prior$upper - prior$lower
-  prior$fn <- function(x) {
-    prior$lower + x * diff
-  }
-
-  do.call(
-    new_ernest_prior,
-    c(as.list(prior), class = "uniform_prior")
-  )
+  params$.n_dim <- n_dim %||% vctrs::vec_size_common(!!!params)
+  params
 }

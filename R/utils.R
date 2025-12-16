@@ -192,7 +192,7 @@ check_matrix <- function(
     cli::cli_abort(
       c(
         "`{arg}` must have dimensions {nrow} x {ncol}.",
-        "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
+        "x" = "Actual dimensions: {nrow(x)} x {ncol(x)}."
       ),
       arg = arg,
       call = call

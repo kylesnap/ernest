@@ -1,82 +1,85 @@
 # new_ernest_prior / Explains dimensionality errors
 
     Code
-      new_ernest_prior(fn, n_dim = 0)
+      new_ernest_prior(fn)
     Condition
-      Error:
-      ! `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
+      Error in `new_ernest_prior()`:
+      ! argument "names" is missing, with no default
 
 ---
 
     Code
-      new_ernest_prior(fn, n_dim = 3, lower = c(-Inf, 0))
+      new_ernest_prior(fn, LETTERS[1:3], lower = c(-Inf, 0))
     Condition
-      Error in `vctrs::df_list()`:
+      Error in `new_ernest_prior()`:
       ! Can't recycle `lower` (size 2) to size 3.
 
 ---
 
     Code
-      new_ernest_prior(fn, lower = c(-Inf, -Inf, 2), upper = c(Inf, Inf))
+      new_ernest_prior(fn, LETTERS[1:3], lower = c(-Inf, -Inf, 2), upper = c(Inf, Inf))
     Condition
-      Error in `vctrs::df_list()`:
-      ! Can't recycle `names` (size 3) to match `upper` (size 2).
-
----
-
-    Can't recycle `names` (size 4) to size 2.
+      Error in `new_ernest_prior()`:
+      ! Can't recycle `upper` (size 2) to size 3.
 
 # new_ernest_prior / explains type errors
+
+    Code
+      new_ernest_prior(fn = "mean")
+    Condition
+      Error in `new_ernest_prior()`:
+      ! argument "names" is missing, with no default
+
+---
 
     Code
       new_ernest_prior(fn, lower = c("0", "0"))
     Condition
       Error in `new_ernest_prior()`:
-      ! Can't convert `lower` <character> to <double>.
+      ! argument "names" is missing, with no default
 
----
+# new_ernest_prior / explains errors with explicit upper and lower
 
     Code
-      new_ernest_prior(fn, names = c(60, 70))
+      new_ernest_prior(fn, names = LETTERS[1:2], lower = c(Inf, 0))
     Condition
       Error in `new_ernest_prior()`:
-      ! Can't convert `names` <double> to <character>.
-
-# new_ernest_prior / explains errors with upper and lower
-
-    Code
-      new_ernest_prior(fn, lower = c(Inf, 0))
-    Condition
-      Error:
       ! `lower` must be strictly smaller than `upper`.
+      x Problem at index 1: `Inf ≮ 1`
 
 ---
 
     Code
-      new_ernest_prior(fn, upper = c(0, -Inf))
+      new_ernest_prior(fn, names = LETTERS[1:2], upper = c(0, -Inf))
     Condition
-      Error:
+      Error in `new_ernest_prior()`:
       ! `lower` must be strictly smaller than `upper`.
+      x Problem at index 1: `0 ≮ 0`
 
 ---
 
     Code
-      new_ernest_prior(fn, lower = 0, upper = 0)
+      new_ernest_prior(fn, names = LETTERS[1:2], lower = 0, upper = 0)
     Condition
-      Error:
+      Error in `new_ernest_prior()`:
       ! `lower` must be strictly smaller than `upper`.
+      x Problem at index 1: `0 ≮ 0`
+
+# c.ernest_prior / Errors when concatenated with non-prior
+
+    Code
+      c(unif_p, qnorm)
+    Condition
+      Error in `c()`:
+      ! Can't add <function> objects to an `ernest_prior`.
 
 # create_prior / creates a custom prior
 
     Code
       prior
     Output
-      custom prior distribution <ernest_prior>
+      custom prior distribution <custom_prior/ernest_prior>
       
-      # A tibble: 3 x 3
-        names lower upper
-        <chr> <dbl> <dbl>
-      1 ...1    -10    10
-      2 ...2    -10    10
-      3 ...3    -10    10
+      Number of Dimensions: 2
+      Names: A and B
 

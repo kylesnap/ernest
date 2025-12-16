@@ -21,7 +21,7 @@
     Condition
       Error:
       ! `unit` must have dimensions 500 x 2.
-      x `unit` instead has dimensions 250 x 4
+      x Actual dimensions: 250 x 4.
 
 # check_live_set / errors if unit matrix contains NaN
 

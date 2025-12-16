@@ -11,26 +11,30 @@
 # Zero-length prior fails
 
     Code
-      create_prior(prior_fn, .n_dim = 0)
+      create_prior(prior_fn, names = character())
     Condition
-      Error in `create_prior()`:
-      ! `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
+      Error in `new_ernest_prior()`:
+      ! `names` must be at least length one, not length 0.
 
 ---
 
     Code
-      create_prior(prior_fn, .n_dim = 1)
+      create_prior(prior_fn, names = LETTERS[1])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a vector of length 1, not one of length 0.
+      Error in `new_ernest_prior()`:
+      ! Error while validating the prior.
+      Caused by error in `check_prior()`:
+      ! `fn` must return a numeric vector of length 1, not one of length 0.
 
 # Fails on character types
 
     Code
-      create_prior(prior_fn, .n_dim = 2)
+      create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a numeric vector, not a character vector.
+      Error in `new_ernest_prior()`:
+      ! Error while validating the prior.
+      Caused by error:
+      ! Can't convert `out` <character> to <double>.
 
 ---
 
@@ -41,10 +45,12 @@
 # Fails on complex types
 
     Code
-      create_prior(prior_fn, .n_dim = 2)
+      create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a numeric vector, not a complex vector.
+      Error in `new_ernest_prior()`:
+      ! Error while validating the prior.
+      Caused by error:
+      ! Can't convert `out` <complex> to <double>.
 
 ---
 
@@ -86,8 +92,11 @@
 # Ernest fails when ll is flat to begin with
 
     Code
-      ernest_sampler(ll, create_uniform_prior(2), seed = 42)
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
     Condition
-      Error in `create_uniform_prior()`:
-      ! `lower` must be strictly smaller than `upper`.
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `ernest_sampler()`:
+      ! `log_lik` must contain a range of likelihood values.
+      x `log_lik` currently contains one unique value (0).
 

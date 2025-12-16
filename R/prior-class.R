@@ -5,15 +5,14 @@
 #'
 #' @param fn A function. Takes a vector of unit cube coordinates and
 #' returns a vector of parameters of the same length.
-#' @param names An optional character vector. Names for the variables in the
-#' prior distribution.
+#' @param names Unique names for each variable in the prior distribution.
+#' Optional for non-custom prior distributions.
 #' @param lower,upper Numeric vectors. Expected bounds for the
 #' parameter vectors after hypercube transformation.
-#' @param .n_dim An optional positive integer. The number of dimensions of the
-#' prior distribution.
-#' @param .name_repair An optional, case-sensitive string. How to repair
-#' `names`. Options are `"unique"` (default), `"universal"`, or
-#' `"check_unique"`. See [vctrs::vec_as_names()] for details.
+#' @param repair Describes how to repair the vector of `names`. One of
+#' `"check_unique"`, `"unique"`, `"universal"`, `"unique_quiet"`,
+#' or `"universal_quiet"`.
+#' See [vctrs::vec_as_names()] for descriptions of each repair strategy.
 #'
 #' @returns
 #' A list with with class `ernest_prior`, containing `fn`, `lower`, `upper`,
@@ -48,111 +47,205 @@
 #' provides examples.
 #'
 #' @aliases ernest_prior
-#' @examples
-#' # 3D uniform prior in the range [-10, 10]
-#' unif <- function(x) {
-#'    -10 + x * 20
-#' }
-#'
-#' prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
-#' prior$fn(c(0.25, 0.5, 0.75))
-#'
-#' # A normal prior with parameterised mean and standard deviation
-#' hier_f <- function(theta) {
-#'   mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
-#'   sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
-#'   x <- qnorm(theta[3], mu, sigma) # X ~ N(mu, sigma)
-#'   c(mu, sigma, x)
-#' }
-#' create_prior(
-#'   hier_f,
-#'   names = c("mu", "sigma", "x"),
-#'   lower = c(-Inf, 0, -Inf)
-#' )
+#' @rdname ernest_prior
+#' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R
 #' @export
 create_prior <- function(
   fn,
   names = NULL,
-  lower = -Inf,
-  upper = Inf,
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
+  lower = NULL,
+  upper = NULL,
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
+  )
 ) {
   fn <- as_function(fn)
-
-  prior <- new_ernest_prior(
-    fn = fn,
-    n_dim = .n_dim,
-    names = names,
-    lower = lower,
-    upper = upper,
-    name_repair = .name_repair
+  new_ernest_prior(
+    fn,
+    names,
+    lower,
+    upper,
+    .class = "custom_prior",
+    .repair = repair
   )
-  check_prior(prior)
-  prior
 }
 
-#' Construct an object of class 'ernest_prior'.
-#'
-#' @param fn The prior transformation function.
-#' @param n_dim Number of dimensions.
-#' @param names Character vector of variable names.
-#' @param lower,upper Numeric vectors of bounds.
-#' @param class Character vector of additional S3 classes.
-#' @param name_repair Character string indicating how to repair variable names.
-#' Options are `"unique"` (default), `"universal"`, or `"check_unique"`.
-#' @param ... Dots forwarded from subclasses of ernest_prior.
-#' @param call The calling environment for error messages.
-#'
-#' @returns An object of class 'ernest_prior', which is a structured list
-#' containing the prior function, dimensionality, variable names, and bounds.
+#' Construct an ernest_prior object
 #' @noRd
 new_ernest_prior <- function(
-  fn = NULL,
-  n_dim = NULL,
-  lower = -Inf,
-  upper = Inf,
-  names = NULL,
-  name_repair = c("unique", "universal", "check_unique"),
-  ...,
-  class = NULL,
-  call = caller_env()
+  fn,
+  names,
+  lower = NULL,
+  upper = NULL,
+  .class = NULL,
+  .repair = "check_unique"
 ) {
-  check_function(fn, call = call)
-  check_number_whole(n_dim, min = 1, allow_null = TRUE, call = call)
-  name_repair <- arg_match0(
-    name_repair,
-    c("unique", "universal", "check_unique")
+  .repair <- arg_match0(
+    .repair,
+    c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet")
   )
-  names <- vctrs::vec_cast(names, to = character()) %||% ""
-  lower <- vctrs::vec_cast(lower, to = double()) %||% -Inf
-  upper <- vctrs::vec_cast(upper, to = double()) %||% Inf
-  meta <- vctrs::df_list(
-    "names" = names,
+  names <- vctrs::vec_as_names(names, repair = .repair)
+  n_dim <- length(names)
+  if (n_dim < 1) {
+    cli::cli_abort("`names` must be at least length one, not length {n_dim}.")
+  }
+
+  # Wrap the transformation, catching errors in function output.
+  force(fn)
+  catching_fn <- function(x) {
+    out <- try_fetch(
+      {
+        fn(x)
+      },
+      error = function(cnd) {
+        cli::cli_abort("Error within `ernest_prior`.", parent = cnd)
+      }
+    )
+    out <- vctrs::vec_cast(out, double(), call = NULL)
+    if (any(is.nan(out) | is.na(out))) {
+      cli::cli_abort(
+        "`fn` cannot return non-numeric, missing, or `NaN` values.",
+        call = NULL
+      )
+    }
+    return(out)
+  }
+
+  parallel_fn <- function(x) {
+    if (is.matrix(x)) {
+      t(apply(x, 1, catching_fn))
+    } else if (is.vector(x, mode = "numeric")) {
+      catching_fn(x)
+    } else {
+      stop_input_type(x, "a numeric vector or matrix")
+    }
+  }
+  test_matrix <- check_prior(parallel_fn, n_dim)
+
+  bound_msg <- NULL
+  if (is.null(lower)) {
+    lower <- parallel_fn(rep(0.0, n_dim))
+    bound_msg <- "lower"
+  }
+  if (is.null(upper)) {
+    upper <- parallel_fn(rep(1.0, n_dim))
+    bound_msg <- if (is.null(bound_msg)) "upper" else "lower/upper"
+  }
+  bounds <- vctrs::vec_cast_common(
     "lower" = lower,
     "upper" = upper,
-    .size = n_dim
+    .to = double()
   )
-  meta$names <- vctrs::vec_as_names(
-    meta$names,
-    repair = name_repair,
-    call = call
-  )
-  n_dim <- vctrs::vec_size(meta$names)
-  if (any(meta$lower >= meta$upper)) {
+  bounds <- vctrs::vec_recycle_common(!!!bounds, .size = n_dim)
+
+  if (!vctrs::list_all_size(bounds, n_dim)) {
     cli::cli_abort(
-      "`lower` must be strictly smaller than `upper`.",
-      call = call
+      "`lower` and `upper` must be the same length as `names` ({n_dim}).",
+      "i" = if (!is.null(bound_msg)) {
+        "{bound_msg} boundaries were calculated by {.fn create_prior}."
+      }
     )
   }
 
-  elems <- list2(fn = fn, !!!meta)
-  new_elems <- list2(...)
-  check_unique_names(c(elems, new_elems))
+  if (any(bounds$lower >= bounds$upper)) {
+    indx <- which.max(bounds$lower >= bounds$upper)
+    cli::cli_abort(c(
+      "`lower` must be strictly smaller than `upper`.",
+      "x" = paste0(
+        "Problem at index {indx}: ",
+        "`{bounds$lower[indx]} \U226E {bounds$upper[indx]}`"
+      )
+    ))
+  }
+
+  oob_low <- any(matrixStats::colMins(test_matrix) < bounds$lower)
+  oob_up <- any(matrixStats::colMaxs(test_matrix) > bounds$upper)
+  if (any(oob_low | oob_up)) {
+    indx_low <- if (any(oob_low)) which.max(oob_low) else NULL
+    indx_up <- if (any(oob_up)) which.max(oob_up) else NULL
+    cli::cli_abort(c(
+      paste0(
+        "`fn` must return values within the bounds `lower` and `upper`."
+      ),
+      "x" = if (oob_low) {
+        "Expected lower bounds: {pretty(bounds$lower)}."
+      },
+      "x" = if (oob_low) {
+        "Actual lower bounds: {pretty(matrixStats::colMins(test_matrix))}."
+      },
+      "x" = if (oob_up) {
+        "Expected upper bounds: {pretty(bounds$lower)}."
+      },
+      "x" = if (oob_up) {
+        "Actual upper bounds: {pretty(matrixStats::colMins(test_matrix))}."
+      }
+    ))
+  }
+  rm(test_matrix)
   structure(
-    c(elems, new_elems),
+    list(
+      "fn" = parallel_fn,
+      "names" = names,
+      "lower" = bounds$lower,
+      "upper" = bounds$upper
+    ),
     n_dim = n_dim,
-    class = c(class, "ernest_prior")
+    body = expr(!!fn),
+    class = c(.class, "ernest_prior")
+  )
+}
+
+#' @rdname ernest_prior
+#'
+#' @param ... A collection of `ernest_prior` objects.
+#'
+#' @export
+c.ernest_prior <- function(...) {
+  dots <- list2(...)
+  priors <- vapply(dots, \(x) inherits(x, "ernest_prior"), logical(1))
+  if (any(!priors)) {
+    first <- which.min(priors)
+    class <- class(dots[[first]])[1]
+    cli::cli_abort("Can't add {.cls {class}} objects to an `ernest_prior`.")
+  }
+  if (length(priors) == 1L) {
+    return(dots[[1]])
+  }
+
+  n_dim <- vapply(dots, function(x) attr(x, "n_dim"), integer(1))
+  bodies <- lapply(dots, function(x) attr(x, "body"))
+  cum_dim <- cumsum(n_dim)
+  starts <- c(1L, head(cum_dim + 1L, -1L))
+  ends <- cum_dim
+
+  x <- NULL
+  calls <- Map(
+    function(fn, start, end) {
+      expr((!!fn)(x[!!start:!!end]))
+    },
+    fn = bodies,
+    start = starts,
+    end = ends
+  )
+  fn <- rlang::new_function(
+    args = rlang::pairlist2(x = ),
+    body = expr({
+      res <- list(!!!calls)
+      unlist(res, recursive = FALSE, use.names = FALSE)
+    })
+  )
+
+  new_ernest_prior(
+    fn = fn,
+    names = list_c(lapply(dots, `[[`, "names")),
+    lower = list_c(lapply(dots, `[[`, "lower")),
+    upper = list_c(lapply(dots, `[[`, "upper")),
+    .repair = "unique",
+    .class = "composite_prior"
   )
 }
 
@@ -162,7 +255,8 @@ new_ernest_prior <- function(
 #' returns finite double vectors/matrices of the correct dimensions and within
 #' specified bounds, for both vector and matrix inputs.
 #'
-#' @param prior The ernest_prior object.
+#' @param fn The prior transformation function.
+#' @param n_dim Dimensionality.
 #' @param call Environment for error reporting.
 #'
 #' @srrstats {G2.0, G2.1} Uses vctrs functions to ensure that the inputs are of
@@ -174,65 +268,48 @@ new_ernest_prior <- function(
 #' @srrstats {BS2.2, BS2.3} Ensures that the lengths of the prior parameters are
 #' validated before the NS algorithm is invoked.
 #'
-#' @returns `NULL` if all checks pass, otherwise an error is raised.
+#' @returns The test matrix if all checks pass.
 #' @importFrom cli cli_warn
 #' @noRd
-check_prior <- function(prior, n_tests = 1000, call = caller_env()) {
-  n_dim <- attr(prior, "n_dim")
-  vec_test <- stats::runif(n_dim)
-  vec_result <- prior$fn(vec_test)
-  if (!is_double(vec_result)) {
-    obj_type <- obj_type_friendly(vec_result)
-    cli::cli_abort(
-      "`fn` must return a numeric vector, not {obj_type}.",
-      call = call
-    )
-  }
-  if (vctrs::vec_size(vec_result) != n_dim) {
-    act <- vctrs::vec_size(vec_result)
-    cli::cli_abort(
-      "`fn` must return a vector of length {n_dim}, not one of length {act}.",
-      call = call
-    )
-  }
-
-  test <- matrix(stats::runif(n_tests * n_dim), nrow = n_tests)
-  result <- apply(test, 1, prior$fn) |> t()
-  tryCatch(
-    for (i in seq_len(n_dim)) {
-      if (any(!is_double(result[i, ], finite = TRUE))) {
+check_prior <- function(
+  fn,
+  n_dim,
+  lower = -Inf,
+  upper = Inf,
+  call = caller_env()
+) {
+  try_fetch(
+    {
+      x <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
+      check_first <- fn(x[1, , drop = TRUE])
+      if (length(check_first) != n_dim) {
+        cli::cli_abort(paste0(
+          "`fn` must return a numeric vector of length {n_dim}, not one of ",
+          "length {length(check_first)}."
+        ))
+      }
+      check_all <- fn(x)
+      if (!isTRUE(all.equal(check_all[1, , drop = TRUE], check_first))) {
         cli::cli_abort(
-          "`fn` must return vectors that only contain finite values.",
-          call = call
+          "`fn` can't return different results for matrices and vectors.",
         )
       }
-      oo_lower <- any(result[i, ] < prior$lower)
-      oo_upper <- any(result[i, ] > prior$upper)
-
-      if (oo_lower || oo_upper) {
-        bound_str <- if (oo_lower && oo_upper) {
-          "`lower` and `upper`"
-        } else if (oo_lower) {
-          "`lower`"
-        } else {
-          "`upper`"
-        }
-        cli::cli_abort("`fn` must respect the {bound_str} bounds.", call = call)
-      }
+      check_matrix(
+        check_all,
+        nrow = 1000,
+        ncol = n_dim,
+        arg = "test matrix"
+      )
+      return(check_all)
     },
     error = function(cnd) {
       cli::cli_abort(
-        c(
-          "`fn` failed a sanity check.",
-          "x" = "Input: {pretty(test[i,])}",
-          "x" = "Output: {pretty(result[i,])}"
-        ),
+        "Error while validating the prior.",
         parent = cnd,
         call = call
       )
     }
   )
-  invisible(NULL)
 }
 
 #' Format for ernest_prior
@@ -245,21 +322,11 @@ check_prior <- function(prior, n_tests = 1000, call = caller_env()) {
 #' @export
 format.ernest_prior <- function(x, ...) {
   cli::cli_format_method({
-    name <- switch(
-      class(x)[[1]],
-      "uniform_prior" = "uniform",
-      "normal_prior" = "normal",
-      "custom"
-    )
+    name <- sub("_prior", "", class(x)[[1]])
     cli::cli_text("{name} prior distribution {.cls {class(x)}}")
     cli::cat_line()
-    cli::cat_print(tibble::tibble(
-      "names" = x$names,
-      "lower" = x$lower,
-      "upper" = x$upper,
-      "mean" = x$mean,
-      "sd" = x$sd
-    ))
+    cli::cli_text("Number of Dimensions: {attr(x, 'n_dim')}")
+    cli::cli_text("Names: {x$names}")
   })
 }
 

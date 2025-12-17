@@ -33,7 +33,7 @@
     Code
       fail_ll(c(0, 1, 2))
     Condition
-      Error in `safe_log_lik()`:
+      Error:
       ! log-lik. values must be either finite or `-Inf`, not NaN.
 
 ---
@@ -51,22 +51,22 @@
     Code
       fail_ll(c(0, 1, 2))
     Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
+      Error:
+      ! Can't convert `log_lik(x)` <character> to <double>.
 
 ---
 
     Code
       warn_ll(c(0, 1, 2))
     Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
+      Error:
+      ! Can't convert `log_lik(x)` <character> to <double>.
 
 ---
 
     Code
       result <- pass_ll(c(0, 1, 2))
     Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
+      Error:
+      ! Can't convert `log_lik(x)` <character> to <double>.
 

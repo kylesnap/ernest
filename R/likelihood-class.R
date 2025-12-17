@@ -37,33 +37,11 @@
 #' value (see `on_nonfinite`). The same parameter also controls the
 #' behaviour when non-finite, non-`-Inf` values are returned.
 #'
-#' @examples
-#' # A 3D Gaussian likelihood function
-#' n_dim <- 3
-#' sigma <- diag(0.95, nrow = 3)
-#' det_sigma <- determinant(sigma, logarithm = TRUE)$modulus
-#' attributes(det_sigma) <- NULL
-#' prec <- solve(sigma)
-#' log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
-#'
-#' fn <- function(theta) {
-#'   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
-#' }
-#' log_lik <- create_likelihood(fn)
-#' log_lik(c(0, 0, 0))
-#'
-#' # Bind data to the likelihood function an anonymous function.
-#' y <- 100000000 * runif(11, min = 0.1, max = 0.3)
-#' log_lik <- function(theta, y) {
-#'   if (theta[2] <= 0) {
-#'     return(-Inf)
-#'   }
-#'   sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
-#' }
-#' create_likelihood(\(theta) log_lik(theta, y))
 #' @aliases ernest_likelihood
+#' @example ./data-raw/EXAMPLE_LIKELIHOOD.R
 #' @export
 create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
+  fn <- as_function(fn)
   new_ernest_likelihood(fn = fn, on_nonfinite = on_nonfinite)
 }
 
@@ -86,55 +64,67 @@ create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
 #' @noRd
 new_ernest_likelihood <- function(
   fn,
+  parallel = FALSE,
   on_nonfinite = c("warn", "quiet", "abort"),
   call = caller_env()
 ) {
-  fn <- as_function(fn, call = call)
+  check_function(fn, call = call)
+  check_bool(parallel, call = call)
   on_nonfinite <- arg_match(on_nonfinite, call = call)
-
   nonfinite_expr <- switch(
     on_nonfinite,
     "warn" = expr({
-      cli::cli_warn("Replacing `{code}` with `-Inf`.")
-      code <- -Inf
+      nonfinite_val <- unique(out[nonfinite])
+      cli::cli_warn("Replacing `{nonfinite_val}` with `-Inf`.", call = NULL)
+      out[nonfinite] <- -Inf
     }),
-    "quiet" = expr(code <- -Inf),
-    "abort" = expr(
-      cli::cli_abort(c(
-        "log-lik. values must be either finite or `-Inf`, not {code}."
-      ))
-    )
+    "quiet" = expr(out[nonfinite] <- -Inf),
+    "abort" = expr({
+      nonfinite_val <- unique(out[nonfinite])
+      cli::cli_abort(
+        "log-lik. values must be either finite or `-Inf`, not {nonfinite_val}.",
+        call = NULL
+      )
+    })
   )
+
+  force(fn)
+  x <- NULL
+  catching_fn <- new_function(
+    exprs(x = ),
+    expr({
+      out <- fn(x)
+      out <- vctrs::vec_cast(out, double(), x_arg = "log_lik(x)", call = NULL)
+      if (length(out) < 1L) {
+        cli::cli_abort("`log_lik(x)` must not be of length 0.", call = NULL)
+      }
+      nonfinite <- (out == Inf | is.nan(out) | is.na(out))
+      if (any(nonfinite)) {
+        !!nonfinite_expr
+      }
+      out
+    })
+  )
+
+  parallel_fn <- if (parallel) {
+    catching_fn
+  } else {
+    function(x) {
+      if (is.matrix(x)) {
+        t(apply(x, 1, catching_fn))
+      } else if (is.vector(x, mode = "numeric")) {
+        catching_fn(x)
+      } else {
+        stop_input_type(x, "a numeric vector or matrix")
+      }
+    }
+  }
+
   structure(
-    function(unit) {
-      safe_log_lik(fn(unit), nonfinite_expr)
-    },
-    body = fn,
+    parallel_fn,
+    body = expr(!!fn),
     class = c("ernest_likelihood", class(fn))
   )
-}
-
-#' Checks evaluated code for errors and nonfiniteness
-#' @param code Result of calling log_lik_fn(unit)
-#' @param error_expr Expression of what to do when an error is detected.
-#' @return `code`, which is either an -Inf or a scalar double, or the result
-#' of evaluating `error_expr`.
-#' @noRd
-safe_log_lik <- function(code, error_expr) {
-  code <- vctrs::vec_cast(code, to = double(), x_arg = "log-lik.")
-  if (vctrs::vec_size(code) != 1L) {
-    size <- vctrs::vec_size(code)
-    cli::cli_abort(
-      "log-lik. values must be single scalars, not vectors of size {size}."
-    )
-  }
-  if (is.na(code)) {
-    eval(error_expr)
-  }
-  if (!is.finite(code) && code != -Inf) {
-    eval(error_expr)
-  }
-  code
 }
 
 #' @noRd

@@ -91,7 +91,7 @@ how parameters are recycled to a common length.
 data(epilepsy, package = "brms")
 
 # Pooled Model of Seizure Count via. Treatment and Baseline Seizure Count:
-# glm(Count ~ zBase * Trt, family = poisson(), data = epilepsy)
+# glm(count ~ zBase * Trt, family = poisson(), data = epilepsy)
 #
 # Using a weakly-informative prior
 # All coefficients (b0, b1, b2, b1_2) follow N(0, 10)

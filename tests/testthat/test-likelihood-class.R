@@ -13,6 +13,8 @@ test_that("create_likelihood with simple function", {
 
   expect_s3_class(ll, c("ernest_likelihood", "function"))
   expect_equal(ll(c(1, 2, 3)), -5)
+  test_matrix <- matrix(c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5), nrow = 2)
+  expect_equal(ll(test_matrix), t(apply(test_matrix, 1, test)))
   expect_snapshot(ll)
 })
 

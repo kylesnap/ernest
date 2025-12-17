@@ -6,7 +6,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `ernest_sampler()`:
-      ! log-lik. values must be single scalars, not vectors of size 0.
+      ! `log_lik(x)` must not be of length 0.
 
 # Zero-length prior fails
 
@@ -40,7 +40,7 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
-    ! Can't convert `log-lik.` <character> to <double>.
+    ! Can't convert `log_lik(x)` <character> to <double>.
 
 # Fails on complex types
 
@@ -56,7 +56,7 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
-    ! Can't convert `log-lik.` <complex> to <double>.
+    ! Can't convert `log_lik(x)` <complex> to <double>.
 
 # Missing values in the log-likelihood
 

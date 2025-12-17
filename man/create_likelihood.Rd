@@ -42,27 +42,57 @@ double or \code{-Inf} for each parameter vector. Non-finite values other than
 with the behavior of \code{on_nonfinite}.
 }
 \examples{
-# A 3D Gaussian likelihood function
-n_dim <- 3
-sigma <- diag(0.95, nrow = 3)
-det_sigma <- determinant(sigma, logarithm = TRUE)$modulus
-attributes(det_sigma) <- NULL
-prec <- solve(sigma)
-log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
+data(epilepsy, package = "brms")
 
-fn <- function(theta) {
-  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
-}
-log_lik <- create_likelihood(fn)
-log_lik(c(0, 0, 0))
+# Pooled Model of Seizure Count via. Treatment and Baseline Seizure Count:
+# glm(Count ~ zBase * Trt, family = poisson(), data = epilepsy)
+#
+# Building a Likelihood Function
+mod <- stats::glm(count ~ zBase * Trt, family = poisson(), data = epilepsy)
+mle <- stats::logLik(mod)
 
-# Bind data to the likelihood function an anonymous function.
-y <- 100000000 * runif(11, min = 0.1, max = 0.3)
-log_lik <- function(theta, y) {
-  if (theta[2] <= 0) {
-    return(-Inf)
-  }
-  sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
+new_x <- model.matrix(
+  object = mod$formula,
+  data = mod$model,
+  terms = mod$terms,
+  contrasts.arg = attr(model.matrix(mod), "contrasts")
+)
+new_y <- model.response(mod$model)
+
+linkinv <- stats::poisson()$linkinv
+
+poisson_glm_ll <- function(x) {
+  eta <- new_x \%*\% x
+  mu <- linkinv(eta)
+  sum(stats::dpois(new_y, lambda = mu, log = TRUE))
 }
-create_likelihood(\(theta) log_lik(theta, y))
+#' Custom function returns the expected log-lik. at the MLE.
+all.equal(
+  as.double(mle),
+  poisson_glm_ll(mod$coefficients),
+  check.attributes = FALSE
+)
+
+ll <- create_likelihood(poisson_glm_ll)
+ll
+
+# Controlling Missing Data Behaviour
+new_x_na <- new_x
+new_x_na[50:60, "zBase"] <- NA
+na_poisson_glm_ll <- function(x) {
+  eta <- new_x_na \%*\% x
+  mu <- linkinv(eta)
+  sum(stats::dpois(new_y, lambda = mu, log = TRUE))
+}
+
+# By default, ernest warns users and replaces NAs with `-Inf`
+ll <- create_likelihood(na_poisson_glm_ll)
+ll(mod$coefficients)
+
+# Use `on_nonfinite` to specify how NAs should be treated
+ll <- create_likelihood(na_poisson_glm_ll, on_nonfinite = "abort")
+try(ll(mod$coefficients))
+
+ll <- create_likelihood(na_poisson_glm_ll, on_nonfinite = "quiet")
+ll(mod$coefficients)
 }

@@ -161,30 +161,7 @@ new_ernest_prior <- function(
       )
     ))
   }
-
-  oob_low <- any(matrixStats::colMins(test_matrix) < bounds$lower)
-  oob_up <- any(matrixStats::colMaxs(test_matrix) > bounds$upper)
-  if (any(oob_low | oob_up)) {
-    indx_low <- if (any(oob_low)) which.max(oob_low) else NULL
-    indx_up <- if (any(oob_up)) which.max(oob_up) else NULL
-    cli::cli_abort(c(
-      paste0(
-        "`fn` must return values within the bounds `lower` and `upper`."
-      ),
-      "x" = if (oob_low) {
-        "Expected lower bounds: {pretty(bounds$lower)}."
-      },
-      "x" = if (oob_low) {
-        "Actual lower bounds: {pretty(matrixStats::colMins(test_matrix))}."
-      },
-      "x" = if (oob_up) {
-        "Expected upper bounds: {pretty(bounds$lower)}."
-      },
-      "x" = if (oob_up) {
-        "Actual upper bounds: {pretty(matrixStats::colMins(test_matrix))}."
-      }
-    ))
-  }
+  check_bounds(test_matrix, bounds)
   rm(test_matrix)
   structure(
     list(
@@ -341,4 +318,35 @@ format.ernest_prior <- function(x, ...) {
 print.ernest_prior <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
+}
+
+#' Check test matrix for errors.
+check_bounds <- function(test_matrix, bounds, call = caller_env()) {
+  oob_low <- any(matrixStats::colMins(test_matrix) < bounds$lower)
+  oob_up <- any(matrixStats::colMaxs(test_matrix) > bounds$upper)
+  if (any(oob_low | oob_up)) {
+    indx_low <- if (any(oob_low)) which.max(oob_low) else NULL
+    indx_up <- if (any(oob_up)) which.max(oob_up) else NULL
+    cli::cli_abort(
+      c(
+        paste0(
+          "`fn` must return values within the bounds `lower` and `upper`."
+        ),
+        "x" = if (oob_low) {
+          "Expected lower bounds: {pretty(bounds$lower)}."
+        },
+        "x" = if (oob_low) {
+          "Actual lower bounds: {pretty(matrixStats::colMins(test_matrix))}."
+        },
+        "x" = if (oob_up) {
+          "Expected upper bounds: {pretty(bounds$lower)}."
+        },
+        "x" = if (oob_up) {
+          "Actual upper bounds: {pretty(matrixStats::colMins(test_matrix))}."
+        }
+      ),
+      call = call
+    )
+  }
+  invisible(NULL)
 }

@@ -3,7 +3,7 @@
 \name{create_prior}
 \alias{create_prior}
 \alias{ernest_prior}
-\alias{c.ernest_prior}
+\alias{+.ernest_prior}
 \alias{create_normal_prior}
 \alias{create_uniform_prior}
 \title{Specify a prior distribution for nested sampling}
@@ -16,7 +16,7 @@ create_prior(
   repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet")
 )
 
-\method{c}{ernest_prior}(...)
+\method{+}{ernest_prior}(x, y)
 
 create_normal_prior(
   names = NULL,
@@ -49,7 +49,7 @@ parameter vectors after hypercube transformation.}
 or \code{"universal_quiet"}.
 See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of each repair strategy.}
 
-\item{...}{A collection of \code{ernest_prior} objects.}
+\item{x, y}{\code{ernest_prior} objects.}
 
 \item{mean}{vector of means.}
 

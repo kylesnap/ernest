@@ -57,7 +57,7 @@ describe("new_ernest_prior", {
   })
 })
 
-describe("c.ernest_prior", {
+describe("+.ernest_prior", {
   it("Can merge priors", {
     unif <- function(x) {
       -10 + x * 20
@@ -68,7 +68,7 @@ describe("c.ernest_prior", {
 
     unif_p <- new_ernest_prior(unif, names = LETTERS[1:2])
     norm_p <- new_ernest_prior(normal, names = LETTERS[1:2])
-    combo_p <- c(unif_p, norm_p)
+    combo_p <- (unif_p + norm_p)
 
     expect_type(combo_p, "list")
     expect_s3_class(combo_p, "ernest_prior")
@@ -78,7 +78,7 @@ describe("c.ernest_prior", {
 
     expect_equal(combo_p$fn(c(0.5, 0.5, 0.5, 0.5)), c(0, 0, 1, 1))
 
-    combo_p2 <- c(combo_p, unif_p)
+    combo_p2 <- (combo_p + unif_p)
     expect_equal(
       combo_p2$names,
       c("A...1", "B...2", "A...3", "B...4", "A...5", "B...6")
@@ -94,15 +94,7 @@ describe("c.ernest_prior", {
       -10 + x * 20
     }
     unif_p <- new_ernest_prior(unif, names = LETTERS[1:2])
-    expect_snapshot(c(unif_p, qnorm), error = TRUE)
-  })
-
-  it("Is idempotent", {
-    unif <- function(x) {
-      -10 + x * 20
-    }
-    unif_p <- new_ernest_prior(unif, names = LETTERS[1:2])
-    expect_equal(c(unif_p), unif_p)
+    expect_snapshot(unif_p + qnorm, error = TRUE)
   })
 })
 

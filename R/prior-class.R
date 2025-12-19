@@ -84,10 +84,6 @@ new_ernest_prior <- function(
   .class = NULL,
   .repair = "check_unique"
 ) {
-  .repair <- arg_match0(
-    .repair,
-    c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet")
-  )
   names <- vctrs::vec_as_names(names, repair = .repair)
   n_dim <- length(names)
   if (n_dim < 1) {
@@ -107,10 +103,11 @@ new_ernest_prior <- function(
     )
     out <- vctrs::vec_cast(out, double(), call = NULL)
     if (any(is.nan(out) | is.na(out))) {
-      cli::cli_abort(
+      cli::cli_abort(c(
         "`fn` cannot return non-numeric, missing, or `NaN` values.",
-        call = NULL
-      )
+        "x" = "Input: {pretty(out)}",
+        "y" = "Output: {pretty(out)}"
+      ))
     }
     return(out)
   }
@@ -163,6 +160,7 @@ new_ernest_prior <- function(
   }
   check_bounds(test_matrix, bounds)
   rm(test_matrix)
+
   structure(
     list(
       "fn" = parallel_fn,
@@ -178,49 +176,32 @@ new_ernest_prior <- function(
 
 #' @rdname ernest_prior
 #'
-#' @param ... A collection of `ernest_prior` objects.
+#' @param x,y `ernest_prior` objects.
 #'
 #' @export
-c.ernest_prior <- function(...) {
-  dots <- list2(...)
-  priors <- vapply(dots, \(x) inherits(x, "ernest_prior"), logical(1))
-  if (any(!priors)) {
-    first <- which.min(priors)
-    class <- class(dots[[first]])[1]
-    cli::cli_abort("Can't add {.cls {class}} objects to an `ernest_prior`.")
-  }
-  if (length(priors) == 1L) {
-    return(dots[[1]])
-  }
+`+.ernest_prior` <- function(x, y) {
+  check_class(x, "ernest_prior")
+  check_class(y, "ernest_prior")
 
-  n_dim <- vapply(dots, function(x) attr(x, "n_dim"), integer(1))
-  bodies <- lapply(dots, function(x) attr(x, "body"))
+  n_dim <- c(attr(x, "n_dim"), attr(y, "n_dim"))
+  bodies <- list(attr(x, "body"), attr(y, "body"))
   cum_dim <- cumsum(n_dim)
-  starts <- c(1L, head(cum_dim + 1L, -1L))
-  ends <- cum_dim
 
-  x <- NULL
-  calls <- Map(
-    function(fn, start, end) {
-      expr((!!fn)(x[!!start:!!end]))
-    },
-    fn = bodies,
-    start = starts,
-    end = ends
-  )
-  fn <- rlang::new_function(
-    args = rlang::pairlist2(x = ),
-    body = expr({
-      res <- list(!!!calls)
-      unlist(res, recursive = FALSE, use.names = FALSE)
+  fn <- new_function(
+    exprs(x = ),
+    expr({
+      vctrs::vec_c(
+        (!!bodies[[1]])(x[1:!!cum_dim[1]]),
+        (!!bodies[[2]])(x[!!(cum_dim[1] + 1):!!cum_dim[2]])
+      )
     })
   )
 
   new_ernest_prior(
     fn = fn,
-    names = list_c(lapply(dots, `[[`, "names")),
-    lower = list_c(lapply(dots, `[[`, "lower")),
-    upper = list_c(lapply(dots, `[[`, "upper")),
+    names = c(x$names, y$names),
+    lower = c(x$lower, y$lower),
+    upper = c(x$upper, y$upper),
     .repair = "unique",
     .class = "composite_prior"
   )

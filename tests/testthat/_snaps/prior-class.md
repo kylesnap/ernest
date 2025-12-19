@@ -65,13 +65,13 @@
       ! `lower` must be strictly smaller than `upper`.
       x Problem at index 1: `0 ≮ 0`
 
-# c.ernest_prior / Errors when concatenated with non-prior
+# +.ernest_prior / Errors when concatenated with non-prior
 
     Code
-      c(unif_p, qnorm)
+      unif_p + qnorm
     Condition
-      Error in `c()`:
-      ! Can't add <function> objects to an `ernest_prior`.
+      Error:
+      ! `y` must be an object with class ernest_prior, not a function.
 
 # create_prior / creates a custom prior
 

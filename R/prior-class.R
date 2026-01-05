@@ -112,13 +112,27 @@ new_ernest_prior <- function(
     return(out)
   }
 
-  parallel_fn <- function(x) {
-    if (is.matrix(x)) {
-      t(apply(x, 1, catching_fn))
-    } else if (is.vector(x, mode = "numeric")) {
-      catching_fn(x)
-    } else {
-      stop_input_type(x, "a numeric vector or matrix")
+  parallel_fn <- if (n_dim == 1) {
+    function(x) {
+      if (!is_double(x)) {
+        stop_input_type(x, "a numeric vector or matrix")
+      } else if (length(x) == 1L) {
+        catching_fn(x)
+      } else {
+        y <- vapply(x, catching_fn, double(1))
+        dim(y) <- c(length(y), 1)
+        y
+      }
+    }
+  } else {
+    function(x) {
+      if (is.matrix(x)) {
+        t(apply(x, 1, catching_fn))
+      } else if (is_double(x)) {
+        catching_fn(x)
+      } else {
+        stop_input_type(x, "a numeric vector or matrix")
+      }
     }
   }
   test_matrix <- check_prior(parallel_fn, n_dim)
@@ -249,7 +263,7 @@ check_prior <- function(
       check_all <- fn(x)
       if (!isTRUE(all.equal(check_all[1, , drop = TRUE], check_first))) {
         cli::cli_abort(
-          "`fn` can't return different results for matrices and vectors.",
+          "`fn` can't return different results for matrices and vectors."
         )
       }
       check_matrix(

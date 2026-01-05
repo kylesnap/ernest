@@ -40,6 +40,8 @@ describe("new_ernest_prior", {
   })
 
   it("returns correct structure and class", {
+    prior <- new_ernest_prior(fn = \(x) x, names = "a")
+
     prior <- new_ernest_prior(
       fn = fn,
       names = c("a", "b"),

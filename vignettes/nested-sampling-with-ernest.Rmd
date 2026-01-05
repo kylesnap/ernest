@@ -1,8 +1,8 @@
 ---
-title: "Quickstart: Nested Sampling with Ernest"
+title: "Nested Sampling with Ernest"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Quickstart: Nested Sampling with Ernest}
+  %\VignetteIndexEntry{Nested Sampling with Ernest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
@@ -27,227 +27,248 @@ knitr::opts_chunk$set(
 
 ```{r setup, message = FALSE}
 library(ernest)
+library(brms)
+library(truncnorm)
 library(ggplot2)
 library(posterior)
-library(truncnorm)
-library(LaplacesDemon)
 ```
 
 # Nested Sampling with Ernest
 
-This vignette provides a quick overview of nested sampling (NS) and the main functions within the ernest package. Most of this information is available scattered throughout the R documentation. After reading this, you should be able to:
-
--   Identify the role of model evidence within Bayesian data analysis.
--   Understand how and why NS is different from more popular Bayesian computational techniques (i.e., Markov Chain Monte Carlo [MCMC]).
--   Identify the necessary components for a nested sampling run and how to implement them within ernest.
--   Perform, summarise, and visualise the results from an NS run, including the model evidence estimates and posterior samples.
-
-## Bayes' Theory and Model Evidence
-
-In Bayesian inference, we use probabilities to represent our beliefs about a model's unobservable parameters [@ashton2022]. These beliefs can be updated when we evaluate our model $M$ in light of some observed data $D$. Formally, these updates can be expressed using Bayes' theorem:
+Bayesian inference relies on using probabilities to describe a researcher's degree of belief in a statistical model ($M$) of some observed data ($D$). This relationship is captured through Bayes' theorem [@ashton2022]:
 
 $$
-\Pr(\theta|D,M) = \frac{\Pr(D|\theta, M) \Pr(\theta|M)}{\Pr(D|M)}
+\Pr(\theta|D,M) = \frac{\Pr(D|\theta, M) \Pr(\theta|M)}{\Pr(D|M)} = \frac{L(\theta)\pi(\theta)}{Z}
 $$
+where
 
-Each component of Bayes' theorem has a role:
+-   $\Pr(\theta|M) = \pi(\theta)$ is the *prior*, representing the researcher's current estimate of $M$'s unknown parameters $\theta$ before considering the observations;
 
--   $\Pr(D|\theta,M) = L(\theta)$ is the likelihood function, describing how likely the data is given some parameter estimate,
+-   $\Pr(D|\theta,M) = L(\theta)$ is the *likelihood*, representing the the probability of generating $D$ given $M$ and some parameters $\theta$;
 
--   $\Pr(\theta|M) = \pi(\theta)$ is the prior distribution, representing our current knowledge of how a model's parameters are distributed.
+-   $\Pr(\theta|D,M) = \Pi(\theta)$ is the *posterior*, representing our estimate of $\theta$ after it has been updated with $D$, and;
 
--   $\Pr(\theta|D,M) = \Pi(\theta)$ is the posterior distribution, which represents our knowledge of $\theta$'s distribution after it has been updated with $D$, and;
+-   $\Pr(D|M) = Z$ is the *model evidence*, *evidence*, or *marginal likelihood*.
 
--   $\Pr(D|M) = Z$ is the Bayesian evidence, which is the normalizing constant for $\Pi(\theta)$, allowing the posterior to exist as a well-conditioned probability distribution.
+For most data and models, the posterior and evidence is often intractable and must be estimated using Bayesian computation, where we use a model's likelihood and prior to generate estimates of the desired quantity. Historically, these methods focus on estimating $\Pi(\theta)$: for example, the popular Monte Carlo Markov Chain $MCMC$ method purports to construct a series of estimates of $\theta$ that successfully approximates the posterior. Consider this example from the brms [@bürkner2017] package, where we use an MCMC to estimate the parameters of a Poisson regression model:
 
-Generally, we have access to our model's likelihood function and prior distribution. The goal of Bayesian calculation is to use these components to estimate a model's posterior distribution and its evidence. Historically, most Bayesian computations have been performed with a focus on estimating the posterior: Packages like [brms](https://cran.r-project.org/package=brms), for example, use techniques derived from MCMC to generate dense chains of samples that approximate $P(\theta)$. In this approach, estimating the evidence usually requires considerable extra work beyond estimating $P(\theta)$.
+```{r}
+data("epilepsy")
+fit1 <- brm(
+  count ~ zBase * Trt,
+  prior = prior("normal(0, 10)", class = "b") + prior("normal(0, 10)", class = "Intercept"),
+  data = epilepsy,
+  family = poisson(),
+  refresh = 0
+)
+summary(fit1)
+```
 
-Because of this extra computational diﬃculty, evidence values are often ignored by researchers or treated as optional by-products @skilling2006. This is unfortunate, because we can use $Z$ as a parameter-independent representation of the probability of generating $D$ under the model $M$. To show this, we can refactore Bayes' theorem and isolate evidence:
+Where the posterior is most useful for estimating our model's parameters, model evidence is most useful for comparing models of the same data against one another. In isolation, $Z$ is the normalizing constant for $\Pi(\theta)$, ensuring the posterior is a well-defined probability distribution. $Z$ also represents the probability of generating the observed sample for all possible values of $\theta$, which we notice if we rearrange Bayes' theorem:
 
 $$
 Z = \int_{\forall \theta} L(\theta) \pi(\theta) d\theta
-$$ Here, we notice that evidence can also be called a model's *marginal likelihood*, calculated by integrating out the prior distribution of the parameters from the likelihood function. Calculating $Z$ allows for us to compare competing models of the same data by using the ratio of their respective evidences (called the Bayes factor). Unlike model selection with maximum likelihood estimates, such comparisons are performed independently from the parameter spaces of each model. Additionally, sharing evidence values for published models can be valuable for future researchers who may wish to build their own competing models.
+$$
+Unlike other model selection methods that rely on the model's maximum likelihood estimate, evidence values are parameter-independent representations of a model's plausibility. This allows us to use $Z$ to compare models while accounting for differences in model complexity, such as through Bayes factors [@jeffreys1998]. Additionally, sharing evidence values for published models can be valuable for future researchers who may wish to build their own competing models.
 
-## Nested Sampling Overview
+### Introduction: Nested Sampling 
 
-Nested sampling, introduced in @skilling2004 and @skilling2006, is designed to estimate $Z$ directly, while providing $P(\theta)$ as an optional by-product. These estimates can be generated in scenarios that typically confound MCMC-based sampler, such as when the posterior distribution is poorly conditioned (e.g., if $L(\theta)$ has multiple local maxima).
+Technically, we could use a high-density posterior estimate generated by MCMC to calculate $Z$. This requires considerable extra computational beyond the non-trivial task of sampling from $\Pi(\theta)$; given this, evidence values are often ignored by researchers or treated as optional by-products, rather than as vitally important components of Bayesian inference [@skilling2006].
 
-The goal of NS is to approximate $Z$ by simplifying the complex, multi-dimensional integral over $\pi(\theta)$ into a unidimensional integral over a series of small regions of $\pi(\theta)$. These regions or shells are constructed based on the smallest likelihood value they each contain, such that regions with high likelihoods are nested within regions of small likelihood. For a given likelihood value $L^*$, we can define the volume of prior spacethat contains regions of higher likelihood:$$
-V(L^*) = \int_{L(\theta) > L^*} \pi(\theta) d\theta
-$$If we take many different values of $L^*$ across the prior and find their respective $V(L^*)$, we can calculate evidence through integrating the likelihood function over these volumes: $$
-Z = \int_0^1 V^{-1}(L^*) dV
-$$where $V^{-1}(V(L^*)) = L^*$ exists.
+Nested sampling (NS), introduced in @skilling2004 and @skilling2006, is a Bayesian computational technique that instead focuses on estimating $Z$ directly while providing $\Pi(\theta)$ as an optional by-product. In addition, NS has several features that may make it more appealing than MCMC in certain scenarios, such as:
 
-In most cases, the likelihood surface of $M$ will make it impossible for us to calculate $V$ directly from $L^*$. Instead, we need to sample values of $L^*$ in a way that allows us to estimate how much $V$ shrinks between iterations. NS accomplishes this through *likelihood-restricted prior sampling* (LRPS): A run starts by randomly generating $N$ live points within the prior space, then at each iteration the point with the lowest likelihood is used to update the evidence estimate as $L^*$, then it is replaced with a point sampled from $\pi(\theta)$ that has greater likelihood than $L^*$. Restricted sampling allows $V$ to shrink at a predictable rate at each iteration $i$ across the run [\@speagle2020]:
+-   Clearly defined stopping criteria with no "burn-in" period required.
+
+-   Ability to handle complex posteriors that typically confound MCMC approaches (e.g., multimodal distributions).
+
+-   Uncertainty estimation from a single run without resampling.
+
+NS approximates $Z$ by transforming the complex, multi-dimensional integral over $\pi(\theta)$ into a one-dimensional integral over nested "shells" of constant likelihood. These shells are ordered by likelihood values, with high-likelihood regions nested within low-likelihood regions. For a likelihood threshold $L^*$, the prior volume containing higher likelihoods is: $$V(L^*) = \int_{L(\theta) > L^*} \pi(\theta) d\theta$$
+
+By sampling different $L^*$ values and their corresponding volumes $V(L^*)$, we can calculate the evidence as: $$Z = \int_0^1 L(V) dV $$ where $V = V(L^*)$ represents the prior volume associated with a given likelihood contour. If $L_1, ..., L_k$ represents our series of likelihoods and $V_1, ... V_k$ the corresponding series of volumes, we can estimate this integral with the trapezoidal method:
+
+$$
+Z \approx \sum_{i = 1}^{k} \frac{L_{i - 1} + L_i}{2} (V_{i - 1} - V_i)
+$$
+
+Since calculating $V$ directly is usually impossible, NS instead uses _likelihood-restricted prior sampling_ (LRPS) to ensure we can estimate the shrinkage in $V$ between subsequent iterations. The algorithm begins with $N$ randomly generated live points from the prior. At each iteration, the point with the lowest likelihood defines the current threshold $L^*$ and is removed. It is then replaced with a new point sampled from $\pi(\theta)$ subject to the constraint that its likelihood exceeds $L^*$. This process ensures that the prior volume shrinks predictably at each iteration $i$ [@speagle2020]:
 
 $$
 \begin{aligned}
   V_0 &= 1 \\
-  V_i &= tV_{i-1} \\
-  \Pr(t_i) &= Nt_i^{N - 1} \\
+  V_i &= t_i V_{i-1} \\
+  \Pr(t_i) &= Nt_i^{N - 1}
 \end{aligned}
 $$
 
-where $t_i$ is the smallest value within $N$ draws from the standard uniform distribution.
+where $t_i$ is the smallest value among $N$ draws from the standard uniform distribution.
 
-Compared to MCMC-based methods, NS is able to estimate model evidence and quantify its uncertainty without rerunning sampling or without launching multiple chains. NS is also more equipped to handle complicated likelihood surfaces, including those with multiple peaks or sharp transitions. In addition, NS naturally provides a stopping criterion for its runs: Sampling can halt when the remaining unexplored volume of $\pi(\theta)$ stops making significant contributions to our estimate of $Z$. Finally, after the run we can use the likelihood and volume estimates of each sampled point to estimate the posterior distribution.
+NS provides a natural stopping criterion for a run: sampling terminates once the remaining unexplored prior volume contributes negligibly to our estimate of $Z$. After the run, we can use the contribution of each point to the evidence integral as weights to construct a sample from the posterior distribution.
 
 ## Nested Sampling with ernest
 
-The ernest package, like other nested sampling implementations, requires the user to provide the key components of nested sampling: A likelihood function, a prior space specification, and an LRPS method. To demonstrate this in action, we will use an example and data from brms.
+ernest attempts to make NS more familiar to statisticians most familiar with R and its system of packages. Unlike higher-level Bayesian inference packages, ernest makes the user responsible for specifying their model's likelihood function and prior distribution. To demonstrate how this is accomplished, here we will use ernest to find the evidence of the Poisson model we fit earlier using brms.
 
-The `epilepsy` data describes a longitudinal and randomized trial of an anti-convulsant therapy. Fifty-nine patients were sorted into treatment groups and attended four treatment sessions. Our first goal is to model the number of seizures between each session (`count`) as a function of treatment-control group (`trt`) and the (standardized) number of seizures experienced at baseline (`zBase`). In base-R, this is accomplished through the `glm` function:
+### Prior Distributions
 
+Priors encode our knowledge of parameter distributions and are represented as `ernest_prior` objects. These can be created using `create_prior` or specialized functions like `create_normal_prior`.
+
+Like most nested sampling implementations, ernest conducts its sampling within a $d$-dimensional unit cube and transforms points to the parameter space via a *prior transformation function*. This function should map uniform random variables from $[0,1]^d$ to the target prior distribution $\pi(\theta)$. For independent parameters, this transformation corresponds to the inverse cumulative distribution function (e.g., the quantile function in R `qnorm`).
+
+Our model requires priors for regression coefficients; earlier, we specified that the intercept and linear parameters fall within a $N(0, 10)$ distribution. To provide this to ernest, we build our prior transformation function then wrap it with `create_prior`.
 ```{r}
-data(epilepsy)
-mod <- glm(count ~ zBase * Trt, family = poisson(), data = epilepsy)
-mod$coefficients
-```
-
-
-
-The prior encodes our current knowledge of how the parameters within our model are distributed. In ernest, the priors are encoded as `ernest_prior` objects. Users create these objects using `create_prior` or one of its specializations (e.g., `create_normal_prior`).
-
-Like other NS implementations, ernest creates and resamples points within a $d$-dimensional unit cube. These points are then transformed to the original parameter space before likelihood values are calculated. In ernest, this *prior transformation function* is provided by the user, and must be able to take a point from the i.i.d. $d$-unit cube and transform it to a $d$-dimensional point within $\pi(\theta)$. For independent parameters, this transformation is identical to the inverse cumulative distribution function (CDF) associated with each parameter; for many distributions within R, this is called the quantile function (e.g., `qnorm`).
-
-`create_prior` allows users to provide their own prior transformation function, along with unique names for each parameter. To demonstrate this, let us assign a $N(0, 10)$ prior to each of the four coefficients within the proposed regression model. In brms, we accomplish this through `r set_prior("normal(0, 10)", class = "b", coef = "x1")`. In ernest, we first construct the transformation function, then wrap and test it with `create_prior`.
-
-```{r}
-# Transform each [0,1] value within `x` into the inverse cdf. of N(0, 10)
-inverse_t <- function(x) {
-  stats::qnorm(x, mean = 0, sd = 10)
+ptf <- function(x) {
+  # Transform each value in x from [0, 1] to N(0, 10)
+  qnorm(x, mean = 0, sd = 10)
 }
 
-prior <- create_prior(inverse_t, names = names(mod$coefficients))
-prior
+prior1 <- create_prior(ptf, names = c("Intercept", "zBase", "Trt1", "zBase_Trt1"))
+prior1
 ```
-Alternatively, for simpler priors, we can use the convinience functions `create_normal_prior` or `create_uniform_prior`. We can also combine these priors into a single object using `c`:
+
+We can use `create_prior` to build up more complicated priors as well. Consider if we wanted to truncate the intercept prior to be strictly non-negative: We could build two priors and then concatenate them together using `+`.
 
 ```{r}
-pooled_prior <- create_normal_prior(
-  names = names(mod$coefficients),
-  mean = 0,
-  sd = 10
-)
+ptf_int <- function(x) {
+  # Transform the value in x from [0, 1] to N(0, 10) in [0, Inf]
+  truncnorm::qtruncnorm(x, mean = 0, sd = 10, a = 0)
+}
 
-# Concatenating a N(0, 1) and U[0, 1] prior
-unif_p <- create_uniform_prior(names = c("A", "B"))
-norm_p <- create_uniform_prior(names = c("C", "D"))
-c(unif_p, norm_p)
+ptf_coef <- function(x) {
+  # Transform each value in x from [0, 1] to N(0, 10)
+  qnorm(x, mean = 0, sd = 10)
+}
+
+prior2_int <- create_prior(ptf_int, names = "Intercept")
+prior2_coef <- create_prior(ptf_coef, names =  c("zBase", "Trt1", "zBase_Trt1"))
+prior2 <- prior2_int + prior2_coef
+```
+
+In simpler cases involving independent normal or uniform priors, we can avoid writing a custom transformation function by using `create_normal_prior` or `create_uniform_prior`. We can take advantage of this for our Poisson model:
+
+```{r}
+fast_prior1 <- create_normal_prior(names = c("Intercept", "zBase", "Trt1", "zBase_Trt1"), sd = 10)
+fast_prior1
 ```
 
 ### Likelihood Function
-The log-likelihood function should be capable of taking in a (post-transformation) vector of model parameters and returning the corresponding log-likelihood value. If there are regions within $\pi(\theta)$ that contain impossible parameter values, ernest expects that the log-likelihood function will return `-Inf`.
 
-Unlike higher-level R packages for Bayesian inference, ernest does not provide ways to build likelihood functions for specific kinds of models. Users should consult other packages, such as [enrichwith](https://cran.r-project.org/web/packages/enrichwith/) and [tfprobability](https://cran.r-project.org/web/packages/tfprobability/index.html), which are well-equipped to assist users in building their likelihood function. In the case of the `insulin` model, we can quickly build the model's likelihood function using the components from `mod`:
+The log-likelihood function takes a vector of transformed model parameters and returns the corresponding log-likelihood value. For invalid parameter values, the function should return `-Inf`.
+
+At present, it's out-of-scope for the ernest package to help users build and validate their likelihood function. For this, users should consult other resources or packages, such as [enrichwith](https://cran.r-project.org/web/packages/enrichwith/) and [tfprobability](https://cran.r-project.org/web/packages/tfprobability/index.html). For our Poisson model, we can use brms' extractor functions to help build an R function that calculates the log-likelihood: 
 
 ```{r}
-new_x <- model.matrix(
-  object = mod$formula,
-  data = mod$model,
-  terms = mod$terms,
-  contrasts.arg = attr(model.matrix(mod), "contrasts")
-)
-new_y <- model.response(mod$model)
-linkinv <- stats::poisson()$linkinv
+data <- standata(fit1)
+X <- data$X
+Y <- data$Y
+linkinv <- fit1$family$linkinv
 
-poisson_glm_ll <- function(x) {
-  eta <- new_x %*% x
-  mu <- linkinv(eta)
-  sum(stats::dpois(new_y, lambda = mu, log = TRUE))
+ll_model <- function(theta) {
+  predictors <- drop(X %*% theta)
+  fitted_values <- linkinv(predictors)
+  sum(dpois(Y, lambda = fitted_values, log = TRUE))
 }
-
-#' Custom function returns the expected log-lik. at the MLE.
-all.equal(
-  as.double(stats::logLik(mod)),
-  poisson_glm_ll(mod$coefficients),
-  check.attributes = FALSE
-)
 ```
 
-The function `create_likelihood` is used to wrap the user's log-likelihood function with several assertions on its output value. It also controls how non-finite likelihood values are encoded if they are provided; by default, these values are replaced with `-Inf` and the user is warned.
+Optionally, we can use the `create_likelihood` function to specify how ernest should handle the likelihood function when it returns a non-finite, non-`-Inf` value. Should we ignore this step, ernest will warn us whenever such a value occurs.
 
-### LRPS SECTION?
+### Likelihood-Restricted Prior Sampling
+
+The central challenge in nested sampling is efficiently generating new points from the prior distribution that exceed a likelihood threshold. This ensures systematic exploration of progressively smaller, higher-likelihood regions of the parameter space. ernest provides several LRPS strategies for different problem types:
+
+-   **Random Walk Metropolis-Hastings** (`rwmh_cube`): Performs random walks within the unit cube, accepting moves that satisfy the likelihood constraint. Originally proposed by @skilling2004, ernest's implementation includes automatic step-size tuning for user-specified acceptance rates.
+
+-   **Slice Sampling within Hyperrectangles** (`slice_rectangle`): Draws from bounding hyperrectangles that shrink with each rejection. More efficient for complex or correlated parameter spaces.
+
+-   **Uniform Sampling in Unit Cube** (`unif_cube`): Draws uniformly from the entire unit cube. Simple for testing components but generally inefficient for evidence estimation.
+
+-   **Single Ellipsoidal Sampling** (`unif_ellipsoid`): Draws from the minimum-volume ellipsoid bounding the live points. Much more efficient than uniform sampling for unimodal distributions.
+
+-   **Multi-Ellipsoidal Sampling** (`multi_ellipsoid`): Uses multiple ellipsoids to cover live points. Uniquely capable of detecting and adapting to multimodal posterior distributions.
 
 ### Setting Up and Running the Sampler
 
-We can now design a nested sampling run. First, we construct an `ernest_sampler` object: This object is bound to an environment that contains the current set of "live" points and their corresponding likelihood values.
+We can now perform our nested sampling run. First, we construct an `ernest_sampler` object: This object is bound to an environment that contains the current set of "live" points and their corresponding likelihood values.
 
 ```{r}
-sampler <- ernest_sampler(
-  log_lik = poisson_glm_ll,
-  prior = pooled_prior,
-  n_points = 300
+sampler_mod <- ernest_sampler(
+  log_lik = ll_model,
+  prior = fast_prior1,
+  sampler = rwmh_cube(steps = 25),
+  n_points = 300,
+  seed = 42
 )
-sampler
+sampler_mod
 ```
 
 Nested samples are generated with `generate`. The `min_logz` argument sets the minimum log-ratio between the current (estimated) evidence and the remaining (estimated) evidence in the unexplored prior. Sampling ends once this ratio falls below `min_logz`, at which point its deemed that the remaining unexplored region of $\pi(\theta)$ contains a trivially small fraction of $Z$.
 
 ```{r}
-run <- generate(sampler, min_logz = 0.1)
-run
+run1 <- generate(sampler_mod, min_logz = 0.1)
+run1
 ```
 
-`generate` produces an `ernest_run` object that can be saved. You can continue a run by calling `generate` on a previously created `ernest_run`:
+`run1` is an `ernest_run` object, containing the sampler used to generate the samples as well as its results. We can use this object to continue sampling from a given point, even after saving the original run to the disk.
 
 ```{r}
-tmp_name <- tempfile("ernest_run.rds")
-saveRDS(run, tmp_name)
+file_name <- tempfile("run1", fileext = c(".rds"))
+saveRDS(run1, file_name)
+rm(run1)
 
-continued_run <- readRDS(tmp_name)
-
-run2 <- generate(continued_run, min_logz = 0.01, show_progress = FALSE)
+run1 <- readRDS(file_name)
+run2 <- generate(run1, min_logz = 0.05)
 run2
 ```
 
 ```{r include = FALSE}
-file.remove(tmp_name)
+unlink(file_name)
 ```
 
 ### Inspecting and Summarising Results
 
-The result object has a `summary` method for viewing evidence estimates, posterior samples, and diagnostics as a tidy `tibble`:
+The result object has a `summary` method for viewing information about the run:
 
 ```{r}
 summary(run2)
 summary(run2)$run
 ```
 
-The [posterior](https://CRAN.R-project.org/package=posterior) package offers methods for inspecting the points generated during a run. Calling `as_draws` on an `ernest_run` object produces a matrix with posterior log-weights calculated for each point. This matrix be resampled to produce a weighed posterior estimate.
+The [posterior](https://CRAN.R-project.org/package=posterior) package offers methods for inspecting the points generated during a run. Calling `as_draws` on an `ernest_run` object produces a matrix with posterior log-weights calculated for each point. This matrix be re-sampled to produce a weighed estimate of the posterior distribution.
 
 ```{r}
-library(posterior)
-unweighted_post <- as_draws(run2)
-weighted_post <- unweighted_post |>
+weighted_post <- as_draws(run2) |>
   resample_draws()
-posterior::summarise_draws(weighted_post, default_summary_measures())
+summarise_draws(weighted_post, default_summary_measures())
 ```
 
-To visualize how the points evolved throughout the run, we use the `visualize` function.
+To visualize the run's performance, we use the `plot` and `visualize` methods.
 
 ```{r}
-# plot(run2)
-```
-
-```{r}
+plot(run2)
 visualize(run2, type = "density")
+visualize(run2, type = "trace")
 ```
+
+## Comparing Evidence Values
+
+*TODO.*
+
+We can simulate the uncertainty of an NS run by generating random draws of the log-volume estimate at each iteration [@skilling2006, @higson2019]. This is done using `calculate`.
 
 ```{r}
-visualize(run2, type = "trace", vars = c("zBase", "Trt1", "zBase:Trt1"))
+calc_mod0 <- calculate(run2, ndraws = 500)
+calc_mod0
 ```
 
-Finally, we can simulate the uncertainty of an NS run by generating random draws of the log-volume estimate at each iteration [@skilling2006, @higson2019]. This is done using `calculate`.
+## Final Notes
 
-```{r}
-calc_sim <- calculate(run2, ndraws = 500)
-calc_sim
-```
+Nested sampling is a powerful technique that can help researchers choose parsimonious models, especially in challenging scenarios where traditional MCMC methods may struggle. However, nested sampling can be computationally intensive, and users should be aware of the following:
 
-------------------------------------------------------------------------
+**Computational Complexity**: The computational cost of nested sampling scales with both the dimensionality of the parameter space and the desired precision of the evidence estimate. Each iteration requires drawing a new sample from the likelihood-constrained prior, which becomes increasingly difficult as the algorithm progresses and the likelihood constraint becomes more restrictive. In high-dimensional problems (typically \> 20-30 parameters), the efficiency of the chosen LRPS strategy becomes critical.
 
-For more details on nested sampling, please refer to ernest's documentation.
+**Prior Spaces**: Evidence values will vary based on the scale of the prior distribution chosen for a nested sampling run. Choosing a wider prior distribution reduces the contribution of high-likelihood regions to the evidence estimate, resulting in a lower overall value. Therefore, we users should be careful in choosing priors that can be properly compared between models. In addition, users should be aware that the scale of the prior also directly impacts the overall expected runtime: The length of an NS run is proportional to the number of live points used (`n_points`) and the distance between the prior and posterior distributions.
+
+The ernest package brings these advantages to R users with a flexible, extensible interface. It allows users to define custom priors and likelihoods, supports multiple LRPS strategies, and integrates seamlessly with popular R packages for model specification and posterior analysis. By using ernest, R users can perform robust Bayesian model comparison and inference with greater transparency and reproducibility, making it a valuable tool for applied Bayesian analysis.
 
 ------------------------------------------------------------------------
 

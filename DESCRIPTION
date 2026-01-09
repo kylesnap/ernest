@@ -34,6 +34,7 @@ Suggests:
     knitr,
     LaplacesDemon,
     log4r,
+    patchwork,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,

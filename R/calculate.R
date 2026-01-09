@@ -46,6 +46,9 @@
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, lower = 0L)
+  n_points <- x$n_points
+  log_vol_rng <- range(x$log_volume)
+  dead_log_vol <- x$log_volume[x$n_iter]
 
   if (ndraws == 0L) {
     return(tibble::new_tibble(
@@ -56,7 +59,10 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
         "log_evidence" = posterior::as_rvar(x$log_evidence),
         "log_evidence_err" = posterior::as_rvar(sqrt(x$log_evidence_var))
       ),
-      ndraws = 0L,
+      ndraws = ndraws,
+      npoints = n_points,
+      log_vol_rng = log_vol_rng,
+      dead_log_vol = dead_log_vol,
       class = "ernest_estimate"
     ))
   }
@@ -73,7 +79,10 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
       "log_weight" = posterior::rvar(log_weight),
       "log_evidence" = posterior::rvar(log_evidence)
     ),
-    ndraws = as.integer(ndraws),
+    ndraws = ndraws,
+    npoints = n_points,
+    log_vol_rng = log_vol_rng,
+    dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
   )
 }

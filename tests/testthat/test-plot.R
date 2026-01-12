@@ -1,4 +1,53 @@
+test_that("plot.ernest_estimate validates input arguments", {
+  set.seed(42)
+  data(example_run)
+  est <- calculate(example_run, ndraws = 10)
+
+  expect_error(
+    plot(est, which = "not_a_plot"),
+    "must be one of"
+  )
+  expect_error(
+    plot(est, which = c("evidence", "not_a_plot")),
+    "must be one of"
+  )
+  expect_error(
+    plot(est, which = character()),
+    "At least one plot type must be specified in `which`."
+  )
+})
+
+test_that("plot.ernest_run validates input arguments", {
+  data(example_run)
+  expect_error(
+    plot(example_run, which = "not_a_plot"),
+    "must be one of"
+  )
+  expect_error(
+    plot(example_run, which = c("evidence", "not_a_plot")),
+    "must be one of"
+  )
+  expect_error(
+    plot(example_run, which = character()),
+    "At least one plot type must be specified in `which`."
+  )
+
+  expect_error(
+    plot(example_run, ndraws = -1),
+    "must be a whole number"
+  )
+  expect_error(
+    plot(example_run, ndraws = 1.5),
+    "must be a whole number"
+  )
+  expect_error(
+    plot(example_run, ndraws = 0),
+    "larger than or equal to 1 or `NULL`"
+  )
+})
+
 describe("plotting an ernest_estimate object", {
+  skip_extended()
   set.seed(42)
   calc_1 <- calculate(example_run, ndraws = 1)
   calc_100 <- calculate(example_run, ndraws = 100)
@@ -6,21 +55,21 @@ describe("plotting an ernest_estimate object", {
   it("plots evidence", {
     vdiffr::expect_doppelganger(
       "evidence ndraws = 100",
-      autoplot(calc_100, which = "evidence")
+      plot(calc_100, which = "evidence")
     )
   })
 
   it("plots weight", {
     vdiffr::expect_doppelganger(
       "weight ndraws = 100",
-      autoplot(calc_100, which = "weight")
+      plot(calc_100, which = "weight")
     )
   })
 
   it("plots likelihood", {
     vdiffr::expect_doppelganger(
       "likelihood ndraws = 100",
-      autoplot(calc_100, which = "likelihood")
+      plot(calc_100, which = "likelihood")
     )
   })
 
@@ -52,7 +101,7 @@ describe("plotting an ernest_run object", {
   it("plots evidence", {
     vdiffr::expect_doppelganger(
       "evidence ernest_run",
-      autoplot(example_run, which = "evidence")
+      plot(example_run, which = "evidence")
     )
   })
 
@@ -84,6 +133,7 @@ describe("plotting an ernest_run object", {
 })
 
 test_that("ernest_run can be plotted after simulation", {
+  skip_extended()
   data(example_run)
   set.seed(42)
 

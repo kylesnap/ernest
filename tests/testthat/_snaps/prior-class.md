@@ -78,8 +78,5 @@
     Code
       prior
     Output
-      custom prior distribution <custom_prior/ernest_prior>
-      
-      Number of Dimensions: 2
-      Names: A and B
+      custom prior distribution with 2 dimensions (A and B)
 

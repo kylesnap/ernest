@@ -71,24 +71,18 @@ new_ernest_lrps <- function(
 
 #' @noRd
 #' @export
-format.ernest_lrps <- function(x, ...) {
-  glue::glue(
-    "Sampler: {class(x)[1]}",
-    "Dimensions: {n_dim}",
-    "No. Log-Lik Calls: {env_get(x$cache, 'n_call', 0)}",
-    n_dim = x$n_dim %||% "{.emph 'Undefined'}",
-    .sep = "\n"
-  )
-}
+format.ernest_lrps <- function(x, ...) "Abstract"
 
 #' @noRd
 #' @export
 print.ernest_lrps <- function(x, ...) {
-  lines <- strsplit(format(x), split = "\n")[[1]]
-  names(lines) <- rep("*", length(lines))
-  lines <- utils::tail(lines, -1)
-  cli::cli_text("ernest LRPS method {.cls {class(x)}}")
-  cli::cli_bullets(lines)
+  cli::cli_text("{format(x)}:")
+
+  cli::cli_par()
+  cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
+  cli::cli_text("# Calls since last update: {env_get(x$cache, 'n_call', 0)}")
+  cli::cli_end()
+  invisible(x)
 }
 
 #' Generate a new point using LRPS

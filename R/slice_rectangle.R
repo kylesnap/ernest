@@ -52,21 +52,15 @@ slice_rectangle <- function(enlarge = 1) {
 #' @noRd
 #' @export
 format.slice_rectangle <- function(x, ...) {
-  center <- "Undefined"
-  log_vol <- -Inf
-  enlarge <- if (is.na(x$enlarge)) "Disabled" else x$enlarge
-  if (all(env_has(x$cache, c("lower", "upper")))) {
-    c(center, log_vol) %<-%
-      list(
-        (x$cache$upper + x$cache$lower) / 2,
-        sum(log(x$cache$rect$upper - x$cache$rect$lower))
-      )
+  enlarge_str <- if (is.na(x$enlarge)) {
+    NULL
+  } else {
+    cli::format_inline(
+      "(enlarged by {x$enlarge})"
+    )
   }
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "Centre: {pretty(center)}",
-    "Enlargement: {enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Slice Sampling LRPS {enlarge_str}"
   )
 }
 

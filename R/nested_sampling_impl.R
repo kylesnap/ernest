@@ -77,15 +77,11 @@ nested_sampling_impl <- function(
   for (i in seq(1, max_iterations - iter)) {
     # 1. Check stop conditions
     if (call > max_calls) {
-      alert_success("`max_calls` surpassed ({call} > {max_calls}).")
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
-      alert_success(
-        "`min_logz` reached ({pretty_signif(d_log_z)} < {min_logz})."
-      )
       break
     }
     if (show_progress) {
@@ -96,8 +92,9 @@ nested_sampling_impl <- function(
     worst_idx <- which.min(live_env$log_lik)
     new_criterion <- live_env$log_lik[worst_idx]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
+      log_lik_format <- pretty_round(max_lik, digits = 4)
       cli::cli_warn(
-        "Stopping run due to a likelihood plateau at {pretty(max_lik)}."
+        "Stopping run due to a likelihood plateau at {log_lik_format}."
       )
       break
     }
@@ -170,9 +167,6 @@ nested_sampling_impl <- function(
     live_env$birth[worst_idx] <- copy
     dead_calls[[i]] <- new_unit$n_call
     call <- call + new_unit$n_call
-  }
-  if (i >= max_iterations) {
-    alert_success("`max_iterations` reached ({i}).")
   }
 
   list(

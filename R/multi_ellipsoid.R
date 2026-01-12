@@ -68,14 +68,8 @@ multi_ellipsoid <- function(
 #' @export
 #' @noRd
 format.multi_ellipsoid <- function(x, ...) {
-  n_ell <- length(env_get(x$cache, "prob", double()))
-  log_vol <- env_cache(x$cache, "total_log_volume", -Inf)
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "No. Ellipsoids: {n_ell}",
-    "Total Log Volume: {pretty(log_vol)}",
-    "Enlargement: {x$enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Uniform sampling within bounding ellipsoids (enlarged by {x$enlarge})"
   )
 }
 

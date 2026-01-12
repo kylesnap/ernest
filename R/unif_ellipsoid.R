@@ -62,7 +62,7 @@
 unif_ellipsoid <- function(enlarge = 1.25) {
   check_number_decimal(enlarge, min = 1)
   if (enlarge == 1.0) {
-    cli::cli_alert_warning("`enlarge` is set to 1.0, which is not recommended.")
+    cli::cli_warn("`enlarge` is set to 1.0, which is not recommended.")
   }
   new_unif_ellipsoid(
     unit_log_fn = NULL,
@@ -75,12 +75,8 @@ unif_ellipsoid <- function(enlarge = 1.25) {
 #' @export
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "Center: {pretty(x$cache$center %||% 'Undefined')}",
-    "Log Volume: {pretty(x$cache$log_volume %||% -Inf)}",
-    "Enlargement: {x$enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Uniform sampling within a bounding ellipsoid (enlarged by {x$enlarge})"
   )
 }
 

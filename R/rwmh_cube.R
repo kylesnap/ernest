@@ -79,13 +79,9 @@ rwmh_cube <- function(
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "No. Accepted Proposals: {x$cache$n_accept %||% 0}",
-    "No. Steps: {x$steps}",
-    "Target Acceptance: {x$target_acceptance}",
-    "Step Size: {pretty(x$cache$epsilon %||% 1)}",
-    .sep = "\n"
+  acc_per <- pretty_round(100 * x$target_acceptance, 1)
+  cli::format_inline(
+    "{x$steps}-step random walk sampling (acceptance target = {acc_per}%)"
   )
 }
 

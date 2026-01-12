@@ -2,11 +2,12 @@
 
     Code
       calc
-    Output
-      evidence estimates <ernest_estimate>
-      
+    Message
+      Nested sampling uncertainty estimates:
+      # of Simulated Draws: 0
       Log. Volume: -17 ± NA
       Log. Evidence: -9.1 ± NA
+    Output
       # A tibble: 10,456 x 5
             log_lik   log_volume log_weight log_evidence log_evidence_err
          <rvar[1d]>   <rvar[1d]> <rvar[1d]>   <rvar[1d]>       <rvar[1d]>
@@ -26,12 +27,12 @@
 
     Code
       calc
-    Output
-      evidence estimates <ernest_estimate>
-      
-      No. of Simulated Draws: 1
+    Message
+      Nested sampling uncertainty estimates:
+      # of Simulated Draws: 1
       Log. Volume: -20 ± NA
       Log. Evidence: -9.1 ± NA
+    Output
       # A tibble: 10,456 x 4
             log_lik     log_volume log_weight log_evidence
          <rvar[1d]>     <rvar[1d]> <rvar[1d]>   <rvar[1d]>
@@ -51,12 +52,12 @@
 
     Code
       calc
-    Output
-      evidence estimates <ernest_estimate>
-      
-      No. of Simulated Draws: 1000
+    Message
+      Nested sampling uncertainty estimates:
+      # of Simulated Draws: 1000
       Log. Volume: -17 ± 1.2
       Log. Evidence: -9.1 ± 0.071
+    Output
       # A tibble: 10,456 x 4
             log_lik          log_volume   log_weight log_evidence
          <rvar[1d]>          <rvar[1d]>   <rvar[1d]>   <rvar[1d]>

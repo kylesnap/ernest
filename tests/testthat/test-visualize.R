@@ -1,3 +1,5 @@
+withr::local_seed(42)
+
 test_that("visualize validates parameters", {
   data(example_run)
   expect_error(

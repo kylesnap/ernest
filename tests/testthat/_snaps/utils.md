@@ -12,10 +12,6 @@
       sampler <- ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior,
       n_points = 100, seed = 42)
       run <- generate(sampler, max_iterations = 10, show_progress = FALSE)
-    Message
-      i Created 100 live points.
-      i Logging run to FILE
-      v `max_iterations` reached (10).
 
 # check_class works as expected
 

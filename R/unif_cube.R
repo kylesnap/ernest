@@ -33,7 +33,7 @@ unif_cube <- function() {
 #' @noRd
 #' @export
 format.unif_cube <- function(x, ...) {
-  NextMethod()
+  "Uniform unit cube sampling"
 }
 
 #' Create a new unif_cube LRPS

@@ -89,26 +89,16 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 
 #' @export
 #' @noRd
-format.ernest_estimate <- function(x, ...) {
-  vec <- cli::cli_format_method({
-    cli::cli_text("evidence estimates {.cls ernest_estimate}")
-    cli::cat_line()
-    if (attr(x, "ndraws") != 0) {
-      cli::cli_text("No. of Simulated Draws: {attr(x, 'ndraws')}")
-    }
-    log_z <- pretty(tail(x$log_evidence, 1))
-    log_vol <- pretty(tail(x$log_volume, 1))
-    cli::cli_text("Log. Volume: {log_vol}")
-    cli::cli_text("Log. Evidence: {log_z}")
-  })
-  c(vec, NextMethod(x))
-}
-
-#' @export
-#' @noRd
 print.ernest_estimate <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+  cli::cli_text("Nested sampling uncertainty estimates:")
+  log_z <- round(x$log_evidence[length(x$log_evidence)], 4)
+  log_vol <- round(x$log_volume[length(x$log_volume)], 4)
+  cli::cli_bullets(c(
+    "# of Simulated Draws: {attr(x, 'ndraws')}",
+    "Log. Volume: {log_vol}",
+    "Log. Evidence: {log_z}"
+  ))
+  NextMethod(x)
 }
 
 # HELPERS FOR CALCULATING EVIDENCE ------

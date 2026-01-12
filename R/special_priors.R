@@ -4,6 +4,7 @@
 #' Normally-Distributed Prior (Possibly Truncated)
 #'
 #' @rdname ernest_prior
+#' @importFrom prettyunits pretty_round
 #' @inheritParams stats::qnorm
 #' @export
 create_normal_prior <- function(
@@ -38,8 +39,8 @@ create_normal_prior <- function(
   names <- names %||%
     sprintf(
       "Normal_%s_%s",
-      gsub("-", "m", prettyunits::pretty_round(params$mean, 1)),
-      prettyunits::pretty_round(params$sd, 1)
+      gsub("-", "m", pretty_round(params$mean, 1)),
+      pretty_round(params$sd, 1)
     )
 
   x <- NULL
@@ -112,8 +113,8 @@ create_uniform_prior <- function(
   names <- names %||%
     sprintf(
       "Uniform_%s_%s",
-      gsub("-", "m", prettyunits::pretty_round(params$lower, 1)),
-      gsub("-", "m", prettyunits::pretty_round(params$upper, 1))
+      gsub("-", "m", pretty_round(params$lower, 1)),
+      gsub("-", "m", pretty_round(params$upper, 1))
     )
   diff <- params$upper - params$lower
   # Evaluating in the empty-environment requires prefix operators

@@ -112,6 +112,7 @@ visualize.ernest_run <- function(
 #' function.
 #'
 #' @return A `ggplot2::ggplot()` object with one facet per variable.
+#' @importFrom ggplot2 facet_grid vars
 #' @noRd
 visualize_density <- function(selected) {
   tibble(".variable" = names(selected), ".dist" = list_c(selected)) |>
@@ -137,6 +138,7 @@ visualize_density <- function(selected) {
 #'
 #' @return A `ggplot2::ggplot()` object with one facet per variable,
 #' showing traces colored by posterior weight.
+#' @importFrom ggplot2 geom_point scale_colour_distiller
 #' @noRd
 visualize_trace <- function(draws, pos, log_volume, weights) {
   df <- do.call(

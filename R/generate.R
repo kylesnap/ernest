@@ -246,9 +246,10 @@ check_stopping_criteria <- function(
   }
   if (!is.null(d_logz) && !is.null(min_logz)) {
     if (min_logz >= d_logz) {
+      d_logz_format <- pretty_round(d_logz, digits = 4)
       cli::cli_abort(
         c(
-          "`min_logz` must be strictly smaller than {pretty(d_logz)}.",
+          "`min_logz` must be strictly smaller than {d_logz_format}.",
           "x" = "`x` already contains previously-generated samples.",
           "i" = "Should you use `clear` to erase previous samples from `x`?"
         ),

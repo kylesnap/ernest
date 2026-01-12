@@ -6,9 +6,8 @@
 
     Code
       ll
-    Output
+    Message
       likelihood function <ernest_likelihood>
-      
       function (x) 
       -sum((x - 1)^2)
 

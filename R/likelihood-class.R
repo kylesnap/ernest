@@ -129,18 +129,11 @@ new_ernest_likelihood <- function(
 
 #' @noRd
 #' @export
-format.ernest_likelihood <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("likelihood function {.cls ernest_likelihood}")
-    cli::cat_line()
-    fn <- attr(x, "body")
-    cli::cli_code(format(fn))
-  })
-}
-
-#' @noRd
-#' @export
 print.ernest_likelihood <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  cli::cli_text("likelihood function {.cls ernest_likelihood}")
+  fn <- attr(x, "body")
+  cli::cli_code({
+    format(fn)
+  })
   invisible(x)
 }

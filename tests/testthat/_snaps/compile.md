@@ -4,6 +4,8 @@
       create_live(bad_lik, 10)
     Condition
       Error:
+      ! Error when creating live points.
+      Caused by error in `unit_log_fn()`:
       ! Bad Job!
 
 # check_live_set / errors if unit is not a matrix of correct shape
@@ -94,17 +96,8 @@
     Code
       sampler
     Message
-      nested sampling specification <ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: rwmh_cube
-    Output
-      
-    Message
-      ernest LRPS method <rwmh_cube/ernest_lrps>
-      * Dimensions: 2
-      * No. Log-Lik Calls: 0
-      * No. Accepted Proposals: 0
-      * No. Steps: 25
-      * Target Acceptance: 0.5
-      * Step Size: 1.000
+      Nested sampling run specification:
+      * Live points: 500
+      * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+      * Prior: uniform prior distribution with 2 dimensions (A and B)
 

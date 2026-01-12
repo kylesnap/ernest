@@ -93,21 +93,12 @@ new_ernest_prior <- function(
   # Wrap the transformation, catching errors in function output.
   force(fn)
   catching_fn <- function(x) {
-    out <- try_fetch(
-      {
-        fn(x)
-      },
-      error = function(cnd) {
-        cli::cli_abort("Error within `ernest_prior`.", parent = cnd)
-      }
-    )
+    out <- fn(x)
     out <- vctrs::vec_cast(out, double(), call = NULL)
     if (any(is.nan(out) | is.na(out))) {
-      cli::cli_abort(c(
-        "`fn` cannot return non-numeric, missing, or `NaN` values.",
-        "x" = "Input: {pretty(out)}",
-        "y" = "Output: {pretty(out)}"
-      ))
+      cli::cli_abort(
+        "`fn` cannot return non-numeric, missing, or `NaN` values."
+      )
     }
     return(out)
   }
@@ -293,13 +284,10 @@ check_prior <- function(
 #' @noRd
 #' @export
 format.ernest_prior <- function(x, ...) {
-  cli::cli_format_method({
-    name <- sub("_prior", "", class(x)[[1]])
-    cli::cli_text("{name} prior distribution {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cli_text("Number of Dimensions: {attr(x, 'n_dim')}")
-    cli::cli_text("Names: {x$names}")
-  })
+  name <- sub("_prior", "", class(x)[[1]])
+  cli::format_inline(
+    "{name} prior distribution with {attr(x, 'n_dim')} dimensions ({x$names})"
+  )
 }
 
 #' Print for ernest_prior
@@ -328,16 +316,18 @@ check_bounds <- function(test_matrix, bounds, call = caller_env()) {
           "`fn` must return values within the bounds `lower` and `upper`."
         ),
         "x" = if (oob_low) {
-          "Expected lower bounds: {pretty(bounds$lower)}."
+          "Expected lower bounds: {pretty_round(bounds$lower, digits = 4)}."
         },
         "x" = if (oob_low) {
-          "Actual lower bounds: {pretty(matrixStats::colMins(test_matrix))}."
+          str <- pretty_round(matrixStats::colMins(test_matrix), digits = 4)
+          "Actual lower bounds: {str}."
         },
         "x" = if (oob_up) {
-          "Expected upper bounds: {pretty(bounds$lower)}."
+          "Expected upper bounds: {pretty_round(bounds$upper, digits = 4)}."
         },
         "x" = if (oob_up) {
-          "Actual upper bounds: {pretty(matrixStats::colMins(test_matrix))}."
+          str <- pretty_round(matrixStats::colMaxs(test_matrix), digits = 4)
+          "Actual upper bounds: {str}."
         }
       ),
       call = call

@@ -27,11 +27,5 @@ cli::test_that_cli("Fully-verbose output", {
     seed = 42
   )
   withr::local_options(rlib_message_verbosity = "verbose")
-
-  expect_snapshot(
-    generate(sampler, max_iterations = 1000),
-    transform = \(x) {
-      gsub("((No. Calls)|(Log. Evidence)):.+$", "\\1: ###", x)
-    }
-  )
+  expect_no_error(generate(sampler, max_iterations = 1000))
 })

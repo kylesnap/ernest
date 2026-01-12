@@ -75,7 +75,6 @@ compile.ernest_sampler <- function(object, ..., seed = deprecated()) {
   env_poke(object$run_env, "birth", rep(0L, object$n_points))
 
   check_live_set(object)
-  alert_info("Created {object$n_points} live points.")
   object
 }
 
@@ -134,7 +133,6 @@ compile.ernest_run <- function(
       )
     }
   )
-  alert_info("Restored {object$n_points} live points from a previous run.")
   object
 }
 
@@ -157,7 +155,11 @@ create_live <- function(lrps, n_points, call = caller_env()) {
       live
     },
     error = function(cnd) {
-      cli::cli_abort(cnd$message, call = call)
+      cli::cli_abort(
+        "Error when creating live points.",
+        parent = cnd,
+        call = call
+      )
     }
   )
   order_logl <- order(live$log_lik)

@@ -95,31 +95,25 @@ new_ernest_run_ <- function(x, parsed) {
   obj
 }
 
-#' @noRd
-#' @export
-format.ernest_run <- function(x, ...) {
-  log_z <- pretty(tail(x$log_evidence, 1))
-  log_z_sd <- pretty(sqrt(tail(x$log_evidence_var, 1)))
-  glue::glue(
-    "No. Points: {x$n_points}",
-    "LRPS Method: {class(x$lrps)[[1]]}",
-    "No. Iterations: {x$n_iter}",
-    "No. Calls: {x$n_calls}",
-    "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
-    .sep = "\n"
-  )
-}
-
 #' @srrstats {BS6.0} Default print for return object.
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
-  cli::cli_text("nested sampling results {.cls {class(x)}}")
-  lines <- strsplit(format(x), split = "\n")[[1]]
-  names(lines) <- rep("*", length(lines))
-  cli::cli_bullets(lines[1:2])
-  cli::cli_rule()
-  cli::cli_bullets(lines[3:5])
+  cli::cli_text("Nested sampling run:")
+  cli::cli_bullets(c(
+    "* Live points: {x$n_points}",
+    "* Sampling method: {format(x$lrps, ...)}",
+    "* Prior: {format(x$prior, ...)}"
+  ))
+  cli::cli_rule(left = "Results")
+  log_z <- pretty_round(tail(x$log_evidence, 1), 4)
+  log_z_sd <- pretty_round(sqrt(tail(x$log_evidence_var, 1)), 4)
+  cli::cli_bullets(c(
+    "* Iterations: {x$n_iter}",
+    "* Likelihood calls: {x$n_calls}",
+    "* Log. Volume: {pretty_round(tail(x$log_volume, 1L), 4)}",
+    "* Log. Evidence: {log_z} (\U00B1 {log_z_sd})"
+  ))
   invisible(x)
 }
 
@@ -200,13 +194,13 @@ summary.ernest_run <- function(object, ...) {
 #' @noRd
 #' @export
 format.summary.ernest_run <- function(x, ...) {
-  log_z <- pretty(x$log_evidence)
-  log_z_sd <- pretty(x$log_evidence_err)
+  log_z <- pretty_round(x$log_evidence, 4)
+  log_z_sd <- pretty_round(x$log_evidence_err, 4)
   glue::glue(
     "No. Points: {x$n_points}",
     "No. Iterations: {x$n_iter}",
     "No. Calls: {x$n_calls}",
-    "Log. Volume: {pretty(x$log_volume)}",
+    "Log. Volume: {pretty_round(x$log_volume, 4)}",
     "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
     .sep = "\n"
   )

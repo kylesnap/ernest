@@ -95,7 +95,6 @@ start_logging <- function() {
       config$fileext
     )
   )
-  alert_info("Logging run to {.file {file}}.")
   log4r::logger(
     threshold = config$threshold,
     appenders = log4r::file_appender(file, layout = config$layout)
@@ -274,107 +273,6 @@ list_c <- function(x) {
   inject(c(!!!x))
 }
 
-#' Calculate the highest density credible interval (HDI) of an rvar
-#'
-#' Computes the HDI for each element of an rvar object containing posterior
-#' draws.
-#'
-#' @param object An rvar object containing draws.
-#' @param width Numeric. The width of the HDI to compute (default is 0.95).
-#' @param ... Additional arguments (currently unused).
-#'
-#' @return A data frame with the median, lower, and upper bounds of the HDI
-#' for each element.
-#' @noRd
-hdci <- function(object, width = 0.95, ...) {
-  if (!inherits(object, "rvar")) {
-    cli::cli_abort("`object` must be of class 'rvar'.")
-  }
-  check_number_decimal(width, min = 0, max = 1)
-
-  lower <- (1 - width) / 2
-  upper <- (1 + width) / 2
-
-  q <- stats::quantile(object, probs = c(lower, 0.5, upper)) |>
-    t()
-  colnames(q) <- c(".lower", ".var", ".upper")
-  data.frame(q, ".width" = width)
-}
-
-#' Estimate the density of posterior weights across log-volumes
-#'
-#' Computes the density of posterior weights for a range of log-volume values.
-#'
-#' @param log_volume An rvar of log-volume draws.
-#' @param weight An rvar of normalized posterior weights.
-#'
-#' @return A data frame with 128 log-volume values and an rvar of corresponding
-#' densities.
-#' @noRd
-get_density <- function(log_volume, weight) {
-  min_vol <- min(mean(log_volume))
-  log_vol_draws <- posterior::draws_of(log_volume)
-  w_draws <- posterior::draws_of(weight)
-
-  log_vol_spaced <- stats::density(
-    log_vol_draws[1, ],
-    weight = w_draws[1, ],
-    warnWbw = FALSE,
-    from = min_vol,
-    to = 0,
-    n = 128L
-  )$x
-
-  density <- vapply(
-    seq_len(nrow(w_draws)),
-    \(i) {
-      stats::density(
-        log_vol_draws[i, ],
-        weight = w_draws[i, ],
-        warnWbw = FALSE,
-        from = min_vol,
-        to = 0,
-        n = 128L
-      )$y
-    },
-    double(128L)
-  )
-  density_rvar <- posterior::rvar(t(density))
-  data.frame("log_volume" = log_vol_spaced, "density" = density_rvar)
-}
-
-#' Interpolate evidence across log-volume values
-#'
-#' Interpolates evidence estimates across a specified range of log-volume
-#' values.
-#'
-#' @param log_volume An rvar of log-volume draws.
-#' @param log_evidence An rvar of log-evidence draws.
-#' @param log_volume_out Numeric vector of log-volume values at which to
-#' interpolate.
-#'
-#' @return An rvar with interpolated evidence values at each specified
-#' log-volume.
-#' @noRd
-interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
-  log_vol_draws <- posterior::draws_of(log_volume)
-  log_evid_draws <- posterior::draws_of(exp(log_evidence))
-
-  interp <- vapply(
-    seq_len(nrow(log_evid_draws)),
-    \(i) {
-      stats::approx(
-        x = log_vol_draws[i, ],
-        y = log_evid_draws[i, ],
-        xout = log_volume_out,
-        rule = 2L
-      )$y
-    },
-    double(128L)
-  )
-  posterior::rvar(t(interp))
-}
-
 # Helpers for computing and reporting results -----
 
 #' Compute the nested sampling integral and statistics
@@ -416,56 +314,4 @@ compute_integral <- function(log_lik, log_volume) {
     information = information,
     .to = double()
   )
-}
-
-# CLI Tools ----------
-
-#' Alert the user to success if verbose is not quiet.
-#'
-#' @param text Text of the alert.
-#' @param .envir Environment to evaluate the glue expressions in.
-#' @returns NULL, invisibly.
-#' @noRd
-alert_success <- function(text, .envir = caller_env()) {
-  if (getOption("rlib_message_verbosity", "default") != "quiet") {
-    cli::cli_alert_success(text, .envir = .envir)
-  }
-  invisible(NULL)
-}
-
-#' Alert the user to info if verbose is not quiet.
-#'
-#' @param text Text of the alert.
-#' @param .envir Environment to evaluate the glue expressions in.
-#' @returns NULL, invisibly.
-#' @noRd
-alert_info <- function(text, .envir = caller_env()) {
-  if (getOption("rlib_message_verbosity", "default") != "quiet") {
-    cli::cli_alert_info(text, .envir = .envir)
-  }
-  invisible(NULL)
-}
-
-#' Make double vectors pretty
-#'
-#' @param x An object.
-#' @returns `x`, unless it is a numeric vector, then `x` is returned as a
-#' formatted character string.
-#' @noRd
-pretty <- function(x) {
-  if (!is.numeric(x)) {
-    return(x)
-  }
-  max_len <- utils::strOptions()$vec.len
-  digits <- max(3L, getOption("digits") - 3L)
-  strrep <- if (length(x) <= max_len) {
-    pretty_signif(x, digits = digits)
-  } else {
-    c(
-      pretty_signif(x[1:4], digits = digits),
-      "...",
-      pretty_signif(x[length(x)])
-    )
-  }
-  paste0(strrep, collapse = ", ")
 }

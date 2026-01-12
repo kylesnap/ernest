@@ -6,6 +6,8 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `ernest_sampler()`:
+      ! Error when creating live points.
+      Caused by error:
       ! `log_lik(x)` must not be of length 0.
 
 # Zero-length prior fails
@@ -40,6 +42,8 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
+    ! Error when creating live points.
+    Caused by error:
     ! Can't convert `log_lik(x)` <character> to <double>.
 
 # Fails on complex types
@@ -56,12 +60,16 @@
 
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
+    ! Error when creating live points.
+    Caused by error:
     ! Can't convert `log_lik(x)` <complex> to <double>.
 
 # Missing values in the log-likelihood
 
     <ernest_sampler> cannot compile.
     Caused by error in `ernest_sampler()`:
+    ! Error when creating live points.
+    Caused by error:
     ! log-lik. values must be either finite or `-Inf`, not NA.
 
 ---
@@ -75,19 +83,10 @@
       Caused by warning:
       ! Replacing `NA` with `-Inf`.
     Message
-      nested sampling specification <ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: rwmh_cube
-    Output
-      
-    Message
-      ernest LRPS method <rwmh_cube/ernest_lrps>
-      * Dimensions: 2
-      * No. Log-Lik Calls: 0
-      * No. Accepted Proposals: 0
-      * No. Steps: 25
-      * Target Acceptance: 0.5
-      * Step Size: 1.000
+      Nested sampling run specification:
+      * Live points: 500
+      * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+      * Prior: uniform prior distribution with 2 dimensions (A and B)
 
 # Ernest fails when ll is flat to begin with
 

@@ -1,16 +1,3 @@
-# new_ernest_likelihood fails informatively
-
-    `on_nonfinite` must be one of "warn", "quiet", or "abort", not "loudly".
-
-# create_likelihood with simple function
-
-    Code
-      ll
-    Message
-      likelihood function <ernest_likelihood>
-      function (x) 
-      -sum((x - 1)^2)
-
 # create_likelihood throws errors
 
     Code
@@ -22,50 +9,34 @@
 ---
 
     Code
-      create_likelihood(test, on_nonfinite = "blob")
+      create_likelihood(fn, on_nonfinite = "blob")
     Condition
       Error in `new_ernest_likelihood()`:
       ! `on_nonfinite` must be one of "warn", "quiet", or "abort", not "blob".
 
-# non_finite action options
-
-    Code
-      fail_ll(c(0, 1, 2))
-    Condition
-      Error:
-      ! log-lik. values must be either finite or `-Inf`, not NaN.
-
 ---
 
     Code
-      warn_ll(c(0, 1, 2))
+      create_likelihood(fn, matrix_fn = matrix_fn)
     Condition
-      Warning:
-      Replacing `NaN` with `-Inf`.
-    Output
-      [1] -Inf
+      Error in `create_likelihood()`:
+      ! Exactly one of `fn` or `matrix_fn` must be supplied.
 
-# fn fails if a non-double is returned
+# matrix_fn and fn args are similar / produces likelihoods from `fn`
 
     Code
-      fail_ll(c(0, 1, 2))
-    Condition
-      Error:
-      ! Can't convert `log_lik(x)` <character> to <double>.
+      ll
+    Message
+      Log-Likelihood Function (Auto-Generated Matrix Compatibility)
+      function (x) 
+      sum(stats::dnorm(x, mean = c(-1, 0, 1), log = TRUE))
 
----
-
-    Code
-      warn_ll(c(0, 1, 2))
-    Condition
-      Error:
-      ! Can't convert `log_lik(x)` <character> to <double>.
-
----
+# matrix_fn and fn args are similar / produces likelihood from `matrix_fn`
 
     Code
-      result <- pass_ll(c(0, 1, 2))
-    Condition
-      Error:
-      ! Can't convert `log_lik(x)` <character> to <double>.
+      mat_ll
+    Message
+      Log-Likelihood Function (User-Provided Matrix Compatibility)
+      function (x) 
+      mvtnorm::dmvnorm(x, mean = c(-1, 0, 1), log = TRUE)
 

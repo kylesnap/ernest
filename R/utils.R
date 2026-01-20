@@ -164,59 +164,58 @@ check_matrix <- function(
   ncol,
   lower = -Inf,
   upper = Inf,
+  finite = TRUE,
   ...,
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  check_number_whole(nrow, min = 1, call = call)
-  check_number_whole(ncol, min = 1, call = call)
-  bounds <- vctrs::vec_recycle_common(
-    "lower" = lower,
-    "upper" = upper,
-    .size = ncol
-  )
+  if (!is.matrix(x)) {
+    stop_input_type(x, "a matrix", arg = arg, call = call)
+  }
 
-  if (!is.double(x) || !is.matrix(x)) {
+  if (typeof(x) != "double") {
     stop_input_type(
       x,
       "a double matrix",
-      ...,
-      allow_na = FALSE,
-      allow_null = FALSE,
-      arg = arg,
-      call = call
-    )
-  }
-  if (!isTRUE(all.equal(dim(x), c(nrow, ncol)))) {
-    cli::cli_abort(
-      c(
-        "`{arg}` must have dimensions {nrow} x {ncol}.",
-        "x" = "Actual dimensions: {nrow(x)} x {ncol(x)}."
-      ),
       arg = arg,
       call = call
     )
   }
 
-  for (i in seq(nrow(x))) {
-    if (any(is.na(x[i, ]) | is.nan(x[i, ]))) {
-      cli::cli_abort(
-        "`{arg}` must not contain missing or `NaN` values.",
-        call = call
-      )
-    }
-    if (any(x[i, ] <= bounds$lower)) {
-      cli::cli_abort(
-        "`{arg}` must respect the lower boundary ({lower}).",
-        call = call
-      )
-    }
-    if (any(x[i, ] >= bounds$upper)) {
-      cli::cli_abort(
-        "`{arg}` must respect the upper boundary ({upper}).",
-        call = call
-      )
-    }
+  if (nrow(x) != nrow) {
+    cli::cli_abort("`{arg}` must have {nrow} rows, not {nrow(x)}.", call = call)
+  }
+  if (ncol(x) != ncol) {
+    cli::cli_abort(
+      "`{arg}` must have {ncol} columns, not {ncol(x)}.",
+      call = call
+    )
+  }
+
+  if (finite && any(!is.finite(x))) {
+    cli::cli_abort(
+      "`{arg}` must contain no nonfinite values.",
+      call = call
+    )
+  }
+
+  if (identical(lower, -Inf) && identical(upper, Inf)) {
+    return(invisible(NULL))
+  }
+
+  bounds <- vctrs::vec_recycle_common(
+    lower = lower,
+    upper = upper,
+    .size = ncol
+  )
+  mins <- matrixStats::colMins(x)
+  maxes <- matrixStats::colMaxs(x)
+
+  if (any(bounds$lower > mins)) {
+    cli::cli_abort("`{arg}` must respect the lower bounds.")
+  }
+  if (any(bounds$upper < maxes)) {
+    cli::cli_abort("`{arg}` must respect the upper bounds.")
   }
   invisible(NULL)
 }

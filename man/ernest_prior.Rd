@@ -35,8 +35,7 @@ create_uniform_prior(
 )
 }
 \arguments{
-\item{fn}{A function. Takes a vector of unit cube coordinates and
-returns a vector of parameters of the same length.}
+\item{fn}{A function specifying the prior transformation.}
 
 \item{names}{Unique names for each variable in the prior distribution.
 Optional for non-custom prior distributions.}
@@ -46,8 +45,8 @@ parameter vectors after hypercube transformation.}
 
 \item{repair}{Describes how to repair the vector of \code{names}. One of
 \code{"check_unique"}, \code{"unique"}, \code{"universal"}, \code{"unique_quiet"},
-or \code{"universal_quiet"}.
-See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of each repair strategy.}
+or \code{"universal_quiet"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of each
+repair strategy.}
 
 \item{x, y}{\code{ernest_prior} objects.}
 
@@ -56,10 +55,9 @@ See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of 
 \item{sd}{vector of standard deviations.}
 }
 \value{
-A list with with class \code{ernest_prior}, containing \code{fn}, \code{lower}, \code{upper},
-and \code{names}. The vector-valued parameters are guaranteed to be of
-length \code{n_dim} if provided, or share a common length if otherwise left
-\code{NULL}.
+A list with class \code{ernest_prior}, containing \code{fn}, \code{lower}, \code{upper},
+and \code{names}. The vector-valued parameters are guaranteed to be of common
+length.
 }
 \description{
 Use an R function to specify the prior distribution of parameters for a
@@ -79,63 +77,42 @@ function (CDF) for each parameter. For more complex cases, you can specify
 hierarchical or conditionally dependent priors (see Examples).
 
 \code{create_prior} performs regularity checks on your prior function to catch
-basic errors that may affect nested sampling. To pass these checks, \code{fn} must
-be able to take in a vector of points (each between 0 and 1) and return
-a vector of the same length which contains only finite values.
+basic errors that may affect nested sampling. To pass these checks, the
+function must take in a vector of points (each between 0 and 1)
+and return a vector or matrix of the same shape containing only finite
+values.
 }
 \note{
 See \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for additional information on
 how parameters are recycled to a common length.
 }
 \examples{
-data(epilepsy, package = "brms")
+data("PlantGrowth")
 
-# Pooled Model of Seizure Count via. Treatment and Baseline Seizure Count:
-# glm(count ~ zBase * Trt, family = poisson(), data = epilepsy)
-#
-# Using a weakly-informative prior
-# All coefficients (b0, b1, b2, b1_2) follow N(0, 10)
-pooled_prior <- create_normal_prior(
-  names = c("b0", "b1", "b2", "b1_2"),
+# Linear model: weight ~ group
+mod <- lm(weight ~ group, data = PlantGrowth)
+frame <- model.frame(mod)
+predictors <- model.matrix(weight ~ group, frame)
+
+# Prior for regression coefficients (Normal(0, 10))
+coef_prior <- create_normal_prior(
+  names = colnames(predictors),
   mean = 0,
   sd = 10
 )
-pooled_prior
-pooled_prior$fn(c(0.5, 0.5, 0.5, 0.5))
+coef_prior
+coef_prior$fn(rep(0.5, length(coef_prior$names)))
 
-# Random-Intercept Model of Seizure-Treatment Relationship:
-# brm(
-#   count ~ zBase * Trt + (1 | patient),
-#   data = epilepsy,
-#   family = poisson(),
-#   prior = prior(normal(0, 10), class = b) + prior(cauchy(0, 2), class = sd)
-# )
-#
-# Random Intercepts follow N(mu, sd)
-# Remaining coefficients (b1, b2, b1_2) follow N(0, 10)
-patients <- as.character(unique(epilepsy$patient))
-n_groups <- length(patients)
-intercept_transform <- function(x) {
-  mu <- stats::qnorm(x[1], mean = 0, sd = 10) # Hyperparameter `mu`
-  sd <- extraDistr::qtnorm(x[2], mean = 0, sd = 10, a = 0) # Hyperparameter `sd`
-  intercept <- stats::qnorm(x[3:(n_groups + 2)], mean = mu, sd = sd)
-  c(mu, sd, intercept)
-}
-
-intercept_prior <- create_prior(
-  intercept_transform,
-  names = c("mu", "sd", patients)
+# Prior for standard deviation (Truncated Normal(0, 10), lower bound 0)
+sd_prior <- create_prior(
+  fn = function(x) extraDistr::qtnorm(x, mean = 0, sd = 10, a = 0),
+  names = "sigma"
 )
-intercept_prior
-intercept_prior$fn(rep(0.5, n_groups + 2))
+sd_prior
+sd_prior$fn(0.5)
 
-population_prior <- create_normal_prior(
-  names = c("b1", "b2", "b1_2"),
-  mean = 0,
-  sd = 10
-)
-
-# Combine priors using `c()`
-full_prior <- c(intercept_prior, population_prior)
-print(full_prior)
+# Combine priors for full parameter vector (coefficients + sigma)
+full_prior <- coef_prior + sd_prior
+full_prior
+full_prior$fn(rep(0.5, 4))
 }

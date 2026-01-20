@@ -1,62 +1,116 @@
-describe("new_ernest_prior", {
-  fn <- function(x) x
+fn <- \(x) {
+  stats::qnorm(x, mean = c(-1, 0, 1))
+}
 
-  it("Explains dimensionality errors", {
-    expect_snapshot(new_ernest_prior(fn), error = TRUE)
-    expect_snapshot(
-      new_ernest_prior(fn, LETTERS[1:3], lower = c(-Inf, 0)),
-      error = TRUE
-    )
+test_that("create_prior throws errors", {
+  expect_snapshot(create_prior("fn"), error = TRUE)
+})
 
-    expect_snapshot(
-      new_ernest_prior(
-        fn,
-        LETTERS[1:3],
-        lower = c(-Inf, -Inf, 2),
-        upper = c(Inf, Inf)
-      ),
-      error = TRUE
+describe("check_prior reports informative errors", {
+  it("covers non-doubles", {
+    bad_fn <- function(x) as.character(x)
+    expect_error(
+      check_prior(bad_fn, n_dim = 3, arg = "bad_fn(x)"),
+      "Can't convert `bad_fn\\(x\\)` <character> to <double\\[,3\\]>."
     )
   })
 
-  it("explains type errors", {
-    expect_snapshot(new_ernest_prior(fn = "mean"), error = TRUE)
-    expect_snapshot(new_ernest_prior(fn, lower = c("0", "0")), error = TRUE)
+  it("covers non-expected lengths", {
+    short_fn <- function(x) {
+      if (!is.matrix(x)) {
+        x[1:2]
+      } else {
+        t(apply(x, 1, \(y) y[1:2]))
+      }
+    }
+    expect_error(
+      check_prior(short_fn, n_dim = 3, arg = "short_fn(x)"),
+      "`short_fn\\(x\\)` must have 3 columns, not 2."
+    )
+
+    long_fn <- function(x) {
+      if (!is.matrix(x)) {
+        c(x[1:2], x[1])
+      } else {
+        t(apply(x, 1, \(y) c(y[1:2], y[1])))
+      }
+    }
+    expect_error(
+      check_prior(long_fn, n_dim = 2, arg = "long_fn(x)"),
+      "`long_fn\\(x\\)` must have 2 columns, not 3."
+    )
   })
 
-  it("explains errors with explicit upper and lower", {
-    expect_snapshot(
-      new_ernest_prior(fn, names = LETTERS[1:2], lower = c(Inf, 0)),
-      error = TRUE
-    )
-    expect_snapshot(
-      new_ernest_prior(fn, names = LETTERS[1:2], upper = c(0, -Inf)),
-      error = TRUE
-    )
-    expect_snapshot(
-      new_ernest_prior(fn, names = LETTERS[1:2], lower = 0, upper = 0),
-      error = TRUE
+  it("covers integers", {
+    integer_fn <- \(x) {
+      matrix(
+        as.integer(stats::qnorm(p = c(x), mean = c(-1, 0, 1))),
+        nrow = length(x) %/% 3,
+        byrow = TRUE
+      )
+    }
+    expect_error(
+      check_prior(integer_fn, n_dim = 3, arg = "integer_fn(x)"),
+      "`integer_fn\\(x\\)` must be a double matrix, not an integer matrix."
     )
   })
 
-  it("returns correct structure and class", {
-    prior <- new_ernest_prior(fn = \(x) x, names = "a")
+  it("covers non-finite values", {
+    nonfinite_fn <- function(val) {
+      function(x) {
+        if (!is.matrix(x)) {
+          c(x[1:2], val)
+        } else {
+          t(apply(x, 1, \(y) c(y[1:2], val)))
+        }
+      }
+    }
 
-    prior <- new_ernest_prior(
-      fn = fn,
-      names = c("a", "b"),
-      lower = c(0, 0),
-      upper = c(1, 1)
+    na_fn <- nonfinite_fn(NA)
+    expect_error(
+      check_prior(na_fn, n_dim = 3, arg = "na_fn(x)"),
+      "`na_fn\\(x\\)` must contain no nonfinite values."
     )
 
-    expect_type(prior, "list")
-    expect_s3_class(prior, "ernest_prior")
-    expect_equal(attr(prior, "n_dim"), 2)
-    expect_equal(prior$lower, c(0, 0))
-    expect_equal(prior$upper, c(1, 1.0))
-    expect_equal(prior$names, c("a", "b"))
-    expect_true(is.function(prior$fn))
+    inf_fn <- nonfinite_fn(Inf)
+    expect_error(
+      check_prior(na_fn, n_dim = 3, arg = "inf_fn(x)"),
+      "`inf_fn\\(x\\)` must contain no nonfinite values."
+    )
+
+    nan_fn <- nonfinite_fn(NaN)
+    expect_error(
+      check_prior(nan_fn, n_dim = 3, arg = "nan_fn(x)"),
+      "`nan_fn\\(x\\)` must contain no nonfinite values."
+    )
   })
+
+  it("covers errors with explicit upper and lower", {
+    expect_error(
+      create_prior(fn, names = LETTERS[1:3], lower = c(Inf, 0)),
+      "Can't recycle `lower` \\(size 2\\) to size 3."
+    )
+    expect_error(
+      create_prior(fn, names = LETTERS[1:3], upper = c(0, -Inf)),
+      "Can't recycle `upper` \\(size 2\\) to size 3."
+    )
+    expect_error(
+      create_prior(fn, names = LETTERS[1:3], lower = 0, upper = 0),
+      "`lower` bounds must be strictly smaller than `upper`."
+    )
+  })
+})
+
+test_that("fn is wrapped correctly", {
+  test_matrix <- matrix(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), nrow = 2)
+  expected_prior <- t(apply(test_matrix, 1, fn))
+  pr <- create_prior(fn, names = c("a", "b", "c"))
+
+  expect_s3_class(pr, "ernest_prior")
+  expect_equal(pr$names, c("a", "b", "c"))
+  expect_equal(pr$fn(test_matrix[1, ]), expected_prior[1, ])
+  expect_equal(pr$fn(test_matrix), expected_prior)
+  expect_snapshot(pr)
 })
 
 describe("+.ernest_prior", {
@@ -79,7 +133,6 @@ describe("+.ernest_prior", {
     expect_equal(combo_p$names, c("A...1", "B...2", "A...3", "B...4"))
 
     expect_equal(combo_p$fn(c(0.5, 0.5, 0.5, 0.5)), c(0, 0, 1, 1))
-
     combo_p2 <- (combo_p + unif_p)
     expect_equal(
       combo_p2$names,
@@ -96,63 +149,9 @@ describe("+.ernest_prior", {
       -10 + x * 20
     }
     unif_p <- new_ernest_prior(unif, names = LETTERS[1:2])
-    expect_snapshot(unif_p + qnorm, error = TRUE)
-  })
-})
-
-describe("create_prior", {
-  set.seed(42)
-  it("creates a custom prior", {
-    # 3D uniform prior in [-10, 10]
-    unif <- function(x) {
-      -10 + x * 20
-    }
-    prior <- create_prior(
-      unif,
-      LETTERS[1:2],
-      lower = c(-10, -10),
-      upper = c(10, 10)
-    )
-    expect_equal(prior$fn(c(0.25, 0.5, 0.75)), c(-5, 0, 5))
-    expect_equal(
-      prior$fn(matrix(c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5), nrow = 2)),
-      matrix(c(-10, -8, -6, -4, -2, 0), nrow = 2)
-    )
-    expect_snapshot(prior)
-  })
-
-  it("catchers issues with prior function output length", {
-    fn <- function(x) c(x[1], x[2], x[1] / x[2])
     expect_error(
-      create_prior(fn, LETTERS[1:2]),
-      "`fn` must return a numeric vector of length 2."
-    )
-  })
-
-  it("errors if prior returns non-finite values", {
-    fn <- function(x) rep(NaN, length(x))
-    expect_error(
-      create_prior(fn, LETTERS[1:2]),
-      "`fn` cannot return non-numeric, missing, or `NaN` values"
-    )
-    fn <- function(x) c(x[1], NA)
-    expect_error(
-      create_prior(fn, LETTERS[1:2]),
-      "`fn` cannot return non-numeric, missing, or `NaN` values"
-    )
-  })
-
-  it("errors if prior returns OOB values", {
-    fn <- function(x) x
-    expect_error(
-      create_prior(fn, LETTERS[1:2], lower = 0.5),
-      "`fn` must return values within the bounds `lower` and `upper`."
-    )
-    expect_error(
-      create_prior(fn, LETTERS[1:2], upper = 0.5),
-      "`fn` must return values within the bounds `lower` and `upper`."
+      unif_p + qnorm,
+      "`y` must be an object with class ernest_prior, not a function."
     )
   })
 })
-
-# test_that(,{})

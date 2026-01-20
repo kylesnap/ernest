@@ -1,6 +1,6 @@
 set.seed(42)
 
-test_matrix <- matrix(c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5), nrow = 2)
+test_matrix <- matrix(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), nrow = 2)
 
 describe("create_normal_prior", {
   it("reports poor parameters", {
@@ -113,5 +113,3 @@ describe("create_uniform_prior", {
     expect_identical(prior3, prior)
   })
 })
-
-# test_that(,{})

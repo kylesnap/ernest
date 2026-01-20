@@ -14,7 +14,7 @@
       check_live_set(sampler)
     Condition
       Error:
-      ! `unit` must be a double matrix, not a double vector.
+      ! `unit` must be a matrix, not a double vector.
 
 # check_live_set / errors if unit matrix has wrong dimensions
 
@@ -22,8 +22,7 @@
       check_live_set(sampler)
     Condition
       Error:
-      ! `unit` must have dimensions 500 x 2.
-      x Actual dimensions: 250 x 4.
+      ! `unit` must have 500 rows, not 250.
 
 # check_live_set / errors if unit matrix contains NaN
 
@@ -31,7 +30,7 @@
       check_live_set(sampler)
     Condition
       Error:
-      ! `unit` must not contain missing or `NaN` values.
+      ! `unit` must contain no nonfinite values.
 
 # check_live_set / errors if log_lik is too short
 

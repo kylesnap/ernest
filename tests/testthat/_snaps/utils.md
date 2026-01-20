@@ -21,14 +21,6 @@
       Error:
       ! `1` must be an object with class foo, not the number 1.
 
-# check_matrix works as expected
-
-    Code
-      check_matrix(mat_nan, nrow = 2, ncol = 3)
-    Condition
-      Error:
-      ! `mat_nan` must not contain missing or `NaN` values.
-
 # check_unique_names works as expected
 
     Code

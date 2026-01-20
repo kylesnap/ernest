@@ -81,8 +81,8 @@ create_normal_prior <- function(
     names = names,
     lower = params$lower,
     upper = params$upper,
-    .class = c(if (truncated) "trunc_prior", "normal_prior"),
-    .repair = repair
+    class = c(if (truncated) "trunc_prior", "normal_prior"),
+    repair = repair
   )
 }
 
@@ -131,8 +131,8 @@ create_uniform_prior <- function(
     names = names,
     lower = params$lower,
     upper = params$upper,
-    .class = "uniform_prior",
-    .repair = repair
+    repair = repair,
+    class = "uniform_prior"
   )
 }
 

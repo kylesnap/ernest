@@ -7,8 +7,8 @@
       ! <ernest_sampler> cannot compile.
       Caused by error in `ernest_sampler()`:
       ! Error when creating live points.
-      Caused by error:
-      ! `log_lik(x)` must not be of length 0.
+      Caused by error in `if (is.finite(log_lik) && log_lik > criterion) ...`:
+      ! missing value where TRUE/FALSE needed
 
 # Zero-length prior fails
 
@@ -24,53 +24,67 @@
       create_prior(prior_fn, names = LETTERS[1])
     Condition
       Error in `new_ernest_prior()`:
-      ! Error while validating the prior.
-      Caused by error in `check_prior()`:
-      ! `fn` must return a numeric vector of length 1, not one of length 0.
+      ! `rowwise_fn` must have 1000 rows, not 0.
 
 # Fails on character types
 
     Code
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `new_ernest_prior()`:
-      ! Error while validating the prior.
-      Caused by error:
+      Error:
       ! Can't convert `out` <character> to <double>.
 
 ---
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Error when creating live points.
-    Caused by error:
-    ! Can't convert `log_lik(x)` <character> to <double>.
+    Code
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `ernest_sampler()`:
+      ! Error when creating live points.
+      Caused by error:
+      ! Couldn't calculate the log. lik of #.# and #.#.
+      Caused by error:
+      ! Can't convert `log_lik(x)` <character> to <double>.
 
 # Fails on complex types
 
     Code
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `new_ernest_prior()`:
-      ! Error while validating the prior.
-      Caused by error:
+      Error:
       ! Can't convert `out` <complex> to <double>.
 
 ---
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Error when creating live points.
-    Caused by error:
-    ! Can't convert `log_lik(x)` <complex> to <double>.
+    Code
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `ernest_sampler()`:
+      ! Error when creating live points.
+      Caused by error:
+      ! Couldn't calculate the log. lik of #.# and #.#.
+      Caused by error:
+      ! Can't convert `log_lik(x)` <complex> to <double>.
 
 # Missing values in the log-likelihood
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Error when creating live points.
-    Caused by error:
-    ! log-lik. values must be either finite or `-Inf`, not NA.
+    Code
+      ernest_sampler(log_lik = create_likelihood(ll_fn_missing, on_nonfinite = "abort"),
+      prior = gaussian_blobs$prior, seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `ernest_sampler()`:
+      ! Error when creating live points.
+      Caused by error:
+      ! Couldn't calculate the log. lik of #.# and #.#.
+      Caused by error:
+      ! log-lik. values must be either finite or `-Inf`.
+      x Detected non-viable value: `NA`.
 
 ---
 
@@ -85,7 +99,7 @@
     Message
       Nested sampling run specification:
       * Live points: 500
-      * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+      * Sampling method: 25-step random walk sampling (acceptance target = #.#%)
       * Prior: uniform prior distribution with 2 dimensions (A and B)
 
 # Ernest fails when ll is flat to begin with

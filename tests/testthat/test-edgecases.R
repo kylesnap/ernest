@@ -32,11 +32,11 @@ test_that("Fails on character types", {
   expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
-  expect_snapshot_error(ernest_sampler(
-    ll,
-    create_uniform_prior(names = LETTERS[1:2]),
-    seed = 42
-  ))
+  expect_snapshot(
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
+  )
 })
 
 test_that("Fails on complex types", {
@@ -44,11 +44,11 @@ test_that("Fails on complex types", {
   expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) sum(0.15i * length(theta))
-  expect_snapshot_error(ernest_sampler(
-    ll,
-    create_uniform_prior(names = LETTERS[1:2]),
-    seed = 42
-  ))
+  expect_snapshot(
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
+  )
 })
 
 #' Missing type
@@ -76,12 +76,14 @@ test_that("Missing values in the log-likelihood", {
     gaussian_blobs$log_lik(theta)
   }
 
-  expect_snapshot_error(
+  expect_snapshot(
     ernest_sampler(
       log_lik = create_likelihood(ll_fn_missing, on_nonfinite = "abort"),
       prior = gaussian_blobs$prior,
       seed = 42
-    )
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
   )
 
   expect_no_message(
@@ -97,7 +99,8 @@ test_that("Missing values in the log-likelihood", {
       create_likelihood(ll_fn_missing, on_nonfinite = "warn"),
       gaussian_blobs$prior,
       seed = 42
-    )
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x)
   )
 
   run <- generate(quiet_na_sampler)

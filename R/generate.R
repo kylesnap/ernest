@@ -8,8 +8,9 @@
 #' @inheritDotParams compile.ernest_run -object
 #' @param max_iterations Optional positive integer. The maximum number of
 #' iterations to perform. If `NULL`, this criterion is ignored.
-#' @param max_calls Optional positive integer. The maximum number of calls to
-#' the likelihood function. If `Inf`, this criterion is ignored.
+#' @param max_evaluations Optional positive integer. The maximum number of
+#' likelihood function evaluations to perform. If `NULL`, this criterion is
+#' ignored.
 #' @param min_logz Non-negative double. The minimum log-ratio between the
 #' current estimated evidence and the remaining evidence. If zero, this
 #' criterion is ignored.
@@ -21,7 +22,7 @@
 #' with additional components:
 #'
 #' * `n_iter`: Integer. Number of iterations.
-#' * `n_calls`: Integer. Total number of likelihood function calls.
+#' * `n_evaluations`: Integer. Total number of likelihood function evaluations.
 #' * `log_lik`: `double(n_iter + n_points)`. Log-likelihoods for each sample.
 #' * `log_volume`: `double(n_iter + n_points)`. Estimated log-prior volumes at
 #'   each iteration.
@@ -41,15 +42,17 @@
 #'   sample from the live set (ranging from 1 to `n_points`).
 #' * `points`: `integer(n_iter + n_points)`. Number of live points present at
 #'   each iteration.
-#' * `calls`: `integer(n_iter + n_points)`. Number of calls used to generate a
+#' * `evaluations`: `integer(n_iter + n_points)`. Number of likelihood function evaluations used to generate a
 #'   new live point at each iteration.
-#' * `birth`: `integer(n_iter + n_points)`. `id` of the live point that was used
+#' * `birth_lik`: `integer(n_iter + n_points)`. `id` of the live point that was used
 #' to create the given point. `0` if the point was created by `compile` at the
 #' beginning of a run.
 #'
-#' @details At least one of `max_iterations`, `max_calls`, or `min_logz` must
-#' specify a valid stopping criterion. Setting `min_logz` to zero while leaving
-#' `max_iterations` and `max_calls` at their defaults will result in an error.
+#' @details
+#' At least one of `max_iterations`, `max_evaluations`, or `min_logz`
+#' must specify a valid stopping criterion. Setting `min_logz` to zero while
+#' leaving `max_iterations` and `max_evaluations` at their defaults will
+#' result in an error.
 #'
 #' If `x` is an `ernest_run` object, the stopping criteria are checked against
 #' the current state of the run. An error is thrown if the stopping criteria
@@ -76,10 +79,10 @@
 #' # Stop sampling after a set number of iterations or likelihood calls.
 #' generate(sampler, max_iterations = 100)
 #'
-#' # The final number of calls may exceed `max_calls`, as `generate`
+#' # The final number of calls may exceed `max_evaluations`, as `generate`
 #' # only checks the number of calls when removing a live point.
-#' generate(sampler, max_calls = 2600)
-#'
+#' generate(sampler, max_evaluations = 2600)
+#
 #' # Use the default stopping criteria
 #' \dontrun{ generate(sampler) }
 #' @aliases ernest_run
@@ -88,7 +91,7 @@ generate.ernest_sampler <- function(
   x,
   ...,
   max_iterations = NULL,
-  max_calls = NULL,
+  max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL
 ) {
@@ -97,10 +100,10 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-  c(max_iterations, max_calls, min_logz) %<-%
+  c(max_iterations, max_evaluations, min_logz) %<-%
     check_stopping_criteria(
       max_iterations,
-      max_calls,
+      max_evaluations,
       min_logz
     )
   x <- compile(x, ...)
@@ -108,7 +111,7 @@ generate.ernest_sampler <- function(
   results <- nested_sampling_impl(
     x = x,
     max_iterations = max_iterations,
-    max_calls = max_calls,
+    max_evaluations = max_evaluations,
     min_logz = min_logz,
     show_progress = show_progress
   )
@@ -124,7 +127,7 @@ generate.ernest_run <- function(
   x,
   ...,
   max_iterations = NULL,
-  max_calls = NULL,
+  max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL
 ) {
@@ -139,38 +142,38 @@ generate.ernest_run <- function(
     return(generate(
       x,
       max_iterations = max_iterations,
-      max_calls = max_calls,
+      max_evaluations = max_evaluations,
       min_logz = min_logz,
       show_progress = show_progress
     ))
   }
 
   cur_iter <- x$n_iter
-  cur_calls <- x$n_calls
+  cureval <- x$neval
   last_criterion <- x$log_lik[cur_iter]
   log_z <- x$log_evidence[cur_iter]
   log_vol <- x$log_volume[cur_iter]
   d_logz <- logaddexp(0, max(x$log_lik) + log_vol - log_z)
-  c(max_iterations, max_calls, min_logz) %<-%
+  c(max_iterations, max_evaluations, min_logz) %<-%
     check_stopping_criteria(
       max_iterations,
-      max_calls,
+      max_evaluations,
       min_logz,
       cur_iter,
-      cur_calls,
+      cureval,
       d_logz
     )
 
   results <- nested_sampling_impl(
     x = x,
     max_iterations = max_iterations,
-    max_calls = max_calls,
+    max_evaluations = max_evaluations,
     min_logz = min_logz,
     last_criterion = last_criterion,
     log_vol = log_vol,
     log_z = log_z,
-    iter = cur_iter,
-    call = cur_calls,
+    curiter = cur_iter,
+    cureval = cureval,
     show_progress = show_progress
   )
   new_ernest_run(x, results)
@@ -179,102 +182,80 @@ generate.ernest_run <- function(
 #' Check and validate stopping criteria for nested sampling
 #'
 #' @param max_iterations Maximum number of iterations to perform.
-#' @param max_calls Maximum number of likelihood function calls.
+#' @param max_evaluations Maximum number of likelihood function evals.
 #' @param min_logz Minimum log-ratio between current estimated evidence and
 #' remaining evidence.
 #' @param cur_it Current iteration.
-#' @param cur_cls Current number of likelihood calls.
+#' @param cureval Current number of likelihood calls.
 #' @param d_logz Current log-ratio for evidence.
 #' @param call Environment for error reporting.
 #'
 #' @return A named vector of stopping criteria: `max_iterations`,
-#' `max_calls`, and `min_logz`.
+#' `max_evaluations`, and `min_logz`.
 #' @noRd
 check_stopping_criteria <- function(
   max_iterations,
-  max_calls,
+  max_evaluations,
   min_logz,
   cur_it = NULL,
-  cur_calls = NULL,
+  cureval = NULL,
   d_logz = NULL,
   call = caller_env()
 ) {
-  check_number_whole(
-    max_iterations,
-    min = 1,
-    allow_null = TRUE,
-    allow_infinite = FALSE,
-    call = call
-  )
-  check_number_whole(
-    max_calls,
-    min = 1,
-    allow_null = TRUE,
-    allow_infinite = FALSE,
-    call = call
-  )
-  check_number_decimal(
-    min_logz,
-    min = 0,
-    allow_infinite = FALSE,
-    call = call
-  )
+  check_number_whole(max_iterations, min = 1, allow_null = TRUE, call = call)
+  check_number_whole(max_evaluations, min = 1, allow_null = TRUE, call = call)
+  check_number_decimal(min_logz, min = 0, call = call)
+  max_iterations <- max_iterations %||% .Machine$integer.max
+  max_evaluations <- max_evaluations %||% .Machine$integer.max
 
-  if (!is.null(cur_it) && !is.null(max_iterations)) {
-    if (cur_it >= max_iterations) {
-      cli::cli_abort(
-        c(
-          "`max_iterations` must be strictly larger than {cur_it}.",
-          "x" = "`x` already contains previously-generated samples.",
-          "i" = "Should you use `clear` to erase previous samples from `x`?"
-        ),
-        call = call
-      )
-    }
+  if (!is.null(cur_it) && cur_it >= max_iterations) {
+    cli::cli_abort(
+      c(
+        "`max_iterations` must be strictly larger than {cur_it}.",
+        "x" = "`x` already contains previously-generated samples.",
+        "i" = "Should you use `clear` to erase previous samples from `x`?"
+      ),
+      call = call
+    )
   }
-  if (!is.null(cur_calls) && !is.null(max_calls)) {
-    if (cur_calls >= max_calls) {
-      cli::cli_abort(
-        c(
-          "`max_calls` must be strictly larger than {cur_calls}.",
-          "x" = "`x` already contains previously-generated samples.",
-          "i" = "Should you use `clear` to erase previous samples from `x`?"
-        ),
-        call = call
-      )
-    }
+  if (!is.null(cureval) && cureval >= max_evaluations) {
+    cli::cli_abort(
+      c(
+        "`max_evaluations` must be strictly larger than {cureval}.",
+        "x" = "`x` already contains previously-generated samples.",
+        "i" = "Should you use `clear` to erase previous samples from `x`?"
+      ),
+      call = call
+    )
   }
-  if (!is.null(d_logz) && !is.null(min_logz)) {
-    if (min_logz >= d_logz) {
-      d_logz_format <- pretty_round(d_logz, digits = 4)
-      cli::cli_abort(
-        c(
-          "`min_logz` must be strictly smaller than {d_logz_format}.",
-          "x" = "`x` already contains previously-generated samples.",
-          "i" = "Should you use `clear` to erase previous samples from `x`?"
-        ),
-        call = call
-      )
-    }
+  if (!is.null(d_logz) && min_logz >= d_logz) {
+    d_logz_format <- pretty_round(d_logz, digits = 4)
+    cli::cli_abort(
+      c(
+        "`min_logz` must be strictly smaller than {d_logz_format}.",
+        "x" = "`x` already contains previously-generated samples.",
+        "i" = "Should you use `clear` to erase previous samples from `x`?"
+      ),
+      call = call
+    )
   }
 
-  no_stopping <- isTRUE(all.equal(
-    c(max_iterations, max_calls, min_logz),
-    c(NULL, NULL, 0)
-  ))
+  no_stopping <- identical(min_logz, 0) &&
+    is.null(max_iterations) &&
+    is.null(max_evaluations)
   if (no_stopping) {
     cli::cli_abort(
       c(
         "Can't perform nested sampling without any stopping criteria.",
-        "i" = "Have you set either `max_iterations` or `max_calls`?"
+        "i" = "Have you set either `max_iterations` or `max_evaluations`?"
       ),
       call = call
     )
   }
 
   c(
-    "max_iterations" = as.integer(max_iterations %||% .Machine$integer.max),
-    "max_calls" = as.integer(max_calls %||% .Machine$integer.max),
+    "max_iterations" = as.integer(max_iterations),
+    "max_evaluations" = as.integer(max_evaluations),
     "min_logz" = as.double(min_logz)
   )
 }

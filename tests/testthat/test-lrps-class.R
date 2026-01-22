@@ -28,12 +28,12 @@ describe("new_ernest_lrps", {
 
 test_that("propose.ernest_lrps can be called", {
   lrps <- new_ernest_lrps(fn, 2L)
-  initial_ncall <- env_cache(lrps$cache, "n_call", 0L)
+  initial_ncall <- env_cache(lrps$cache, "neval", 0L)
   res1 <- propose.ernest_lrps(lrps, original = NULL)
-  expect_contains(names(res1), c("unit", "log_lik", "n_call"))
+  expect_contains(names(res1), c("unit", "log_lik", "neval"))
   expect_vector(res1$unit, double(), size = lrps$n_dim)
   expect_equal(res1$log_lik, fn(res1$unit))
-  expect_equal(env_get(lrps$cache, "n_call"), 0L)
+  expect_equal(env_get(lrps$cache, "neval"), 0L)
 
   expect_snapshot(propose.ernest_lrps(lrps, c(0.5, 0.5), -1), error = TRUE)
 })

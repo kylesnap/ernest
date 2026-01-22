@@ -9,11 +9,9 @@
 #'     points.
 #'   * For `ernest_run`: Regenerates live points from previous results, unless
 #'     `clear = TRUE`.
-#' @inheritParams rlang::args_dots_empty
-#' @param seed `r lifecycle::badge("deprecated")` `seed` is no longer supported;
-#' set RNG with the `seed` argument of [ernest_sampler()].
 #' @param clear Logical. If `TRUE`, clears results from previous runs before
 #' compiling. If `FALSE`, retains previous results and validates live points.
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @details `compile()` validates the set of live points in the sampler or run,
 #' ensuring:
@@ -56,23 +54,21 @@
 #' @importFrom lifecycle deprecated
 #' @rdname compile
 #' @export
-compile.ernest_sampler <- function(object, ..., seed = deprecated()) {
+compile.ernest_sampler <- function(object, ...) {
   withr::local_seed(attr(object, "seed"))
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
-  if (lifecycle::is_present(seed)) {
-    lifecycle::deprecate_warn(
-      when = "1.1.0",
-      what = "compile(seed)",
-      details = "Use `ernest_sampler()`'s `seed` argument instead."
-    )
-  }
 
   # Fill live points
   live <- create_live(object$lrps, object$n_points)
   env_poke(object$run_env, "unit", live$unit, create = TRUE)
   env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
-  env_poke(object$run_env, "birth", rep(0L, object$n_points))
+  env_poke(
+    object$run_env,
+    "birth_lik",
+    rep(-Inf, object$n_points),
+    create = TRUE
+  )
 
   check_live_set(object)
   object
@@ -82,9 +78,8 @@ compile.ernest_sampler <- function(object, ..., seed = deprecated()) {
 #' @export
 compile.ernest_run <- function(
   object,
-  ...,
-  seed = deprecated(),
-  clear = FALSE
+  clear = FALSE,
+  ...
 ) {
   check_dots_empty()
   check_bool(clear)
@@ -102,13 +97,6 @@ compile.ernest_run <- function(
     return(compile(object, ...))
   }
   withr::local_seed(attr(object, "seed"))
-  if (lifecycle::is_present(seed)) {
-    lifecycle::deprecate_warn(
-      when = "1.1.0",
-      what = "compile(seed)",
-      details = "Use `ernest_sampler()`'s `seed` argument instead."
-    )
-  }
 
   # Fill live points
   live_positions <- vctrs::vec_as_location(
@@ -119,7 +107,7 @@ compile.ernest_run <- function(
     object$run_env,
     unit = object$samples_unit[-live_positions, ],
     log_lik = object$log_lik[-live_positions],
-    birth = object$birth[-live_positions]
+    birth_lik = object$birth_lik[-live_positions]
   )
   try_fetch(
     check_live_set(object),
@@ -229,10 +217,10 @@ check_live_set <- function(sampler, call = caller_env()) {
   }
 
   # Birth vector
-  birth <- env_get(sampler$run_env, "birth")
-  if (!is_bare_integer(birth, n = n_points)) {
+  birth_lik <- env_get(sampler$run_env, "birth_lik")
+  if (!is_double(birth_lik, n = n_points)) {
     cli::cli_abort(
-      "`birth` vector cannot be missing from the `run_env` environment.",
+      "`birth_lik` vector cannot be missing from the `run_env` environment.",
       call = call
     )
   }

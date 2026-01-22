@@ -5,9 +5,9 @@
 \alias{compile.ernest_run}
 \title{Compile a set of live points for nested sampling}
 \usage{
-\method{compile}{ernest_sampler}(object, ..., seed = deprecated())
+\method{compile}{ernest_sampler}(object, ...)
 
-\method{compile}{ernest_run}(object, ..., seed = deprecated(), clear = FALSE)
+\method{compile}{ernest_run}(object, clear = FALSE, ...)
 }
 \arguments{
 \item{object}{An \link{ernest_sampler} or \link{ernest_run} object.
@@ -19,9 +19,6 @@ points.
 }}
 
 \item{...}{These dots are for future extensions and must be empty.}
-
-\item{seed}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{seed} is no longer supported;
-set RNG with the \code{seed} argument of \code{\link[=ernest_sampler]{ernest_sampler()}}.}
 
 \item{clear}{Logical. If \code{TRUE}, clears results from previous runs before
 compiling. If \code{FALSE}, retains previous results and validates live points.}

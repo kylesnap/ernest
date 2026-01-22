@@ -13,13 +13,13 @@ expect_proposal <- function(
   allow_failure = FALSE
 ) {
   stopifnot(inherits(lrps, "ernest_lrps"))
-  orig_ncall <- env_get(lrps$cache, "n_call")
+  orig_ncall <- env_get(lrps$cache, "neval")
   res <- propose(lrps, original = original, criterion = criterion)
-  expected_names <- c("unit", "log_lik", "n_call", extra_args)
-  expected_calls <- orig_ncall + (if (!is.null(original)) res$n_call else 0L)
+  expected_names <- c("unit", "log_lik", "neval", extra_args)
+  expected_calls <- orig_ncall + (if (!is.null(original)) res$neval else 0L)
   if (is.null(res$unit) && allow_failure) {
-    if (!identical(res$n_call, lrps$max_loop)) {
-      fail("Proposal failed but n_call does not match max_loop.")
+    if (!identical(res$neval, lrps$max_loop)) {
+      fail("Proposal failed but neval does not match max_loop.")
     } else {
       pass()
     }
@@ -43,10 +43,10 @@ expect_proposal <- function(
       res$log_lik,
       criterion
     )
-  } else if (!identical(lrps$cache$n_call, expected_calls)) {
+  } else if (!identical(lrps$cache$neval, expected_calls)) {
     fail(
-      "cache$n_call (%g) does not match expected_calls (%g).",
-      lrps$cache$n_call,
+      "cache$neval (%g) does not match expected_calls (%g).",
+      lrps$cache$neval,
       expected_calls
     )
   } else {
@@ -138,7 +138,7 @@ expect_lrps <- function(object, subclass = NULL, ...) {
     fail(sprintf("%s$cache must be an environment.", act$lab))
   }
   cache_list <- as.list(act$val$cache)
-  ptypes <- list2(n_call = 0L, ...)
+  ptypes <- list2(neval = 0L, ...)
   ptypes <- lapply(ptypes, vctrs::vec_ptype)
   expect_named(cache_list, names(ptypes), ignore.order = TRUE, label = "cache")
   for (nm in names(ptypes)) {
@@ -163,7 +163,7 @@ expect_idempotent_update <- function(
   ptypes = NULL
 ) {
   cache_list <- as.list(lrps$cache)
-  reset <- c("n_call", reset)
+  reset <- c("neval", reset)
   cache_list[names(cache_list) %in% reset] <- 0L
   new_lrps <- update_lrps(lrps)
   expect_lrps(new_lrps, subclass, !!!ptypes)

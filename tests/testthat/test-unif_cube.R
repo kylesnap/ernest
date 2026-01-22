@@ -24,7 +24,7 @@ describe("unif_cube class", {
 
     new_obj <- update_lrps(obj, samples$unit)
     expect_lrps(new_obj, subclass = "unif_cube")
-    expect_identical(new_obj$cache$n_call, 0L)
+    expect_identical(new_obj$cache$neval, 0L)
     new_samples <- run_sampler(new_obj, samples$unit)
 
     skip_extended()

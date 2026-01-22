@@ -42,7 +42,7 @@ describe("check_live_set", {
       sampler$run_env,
       unit = matrix(runif(1000), nrow = 500, ncol = 2),
       log_lik = seq(-10, -1, length.out = 500),
-      birth = rep(0L, 500)
+      birth_lik = rep(-Inf, 500)
     )
   }
 
@@ -133,13 +133,13 @@ describe("check_live_set", {
     expect_snapshot(check_live_set(sampler))
   })
 
-  it("errors if birth vector is wrong", {
+  it("errors if birth_lik vector is wrong", {
     sampler <- compile(sampler)
-    env_poke(sampler$run_env, "birth", rep(1, 5))
+    env_poke(sampler$run_env, "birth_lik", rep(1, 5))
     expect_snapshot(check_live_set(sampler), error = TRUE)
 
     reset_live()
-    env_poke(sampler$run_env, "birth", as.double(rep(0, 10)))
+    env_poke(sampler$run_env, "birth_lik", rep(0L, 10))
     expect_snapshot(check_live_set(sampler), error = TRUE)
   })
 })
@@ -158,7 +158,7 @@ describe("compile", {
     )
 
     expect_equal(orig_log_lik, expected_log_lik)
-    expect_equal(sampler$run_env$birth, rep(0L, 500))
+    expect_equal(sampler$run_env$birth_lik, rep(-Inf, 500))
     expect_snapshot(sampler)
   })
 

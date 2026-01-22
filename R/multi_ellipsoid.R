@@ -148,7 +148,7 @@ propose.multi_ellipsoid <- function(
       max_loop = x$max_loop
     )
     res <- c(res, ellipsoid_idx = ell_idx)
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }

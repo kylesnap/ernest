@@ -59,7 +59,7 @@ new_ernest_lrps <- function(
     max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
-  env_poke(elem$cache, "n_call", 0L)
+  env_poke(elem$cache, "neval", 0L)
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)
@@ -80,7 +80,7 @@ print.ernest_lrps <- function(x, ...) {
 
   cli::cli_par()
   cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
-  cli::cli_text("# Calls since last update: {env_get(x$cache, 'n_call', 0)}")
+  cli::cli_text("# Calls since last update: {env_get(x$cache, 'neval', 0)}")
   cli::cli_end()
   invisible(x)
 }
@@ -105,7 +105,7 @@ print.ernest_lrps <- function(x, ...) {
 #' * `unit`: Matrix of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed
 #' points.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #'
 #' @keywords internal
 #' @export
@@ -145,7 +145,7 @@ propose.ernest_lrps <- function(
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #' @noRd
 propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
   proposal <- double(n_dim)
@@ -156,11 +156,11 @@ propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
       return(list(
         unit = proposal,
         log_lik = log_lik,
-        n_call = i
+        neval = i
       ))
     }
   }
-  list(unit = NULL, log_lik = NULL, n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, neval = max_loop)
 }
 
 #' Update an LRPS
@@ -192,6 +192,6 @@ update_lrps <- function(x, ...) {
 #' @noRd
 #' @export
 update_lrps.ernest_lrps <- function(x, unit = NULL, ...) {
-  env_poke(x$cache, "n_call", 0L)
+  env_poke(x$cache, "neval", 0L)
   do.call(new_ernest_lrps, as.list(x))
 }

@@ -5,7 +5,7 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
+      Caused by error in `compile()`:
       ! Error when creating live points.
       Caused by error in `if (is.finite(log_lik) && log_lik > criterion) ...`:
       ! missing value where TRUE/FALSE needed
@@ -41,7 +41,7 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
+      Caused by error in `compile()`:
       ! Error when creating live points.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
@@ -63,7 +63,7 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
+      Caused by error in `compile()`:
       ! Error when creating live points.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
@@ -78,7 +78,7 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
+      Caused by error in `compile()`:
       ! Error when creating live points.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
@@ -109,7 +109,7 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
+      Caused by error in `compile()`:
       ! `log_lik` must contain a range of likelihood values.
       x `log_lik` currently contains one unique value (0).
 

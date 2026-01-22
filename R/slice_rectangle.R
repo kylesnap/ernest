@@ -122,7 +122,7 @@ propose.slice_rectangle <- function(
       upper = env_get(x$cache, "upper", rep(1.0, x$n_dim)),
       max_loop = x$max_loop
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }

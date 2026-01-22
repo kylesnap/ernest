@@ -9,7 +9,7 @@
   x,
   ...,
   max_iterations = NULL,
-  max_calls = NULL,
+  max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL
 )
@@ -20,8 +20,6 @@
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
   \describe{
-    \item{\code{seed}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{seed} is no longer supported;
-set RNG with the \code{seed} argument of \code{\link[=ernest_sampler]{ernest_sampler()}}.}
     \item{\code{clear}}{Logical. If \code{TRUE}, clears results from previous runs before
 compiling. If \code{FALSE}, retains previous results and validates live points.}
   }}
@@ -29,8 +27,9 @@ compiling. If \code{FALSE}, retains previous results and validates live points.}
 \item{max_iterations}{Optional positive integer. The maximum number of
 iterations to perform. If \code{NULL}, this criterion is ignored.}
 
-\item{max_calls}{Optional positive integer. The maximum number of calls to
-the likelihood function. If \code{Inf}, this criterion is ignored.}
+\item{max_evaluations}{Optional positive integer. The maximum number of
+likelihood function evaluations to perform. If \code{NULL}, this criterion is
+ignored.}
 
 \item{min_logz}{Non-negative double. The minimum log-ratio between the
 current estimated evidence and the remaining evidence. If zero, this
@@ -45,7 +44,7 @@ An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},
 with additional components:
 \itemize{
 \item \code{n_iter}: Integer. Number of iterations.
-\item \code{n_calls}: Integer. Total number of likelihood function calls.
+\item \code{n_evaluations}: Integer. Total number of likelihood function evaluations.
 \item \code{log_lik}: \code{double(n_iter + n_points)}. Log-likelihoods for each sample.
 \item \code{log_volume}: \code{double(n_iter + n_points)}. Estimated log-prior volumes at
 each iteration.
@@ -65,9 +64,9 @@ values for each sample in unit hypercube representation.
 sample from the live set (ranging from 1 to \code{n_points}).
 \item \code{points}: \code{integer(n_iter + n_points)}. Number of live points present at
 each iteration.
-\item \code{calls}: \code{integer(n_iter + n_points)}. Number of calls used to generate a
+\item \code{evaluations}: \code{integer(n_iter + n_points)}. Number of likelihood function evaluations used to generate a
 new live point at each iteration.
-\item \code{birth}: \code{integer(n_iter + n_points)}. \code{id} of the live point that was used
+\item \code{birth_lik}: \code{integer(n_iter + n_points)}. \code{id} of the live point that was used
 to create the given point. \code{0} if the point was created by \code{compile} at the
 beginning of a run.
 }
@@ -78,9 +77,10 @@ point with a new sample from a likelihood-restricted prior until a stopping
 criterion is met.
 }
 \details{
-At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz} must
-specify a valid stopping criterion. Setting \code{min_logz} to zero while leaving
-\code{max_iterations} and \code{max_calls} at their defaults will result in an error.
+At least one of \code{max_iterations}, \code{max_evaluations}, or \code{min_logz}
+must specify a valid stopping criterion. Setting \code{min_logz} to zero while
+leaving \code{max_iterations} and \code{max_evaluations} at their defaults will
+result in an error.
 
 If \code{x} is an \code{ernest_run} object, the stopping criteria are checked against
 the current state of the run. An error is thrown if the stopping criteria
@@ -100,10 +100,9 @@ sampler
 # Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
 
-# The final number of calls may exceed `max_calls`, as `generate`
+# The final number of calls may exceed `max_evaluations`, as `generate`
 # only checks the number of calls when removing a live point.
-generate(sampler, max_calls = 2600)
-
+generate(sampler, max_evaluations = 2600)
 # Use the default stopping criteria
 \dontrun{ generate(sampler) }
 }

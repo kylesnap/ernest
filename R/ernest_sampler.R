@@ -105,15 +105,8 @@ ernest_sampler <- function(
 
   try_fetch(
     {
-      live <- create_live(obj$lrps, obj$n_points)
-      env_bind(
-        obj$run_env,
-        "unit" = live$unit,
-        "log_lik" = live$log_lik,
-        "birth" = rep(0L, obj$n_points)
-      )
-      check_live_set(obj)
-      obj$live_point <- new_environment()
+      compile(obj)
+      obj$run_env <- new_environment()
     },
     error = function(cnd) {
       cli::cli_abort(

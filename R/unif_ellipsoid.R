@@ -145,7 +145,7 @@ propose.unif_ellipsoid <- function(
       enlarge = x$enlarge,
       max_loop = x$max_loop
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }
@@ -164,7 +164,7 @@ propose.unif_ellipsoid <- function(
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #' @noRd
 propose_ellipsoid <- function(
   unit_log_fn,
@@ -188,11 +188,11 @@ propose_ellipsoid <- function(
       return(list(
         unit = proposal,
         log_lik = log_lik,
-        n_call = i
+        neval = i
       ))
     }
   }
-  list(unit = NULL, log_lik = NULL, n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, neval = max_loop)
 }
 
 #' @rdname update_lrps

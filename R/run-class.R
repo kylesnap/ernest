@@ -30,8 +30,8 @@ new_ernest_run.ernest_run <- function(x, results) {
   parsed$unit <- rbind(x$samples_unit[old_idx, ], parsed$unit)
   parsed$log_lik <- vctrs::vec_c(x$log_lik[old_idx], parsed$log_lik)
   parsed$id <- vctrs::vec_c(x$id[old_idx], parsed$id)
-  parsed$calls <- vctrs::vec_c(x$calls[old_idx], parsed$calls)
-  parsed$birth <- vctrs::vec_c(x$birth[old_idx], parsed$birth)
+  parsed$evals <- vctrs::vec_c(x$evals[old_idx], parsed$evals)
+  parsed$birth_lik <- vctrs::vec_c(x$birth_lik[old_idx], parsed$birth_lik)
   parsed$n_iter <- x$n_iter + parsed$n_iter
   new_ernest_run_(x, parsed)
 }
@@ -56,7 +56,7 @@ new_ernest_run_ <- function(x, parsed) {
   live <- list(
     "log_lik" = x$run_env$log_lik[live_order],
     "id" = live_order,
-    "birth" = x$run_env$birth[live_order]
+    "birth_lik" = x$run_env$birth_lik[live_order]
   )
   all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$n_iter)
 
@@ -65,12 +65,12 @@ new_ernest_run_ <- function(x, parsed) {
 
   result_elem <- list2(
     "n_iter" = parsed$n_iter,
-    "n_calls" = sum(all_samples$calls),
+    "neval" = sum(all_samples$evals),
     !!!integration,
     "id" = all_samples$id,
     "points" = all_samples$points,
-    "calls" = all_samples$calls,
-    "birth" = all_samples$birth,
+    "evals" = all_samples$evals,
+    "birth_lik" = all_samples$birth_lik,
     "samples" = samples,
     "samples_unit" = samples_unit
   )
@@ -110,7 +110,7 @@ print.ernest_run <- function(x, ...) {
   log_z_sd <- pretty_round(sqrt(tail(x$log_evidence_var, 1)), 4)
   cli::cli_bullets(c(
     "* Iterations: {x$n_iter}",
-    "* Likelihood calls: {x$n_calls}",
+    "* Likelihood evaluations: {x$n_evals}",
     "* Log. Volume: {pretty_round(tail(x$log_volume, 1L), 4)}",
     "* Log. Evidence: {log_z} (\U00B1 {log_z_sd})"
   ))
@@ -130,7 +130,7 @@ print.ernest_run <- function(x, ...) {
 #'
 #' * `n_iter`: Integer. Number of iterations performed.
 #' * `n_points`: Integer. Number of live points used in the run.
-#' * `n_calls`: Integer. Total number of likelihood function calls.
+#' * `neval`: Integer. Total number of likelihood function calls.
 #' * `log_volume`: Double. Final estimated log-prior volume.
 #' * `log_evidence`: Double. Final log-evidence estimate.
 #' * `log_evidence_err`: Double. Standard deviation of the log-evidence
@@ -180,7 +180,7 @@ summary.ernest_run <- function(object, ...) {
     list(
       "n_iter" = object$n_iter,
       "n_points" = object$n_points,
-      "n_calls" = object$n_calls,
+      "neval" = object$neval,
       "log_volume" = tail(sum_df$log_volume, 1),
       "log_evidence" = tail(sum_df$log_evidence, 1L),
       "log_evidence_err" = tail(sum_df$log_evidence_err, 1L),
@@ -199,7 +199,7 @@ format.summary.ernest_run <- function(x, ...) {
   glue::glue(
     "No. Points: {x$n_points}",
     "No. Iterations: {x$n_iter}",
-    "No. Calls: {x$n_calls}",
+    "No. Calls: {x$neval}",
     "Log. Volume: {pretty_round(x$log_volume, 4)}",
     "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
     .sep = "\n"
@@ -225,7 +225,14 @@ print.summary.ernest_run <- function(x, ...) {
 #' Converts the output from `nested_sampling_impl` into a structured list of
 #' vectors.
 #'
-#' @param results Output from `nested_sampling_impl`.
+#' @param results Output from `nested_sampling_impl`, which is a list that
+#' contains these elements:
+#' * `dead_unit`: Sample points in the unit hypercube.
+#' * `dead_log_lik`: Log-likelihoods of dead points.
+#' * `dead_id`: IDs of dead points.
+#' * `dead_evals`: Number of likelihood evals for each dead point.
+#' * `dead_birth`: The log-likelihood of the point used to create each dead
+#' point.
 #'
 #' @return A named list of vectors and the number of iterations.
 #' @noRd
@@ -233,15 +240,15 @@ parse_results <- function(results) {
   dead_unit <- do.call(rbind, results$dead_unit)
   dead_log_lik <- list_c(results$dead_log_lik)
   dead_id <- list_c(results$dead_id)
-  dead_calls <- list_c(results$dead_calls)
+  dead_evals <- list_c(results$dead_evals)
   dead_birth <- list_c(results$dead_birth)
   n_iter <- vctrs::vec_size(dead_log_lik)
   list(
     "unit" = dead_unit,
     "log_lik" = dead_log_lik,
     "id" = dead_id,
-    "calls" = dead_calls,
-    "birth" = dead_birth,
+    "evals" = dead_evals,
+    "birth_lik" = dead_birth,
     "n_iter" = n_iter
   )
 }
@@ -251,7 +258,7 @@ parse_results <- function(results) {
 #' Combines dead and live sample information into a single data frame list.
 #'
 #' @param dead The list object from `parse_results`.
-#' @param live The log-likelihood, id, and birth vectors from the current live
+#' @param live The log-likelihood, id, and birth_lik vectors from the current live
 #' points.
 #' @param n_iter Number of iterations used for the run.
 #' @param n_points Number of live points used for the run.
@@ -268,7 +275,11 @@ bind_dead_live <- function(dead, live, n_points, n_iter) {
       seq(n_points, 1),
       .ptype = integer()
     ),
-    "calls" = vctrs::vec_c(dead$calls, rep(0L, n_points), .ptype = integer()),
-    "birth" = vctrs::vec_c(dead$birth, live$birth, .ptype = integer())
+    "evals" = vctrs::vec_c(dead$evals, rep(0L, n_points), .ptype = integer()),
+    "birth_lik" = vctrs::vec_c(
+      dead$birth_lik,
+      live$birth_lik,
+      .ptype = double()
+    )
   )
 }

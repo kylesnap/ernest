@@ -72,9 +72,10 @@ rejection steps.
 
 \code{create_prior} allows you to specify your own prior distribution by providing
 a transformation function. For factorisable priors, this function can simply
-transform each value in (0, 1) using the inverse cumulative distribution
-function (CDF) for each parameter. For more complex cases, you can specify
-hierarchical or conditionally dependent priors (see Examples).
+transform each value in the closed interval (0, 1) using the inverse
+cumulative distribution function (CDF) for each parameter. For more complex
+cases, you can specify hierarchical or conditionally dependent priors
+(see Examples).
 
 \code{create_prior} performs regularity checks on your prior function to catch
 basic errors that may affect nested sampling. To pass these checks, the

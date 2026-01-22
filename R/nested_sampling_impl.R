@@ -6,16 +6,15 @@
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
 #' state and configuration.
 #' @param max_iterations Integer. Maximum number of iterations to perform.
-#' @param max_calls Integer. Maximum number of likelihood function calls
-#' allowed.
+#' @param max_evaluations Integer. Maximum number of likelihood function evals.
 #' @param min_logz Numeric. Minimum change in log-evidence (log Z) required to
 #' continue sampling.
 #' @param last_criterion Numeric. Log-likelihood value of the last removed
 #' sample (default: -1e300).
 #' @param log_vol Numeric. Current log prior volume.
 #' @param log_z Numeric. Current log-evidence.
-#' @param iter Integer. Current iteration.
-#' @param call Integer. Current number of likelihood calls.
+#' @param curiter Integer. Current iteration.
+#' @param cureval Integer. Current number of likelihood calls.
 #' @param show_progress Logical. If TRUE, displays a progress bar during
 #' sampling.
 #'
@@ -39,13 +38,13 @@
 nested_sampling_impl <- function(
   x,
   max_iterations,
-  max_calls,
+  max_evaluations,
   min_logz,
   last_criterion = -1e300,
   log_vol = 0,
   log_z = -1e300,
-  iter = 0L,
-  call = 0L,
+  curiter = 0L,
+  cureval = 0L,
   show_progress = TRUE
 ) {
   live_env <- x$run_env
@@ -55,9 +54,9 @@ nested_sampling_impl <- function(
   initial_update <- FALSE
 
   dead_unit <- vctrs::list_of(.ptype = double(x$n_points))
-  dead_birth <- vctrs::list_of(.ptype = integer())
+  dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
-  dead_calls <- vctrs::list_of(.ptype = integer())
+  dead_evals <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
   logger <- start_logging()
   if (!is.null(logger)) {
@@ -68,15 +67,15 @@ nested_sampling_impl <- function(
   if (show_progress) {
     cli::cli_progress_bar(
       format = paste0(
-        "{pb_spin} Generating samples | {pb_current} iter. | {call} log-lik. ",
+        "{pb_spin} Generating samples | {pb_current} iter. | {cureval} log-lik. ",
         "calls | {pretty_signif(d_log_z)} log-evid. remaining"
       ),
       type = "custom"
     )
   }
-  for (i in seq(1, max_iterations - iter)) {
+  for (i in seq(1, max_iterations - curiter)) {
     # 1. Check stop conditions
-    if (call > max_calls) {
+    if (cureval > max_evaluations) {
       break
     }
     max_lik <- max(live_env$log_lik)
@@ -92,15 +91,14 @@ nested_sampling_impl <- function(
     worst_idx <- which.min(live_env$log_lik)
     new_criterion <- live_env$log_lik[worst_idx]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
-      log_lik_format <- pretty_round(max_lik, digits = 4)
       cli::cli_warn(
-        "Stopping run due to a likelihood plateau at {log_lik_format}."
+        "Stopping run due to a likelihood plateau at {max_lik}."
       )
       break
     }
     dead_unit[[i]] <- live_env$unit[worst_idx, ]
     dead_log_lik[[i]] <- live_env$log_lik[worst_idx]
-    dead_birth[[i]] <- live_env$birth[worst_idx]
+    dead_birth[[i]] <- live_env$birth_lik[worst_idx]
     dead_id[[i]] <- worst_idx
 
     # 3. Update the integration
@@ -112,34 +110,18 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (!initial_update && call >= x$first_update) {
+    if (!initial_update && cureval >= x$first_update) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
-      if (!is.null(logger)) {
-        inject(log4r::info(
-          logger,
-          ITER = i,
-          !!!as.list(x$lrps$cache),
-          unit = live_env$unit
-        ))
-      }
       initial_update <- TRUE
     }
-    if (initial_update && (x$lrps$cache$n_call %||% 0L) > x$update_interval) {
+    if (initial_update && (x$lrps$cache$neval %||% 0L) > x$update_interval) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
-      if (!is.null(logger)) {
-        inject(log4r::info(
-          logger,
-          ITER = i,
-          !!!as.list(x$lrps$cache),
-          unit = live_env$unit
-        ))
-      }
     }
 
     # 4. Replace the worst points in live with new points
     available_idx <- setdiff(seq_len(x$n_points), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
-    new_unit <- if (call <= x$first_update) {
+    new_unit <- if (cureval <= x$first_update) {
       propose(x$lrps, criterion = live_env$log_lik[worst_idx])
     } else {
       propose(
@@ -148,32 +130,24 @@ nested_sampling_impl <- function(
         criterion = live_env$log_lik[worst_idx]
       )
     }
-    if (!is.null(logger)) {
-      inject(log4r::debug(
-        logger,
-        ITER = i,
-        original = live_env$unit[copy, ],
-        criterion = live_env$log_lik[worst_idx],
-        !!!new_unit
-      ))
-    }
     if (is.null(new_unit$unit)) {
-      cli::cli_abort(
-        "`lrps` failed to generate a point in {x$lrps$max_loop} attempts."
+      cli::cli_warn(
+        "LRPS failed to generate a point in {x$lrps$max_loop} attempts."
       )
+      break
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
-    live_env$birth[worst_idx] <- copy
-    dead_calls[[i]] <- new_unit$n_call
-    call <- call + new_unit$n_call
+    live_env$birth_lik[worst_idx] <- copy
+    dead_evals[[i]] <- new_unit$neval
+    cureval <- cureval + new_unit$neval
   }
 
   list(
     "dead_unit" = dead_unit,
     "dead_log_lik" = dead_log_lik,
     "dead_id" = dead_id,
-    "dead_calls" = dead_calls,
+    "dead_evals" = dead_evals,
     "dead_birth" = dead_birth
   )
 }

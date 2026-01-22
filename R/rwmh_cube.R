@@ -151,7 +151,7 @@ propose.rwmh_cube <- function(
       steps = x$steps,
       epsilon = x$cache$epsilon
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     env_poke(x$cache, "n_accept", x$cache$n_accept + res$n_accept)
     res
   }
@@ -164,7 +164,7 @@ update_lrps.rwmh_cube <- function(x, unit = NULL, ...) {
     return(do.call(new_rwmh_cube, as.list(x)))
   }
   # Newton-like update to epsilon based on the acceptance ratio
-  cur_call <- env_get(x$cache, "n_call", 0L)
+  cur_call <- env_get(x$cache, "neval", 0L)
   cur_accept <- env_get(x$cache, "n_accept", 0L)
   cur_eps <- env_get(x$cache, "epsilon", 1.0)
   if (cur_call != 0L) {

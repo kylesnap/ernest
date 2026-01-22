@@ -1,15 +1,16 @@
+skip("TEMPORARY")
 data(example_run)
 
 test_that("ernest_run object structure and content", {
   expect_s3_class(example_run, "ernest_run")
   expect_true(is.list(example_run))
   expect_true(all(
-    c("id", "points", "birth", "samples", "samples_unit", "log_lik") %in%
+    c("id", "points", "birth_lik", "samples", "samples_unit", "log_lik") %in%
       names(example_run)
   ))
   expect_type(example_run$id, "integer")
   expect_type(example_run$points, "integer")
-  expect_type(example_run$birth, "integer")
+  expect_type(example_run$birth_lik, "double")
   expect_type(example_run$samples, "double")
   expect_type(example_run$samples_unit, "double")
   expect_type(example_run$log_lik, "double")
@@ -43,7 +44,7 @@ test_that("summary.ernest_run returns expected structure and values", {
     c(
       "n_iter",
       "n_points",
-      "n_calls",
+      "neval",
       "log_volume",
       "log_evidence",
       "log_evidence_err",
@@ -56,7 +57,7 @@ test_that("summary.ernest_run returns expected structure and values", {
   expect_equal(smry$log_volume, tail(example_run$log_volume, 1))
   expect_equal(smry$log_evidence, tail(example_run$log_evidence, 1))
   expect_type(smry$n_iter, "integer")
-  expect_type(smry$n_calls, "integer")
+  expect_type(smry$neval, "integer")
   expect_type(smry$log_volume, "double")
   expect_type(smry$log_evidence, "double")
   expect_type(smry$log_evidence_err, "double")

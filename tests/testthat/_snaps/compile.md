@@ -74,13 +74,13 @@
       `log_lik` may contain a likelihood plateau; proceed with caution.
       ! Only 250/500 likelihood values are unique.
 
-# check_live_set / errors if birth vector is wrong
+# check_live_set / errors if birth_lik vector is wrong
 
     Code
       check_live_set(sampler)
     Condition
       Error:
-      ! `birth` vector cannot be missing from the `run_env` environment.
+      ! `birth_lik` vector cannot be missing from the `run_env` environment.
 
 ---
 
@@ -88,7 +88,7 @@
       check_live_set(sampler)
     Condition
       Error:
-      ! `birth` vector cannot be missing from the `run_env` environment.
+      ! `birth_lik` vector cannot be missing from the `run_env` environment.
 
 # compile / initializes live points
 

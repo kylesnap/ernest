@@ -29,12 +29,12 @@ test_that("Convergence criteria behave as expected", {
   skip_extended()
   expect_gaussian_run(
     sampler = rwmh_cube(),
-    .generate = list(max_iterations = reference_run$n_iter, min_logz = 0)
+    .generate = list(max_iterations = reference_run$niter, min_logz = 0)
   )
 
   # Increasing n_points will increase iterations needed to converge
   run_500 <- expect_gaussian_run(sampler = rwmh_cube(), n_points = 500)
-  expect_gt(run_500$n_iter, reference_run$n_iter)
+  expect_gt(run_500$niter, reference_run$niter)
 })
 
 #' @srrstats {BS4.7} Test checks that the NS converegence criteria (min_logz)
@@ -45,5 +45,5 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
     sampler = rwmh_cube(),
     .generate = list(min_logz = 0.1)
   )
-  expect_gt(reference_run$n_iter, run_short$n_iter)
+  expect_gt(reference_run$niter, run_short$niter)
 })

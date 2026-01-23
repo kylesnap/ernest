@@ -100,14 +100,14 @@ compile.ernest_run <- function(
 
   # Fill live points
   live_positions <- vctrs::vec_as_location(
-    seq(object$n_iter),
-    vctrs::vec_size(object$log_lik)
+    seq(object$niter),
+    vctrs::vec_size(object$weights$log_lik)
   )
   env_bind(
     object$run_env,
-    unit = object$samples_unit[-live_positions, ],
-    log_lik = object$log_lik[-live_positions],
-    birth_lik = object$birth_lik[-live_positions]
+    unit = object$samples$unit_cube[-live_positions, ],
+    log_lik = object$weights$log_lik[-live_positions],
+    birth_lik = object$weights$birth_lik[-live_positions]
   )
   try_fetch(
     check_live_set(object),

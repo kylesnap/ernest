@@ -21,30 +21,30 @@
 #' @returns An object of class `ernest_run`, inheriting from `ernest_sampler`,
 #' with additional components:
 #'
-#' * `n_iter`: Integer. Number of iterations.
+#' * `niter`: Integer. Number of iterations.
 #' * `n_evaluations`: Integer. Total number of likelihood function evaluations.
-#' * `log_lik`: `double(n_iter + n_points)`. Log-likelihoods for each sample.
-#' * `log_volume`: `double(n_iter + n_points)`. Estimated log-prior volumes at
+#' * `log_lik`: `double(niter + n_points)`. Log-likelihoods for each sample.
+#' * `log_volume`: `double(niter + n_points)`. Estimated log-prior volumes at
 #'   each iteration.
-#' * `log_weight`: `double(n_iter + n_points)`. Unnormalised log-weights for
+#' * `log_weight`: `double(niter + n_points)`. Unnormalised log-weights for
 #'   each sample.
-#' * `log_evidence`: `double(n_iter + n_points)`. Cumulative log-evidence
+#' * `log_evidence`: `double(niter + n_points)`. Cumulative log-evidence
 #'   estimates at each iteration.
-#' * `log_evidence_var`: `double(n_iter + n_points)`. Variance of the
+#' * `log_evidence_var`: `double(niter + n_points)`. Variance of the
 #'   log-evidence estimate at each iteration.
-#' * `information`: `double(n_iter + n_points)`. KL divergence between the prior
+#' * `information`: `double(niter + n_points)`. KL divergence between the prior
 #'   and posterior, estimated at each iteration.
-#' * `samples`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. Parameter
+#' * `samples`: `matrix(nrow = niter + n_points, ncol = n_dim)`. Parameter
 #'   values for each sample.
-#' * `samples_unit`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. Parameter
+#' * `samples_unit`: `matrix(nrow = niter + n_points, ncol = n_dim)`. Parameter
 #'   values for each sample in unit hypercube representation.
-#' * `id`: `integer(n_iter + n_points)`. Unique integer identifiers for each
+#' * `id`: `integer(niter + n_points)`. Unique integer identifiers for each
 #'   sample from the live set (ranging from 1 to `n_points`).
-#' * `points`: `integer(n_iter + n_points)`. Number of live points present at
+#' * `points`: `integer(niter + n_points)`. Number of live points present at
 #'   each iteration.
-#' * `evaluations`: `integer(n_iter + n_points)`. Number of likelihood function evaluations used to generate a
+#' * `evaluations`: `integer(niter + n_points)`. Number of likelihood function evaluations used to generate a
 #'   new live point at each iteration.
-#' * `birth_lik`: `integer(n_iter + n_points)`. `id` of the live point that was used
+#' * `birth_lik`: `integer(niter + n_points)`. `id` of the live point that was used
 #' to create the given point. `0` if the point was created by `compile` at the
 #' beginning of a run.
 #'
@@ -148,12 +148,18 @@ generate.ernest_run <- function(
     ))
   }
 
-  cur_iter <- x$n_iter
+  cur_iter <- x$niter
   cureval <- x$neval
-  last_criterion <- x$log_lik[cur_iter]
-  log_z <- x$log_evidence[cur_iter]
-  log_vol <- x$log_volume[cur_iter]
-  d_logz <- logaddexp(0, max(x$log_lik) + log_vol - log_z)
+  log_vol <- drop(get_logvol(x$n_points, niter = cur_iter))
+  prev_integration <- compute_integral(x$weights$log_lik, log_vol)
+  last_criterion <- prev_integration$log_lik[cur_iter]
+  log_z <- prev_integration$log_evidence[cur_iter]
+  log_vol <- prev_integration$log_vol[cur_iter]
+  d_logz <- logaddexp(
+    0,
+    max(prev_integration$log_lik[1:cur_iter]) + log_vol - log_z
+  )
+
   c(max_iterations, max_evaluations, min_logz) %<-%
     check_stopping_criteria(
       max_iterations,
@@ -205,6 +211,19 @@ check_stopping_criteria <- function(
   check_number_whole(max_iterations, min = 1, allow_null = TRUE, call = call)
   check_number_whole(max_evaluations, min = 1, allow_null = TRUE, call = call)
   check_number_decimal(min_logz, min = 0, call = call)
+  no_stopping <- identical(min_logz, 0) &&
+    is.null(max_iterations) &&
+    is.null(max_evaluations)
+  if (no_stopping) {
+    cli::cli_abort(
+      c(
+        "Can't perform nested sampling without any stopping criteria.",
+        "i" = "Have you set either `max_iterations` or `max_evaluations`?"
+      ),
+      call = call
+    )
+  }
+
   max_iterations <- max_iterations %||% .Machine$integer.max
   max_evaluations <- max_evaluations %||% .Machine$integer.max
 
@@ -235,19 +254,6 @@ check_stopping_criteria <- function(
         "`min_logz` must be strictly smaller than {d_logz_format}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
-      ),
-      call = call
-    )
-  }
-
-  no_stopping <- identical(min_logz, 0) &&
-    is.null(max_iterations) &&
-    is.null(max_evaluations)
-  if (no_stopping) {
-    cli::cli_abort(
-      c(
-        "Can't perform nested sampling without any stopping criteria.",
-        "i" = "Have you set either `max_iterations` or `max_evaluations`?"
       ),
       call = call
     )

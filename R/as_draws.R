@@ -117,16 +117,16 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   )
   check_bool(radial, call = call)
 
-  points <- if (units == "original") x$samples else x$samples_unit
+  points <- x$samples[[units]]
   if (radial) {
     radial_col <- sqrt(rowSums(points^2))
     points <- cbind(points, ".radial" = radial_col)
   }
-  weights <- x$log_weight - max(x$log_evidence)
+  weights <- x$weights$imp_weight
 
   posterior::weight_draws(
     posterior::as_draws_matrix(points),
     weights,
-    log = TRUE
+    log = FALSE
   )
 }

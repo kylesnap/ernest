@@ -96,8 +96,8 @@ eggbox <- list(
 expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
   sampler <- ernest_sampler(..., seed = .seed)
   run <- inject(generate(sampler, !!!.generate))
-  log_z <- tail(run$log_evidence, 1)
-  log_z_err <- sqrt(tail(run$log_evidence_var, 1))
+  log_z <- run$log_evidence
+  log_z_err <- run$log_evidence_err
 
   delta_log_z <- abs(log_z - .expected_log_z)
   if (delta_log_z > 3.0 * log_z_err) {
@@ -109,7 +109,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
       sprintf("Run Estimate: %.3f (ERR: %.3f)", log_z, log_z_err)
     ))
   }
-  tot_weight <- sum(exp(run$log_weight - log_z))
+  tot_weight <- sum(run$weights$imp_weight)
   if (abs(tot_weight - 1) > sqrt(.Machine$double.eps)) {
     fail(sprintf(
       "Log-weights should sum to one, not %.3f.",

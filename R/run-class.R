@@ -20,19 +20,22 @@ new_ernest_run.ernest_sampler <- function(x, results) {
 #' @export
 #' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
-  prev_iter <- x$n_iter
+  prev_iter <- x$niter
   old_idx <- vctrs::vec_as_location(
     seq(prev_iter),
-    vctrs::vec_size(x$log_lik)
+    vctrs::vec_size(x$weights$log_lik)
   )
   parsed <- parse_results(results)
 
-  parsed$unit <- rbind(x$samples_unit[old_idx, ], parsed$unit)
-  parsed$log_lik <- vctrs::vec_c(x$log_lik[old_idx], parsed$log_lik)
-  parsed$id <- vctrs::vec_c(x$id[old_idx], parsed$id)
-  parsed$evals <- vctrs::vec_c(x$evals[old_idx], parsed$evals)
-  parsed$birth_lik <- vctrs::vec_c(x$birth_lik[old_idx], parsed$birth_lik)
-  parsed$n_iter <- x$n_iter + parsed$n_iter
+  parsed$unit <- rbind(x$samples$unit_cube[old_idx, ], parsed$unit)
+  parsed$log_lik <- vctrs::vec_c(x$weights$log_lik[old_idx], parsed$log_lik)
+  parsed$id <- vctrs::vec_c(x$weights$id[old_idx], parsed$id)
+  parsed$evals <- vctrs::vec_c(x$weights$evaluations[old_idx], parsed$evals)
+  parsed$birth_lik <- vctrs::vec_c(
+    x$weights$birth_lik[old_idx],
+    parsed$birth_lik
+  )
+  parsed$niter <- x$niter + parsed$niter
   new_ernest_run_(x, parsed)
 }
 
@@ -44,7 +47,27 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @param x The `ernest_run` or `ernest_sampler` object.
 #' @param parsed A list with the previous dead points from the run.
 #'
-#' @return A new `ernest_run` object.
+#' @return
+#' A new `ernest_run` object, which is a named list containing:
+#' * `niter`: Integer. Number of iterations performed.
+#' * `neval`: Integer. Total number of likelihood function evaluations.
+#' * `log_evidence`: Double. The log-evidence estimate.
+#' * `log_evidence_err`: Double. The standard error of the log-evidence
+#' estimate.
+#' * `information`: Double. The estimated Kullback-Leibler divergence.
+#' * `samples`: A list, containing the posterior samples ordered by their
+#' log-likelihood values:
+#'  * `samples`: A matrix. The samples transformed to the parameter space.
+#'  * `original`: A matrix. The samples in the unit hypercube.
+#' * `weights: A named list, containing the following for each point in
+#' `samples`:
+#'  * `id`: The point ID for each sample.
+#'  * `evaluations`: The number of likelihood evaluations used to create each
+#'  sample.
+#'  * `log_weight`: The log-weight for each sample.
+#'  * `imp_weight`: The normalized importance weight for each sample.
+#'  * `log_lik`: The log-likelihood for each sample.
+#'  * `birth_lik`: The log-likelihood of the point used to create each sample.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
   live_order <- order(x$run_env$log_lik)
@@ -58,21 +81,31 @@ new_ernest_run_ <- function(x, parsed) {
     "id" = live_order,
     "birth_lik" = x$run_env$birth_lik[live_order]
   )
-  all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$n_iter)
+  all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$niter)
 
-  log_vol <- drop(get_logvol(x$n_points, n_iter = parsed$n_iter))
+  log_vol <- drop(get_logvol(x$n_points, niter = parsed$niter))
   integration <- compute_integral(all_samples$log_lik, log_vol)
 
   result_elem <- list2(
-    "n_iter" = parsed$n_iter,
+    "niter" = parsed$niter,
     "neval" = sum(all_samples$evals),
-    !!!integration,
-    "id" = all_samples$id,
-    "points" = all_samples$points,
-    "evals" = all_samples$evals,
-    "birth_lik" = all_samples$birth_lik,
-    "samples" = samples,
-    "samples_unit" = samples_unit
+    "log_evidence" = tail(integration$log_evidence, 1L),
+    "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
+    "information" = tail(integration$information, 1L),
+    "samples" = list(
+      "original" = samples,
+      "unit_cube" = samples_unit
+    ),
+    "weights" = vctrs::df_list(
+      "id" = all_samples$id,
+      "evaluations" = all_samples$evals,
+      "log_lik" = all_samples$log_lik,
+      "log_weight" = integration$log_w,
+      "imp_weight" = exp(
+        integration$log_w - tail(integration$log_evidence, 1L)
+      ),
+      "birth_lik" = all_samples$birth_lik
+    )
   )
 
   sampler_elem <- list(
@@ -90,7 +123,6 @@ new_ernest_run_ <- function(x, parsed) {
     new_ernest_sampler,
     list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
   )
-  # Clear caches
   env_unbind(obj$run_env, env_names(obj$run_env))
   obj
 }
@@ -106,86 +138,108 @@ print.ernest_run <- function(x, ...) {
     "* Prior: {format(x$prior, ...)}"
   ))
   cli::cli_rule(left = "Results")
-  log_z <- pretty_round(tail(x$log_evidence, 1), 4)
-  log_z_sd <- pretty_round(sqrt(tail(x$log_evidence_var, 1)), 4)
+  log_z <- pretty_round(x$log_evidence, 4)
+  log_z_sd <- pretty_round(x$log_evidence_err, 4)
+  h <- prettyunits::pretty_signif(x$information, 4)
   cli::cli_bullets(c(
-    "* Iterations: {x$n_iter}",
-    "* Likelihood evaluations: {x$n_evals}",
-    "* Log. Volume: {pretty_round(tail(x$log_volume, 1L), 4)}",
-    "* Log. Evidence: {log_z} (\U00B1 {log_z_sd})"
+    "* Iterations: {x$niter}",
+    "* Likelihood evals.: {x$neval}",
+    "* Log-evidence: {log_z} (\U00B1 {log_z_sd})",
+    "* Information: {h}"
   ))
   invisible(x)
 }
 
 #' Summarize a nested sampling run
 #'
-#' Provides a summary of an `ernest_run` object, including key statistics and a
-#' tibble of results for each iteration.
+#' Returns a concise summary of an `ernest_run` object, including key statistics and posterior summaries.
 #'
 #' @param object An `ernest_run` object.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns
-#' A list of class `summary.ernest_run` with the following components:
-#'
-#' * `n_iter`: Integer. Number of iterations performed.
-#' * `n_points`: Integer. Number of live points used in the run.
-#' * `neval`: Integer. Total number of likelihood function calls.
-#' * `log_volume`: Double. Final estimated log-prior volume.
-#' * `log_evidence`: Double. Final log-evidence estimate.
-#' * `log_evidence_err`: Double. Standard deviation of the log-evidence
-#' estimate.
-#' * `draws`: Posterior draws as returned by [as_draws()].
-#' * `run` A [tibble::tibble].
-#'
-#' `run` stores the state of the run at each iteration with these columns:
-#' * `call`: Cumulative number of likelihood calls.
-#' * `log_lik`: Log-likelihood for each sample.
-#' * `log_volume`: Estimated log-prior volume.
-#' * `log_weight`: Unnormalized log-weights (relative to evidence).
-#' * `log_evidence`: Cumulative log-evidence.
-#' * `log_evidence_err`: Standard deviation of log-evidence.
-#' * `information`: Estimated KL divergence at each iteration.
+#' @return A list of class `summary.ernest_run` with:
+#' * `nlive`: Number of live points.
+#' * `niter`: Number of iterations.
+#' * `neval`: Number of likelihood evaluations.
+#' * `log_evidence`: Log-evidence estimate.
+#' * `log_evidence_err`: Standard error of log-evidence.
+#' * `information`: Estimated Kullback-Leibler divergence between the prior
+#' and posterior.
+#' * `reweighted_samples`: Posterior samples resampled by normalized weights.
+#' * `mle`: Maximum likelihood estimate extracted during the run, stored in a
+#' list with the elements:
+#'    * `log_lik`: The maximum log-likelihood value.
+#'    * `original`, `unit_cube`: The corresponding sample in the original
+#'    parameter space and the unit hypercube, respectively.
+#' * `posterior`: `tibble` with posterior mean, sd, median, 15th and
+#' 85th percentiles for each parameter.
+#' * `seed`: The RNG seed used.
 #'
 #' @seealso
 #' * [generate()] for details on the `ernest_run` object.
-#' * [as_draws()] for more information on `draws` objects.
+#' * [as_draws()] for details on how posterior samples are extracted.
 #'
 #' @srrstats {BS6.4} Summary method for results object.
 #'
-#' @export
 #' @examples
-#' # Load an example run
 #' data(example_run)
-#'
-#' # Summarize the run and view a tibble of its results.
 #' run_sm <- summary(example_run)
 #' run_sm
-#' run_sm$run
+#' run_sm$posterior
+#' @export
 summary.ernest_run <- function(object, ...) {
   check_dots_empty()
-  log_z_max <- tail(object$log_evidence, 1)
+  nlive <- object$n_points
+  seed <- attr(object, "seed") %||% NA
+  niter <- object$niter
+  neval <- object$neval
+  log_evidence <- object$log_evidence
+  log_evidence_err <- object$log_evidence_err
+  information <- object$information
 
-  sum_df <- tibble::tibble(
-    "call" = cumsum(object$call),
-    "log_lik" = object$log_lik,
-    "log_volume" = object$log_volume,
-    "log_weight" = object$log_weight - log_z_max,
-    "log_evidence" = object$log_evidence,
-    "log_evidence_err" = sqrt(object$log_evidence_var),
-    "information" = object$information
+  # Posterior samples and weights
+  draws <- as_draws(object)
+  weights <- object$weights$imp_weight
+  norm_weights <- exp(weights - max(weights))
+  norm_weights <- norm_weights / sum(norm_weights)
+
+  # Resampled posterior samples
+  reweighted_samples <- posterior::resample_draws(draws)
+
+  # MLE
+  idx_mle <- which.max(object$weights$log_lik)
+  mle <- list(
+    log_lik = object$weights$log_lik[idx_mle],
+    "original" = object$samples$original[idx_mle, ],
+    "unit_cube" = object$samples$unit_cube[idx_mle, ]
+  )
+
+  # Posterior summary statistics
+  draws_matrix <- posterior::as_draws_matrix(draws)
+  posterior <- posterior::summarise_draws(
+    draws_matrix,
+    "mean",
+    "sd",
+    "median",
+    \(x) {
+      y <- quantile(x, probs = c(0.15, 0.85))
+      names(y) <- c("q15", "q85")
+      y
+    }
   )
 
   structure(
     list(
-      "n_iter" = object$n_iter,
-      "n_points" = object$n_points,
-      "neval" = object$neval,
-      "log_volume" = tail(sum_df$log_volume, 1),
-      "log_evidence" = tail(sum_df$log_evidence, 1L),
-      "log_evidence_err" = tail(sum_df$log_evidence_err, 1L),
-      "run" = sum_df,
-      "draws" = as_draws(object)
+      nlive = nlive,
+      niter = niter,
+      neval = neval,
+      log_evidence = log_evidence,
+      log_evidence_err = log_evidence_err,
+      information = information,
+      reweighted_samples = reweighted_samples,
+      mle = mle,
+      posterior = posterior,
+      seed = seed
     ),
     class = "summary.ernest_run"
   )
@@ -193,28 +247,35 @@ summary.ernest_run <- function(object, ...) {
 
 #' @noRd
 #' @export
-format.summary.ernest_run <- function(x, ...) {
+print.summary.ernest_run <- function(x, ...) {
+  cli::cli_text("Summary of nested sampling run:")
+  cli::cli_rule(left = "Run Information")
   log_z <- pretty_round(x$log_evidence, 4)
   log_z_sd <- pretty_round(x$log_evidence_err, 4)
-  glue::glue(
-    "No. Points: {x$n_points}",
-    "No. Iterations: {x$n_iter}",
-    "No. Calls: {x$neval}",
-    "Log. Volume: {pretty_round(x$log_volume, 4)}",
-    "Log. Evidence: {log_z} (\U00B1 {log_z_sd})",
-    .sep = "\n"
-  )
-}
+  cli::cli_bullets(c(
+    "* Live points: {x$nlive}",
+    "* Iterations: {x$niter}",
+    "* Likelihood evals.: {x$neval}",
+    "* Log-evidence: {log_z} (\U00B1 {log_z_sd})",
+    "* Information: {prettyunits::pretty_signif(x$information, 4)}"
+  ))
+  if (!is.na(x$seed)) {
+    cli::cli_bullets(c("* RNG seed: {x$seed}"))
+  }
 
-#' @noRd
-#' @export
-print.summary.ernest_run <- function(x, ...) {
-  cli::cli_text("nested sampling result summary {.cls {class(x)}}")
-  lines <- strsplit(format(x), split = "\n")[[1]]
-  names(lines) <- rep("*", length(lines))
-  cli::cli_bullets(lines[1:2])
-  cli::cli_rule()
-  cli::cli_bullets(lines[3:5])
+  cli::cli_rule(left = "Posterior Summary")
+  posterior <- x$posterior
+  n_show <- min(6, nrow(posterior))
+  print(posterior[seq_len(n_show), ])
+  if (n_show < nrow(posterior)) {
+    cli::cli_text("Use {.code x$posterior} to see the full posterior summary.")
+  }
+
+  cli::cli_rule(left = "Maximum Likelihood Estimate (MLE)")
+  cli::cli_bullets(c(
+    "* Log-likelihood: {pretty_round(x$mle$log_lik, 4)}",
+    "* Original parameters: {pretty_round(x$mle$original, 4)}"
+  ))
   invisible(x)
 }
 
@@ -242,14 +303,14 @@ parse_results <- function(results) {
   dead_id <- list_c(results$dead_id)
   dead_evals <- list_c(results$dead_evals)
   dead_birth <- list_c(results$dead_birth)
-  n_iter <- vctrs::vec_size(dead_log_lik)
+  niter <- vctrs::vec_size(dead_log_lik)
   list(
     "unit" = dead_unit,
     "log_lik" = dead_log_lik,
     "id" = dead_id,
     "evals" = dead_evals,
     "birth_lik" = dead_birth,
-    "n_iter" = n_iter
+    "niter" = niter
   )
 }
 
@@ -260,18 +321,17 @@ parse_results <- function(results) {
 #' @param dead The list object from `parse_results`.
 #' @param live The log-likelihood, id, and birth_lik vectors from the current live
 #' points.
-#' @param n_iter Number of iterations used for the run.
+#' @param niter Number of iterations used for the run.
 #' @param n_points Number of live points used for the run.
 #'
-#' @return A data frame list of vectors, all of length `n_points + n_iter`.
+#' @return A data frame list of vectors, all of length `n_points + niter`.
 #' @noRd
-bind_dead_live <- function(dead, live, n_points, n_iter) {
+bind_dead_live <- function(dead, live, n_points, niter) {
   vctrs::df_list(
     "log_lik" = vctrs::vec_c(dead$log_lik, live$log_lik, .ptype = double()),
     "id" = vctrs::vec_c(dead$id, live$id, .ptype = integer()),
-    # TODO points should be collected as a list of int during the run.
     "points" = vctrs::vec_c(
-      rep(n_points, n_iter),
+      rep(n_points, niter),
       seq(n_points, 1),
       .ptype = integer()
     ),

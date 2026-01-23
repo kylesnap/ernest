@@ -11,7 +11,7 @@
 #' `x`.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns A [tibble::tibble()], containing `n_iter + n_points` rows
+#' @returns A [tibble::tibble()], containing `niter + n_points` rows
 #' and several columns:
 #'
 #' * `log_lik`: The log-likelihood of the model.
@@ -47,17 +47,21 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, lower = 0L)
   n_points <- x$n_points
-  log_vol_rng <- range(x$log_volume)
-  dead_log_vol <- x$log_volume[x$n_iter]
+  log_vol <- drop(get_logvol(x$n_points, niter = x$niter))
+  log_vol_rng <- range(log_vol)
+  dead_log_vol = log_vol[x$niter]
 
   if (ndraws == 0L) {
+    integration <- compute_integral(x$weights$log_lik, log_vol)
     return(tibble::new_tibble(
       list(
-        "log_lik" = posterior::as_rvar(x$log_lik),
-        "log_volume" = posterior::as_rvar(x$log_volume),
-        "log_weight" = posterior::as_rvar(x$log_weight),
-        "log_evidence" = posterior::as_rvar(x$log_evidence),
-        "log_evidence_err" = posterior::as_rvar(sqrt(x$log_evidence_var))
+        "log_lik" = posterior::as_rvar(integration$log_lik),
+        "log_volume" = posterior::as_rvar(integration$log_volume),
+        "log_weight" = posterior::as_rvar(integration$log_weight),
+        "log_evidence" = posterior::as_rvar(integration$log_evidence),
+        "log_evidence_err" = posterior::as_rvar(sqrt(
+          integration$log_evidence_var
+        ))
       ),
       ndraws = ndraws,
       npoints = n_points,
@@ -67,8 +71,8 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
     ))
   }
 
-  log_lik <- x$log_lik
-  log_volume <- get_logvol(x$n_points, x$n_iter, ndraws = ndraws)
+  log_lik <- x$weights$log_lik
+  log_volume <- get_logvol(x$n_points, x$niter, ndraws = ndraws)
   log_weight <- get_logweight(log_lik, log_volume)
   log_evidence <- get_logevid(log_weight)
 
@@ -108,15 +112,15 @@ print.ernest_estimate <- function(x, ...) {
 #' Simulates log-volumes for dead and live points in a nested sampling run.
 #'
 #' @param n_points Integer. The number of points in the prior space.
-#' @param n_iter Integer. The number of iterations in the nested sampling run.
+#' @param niter Integer. The number of iterations in the nested sampling run.
 #' @param ndraws Integer. The number of draws to simulate for each volume, or
 #' NULL.
 #'
 #' @return A matrix of simulated log-volumes with dimensions `ndraws` by
-#' `n_iter + n_points`. If ndraws is NULL, these are the expected values.
+#' `niter + n_points`. If ndraws is NULL, these are the expected values.
 #' @noRd
-get_logvol <- function(n_points, n_iter, ndraws = NULL) {
-  points <- vctrs::vec_c(rep(n_points, n_iter), seq(n_points, 1, -1))
+get_logvol <- function(n_points, niter, ndraws = NULL) {
+  points <- vctrs::vec_c(rep(n_points, niter), seq(n_points, 1, -1))
 
   if (is.null(ndraws)) {
     vol <- -1 * (points^-1)

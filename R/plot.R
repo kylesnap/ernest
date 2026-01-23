@@ -199,22 +199,24 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' @export
 autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
   check_dots_empty()
-  dead_log_vol <- object$log_volume[object$n_iter]
+  log_vol <- drop(get_logvol(object$n_points, niter = object$niter))
+  integration <- compute_integral(object$weights$log_lik, log_vol)
+  dead_log_vol <- log_vol[object$niter]
 
   z_p <- if ("evidence" %in% which) {
-    log_evidence_sd <- sqrt(object$log_evidence_var)
+    log_evidence_sd <- sqrt(integration$log_evidence_var)
     df_66 <- tibble::tibble(
-      "log_volume" = object$log_volume,
-      "y" = exp(object$log_evidence),
-      "ymin" = exp(object$log_evidence - 1 * log_evidence_sd),
-      "ymax" = exp(object$log_evidence + 1 * log_evidence_sd),
+      "log_volume" = integration$log_volume,
+      "y" = exp(integration$log_evidence),
+      "ymin" = exp(integration$log_evidence - 1 * log_evidence_sd),
+      "ymax" = exp(integration$log_evidence + 1 * log_evidence_sd),
       ".width" = 0.66
     )
     df_95 <- tibble::tibble(
-      "log_volume" = object$log_volume,
-      "y" = exp(object$log_evidence),
-      "ymin" = exp(object$log_evidence - 2 * log_evidence_sd),
-      "ymax" = exp(object$log_evidence + 2 * log_evidence_sd),
+      "log_volume" = integration$log_volume,
+      "y" = exp(integration$log_evidence),
+      "ymin" = exp(integration$log_evidence - 2 * log_evidence_sd),
+      "ymax" = exp(integration$log_evidence + 2 * log_evidence_sd),
       ".width" = 0.95
     )
     df <- rbind(df_66, df_95)
@@ -224,10 +226,11 @@ autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
   }
   w_p <- if ("weight" %in% which) {
     weights <- exp(
-      object$log_weight - object$log_evidence[length(object$log_evidence)]
+      integration$log_weight -
+        integration$log_evidence[length(integration$log_evidence)]
     )
     dens <- stats::density(
-      object$log_volume,
+      integration$log_volume,
       weights = weights,
       warnWbw = FALSE
     )
@@ -240,9 +243,9 @@ autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
     NULL
   }
   l_p <- if ("likelihood" %in% which) {
-    lik <- exp(object$log_lik - max(object$log_lik))
+    lik <- exp(integration$log_lik - max(integration$log_lik))
     df <- tibble::tibble(
-      "log_volume" = object$log_volume,
+      "log_volume" = integration$log_volume,
       "y" = lik
     )
     autoplot_line(df, "Normalized Likelihood", dead_log_vol)

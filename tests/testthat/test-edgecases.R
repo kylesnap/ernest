@@ -104,7 +104,7 @@ test_that("Missing values in the log-likelihood", {
   )
 
   run <- generate(quiet_na_sampler)
-  expect_false(anyNA(run$log_lik))
+  expect_false(anyNA(run$weights$log_lik))
 })
 
 #' Special tests: Perfectly flat and nearly flat likelihoods
@@ -138,5 +138,5 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
     ),
     "Stopping run due to a likelihood plateau at 0"
   )
-  expect_all_equal(tail(run$log_lik, 100), 0)
+  expect_all_equal(tail(run$weights$log_lik, 100), 0)
 })

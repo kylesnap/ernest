@@ -14,7 +14,7 @@
       eval(points_call)
     Condition
       Error:
-      ! `n_points` must be a whole number larger than or equal to 1, not the number 0.
+      ! `nlive` must be a whole number larger than or equal to 1, not the number 0.
 
 ---
 
@@ -22,7 +22,7 @@
       refresh_ernest_sampler(bad_sampler)
     Condition
       Error in `refresh_ernest_sampler()`:
-      ! `n_points` must be a whole number, not `Inf`.
+      ! `nlive` must be a whole number, not `Inf`.
 
 ---
 
@@ -38,7 +38,7 @@
       refresh_ernest_sampler(bad_sampler)
     Condition
       Error in `refresh_ernest_sampler()`:
-      ! `n_points` must be a whole number, not `Inf`.
+      ! `nlive` must be a whole number, not `Inf`.
 
 ---
 
@@ -54,7 +54,7 @@
       refresh_ernest_sampler(bad_sampler)
     Condition
       Error in `refresh_ernest_sampler()`:
-      ! `n_points` must be a whole number, not `Inf`.
+      ! `nlive` must be a whole number, not `Inf`.
 
 ---
 

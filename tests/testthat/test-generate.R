@@ -28,7 +28,7 @@ test_that("generate can continue a previous run", {
   continued <- generate(example_run, min_logz = 0.025)
   print(example_run)
   print(continued)
-  prev_dead <- example_run$niter - example_run$n_points
+  prev_dead <- example_run$niter - example_run$nlive
   expect_identical(
     example_run$samples$unit_cube[1:prev_dead, ],
     continued$samples$unit_cube[1:prev_dead, ]

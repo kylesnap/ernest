@@ -38,7 +38,7 @@ A list with:
 \item \code{unit}: Matrix of proposed points in the prior space.
 \item \code{log_lik}: Numeric vector of log-likelihood values for the proposed
 points.
-\item \code{n_call}: Number of calls made to \code{unit_log_fn} during the proposal.
+\item \code{neval}: Number of calls made to \code{unit_log_fn} during the proposal.
 }
 }
 \description{

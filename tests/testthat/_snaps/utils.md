@@ -9,8 +9,8 @@
 # logging works during generate() calls
 
     Code
-      sampler <- ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior,
-      n_points = 100, seed = 42)
+      sampler <- ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior, nlive = 100,
+      seed = 42)
       run <- generate(sampler, max_iterations = 10, show_progress = FALSE)
 
 # check_class works as expected

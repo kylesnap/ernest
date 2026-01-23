@@ -123,7 +123,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
 #' Runs a sampler on the 2D Gaussian blobs test problem.
 #'
 #' @param sampler LRPS object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of live points.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -131,7 +131,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
 #' @return The run object (invisible).
 expect_gaussian_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
@@ -140,7 +140,7 @@ expect_gaussian_run <- function(
     log_lik = gaussian_blobs$log_lik,
     prior = gaussian_blobs$prior,
     sampler = sampler,
-    n_points = n_points,
+    nlive = nlive,
     ...,
     .expected_log_z = gaussian_blobs$log_z_analytic,
     .generate = .generate,
@@ -151,7 +151,7 @@ expect_gaussian_run <- function(
 #' Runs a sampler on the 3D correlated Gaussian test problem.
 #'
 #' @param sampler Sampler object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of live points.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -159,7 +159,7 @@ expect_gaussian_run <- function(
 #' @return The run object (invisible).
 expect_3D_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
@@ -168,7 +168,7 @@ expect_3D_run <- function(
     log_lik = gaussian_3D$log_lik,
     prior = gaussian_3D$prior,
     sampler = sampler,
-    n_points = n_points,
+    nlive = nlive,
     ...,
     .expected_log_z = gaussian_3D$log_z_analytic,
     .generate = .generate,
@@ -179,7 +179,7 @@ expect_3D_run <- function(
 #' Runs a sampler on the eggbox test problem
 #'
 #' @param sampler Sampler object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of live points.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -187,7 +187,7 @@ expect_3D_run <- function(
 #' @return The run object (invisible).
 expect_eggbox_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
@@ -196,7 +196,7 @@ expect_eggbox_run <- function(
     log_lik = eggbox$log_lik,
     prior = eggbox$prior,
     sampler = sampler,
-    n_points = 100,
+    nlive = 100,
     ...,
     .expected_log_z = eggbox$log_z_raster,
     .generate = .generate,

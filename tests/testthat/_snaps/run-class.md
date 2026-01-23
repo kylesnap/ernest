@@ -73,28 +73,3 @@
       ]
     }
 
----
-
-    Code
-      smry
-    Message
-      Summary of nested sampling run:
-      -- Run Information -------------------------------------------------------------
-      * Live points: 500
-      * Iterations: 1000
-      * Likelihood evals.: 11203
-      * Log-evidence: -7.1156 (± 1.9058)
-      * Information: 6.165
-      * RNG seed: 42
-      -- Posterior Summary -----------------------------------------------------------
-    Output
-      # A tibble: 2 x 6
-        variable    mean    sd  median   q15   q85
-        <chr>      <dbl> <dbl>   <dbl> <dbl> <dbl>
-      1 A        -0.0565  2.29 -0.0312 -2.60  2.39
-      2 B        -0.0460  2.35 -0.0833 -2.59  2.58
-    Message
-      -- Maximum Likelihood Estimate (MLE) -------------------------------------------
-      * Log-likelihood: -0.0672
-      * Original parameters: -1.0367 and -1.0001
-

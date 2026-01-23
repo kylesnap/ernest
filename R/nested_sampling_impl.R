@@ -50,10 +50,10 @@ nested_sampling_impl <- function(
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
   d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
-  d_log_vol <- log((x$n_points + 1) / x$n_points)
+  d_log_vol <- log((x$nlive + 1) / x$nlive)
   initial_update <- FALSE
 
-  dead_unit <- vctrs::list_of(.ptype = double(x$n_points))
+  dead_unit <- vctrs::list_of(.ptype = double(x$nlive))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_evals <- vctrs::list_of(.ptype = integer())
@@ -119,7 +119,7 @@ nested_sampling_impl <- function(
     }
 
     # 4. Replace the worst points in live with new points
-    available_idx <- setdiff(seq_len(x$n_points), worst_idx)
+    available_idx <- setdiff(seq_len(x$nlive), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
     new_unit <- if (cureval <= x$first_update) {
       propose(x$lrps, criterion = live_env$log_lik[worst_idx])

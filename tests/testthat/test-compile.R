@@ -167,7 +167,7 @@ describe("compile", {
     sampler <- ernest_sampler(
       log_lik = gaussian_blobs$log_lik,
       prior = gaussian_blobs$prior,
-      n_points = 10,
+      nlive = 10,
       seed = 42
     )
     sampler <- compile(sampler)

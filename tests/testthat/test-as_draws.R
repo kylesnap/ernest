@@ -9,7 +9,7 @@ test_that("ernest_run as_draws_matrix", {
   data(example_run)
   mat <- as_draws_matrix(example_run)
 
-  niter <- example_run$niter + example_run$n_points
+  niter <- example_run$niter + example_run$nlive
 
   expect_equal(dim(mat), c(niter, 4L))
   expect_equal(
@@ -27,7 +27,7 @@ test_that("ernest_run units", {
   data(example_run)
   mat <- as_draws_matrix(example_run, units = "unit_cube")
 
-  niter <- example_run$niter + example_run$n_points
+  niter <- example_run$niter + example_run$nlive
 
   expect_equal(dim(mat), c(niter, 4L))
   expect_true(all(mat[, 1:2] > 0 & mat[, 1:2] < 1))
@@ -37,7 +37,7 @@ test_that("ernest_run radial coordinates", {
   data(example_run)
   mat <- as_draws_matrix(example_run, radial = TRUE)
 
-  niter <- example_run$niter + example_run$n_points
+  niter <- example_run$niter + example_run$nlive
 
   expect_equal(dim(mat), c(niter, 5L)) # 3 + Weight, + Radial
   observed <- drop(mat[, ".radial"])

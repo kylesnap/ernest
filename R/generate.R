@@ -23,28 +23,28 @@
 #'
 #' * `niter`: Integer. Number of iterations.
 #' * `n_evaluations`: Integer. Total number of likelihood function evaluations.
-#' * `log_lik`: `double(niter + n_points)`. Log-likelihoods for each sample.
-#' * `log_volume`: `double(niter + n_points)`. Estimated log-prior volumes at
+#' * `log_lik`: `double(niter + nlive)`. Log-likelihoods for each sample.
+#' * `log_volume`: `double(niter + nlive)`. Estimated log-prior volumes at
 #'   each iteration.
-#' * `log_weight`: `double(niter + n_points)`. Unnormalised log-weights for
+#' * `log_weight`: `double(niter + nlive)`. Unnormalised log-weights for
 #'   each sample.
-#' * `log_evidence`: `double(niter + n_points)`. Cumulative log-evidence
+#' * `log_evidence`: `double(niter + nlive)`. Cumulative log-evidence
 #'   estimates at each iteration.
-#' * `log_evidence_var`: `double(niter + n_points)`. Variance of the
+#' * `log_evidence_var`: `double(niter + nlive)`. Variance of the
 #'   log-evidence estimate at each iteration.
-#' * `information`: `double(niter + n_points)`. KL divergence between the prior
+#' * `information`: `double(niter + nlive)`. KL divergence between the prior
 #'   and posterior, estimated at each iteration.
-#' * `samples`: `matrix(nrow = niter + n_points, ncol = n_dim)`. Parameter
+#' * `samples`: `matrix(nrow = niter + nlive, ncol = n_dim)`. Parameter
 #'   values for each sample.
-#' * `samples_unit`: `matrix(nrow = niter + n_points, ncol = n_dim)`. Parameter
+#' * `samples_unit`: `matrix(nrow = niter + nlive, ncol = n_dim)`. Parameter
 #'   values for each sample in unit hypercube representation.
-#' * `id`: `integer(niter + n_points)`. Unique integer identifiers for each
-#'   sample from the live set (ranging from 1 to `n_points`).
-#' * `points`: `integer(niter + n_points)`. Number of live points present at
+#' * `id`: `integer(niter + nlive)`. Unique integer identifiers for each
+#'   sample from the live set (ranging from 1 to `nlive`).
+#' * `points`: `integer(niter + nlive)`. Number of live points present at
 #'   each iteration.
-#' * `evaluations`: `integer(niter + n_points)`. Number of likelihood function evaluations used to generate a
+#' * `evaluations`: `integer(niter + nlive)`. Number of likelihood function evaluations used to generate a
 #'   new live point at each iteration.
-#' * `birth_lik`: `integer(niter + n_points)`. `id` of the live point that was used
+#' * `birth_lik`: `integer(niter + nlive)`. `id` of the live point that was used
 #' to create the given point. `0` if the point was created by `compile` at the
 #' beginning of a run.
 #'
@@ -150,7 +150,7 @@ generate.ernest_run <- function(
 
   cur_iter <- x$niter
   cureval <- x$neval
-  log_vol <- drop(get_logvol(x$n_points, niter = cur_iter))
+  log_vol <- drop(get_logvol(x$nlive, niter = cur_iter))
   prev_integration <- compute_integral(x$weights$log_lik, log_vol)
   last_criterion <- prev_integration$log_lik[cur_iter]
   log_z <- prev_integration$log_evidence[cur_iter]

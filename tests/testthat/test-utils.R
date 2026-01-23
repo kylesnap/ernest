@@ -34,7 +34,7 @@ test_that("logging works during generate() calls", {
       sampler <- ernest_sampler(
         gaussian_blobs$log_lik,
         gaussian_blobs$prior,
-        n_points = 100,
+        nlive = 100,
         seed = 42
       )
       run <- generate(

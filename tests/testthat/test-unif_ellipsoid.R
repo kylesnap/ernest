@@ -85,20 +85,20 @@ test_that("unif_ellipsoid can provide good results", {
 })
 
 describe("BoundingEllipsoid", {
-  n_points <- 5000
+  nlive <- 5000
   it("fits points in 3D correctly", {
     shape <- matrix(
       c(1.439, -1.607, 0.626, -1.607, 2.685, -0.631, 0.626, -0.631, 0.43),
       nrow = 3,
       byrow = TRUE
     )
-    original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
+    original_points <- uniformly::runif_in_ellipsoid(nlive, shape, 1)
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points, NA)
     expect_equal(ell_fit$error, 0)
 
-    new_points <- uniformly::runif_in_sphere(n_points, 3, 1) %*%
+    new_points <- uniformly::runif_in_sphere(nlive, 3, 1) %*%
       ell_fit$inv_sqrt_shape
     new_points <- sweep(new_points, 2, ell_fit$center, "+")
 
@@ -120,7 +120,7 @@ describe("BoundingEllipsoid", {
     shape[4, ] <- c(-0.174, -0.146, -0.0323, 0.386, -0.00151)
     shape[5, ] <- c(0.00331, 0.00501, -0.00409, -0.00151, 0.0678)
     shape <- 1e4 * shape
-    original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
+    original_points <- uniformly::runif_in_ellipsoid(nlive, shape, 1)
 
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
@@ -128,7 +128,7 @@ describe("BoundingEllipsoid", {
     expect_false(is.infinite(ell_fit$log_vol))
     expect_equal(ell_fit$error, 0)
 
-    new_points <- uniformly::runif_in_sphere(n_points, 5, 1) %*%
+    new_points <- uniformly::runif_in_sphere(nlive, 5, 1) %*%
       ell_fit$inv_sqrt_shape
     expect_equal(colMeans(new_points), c(0, 0, 0, 0, 0), tolerance = 0.05)
     expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)

@@ -50,7 +50,7 @@ sampling until the issue is resolved.
 \examples{
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 ll_fn <- function(x) -sum(x^2)
-sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
+sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 
 # Compile the sampler to add live points
 compile(sampler)

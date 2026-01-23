@@ -37,7 +37,7 @@
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
-#' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
+#' sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 #'
 #' # Compile the sampler to add live points
 #' compile(sampler)
@@ -60,13 +60,13 @@ compile.ernest_sampler <- function(object, ...) {
   object <- refresh_ernest_sampler(object)
 
   # Fill live points
-  live <- create_live(object$lrps, object$n_points)
+  live <- create_live(object$lrps, object$nlive)
   env_poke(object$run_env, "unit", live$unit, create = TRUE)
   env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
   env_poke(
     object$run_env,
     "birth_lik",
-    rep(-Inf, object$n_points),
+    rep(-Inf, object$nlive),
     create = TRUE
   )
 
@@ -88,7 +88,7 @@ compile.ernest_run <- function(
       log_lik_fn = object$log_lik_fn,
       prior = object$prior,
       lrps = object$lrps,
-      n_points = object$n_points,
+      nlive = object$nlive,
       first_update = object$first_update,
       update_interval = object$update_interval,
       seed = attr(object, "seed")
@@ -124,18 +124,18 @@ compile.ernest_run <- function(
   object
 }
 
-#' Create a live sample with n_points live points
+#' Create a live sample with nlive live points
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param n_points Integer. The number of live points to generate.
+#' @param nlive Integer. The number of live points to generate.
 #' @param call The calling environment for error handling.
 #'
 #' @return A list containing `unit` and `log_lik` matrices or vectors.
 #' @noRd
-create_live <- function(lrps, n_points, call = caller_env()) {
+create_live <- function(lrps, nlive, call = caller_env()) {
   try_fetch(
     {
-      live <- replicate(n_points, propose(lrps))
+      live <- replicate(nlive, propose(lrps))
       live <- list(
         "unit" = do.call(rbind, live["unit", ]),
         "log_lik" = list_c(live["log_lik", ])
@@ -166,14 +166,14 @@ create_live <- function(lrps, n_points, call = caller_env()) {
 #' error or warning.
 #' @noRd
 check_live_set <- function(sampler, call = caller_env()) {
-  n_points <- sampler$n_points
+  nlive <- sampler$nlive
   n_dim <- attr(sampler$prior, "n_dim")
 
   # Live Point Check
   unit <- env_get(sampler$run_env, "unit")
   check_matrix(
     unit,
-    nrow = n_points,
+    nrow = nlive,
     ncol = n_dim,
     lower = 0,
     upper = 1,
@@ -183,9 +183,9 @@ check_live_set <- function(sampler, call = caller_env()) {
 
   # Log Lik Checks
   log_lik <- env_get(sampler$run_env, "log_lik")
-  if (!is_bare_double(log_lik, n = n_points)) {
+  if (!is_bare_double(log_lik, n = nlive)) {
     cli::cli_abort(
-      "`log_lik` must be a double vector with length {n_points}.",
+      "`log_lik` must be a double vector with length {nlive}.",
       call = call
     )
   }
@@ -206,11 +206,11 @@ check_live_set <- function(sampler, call = caller_env()) {
       call = call
     )
   }
-  if (n_unique < (n_points * 0.75)) {
+  if (n_unique < (nlive * 0.75)) {
     cli::cli_warn(
       c(
         "`log_lik` may contain a likelihood plateau; proceed with caution.",
-        "!" = "Only {n_unique}/{n_points} likelihood values are unique."
+        "!" = "Only {n_unique}/{nlive} likelihood values are unique."
       ),
       call = call
     )
@@ -218,7 +218,7 @@ check_live_set <- function(sampler, call = caller_env()) {
 
   # Birth vector
   birth_lik <- env_get(sampler$run_env, "birth_lik")
-  if (!is_double(birth_lik, n = n_points)) {
+  if (!is_double(birth_lik, n = nlive)) {
     cli::cli_abort(
       "`birth_lik` vector cannot be missing from the `run_env` environment.",
       call = call

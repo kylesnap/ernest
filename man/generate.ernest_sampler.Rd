@@ -43,30 +43,30 @@ based on the value of the \code{rlib_message_verbosity} option.}
 An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},
 with additional components:
 \itemize{
-\item \code{n_iter}: Integer. Number of iterations.
+\item \code{niter}: Integer. Number of iterations.
 \item \code{n_evaluations}: Integer. Total number of likelihood function evaluations.
-\item \code{log_lik}: \code{double(n_iter + n_points)}. Log-likelihoods for each sample.
-\item \code{log_volume}: \code{double(n_iter + n_points)}. Estimated log-prior volumes at
+\item \code{log_lik}: \code{double(niter + nlive)}. Log-likelihoods for each sample.
+\item \code{log_volume}: \code{double(niter + nlive)}. Estimated log-prior volumes at
 each iteration.
-\item \code{log_weight}: \code{double(n_iter + n_points)}. Unnormalised log-weights for
+\item \code{log_weight}: \code{double(niter + nlive)}. Unnormalised log-weights for
 each sample.
-\item \code{log_evidence}: \code{double(n_iter + n_points)}. Cumulative log-evidence
+\item \code{log_evidence}: \code{double(niter + nlive)}. Cumulative log-evidence
 estimates at each iteration.
-\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. Variance of the
+\item \code{log_evidence_var}: \code{double(niter + nlive)}. Variance of the
 log-evidence estimate at each iteration.
-\item \code{information}: \code{double(n_iter + n_points)}. KL divergence between the prior
+\item \code{information}: \code{double(niter + nlive)}. KL divergence between the prior
 and posterior, estimated at each iteration.
-\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+\item \code{samples}: \code{matrix(nrow = niter + nlive, ncol = n_dim)}. Parameter
 values for each sample.
-\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
+\item \code{samples_unit}: \code{matrix(nrow = niter + nlive, ncol = n_dim)}. Parameter
 values for each sample in unit hypercube representation.
-\item \code{id}: \code{integer(n_iter + n_points)}. Unique integer identifiers for each
-sample from the live set (ranging from 1 to \code{n_points}).
-\item \code{points}: \code{integer(n_iter + n_points)}. Number of live points present at
+\item \code{id}: \code{integer(niter + nlive)}. Unique integer identifiers for each
+sample from the live set (ranging from 1 to \code{nlive}).
+\item \code{points}: \code{integer(niter + nlive)}. Number of live points present at
 each iteration.
-\item \code{evaluations}: \code{integer(n_iter + n_points)}. Number of likelihood function evaluations used to generate a
+\item \code{evaluations}: \code{integer(niter + nlive)}. Number of likelihood function evaluations used to generate a
 new live point at each iteration.
-\item \code{birth_lik}: \code{integer(n_iter + n_points)}. \code{id} of the live point that was used
+\item \code{birth_lik}: \code{integer(niter + nlive)}. \code{id} of the live point that was used
 to create the given point. \code{0} if the point was created by \code{compile} at the
 beginning of a run.
 }

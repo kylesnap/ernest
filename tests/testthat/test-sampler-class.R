@@ -5,14 +5,14 @@ test_that("ernest_sampler initializes correctly", {
     log_lik_fn = wrapped_lik,
     prior = gaussian_blobs$prior,
     lrps = rwmh_cube(),
-    n_points = 500,
+    nlive = 500,
     first_update = 200L,
     update_interval = 50L
   )
 
   expect_identical(sampler$log_lik, wrapped_lik)
   expect_identical(sampler$prior, gaussian_blobs$prior)
-  expect_identical(sampler$n_points, 500L)
+  expect_identical(sampler$nlive, 500L)
   expect_identical(sampler$first_update, 200L)
   expect_identical(sampler$update_interval, 50L)
   expect_identical(env_depth(sampler$run_env), 1L)
@@ -24,7 +24,7 @@ sampler_call <- call2(
   log_lik_fn = wrapped_lik,
   prior = gaussian_blobs$prior,
   lrps = rwmh_cube(),
-  n_points = 500,
+  nlive = 500,
   first_update = 200L,
   update_interval = 50L
 )
@@ -35,9 +35,9 @@ test_that("invalid samplers are caught", {
   expect_no_error(bad_sampler <- eval(sampler_call))
 
   # Invalid Points
-  points_call <- call_modify(sampler_call, n_points = 0L)
+  points_call <- call_modify(sampler_call, nlive = 0L)
   expect_snapshot(eval(points_call), error = TRUE)
-  bad_sampler$n_points <- Inf
+  bad_sampler$nlive <- Inf
   expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
 
   # Invalid first update

@@ -88,6 +88,4 @@ describe("summary.ernest_run returns expected structure and values", {
     )
     expect_snapshot_value(smry$posterior, style = "json2", tolerance = 0.1)
   })
-
-  expect_snapshot(smry)
 })

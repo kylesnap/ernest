@@ -51,7 +51,7 @@ test_that("calculate works when ndraws = 0", {
 
 test_that("calculate works when ndraws = 1", {
   data(example_run)
-  n_samp <- example_run$niter + example_run$n_points
+  n_samp <- example_run$niter + example_run$nlive
   calc <- calculate(example_run, ndraws = 1)
   expect_equal(
     drop(posterior::draws_of(calc$log_lik)),
@@ -67,7 +67,7 @@ test_that("calculate works when ndraws = 1", {
 test_that("calculate works when ndraws = 1000 (default)", {
   skip_extended()
   data(example_run)
-  n_samp <- example_run$niter + example_run$n_points
+  n_samp <- example_run$niter + example_run$nlive
 
   calc <- calculate(example_run)
   expect_equal(

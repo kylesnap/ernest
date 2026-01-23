@@ -99,7 +99,7 @@ visualize.ernest_run <- function(
   } else {
     draws_df <- as.data.frame(posterior::as_draws_df(draws))
     pos <- tidyselect::eval_select(expr, data = draws_df, error_call = call)
-    log_vol <- drop(get_logvol(x$n_points, niter = x$niter))
+    log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
     visualize_trace(draws_df, pos, log_vol, weights(draws))
   }
 }

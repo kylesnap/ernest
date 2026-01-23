@@ -16,7 +16,7 @@ test_that("different seeds and noise levels don't impact evidence estimates", {
     log_lik = noisy_gaussian_blob_ll,
     prior = gaussian_blobs$prior,
     sampler = rwmh_cube(),
-    n_points = 100,
+    nlive = 100,
     .expected_log_z = gaussian_blobs$log_z_analytic,
     .seed = 42L
   )
@@ -32,8 +32,8 @@ test_that("Convergence criteria behave as expected", {
     .generate = list(max_iterations = reference_run$niter, min_logz = 0)
   )
 
-  # Increasing n_points will increase iterations needed to converge
-  run_500 <- expect_gaussian_run(sampler = rwmh_cube(), n_points = 500)
+  # Increasing nlive will increase iterations needed to converge
+  run_500 <- expect_gaussian_run(sampler = rwmh_cube(), nlive = 500)
   expect_gt(run_500$niter, reference_run$niter)
 })
 

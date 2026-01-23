@@ -18,7 +18,7 @@ one draw vector of log-volumes are produced from the estimates contained in
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{n_iter + n_points} rows
+A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{niter + nlive} rows
 and several columns:
 \itemize{
 \item \code{log_lik}: The log-likelihood of the model.

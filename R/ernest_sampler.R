@@ -11,15 +11,15 @@
 #' within which to generate sample parameters for `log_lik`.
 #' @param sampler An object of class [ernest_lrps]. Describes the
 #' likelihood-restricted prior sampling technique to adopt during the run.
-#' @param n_points A strictly positive integer. The number of live points to use
+#' @param nlive A strictly positive integer. The number of live points to use
 #' in the nested sampling run.
 #' @param first_update An optional positive integer. The number of likelihood
 #' calls to make with the default [uniform LRPS][unif_cube()] method before
 #' swapping to the technique described by `sampler`. If left `NULL`,
-#' this is set to `n_points * 2.5`.
+#' this is set to `nlive * 2.5`.
 #' @param update_interval An optional positive integer. The number of likelihood
 #' calls between updates to the `sampler` object. If `NULL`, this is set to
-#' `n_points * 1.5`.
+#' `nlive * 1.5`.
 #' @param seed An optional integer. Sets the random seed controlling the
 #' random number generator for nested sampling runs, which is stored in
 #' the resulting `ernest_sampler` as an attribute. If `NULL`, this is
@@ -27,7 +27,7 @@
 #'
 #' @return An object of class `ernest_sampler`, which is a list containing the
 #' inputs used as arguments to this function, along with an environment
-#' `run_env` which is used to store the `n_points` live particles throughout
+#' `run_env` which is used to store the `nlive` live particles throughout
 #' a nested sampling run.
 #'
 #' @details
@@ -70,14 +70,14 @@
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
-#' sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
+#' sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 #' sampler
 #'
 #' # Use a unit-cube LRPS (not recommended in practice)
 #' unit_sampler <- ernest_sampler(
 #'   ll_fn,
 #'   prior,
-#'   n_points = 100,
+#'   nlive = 100,
 #'   sampler = unif_cube()
 #' )
 #' unit_sampler
@@ -85,7 +85,7 @@ ernest_sampler <- function(
   log_lik,
   prior,
   sampler = rwmh_cube(),
-  n_points = 500,
+  nlive = 500,
   first_update = NULL,
   update_interval = NULL,
   seed = NULL
@@ -97,9 +97,9 @@ ernest_sampler <- function(
     log_lik_fn = log_lik,
     prior = prior,
     lrps = sampler,
-    n_points = n_points,
-    first_update = first_update %||% as.integer(n_points * 2.5),
-    update_interval = update_interval %||% as.integer(n_points * 1.5),
+    nlive = nlive,
+    first_update = first_update %||% as.integer(nlive * 2.5),
+    update_interval = update_interval %||% as.integer(nlive * 1.5),
     seed = seed
   )
 

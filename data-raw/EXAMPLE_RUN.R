@@ -23,7 +23,7 @@ sampler <- ernest_sampler(
     upper = 10,
     names = c("x", "y", "z")
   ),
-  n_points = 1000,
+  nlive = 1000,
   seed = 42
 )
 

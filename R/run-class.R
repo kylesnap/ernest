@@ -81,9 +81,9 @@ new_ernest_run_ <- function(x, parsed) {
     "id" = live_order,
     "birth_lik" = x$run_env$birth_lik[live_order]
   )
-  all_samples <- bind_dead_live(parsed, live, x$n_points, parsed$niter)
+  all_samples <- bind_dead_live(parsed, live, x$nlive, parsed$niter)
 
-  log_vol <- drop(get_logvol(x$n_points, niter = parsed$niter))
+  log_vol <- drop(get_logvol(x$nlive, niter = parsed$niter))
   integration <- compute_integral(all_samples$log_lik, log_vol)
 
   result_elem <- list2(
@@ -112,7 +112,7 @@ new_ernest_run_ <- function(x, parsed) {
     log_lik_fn = x$log_lik_fn,
     prior = x$prior,
     lrps = x$lrps,
-    n_points = x$n_points,
+    nlive = x$nlive,
     first_update = x$first_update,
     update_interval = x$update_interval,
     run_env = x$run_env,
@@ -133,7 +133,7 @@ new_ernest_run_ <- function(x, parsed) {
 print.ernest_run <- function(x, ...) {
   cli::cli_text("Nested sampling run:")
   cli::cli_bullets(c(
-    "* Live points: {x$n_points}",
+    "* Live points: {x$nlive}",
     "* Sampling method: {format(x$lrps, ...)}",
     "* Prior: {format(x$prior, ...)}"
   ))
@@ -189,7 +189,7 @@ print.ernest_run <- function(x, ...) {
 #' @export
 summary.ernest_run <- function(object, ...) {
   check_dots_empty()
-  nlive <- object$n_points
+  nlive <- object$nlive
   seed <- attr(object, "seed") %||% NA
   niter <- object$niter
   neval <- object$neval
@@ -322,20 +322,20 @@ parse_results <- function(results) {
 #' @param live The log-likelihood, id, and birth_lik vectors from the current live
 #' points.
 #' @param niter Number of iterations used for the run.
-#' @param n_points Number of live points used for the run.
+#' @param nlive Number of live points used for the run.
 #'
-#' @return A data frame list of vectors, all of length `n_points + niter`.
+#' @return A data frame list of vectors, all of length `nlive + niter`.
 #' @noRd
-bind_dead_live <- function(dead, live, n_points, niter) {
+bind_dead_live <- function(dead, live, nlive, niter) {
   vctrs::df_list(
     "log_lik" = vctrs::vec_c(dead$log_lik, live$log_lik, .ptype = double()),
     "id" = vctrs::vec_c(dead$id, live$id, .ptype = integer()),
     "points" = vctrs::vec_c(
-      rep(n_points, niter),
-      seq(n_points, 1),
+      rep(nlive, niter),
+      seq(nlive, 1),
       .ptype = integer()
     ),
-    "evals" = vctrs::vec_c(dead$evals, rep(0L, n_points), .ptype = integer()),
+    "evals" = vctrs::vec_c(dead$evals, rep(0L, nlive), .ptype = integer()),
     "birth_lik" = vctrs::vec_c(
       dead$birth_lik,
       live$birth_lik,

@@ -199,7 +199,7 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' @export
 autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
   check_dots_empty()
-  log_vol <- drop(get_logvol(object$n_points, niter = object$niter))
+  log_vol <- drop(get_logvol(object$nlive, niter = object$niter))
   integration <- compute_integral(object$weights$log_lik, log_vol)
   dead_log_vol <- log_vol[object$niter]
 

@@ -35,26 +35,24 @@ create_uniform_prior(
 )
 }
 \arguments{
-\item{fn}{\verb{[function]} A prior transformation function that maps points from
-the unit hypercube (i.e., each parameter between 0 and 1) to the parameter
-space.}
+\item{fn}{\verb{[function]}\cr A prior transformation function that maps points
+from a unit hyper-cube to the parameter space.}
 
-\item{names}{\verb{[character()]} Unique names for each variable in the prior
+\item{names}{\verb{[character()]}\cr Unique names for each variable in the prior
 distribution. Optional for non-custom prior distributions.}
 
-\item{lower, upper}{\verb{[double()]} Expected bounds for the
+\item{lower, upper}{\verb{[double()]}\cr Expected bounds for the
 parameter vectors after hypercube transformation.}
 
-\item{repair}{\verb{[character(1)]} Describes how to repair the vector of \code{names}.
+\item{repair}{\verb{[character(1)]}\cr Describes how to repair the vector of \code{names}.
 One of \code{"check_unique"}, \code{"unique"}, \code{"universal"}, \code{"unique_quiet"},
 or \code{"universal_quiet"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of each
 repair strategy.}
 
-\item{x, y}{[\link{ernest_prior}] Prior objects to combine.}
+\item{x, y}{[\link{ernest_prior}]\cr Prior objects to combine.}
 
-\item{mean}{vector of means.}
-
-\item{sd}{vector of standard deviations.}
+\item{mean, sd}{\verb{[double()]}\cr Means and standard deviations for each marginal
+distribution.}
 }
 \value{
 \verb{[ernest_prior]}

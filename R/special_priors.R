@@ -4,8 +4,10 @@
 #' Normally-Distributed Prior (Possibly Truncated)
 #'
 #' @rdname ernest_prior
+#'
+#' @param mean,sd `[double()]`\cr Means and standard deviations for each marginal
+#' distribution.
 #' @importFrom prettyunits pretty_round
-#' @inheritParams stats::qnorm
 #' @export
 create_normal_prior <- function(
   names = NULL,
@@ -89,7 +91,6 @@ create_normal_prior <- function(
 #' Uniform Prior
 #'
 #' @rdname ernest_prior
-#' @inheritParams stats::qnorm
 #' @export
 create_uniform_prior <- function(
   names = NULL,

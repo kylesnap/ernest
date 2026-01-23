@@ -3,14 +3,13 @@
 #' Creates an object of class `ernest_prior`, which defines a prior
 #' distribution for use in a nested sampling run.
 #'
-#' @param fn `[function]` A prior transformation function that maps points from
-#' the unit hypercube (i.e., each parameter between 0 and 1) to the parameter
-#' space.
-#' @param names `[character()]` Unique names for each variable in the prior
+#' @param fn `[function]`\cr A prior transformation function that maps points
+#' from a unit hyper-cube to the parameter space.
+#' @param names `[character()]`\cr Unique names for each variable in the prior
 #' distribution. Optional for non-custom prior distributions.
-#' @param lower,upper `[double()]` Expected bounds for the
+#' @param lower,upper `[double()]`\cr Expected bounds for the
 #' parameter vectors after hypercube transformation.
-#' @param repair `[character(1)]` Describes how to repair the vector of `names`.
+#' @param repair `[character(1)]`\cr Describes how to repair the vector of `names`.
 #' One of `"check_unique"`, `"unique"`, `"universal"`, `"unique_quiet"`,
 #' or `"universal_quiet"`. See [vctrs::vec_as_names()] for descriptions of each
 #' repair strategy.
@@ -168,7 +167,7 @@ new_ernest_prior <- function(
 }
 
 #' @rdname ernest_prior
-#' @param x,y [[ernest_prior]] Prior objects to combine.
+#' @param x,y [[ernest_prior]]\cr Prior objects to combine.
 #'
 #' @export
 `+.ernest_prior` <- function(x, y) {
@@ -216,8 +215,8 @@ new_ernest_prior <- function(
 #' the commensurate size and type.
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate parameters.
-#' @srrstats {G2.4c} Ensures that names is a unique character string,
-#' thanks to the `make.unique()` function.
+#' @srrstats {G2.4c} Ensures that names is a unique character string using
+#' vctrs.
 #' @srrstats {BS2.2, BS2.3} Ensures that the lengths of the prior parameters are
 #' validated before the NS algorithm is invoked.
 #'

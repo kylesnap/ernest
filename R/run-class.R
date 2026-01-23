@@ -41,7 +41,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 
 #' Form the new_ernest_run from samples from the current and previous runs
 #'
-#' Combines parsed results and live points to construct a new `ernest_run`
+#' Combines parsed results and the live set to construct a new `ernest_run`
 #' object.
 #'
 #' @param x The `ernest_run` or `ernest_sampler` object.
@@ -133,7 +133,7 @@ new_ernest_run_ <- function(x, parsed) {
 print.ernest_run <- function(x, ...) {
   cli::cli_text("Nested sampling run:")
   cli::cli_bullets(c(
-    "* Live points: {x$nlive}",
+    "* No. points: {x$nlive}",
     "* Sampling method: {format(x$lrps, ...)}",
     "* Prior: {format(x$prior, ...)}"
   ))
@@ -158,7 +158,7 @@ print.ernest_run <- function(x, ...) {
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @return A list of class `summary.ernest_run` with:
-#' * `nlive`: Number of live points.
+#' * `nlive`: Number of points in the live set.
 #' * `niter`: Number of iterations.
 #' * `neval`: Number of likelihood evaluations.
 #' * `log_evidence`: Log-evidence estimate.
@@ -253,7 +253,7 @@ print.summary.ernest_run <- function(x, ...) {
   log_z <- pretty_round(x$log_evidence, 4)
   log_z_sd <- pretty_round(x$log_evidence_err, 4)
   cli::cli_bullets(c(
-    "* Live points: {x$nlive}",
+    "* No. points: {x$nlive}",
     "* Iterations: {x$niter}",
     "* Likelihood evals.: {x$neval}",
     "* Log-evidence: {log_z} (\U00B1 {log_z_sd})",
@@ -320,9 +320,9 @@ parse_results <- function(results) {
 #'
 #' @param dead The list object from `parse_results`.
 #' @param live The log-likelihood, id, and birth_lik vectors from the current live
-#' points.
+#' set.
 #' @param niter Number of iterations used for the run.
-#' @param nlive Number of live points used for the run.
+#' @param nlive Number of points in the live set.
 #'
 #' @return A data frame list of vectors, all of length `nlive + niter`.
 #' @noRd

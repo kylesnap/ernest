@@ -40,7 +40,7 @@
 #'   values for each sample in unit hypercube representation.
 #' * `id`: `integer(niter + nlive)`. Unique integer identifiers for each
 #'   sample from the live set (ranging from 1 to `nlive`).
-#' * `points`: `integer(niter + nlive)`. Number of live points present at
+#' * `points`: `integer(niter + nlive)`. Number of  present at
 #'   each iteration.
 #' * `evaluations`: `integer(niter + nlive)`. Number of likelihood function evaluations used to generate a
 #'   new live point at each iteration.
@@ -119,7 +119,7 @@ generate.ernest_sampler <- function(
 }
 
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
-#' from the last known set of live points.
+#' from the last known live set.
 #'
 #' @method generate ernest_run
 #' @export

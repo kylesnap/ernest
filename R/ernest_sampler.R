@@ -11,8 +11,8 @@
 #' within which to generate sample parameters for `log_lik`.
 #' @param sampler An object of class [ernest_lrps]. Describes the
 #' likelihood-restricted prior sampling technique to adopt during the run.
-#' @param nlive A strictly positive integer. The number of live points to use
-#' in the nested sampling run.
+#' @param nlive A strictly positive integer. The number of points to generate
+#' within the live set.
 #' @param first_update An optional positive integer. The number of likelihood
 #' calls to make with the default [uniform LRPS][unif_cube()] method before
 #' swapping to the technique described by `sampler`. If left `NULL`,

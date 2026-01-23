@@ -38,7 +38,7 @@
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure informative error
 #' messages for invalid `which` values.
-#' @srrstats {BS6.2, BS6.3} Provides plot methods for posterior samples and
+#' @srrstats {BS6.2, BS6.3} Provides plot methods for posterior new points and
 #' sequences of samples.
 #'
 #' @seealso
@@ -160,7 +160,7 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     geom_point() +
     scale_colour_distiller("Posterior Weight", palette = "Reds") +
     facet_grid(rows = vars(.data[[".variable"]])) +
-    scale_x_continuous("Log. Volume") +
+    scale_x_continuous("Log-volume") +
     scale_y_continuous("Value") +
     theme_minimal()
 }

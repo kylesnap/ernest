@@ -6,7 +6,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! Error when creating live points.
+      ! Error when creating the live set.
       Caused by error in `if (is.finite(log_lik) && log_lik > criterion) ...`:
       ! missing value where TRUE/FALSE needed
 
@@ -42,7 +42,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! Error when creating live points.
+      ! Error when creating the live set.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
       Caused by error:
@@ -64,7 +64,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! Error when creating live points.
+      ! Error when creating the live set.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
       Caused by error:
@@ -79,7 +79,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! Error when creating live points.
+      ! Error when creating the live set.
       Caused by error:
       ! Couldn't calculate the log. lik of #.# and #.#.
       Caused by error:
@@ -98,7 +98,7 @@
       ! Replacing `NA` with `-Inf`.
     Message
       Nested sampling run specification:
-      * Live points: 500
+      * No. points: 500
       * Sampling method: 25-step random walk sampling (acceptance target = #.#%)
       * Prior: uniform prior distribution with 2 dimensions (A and B)
 

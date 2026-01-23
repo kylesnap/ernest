@@ -5,8 +5,8 @@
     Message
       Nested sampling uncertainty estimates:
       # of Simulated Draws: 0
-      Log. Volume: -17 ± NA
-      Log. Evidence: -9.1 ± NA
+      Log-volume: -17 ± NA
+      Log-evidence: -9.1 ± NA
     Output
       # A tibble: 10,456 x 5
             log_lik   log_volume log_weight log_evidence log_evidence_err
@@ -30,8 +30,8 @@
     Message
       Nested sampling uncertainty estimates:
       # of Simulated Draws: 1
-      Log. Volume: -20 ± NA
-      Log. Evidence: -9.1 ± NA
+      Log-volume: -20 ± NA
+      Log-evidence: -9.1 ± NA
     Output
       # A tibble: 10,456 x 4
             log_lik     log_volume log_weight log_evidence
@@ -55,8 +55,8 @@
     Message
       Nested sampling uncertainty estimates:
       # of Simulated Draws: 1000
-      Log. Volume: -17 ± 1.2
-      Log. Evidence: -9.1 ± 0.071
+      Log-volume: -17 ± 1.2
+      Log-evidence: -9.1 ± 0.071
     Output
       # A tibble: 10,456 x 4
             log_lik          log_volume   log_weight log_evidence

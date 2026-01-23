@@ -1,32 +1,32 @@
-#' Compile a set of live points for nested sampling
+#' Compile the live set of points for nested sampling
 #'
 #' Prepares an object for nested sampling by validating and (re)generating its
-#' set of live points. This ensures the sampler is viable before new live points
-#' are generated during the nested sampling algorithm.
+#' live set. This ensures the sampler is viable before new points are drawn
+#' during the nested sampling algorithm.
 #'
 #' @param object An [ernest_sampler] or [ernest_run] object.
 #'   * For `ernest_sampler`: Prepares a new sampler with a fresh set of live
 #'     points.
-#'   * For `ernest_run`: Regenerates live points from previous results, unless
+#'   * For `ernest_run`: Regenerates a live set from previous results, unless
 #'     `clear = TRUE`.
 #' @param clear Logical. If `TRUE`, clears results from previous runs before
-#' compiling. If `FALSE`, retains previous results and validates live points.
+#' compiling. If `FALSE`, retains previous results and validates the live
+#' set.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @details `compile()` validates the set of live points in the sampler or run,
-#' ensuring:
+#' @details `compile()` validates the live set bound to `object`, ensuring that:
 #'
-#' * Each live point is within the unit hypercube.
+#' * Each point in the set is within the unit hypercube.
 #' * The likelihood function returns valid values (finite double or `-Inf`) for
 #'   each point.
-#' * The set of live points is not a perfect plateau (all points sharing the
-#'   same likelihood). A warning is issued if more than 25% of points share the
-#'   same likelihood value.
+#' * The live set does not represent a perfect likelihood plateau (i.e.,
+#'   that all points share the same likelihood). A warning is issued if more
+#'   than 25% of points share the same likelihood value.
 #'
-#' If validation fails, the set of live points is removed, preventing further
-#' sampling until the issue is resolved.
+#' If validation fails, the live set is removed from `object`, preventing
+#' further sampling until the issue is resolved.
 #'
-#' @return A validated `object`, with a valid set of live points stored in its
+#' @return A validated `object`, with a valid live set stored in its
 #' `run_env` environment.
 #'
 #' @seealso
@@ -39,7 +39,7 @@
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 #'
-#' # Compile the sampler to add live points
+#' # Compile the sampler to add a live set
 #' compile(sampler)
 #' head(sampler$run_env$unit)
 #'
@@ -51,7 +51,6 @@
 #' # Make a new sampler from a previous run
 #' sampler_3 <- compile(example_run, clear = TRUE)
 #' sampler_3
-#' @importFrom lifecycle deprecated
 #' @rdname compile
 #' @export
 compile.ernest_sampler <- function(object, ...) {
@@ -59,7 +58,7 @@ compile.ernest_sampler <- function(object, ...) {
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
 
-  # Fill live points
+  # Fill live set
   live <- create_live(object$lrps, object$nlive)
   env_poke(object$run_env, "unit", live$unit, create = TRUE)
   env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
@@ -98,7 +97,7 @@ compile.ernest_run <- function(
   }
   withr::local_seed(attr(object, "seed"))
 
-  # Fill live points
+  # Fill live set
   live_positions <- vctrs::vec_as_location(
     seq(object$niter),
     vctrs::vec_size(object$weights$log_lik)
@@ -114,7 +113,7 @@ compile.ernest_run <- function(
     error = function(cnd) {
       cli::cli_abort(
         c(
-          "Can't create live points from the previous run.",
+          "Can't create live set from the previous run.",
           "i" = "Do you need to set `clear`?"
         ),
         parent = cnd
@@ -124,10 +123,10 @@ compile.ernest_run <- function(
   object
 }
 
-#' Create a live sample with nlive live points
+#' Create a live sample with `nlive` points
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param nlive Integer. The number of live points to generate.
+#' @param nlive Integer. The number of points to generate.
 #' @param call The calling environment for error handling.
 #'
 #' @return A list containing `unit` and `log_lik` matrices or vectors.
@@ -144,7 +143,7 @@ create_live <- function(lrps, nlive, call = caller_env()) {
     },
     error = function(cnd) {
       cli::cli_abort(
-        "Error when creating live points.",
+        "Error when creating the live set.",
         parent = cnd,
         call = call
       )
@@ -157,7 +156,7 @@ create_live <- function(lrps, nlive, call = caller_env()) {
   )
 }
 
-#' Validate a set of live points for correctness
+#' Validate a live set for correctness
 #'
 #' @param sampler The `ernest_sampler` object undergoing validation.
 #' @param call The calling environment for error handling.
@@ -218,12 +217,10 @@ check_live_set <- function(sampler, call = caller_env()) {
 
   # Birth vector
   birth_lik <- env_get(sampler$run_env, "birth_lik")
-  if (!is_double(birth_lik, n = nlive)) {
-    cli::cli_abort(
-      "`birth_lik` vector cannot be missing from the `run_env` environment.",
-      call = call
-    )
+  if (!is_double(birth_lik)) {
+    stop_input_type(birth_lik, "a double vector")
   }
+  vctrs::vec_check_size(birth_lik, size = nlive, call = call)
 
   invisible(NULL)
 }

@@ -8,10 +8,10 @@
 #' @param prior An object of class `ernest_prior`. The prior distribution for
 #' the sampler.
 #' @param lrps (Optional) An object of class `ernest_lrps`.
-#' @param nlive Integer. Number of live points to use in the sampler.
+#' @param nlive Integer. Number of points in the live set.
 #' @param first_update Integer. Iteration at which to perform the first update.
 #' @param update_interval Integer. Number of iterations between updates.
-#' @param run_env (Optional) An environment for storing live points. If not
+#' @param run_env (Optional) An environment for storing the live set. If not
 #' provided, a new environment is created.
 #' @param ... Additional parameters for children of ernest_sampler.
 #' @param .class The subclass inheriting from ernest_sampler.
@@ -117,7 +117,7 @@ refresh_ernest_sampler <- function(x) {
 print.ernest_sampler <- function(x, ...) {
   cli::cli_text("Nested sampling run specification:")
   cli::cli_bullets(c(
-    "* Live points: {x$nlive}",
+    "* No. points: {x$nlive}",
     "* Sampling method: {format(x$lrps, ...)}",
     "* Prior: {format(x$prior, ...)}"
   ))

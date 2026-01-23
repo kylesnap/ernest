@@ -292,7 +292,7 @@ autoplot_errors <- function(df, fill_name, y_name, xintercept = NULL) {
     geom_line() +
     geom_vline(xintercept = xintercept, linetype = 2) +
     scale_fill_brewer(fill_name, palette = "Reds") +
-    scale_x_continuous("Log. Volume") +
+    scale_x_continuous("Log-volume") +
     scale_y_continuous(y_name) +
     theme_minimal()
 }
@@ -309,7 +309,7 @@ autoplot_line <- function(df, y_name, xintercept = NULL) {
   ggplot(df, aes(x = log_volume, y = y)) +
     geom_line() +
     geom_vline(xintercept = xintercept, linetype = 2) +
-    scale_x_continuous("Log. Volume") +
+    scale_x_continuous("Log-volume") +
     scale_y_continuous(y_name) +
     theme_minimal()
 }

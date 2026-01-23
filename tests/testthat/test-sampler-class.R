@@ -31,42 +31,81 @@ sampler_call <- call2(
 
 #' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages
-test_that("invalid samplers are caught", {
+describe("new_ernest_sampler", {
   expect_no_error(bad_sampler <- eval(sampler_call))
 
-  # Invalid Points
-  points_call <- call_modify(sampler_call, nlive = 0L)
-  expect_snapshot(eval(points_call), error = TRUE)
-  bad_sampler$nlive <- Inf
-  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
+  it("catches invalid nlive", {
+    points_call <- call_modify(sampler_call, nlive = 0L)
+    expect_error(
+      eval(points_call),
+      "`nlive` must be a whole number larger than or equal to 1"
+    )
+    bad_sampler$nlive <- Inf
+    expect_error(
+      refresh_ernest_sampler(bad_sampler),
+      "`nlive` must be a whole number, not `Inf`"
+    )
+  })
 
-  # Invalid first update
-  first_update_call <- call_modify(sampler_call, first_update = -1L)
-  expect_snapshot(eval(first_update_call), error = TRUE)
-  bad_sampler$first_update <- Inf
-  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
+  it("catches invalid first_update/update_interval", {
+    first_update_call <- call_modify(sampler_call, first_update = -1L)
+    expect_error(
+      eval(first_update_call),
+      "`first_update` must be a whole number larger than or equal to 0"
+    )
+    bad_sampler$first_update <- Inf
+    expect_error(
+      refresh_ernest_sampler(bad_sampler),
+      "`first_update` must be a whole number, not `Inf`"
+    )
 
-  # Invalid update interval
-  update_interval_call <- call_modify(sampler_call, update_interval = -1L)
-  expect_snapshot(eval(update_interval_call), error = TRUE)
-  bad_sampler$update_interval <- Inf
-  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
+    update_interval_call <- call_modify(sampler_call, update_interval = -1L)
+    expect_error(
+      eval(update_interval_call),
+      "`update_interval` must be a whole number larger than or equal to 0"
+    )
+    bad_sampler$first_update <- 25L
+    bad_sampler$update_interval <- Inf
+    expect_error(
+      refresh_ernest_sampler(bad_sampler),
+      "`update_interval` must be a whole number, not `Inf`"
+    )
+  })
 
-  # Invalid log_lik_fn
-  loglik_call <- call_modify(sampler_call, log_lik_fn = list())
-  expect_snapshot(eval(loglik_call), error = TRUE)
-  bad_sampler$log_lik_fn <- "sum"
-  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
+  it("catches log_lik_fn/prior", {
+    loglik_call <- call_modify(sampler_call, log_lik_fn = list())
+    expect_error(
+      eval(loglik_call),
+      "`log_lik_fn` must be an object with class ernest_likelihood"
+    )
+    bad_sampler$log_lik_fn <- sum
+    expect_error(
+      refresh_ernest_sampler(bad_sampler),
+      "`log_lik_fn` .+ not a primitive function."
+    )
+    bad_sampler$log_lik_fn <- wrapped_lik
 
-  # Invalid prior
-  prior_call <- call_modify(sampler_call, prior = list())
-  expect_snapshot(eval(prior_call), error = TRUE)
-  bad_sampler$prior <- "sum"
-  expect_snapshot(refresh_ernest_sampler(bad_sampler), error = TRUE)
+    prior_call <- call_modify(sampler_call, prior = list())
+    expect_error(
+      eval(prior_call),
+      "`prior` must be an object with class ernest_prior"
+    )
+    bad_sampler$prior <- sum
+    expect_error(
+      refresh_ernest_sampler(bad_sampler),
+      "`prior` .+ not a primitive function"
+    )
+  })
 
-  # Invalid lrps
-  lrps_call <- call_modify(sampler_call, lrps = list())
-  expect_snapshot(eval(lrps_call), error = TRUE)
+  it("Catches invalid LRPS", {
+    lrps_call <- call_modify(sampler_call, lrps = list())
+    expect_error(
+      eval(lrps_call),
+      "`lrps` must be an object with class ernest_lrps"
+    )
+    lrps_call <- call_modify(sampler_call, lrps = stats::qunif)
+    expect_error(eval(lrps_call), "`lrps` .+ not a function")
+  })
 })
 
 test_that("refresh works as expected", {

@@ -4,7 +4,7 @@
 #' the documentation. Users may want to use this function in their own
 #' experimentation with ernest.
 
-#' Log-Likelihood of 3D Gaussian
+#' Log-likelihood of 3D Gaussian
 #' @param theta a vector of parameter values
 log_lik_mvn <- function(theta) {
   n_dim <- 3

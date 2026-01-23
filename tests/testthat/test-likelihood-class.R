@@ -5,9 +5,18 @@ fn <- \(x) sum(stats::dnorm(x, mean = c(-1, 0, 1), log = TRUE))
 matrix_fn <- \(x) mvtnorm::dmvnorm(x, mean = c(-1, 0, 1), log = TRUE)
 
 test_that("create_likelihood throws errors", {
-  expect_snapshot(create_likelihood("fn"), error = TRUE)
-  expect_snapshot(create_likelihood(fn, on_nonfinite = "blob"), error = TRUE)
-  expect_snapshot(create_likelihood(fn, matrix_fn = matrix_fn), error = TRUE)
+  expect_error(
+    create_likelihood("fn"),
+    "object 'fn' of mode 'function' was not found"
+  )
+  expect_error(
+    create_likelihood(fn, on_nonfinite = "blob"),
+    '`on_nonfinite` must be one of "warn", "quiet", or "abort"'
+  )
+  expect_error(
+    create_likelihood(fn, matrix_fn = matrix_fn),
+    "Exactly one of `fn` or `matrix_fn` must be supplied."
+  )
 })
 
 describe("matrix_fn and fn args are similar", {

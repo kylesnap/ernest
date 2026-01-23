@@ -1,8 +1,8 @@
-#' Generate samples from the spanning ellipsoid
+#' Generate new points from the spanning ellipsoid
 #'
 #' @description
 #' `r lifecycle::badge("experimental")`
-#' Uses the bounding ellipsoid of the live points to define the region of prior
+#' Uses the bounding ellipsoid of the live set to define the region of prior
 #' space that contains new points. Effective for unimodal and roughly-Gaussian
 #' posteriors.
 #'

@@ -193,7 +193,7 @@ print.ernest_likelihood <- function(x, ...) {
   } else {
     "User-Provided"
   }
-  cli::cli_text("Log-Likelihood Function ({compat_str} Matrix Compatibility)")
+  cli::cli_text("Log-likelihood Function ({compat_str} Matrix Compatibility)")
   fn <- attr(x, "body")
   cli::cli_code({
     format(fn)

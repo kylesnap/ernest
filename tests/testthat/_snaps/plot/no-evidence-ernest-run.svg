@@ -71,7 +71,7 @@
 <text x='330.23' y='276.75' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='12.72px' lengthAdjust='spacingAndGlyphs'>-10</text>
 <text x='484.26' y='276.75' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='7.82px' lengthAdjust='spacingAndGlyphs'>-5</text>
 <text x='638.28' y='276.75' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='4.89px' lengthAdjust='spacingAndGlyphs'>0</text>
-<text x='377.33' y='288.89' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='61.77px' lengthAdjust='spacingAndGlyphs'>Log. Volume</text>
+<text x='377.33' y='288.89' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='57.49px' lengthAdjust='spacingAndGlyphs'>Log-volume</text>
 <text transform='translate(18.53,147.01) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='81.31px' lengthAdjust='spacingAndGlyphs'>Posterior Weight</text>
 </g>
 <defs>
@@ -119,7 +119,7 @@
 <text x='322.90' y='550.62' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='12.72px' lengthAdjust='spacingAndGlyphs'>-10</text>
 <text x='500.91' y='550.62' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='7.82px' lengthAdjust='spacingAndGlyphs'>-5</text>
 <text x='678.92' y='550.62' text-anchor='middle' style='font-size: 8.80px; fill: #4D4D4D; font-family: sans;' textLength='4.89px' lengthAdjust='spacingAndGlyphs'>0</text>
-<text x='377.33' y='562.76' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='61.77px' lengthAdjust='spacingAndGlyphs'>Log. Volume</text>
+<text x='377.33' y='562.76' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='57.49px' lengthAdjust='spacingAndGlyphs'>Log-volume</text>
 <text transform='translate(18.53,420.88) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='108.23px' lengthAdjust='spacingAndGlyphs'>Normalized Likelihood</text>
 <text x='10.96' y='14.56' style='font-size: 13.20px; font-family: sans;' textLength='137.98px' lengthAdjust='spacingAndGlyphs'>no evidence ernest_run</text>
 </g>

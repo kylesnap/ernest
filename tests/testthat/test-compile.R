@@ -12,7 +12,7 @@ test_that("Set up sampler", {
 })
 
 describe("create_live", {
-  it("generates live points correctly", {
+  it("generates the live set correctly", {
     result <- create_live(sampler$lrps, 10)
     expect_equal(dim(result$unit), c(10, 2))
     expect_equal(
@@ -26,10 +26,10 @@ describe("create_live", {
   })
   it("gives informative error when unit_log_fn fails completely", {
     bad_lik <- new_rwmh_cube(
-      unit_log_fn = \(x) stop("Bad Job!"),
+      unit_log_fn = \(x) stop("Bad Likelihood!"),
       n_dim = 2L
     )
-    expect_snapshot(create_live(bad_lik, 10), error = TRUE)
+    expect_error(create_live(bad_lik, 10), "Bad Likelihood!")
   })
 })
 
@@ -51,19 +51,23 @@ describe("check_live_set", {
     expect_silent(check_live_set(sampler))
   })
 
-  it("errors if unit is not a matrix of correct shape", {
+  it("errors if unit is not a matrix", {
     reset_live()
     env_bind(sampler$run_env, unit = runif(20))
-    expect_snapshot(check_live_set(sampler), error = TRUE)
-  })
+    expect_error(
+      check_live_set(sampler),
+      "`unit` must be a matrix, not a double vector."
+    )
 
-  it("errors if unit matrix has wrong dimensions", {
     reset_live()
     env_bind(
       sampler$run_env,
       unit = matrix(runif(1000), nrow = 250, ncol = 4)
     )
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`unit` must have 500 rows, not 250."
+    )
   })
 
   it("errors if unit matrix contains NaN", {
@@ -74,10 +78,13 @@ describe("check_live_set", {
       sampler$run_env,
       unit = trick_mat
     )
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`unit` must contain no nonfinite values"
+    )
   })
 
-  it("errors if log_lik is too short", {
+  it("errors if log_lik is too short or contains missing", {
     reset_live()
     too_short <- seq(-10, -1, length.out = 499)
     env_bind(
@@ -85,10 +92,11 @@ describe("check_live_set", {
       unit = matrix(runif(1000), nrow = 500, ncol = 2),
       log_lik = too_short
     )
-    expect_snapshot(check_live_set(sampler), error = TRUE)
-  })
+    expect_error(
+      check_live_set(sampler),
+      "`log_lik` must be a double vector with length 500."
+    )
 
-  it("errors if log_lik contains NaN", {
     reset_live()
     nonfinite <- seq(-10, -1, length.out = 500)
     nonfinite[5] <- NaN
@@ -96,10 +104,11 @@ describe("check_live_set", {
       sampler$run_env,
       log_lik = nonfinite
     )
-    expect_snapshot(check_live_set(sampler), error = TRUE)
-  })
+    expect_error(
+      check_live_set(sampler),
+      "`log_lik` must contain only finite values or `-Inf`"
+    )
 
-  it("errors if log_lik contains Inf", {
     reset_live()
     nonfinite <- seq(-10, -1, length.out = 500)
     nonfinite[5] <- Inf
@@ -107,7 +116,10 @@ describe("check_live_set", {
       sampler$run_env,
       log_lik = nonfinite
     )
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`log_lik` must contain only finite values or `-Inf`."
+    )
   })
 
   it("passes if log_lik contains -Inf", {
@@ -122,7 +134,10 @@ describe("check_live_set", {
     reset_live()
     log_lik_plateau <- rep(-10, 500L)
     env_bind(sampler$run_env, log_lik = log_lik_plateau)
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`log_lik` currently contains one unique value \\(-10\\)."
+    )
   })
 
   it("warns if log_lik has repeated values but not all identical", {
@@ -130,22 +145,31 @@ describe("check_live_set", {
     log_lik_repeats <- seq(-10, -1, length.out = 500)
     log_lik_repeats[250:500] <- log_lik_repeats[250]
     env_bind(sampler$run_env, log_lik = log_lik_repeats)
-    expect_snapshot(check_live_set(sampler))
+    expect_warning(
+      check_live_set(sampler),
+      "Only 250/500 likelihood values are unique."
+    )
   })
 
   it("errors if birth_lik vector is wrong", {
     sampler <- compile(sampler)
     env_poke(sampler$run_env, "birth_lik", rep(1, 5))
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`birth_lik` must have size 500, not size 5."
+    )
 
     reset_live()
     env_poke(sampler$run_env, "birth_lik", rep(0L, 10))
-    expect_snapshot(check_live_set(sampler), error = TRUE)
+    expect_error(
+      check_live_set(sampler),
+      "`birth_lik` must be a double vector, not an integer vector."
+    )
   })
 })
 
 describe("compile", {
-  it("initializes live points", {
+  it("initializes the live set", {
     sampler <- compile(sampler)
     orig_units <- sampler$run_env$unit
     orig_log_lik <- sampler$run_env$log_lik
@@ -176,7 +200,7 @@ describe("compile", {
     # clear = TRUE should call compile.ernest_sampler
     expect_s3_class(compile(run, clear = TRUE), "ernest_sampler", exact = TRUE)
 
-    # clear = FALSE should restore live points
+    # clear = FALSE should restore the live set
     expect_s3_class(compile(run, clear = FALSE), "ernest_run")
   })
 })

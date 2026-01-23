@@ -1,8 +1,8 @@
-#' Generate samples from multiple spanning ellipsoids
+#' Generate new points from multiple spanning ellipsoids
 #'
 #' @description
 #' Partitions the prior space into a set of ellipsoids whose union bounds
-#' the set of live points. Samples are created by randomly
+#' the live set. New points are created by randomly
 #' selecting an ellipsoid (weighted by their respective volumes), then using it
 #' to generate a random point as in [unif_ellipsoid]. Effective for multimodal
 #' posteriors where a single ellipsoid would be inefficient.
@@ -15,8 +15,8 @@
 #' better capture disconnected or elongated regions.
 #'
 #' Ellipsoids are generated using the following procedure:
-#' 1. A single ellipsoid is fit to the set of live points, with volume \eqn{V}.
-#' 2. The live points are clustered into two groups using k-means clustering.
+#' 1. A single ellipsoid is fit to the live set, with volume \eqn{V}.
+#' 2. The live set is clustered into two groups using k-means clustering.
 #' 3. Ellipsoids are fit to each cluster.
 #' 4. The split ellipsoids are accepted if both ellipsoids are non-degenerate,
 #' and if the combined volume of the split ellipsoids is significantly

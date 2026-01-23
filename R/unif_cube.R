@@ -1,7 +1,7 @@
-#' Generate samples from the unconstrained prior distribution
+#' Generate new points from the unconstrained prior distribution
 #'
 #' Use rejection sampling across the entire prior distribution to create new
-#' live points. This is highly inefficient as an LRPS, but may be useful for
+#' samples. This is highly inefficient as an LRPS, but may be useful for
 #' testing the behaviour of a nested sampling specification.
 #'
 #' @returns A list with class `c("unif_cube", "ernest_lrps")`. Can be used with

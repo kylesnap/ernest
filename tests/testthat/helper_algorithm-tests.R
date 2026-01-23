@@ -123,7 +123,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
 #' Runs a sampler on the 2D Gaussian blobs test problem.
 #'
 #' @param sampler LRPS object to test.
-#' @param nlive Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -151,7 +151,7 @@ expect_gaussian_run <- function(
 #' Runs a sampler on the 3D correlated Gaussian test problem.
 #'
 #' @param sampler Sampler object to test.
-#' @param nlive Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -179,7 +179,7 @@ expect_3D_run <- function(
 #' Runs a sampler on the eggbox test problem
 #'
 #' @param sampler Sampler object to test.
-#' @param nlive Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.

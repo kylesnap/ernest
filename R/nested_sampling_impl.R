@@ -1,6 +1,6 @@
 #' Internal implementation of the nested sampling algorithm
 #'
-#' Performs the core nested sampling loop, updating live points, accumulating
+#' Performs the core nested sampling loop, updating the live set, accumulating
 #' evidence, and checking stopping criteria.
 #'
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
@@ -23,7 +23,7 @@
 #'
 #' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
 #' colinearity, ernest examines whether it has reached a likelihood plateau
-#' in its sample of live points (a problem for estimating the log-volume
+#' in its live set (a problem for estimating the log-volume
 #' cascade and interpreting NS results). Ernest reports this as a warning,
 #' and terminates the sampling early. This behaviour is tested.
 #' @srrstats {BS4.3, BS4.4, BS4.5} Convergence in a nested sampling run is

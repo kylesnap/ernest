@@ -177,8 +177,8 @@ propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
 #' cache.
 #'
 #' @param x An `ernest_lrps` object.
-#' @param unit A matrix of live points within the sampler. If NULL, no LRPS
-#' updates based on the state of the live points will be made.
+#' @param unit The current live set stored within the run If NULL, no LRPS
+#' updates based on the state of the live set will be made.
 #' @param log_volume The current log-volume of the nested sampling run.
 #'
 #' @returns An updated `ernest_lrps` object with the same class as `x`, possibly

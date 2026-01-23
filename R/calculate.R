@@ -16,7 +16,7 @@
 #'
 #' * `log_lik`: The log-likelihood of the model.
 #' * `log_volume`: The log-volume of the prior space.
-#' * `log_weight`: The log weights of the live points.
+#' * `log_weight`: The log weights of the points in the live set.
 #' * `log_evidence`: The log-evidence of the model.
 #' * `log_evidence_err`: The standard error of the log-evidence (only available
 #' when `ndraws = 0`).
@@ -99,8 +99,8 @@ print.ernest_estimate <- function(x, ...) {
   log_vol <- round(x$log_volume[length(x$log_volume)], 4)
   cli::cli_bullets(c(
     "# of Simulated Draws: {attr(x, 'ndraws')}",
-    "Log. Volume: {log_vol}",
-    "Log. Evidence: {log_z}"
+    "Log-volume: {log_vol}",
+    "Log-evidence: {log_z}"
   ))
   NextMethod(x)
 }
@@ -109,7 +109,7 @@ print.ernest_estimate <- function(x, ...) {
 
 #' Simulate log-volumes for nested sampling
 #'
-#' Simulates log-volumes for dead and live points in a nested sampling run.
+#' Simulates log-volumes for points in a nested sampling run.
 #'
 #' @param nlive Integer. The number of points in the prior space.
 #' @param niter Integer. The number of iterations in the nested sampling run.

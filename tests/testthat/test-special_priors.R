@@ -4,7 +4,10 @@ test_matrix <- matrix(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6), nrow = 2)
 
 describe("create_normal_prior", {
   it("reports poor parameters", {
-    expect_snapshot(create_normal_prior(sd = -1), error = TRUE)
+    expect_error(
+      create_normal_prior(sd = -1),
+      "All elements of `sd` must be strictly positive and non-missing."
+    )
   })
 
   it("validly returns untruncated priors", {

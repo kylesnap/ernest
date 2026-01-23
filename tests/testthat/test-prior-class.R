@@ -3,7 +3,10 @@ fn <- \(x) {
 }
 
 test_that("create_prior throws errors", {
-  expect_snapshot(create_prior("fn"), error = TRUE)
+  expect_error(
+    create_prior("fn"),
+    "object 'fn' of mode 'function' was not found"
+  )
 })
 
 describe("check_prior reports informative errors", {

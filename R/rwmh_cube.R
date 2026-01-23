@@ -1,8 +1,8 @@
-#' Generate samples with a random walk
+#' Generate new points with a random walk
 #'
-#' Create new live points by evolving a current live point through
-#' a Metropolis-Hastings random walk, rejecting steps that fail to meet the
-#' likelihood criterion.
+#' Create new samples for the live set by evolving a current point in the set
+#' through a Metropolis-Hastings random walk, rejecting steps that fail to meet
+#' the likelihood criterion.
 #'
 #' @param steps Positive integer. Number of steps to take when generating a
 #' proposal point.
@@ -37,7 +37,7 @@
 #' $d$-dimensional ball centered on the origin with radius \eqn{\epsilon}.
 #'
 #' @section Control Parameters:
-#' * `steps`: Start with 25. Increase to generate samples that more closely
+#' * `steps`: Start with 25. Increase to generate points that more closely
 #' follow the posterior distribution; decrease for computational efficiency.
 #' * `target_acceptance`: Start with 0.4-0.6. Lower values encourage more global
 #' exploration of the posterior, higher values encourage explorations close

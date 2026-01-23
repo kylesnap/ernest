@@ -4,7 +4,7 @@
       example_run
     Message
       Nested sampling run:
-      * Live points: 500
+      * No. points: 500
       * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
       * Prior: uniform prior distribution with 2 dimensions (A and B)
       -- Results ---------------------------------------------------------------------

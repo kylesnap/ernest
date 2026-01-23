@@ -4,27 +4,23 @@
 #' sampling run, optionally by simulating the volumes of each nested
 #' likelihood shell.
 #'
-#' @param x An `ernest_run` object.
-#' @param ndraws A positive integer. The number of log-volume
-#' sequences to simulate. If equal to zero, no simulations will be made, and a
-#' one draw vector of log-volumes are produced from the estimates contained in
-#' `x`.
+#' @param x [[ernest_run]]\cr Results from a nested sampling run.
+#' @param ndraws `[integer(1)]`\cr The number of log-volume sequences to simulate.
+#' If equal to zero, no simulations will be made, and a one draw vector of
+#' log-volumes are produced from the estimates contained in `x`.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns A [tibble::tibble()], containing `niter + nlive` rows
-#' and several columns:
+#' @returns [[tibble::tibble()]] with class `ernest_estimate`.
 #'
-#' * `log_lik`: The log-likelihood of the model.
-#' * `log_volume`: The log-volume of the prior space.
-#' * `log_weight`: The log weights of the points in the live set.
-#' * `log_evidence`: The log-evidence of the model.
-#' * `log_evidence_err`: The standard error of the log-evidence (only available
-#' when `ndraws = 0`).
+#' The iterative estimates from the nested sampling run. Contains the following
+#' columns:
+#' * `log_lik`: [[rvar]] The log-likelihood of the model.
+#' * `log_volume`: [[rvar]] The log-volume of the prior space.
+#' * `log_weight`: [[rvar]] The log weights of the points in the live set.
+#' * `log_evidence`: [[rvar]] The log-evidence of the model.
 #'
-#' The tibble has the additional class `ernest_estimate`, which has its own
-#' [plot][plot.ernest_estimate()] method.
-#'
-#' Each column is returned as an [posterior::rvar()] vector.
+#' If `ndraws = 0`, an additional column is included:
+#' * `log_evidence_err`: [[rvar]] The standard error of the log-evidence.
 #'
 #' @references Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 #' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
@@ -45,7 +41,7 @@
 #' @export
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
-  check_number_whole(ndraws, lower = 0L)
+  check_number_whole(ndraws, min = 0)
   nlive <- x$nlive
   log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
   log_vol_rng <- range(log_vol)
@@ -111,9 +107,9 @@ print.ernest_estimate <- function(x, ...) {
 #'
 #' Simulates log-volumes for points in a nested sampling run.
 #'
-#' @param nlive Integer. The number of points in the prior space.
-#' @param niter Integer. The number of iterations in the nested sampling run.
-#' @param ndraws Integer. The number of draws to simulate for each volume, or
+#' @param nlive [integer(1)]\cr The number of points in the prior space.
+#' @param niter [integer(1)]\cr The number of iterations in the nested sampling run.
+#' @param ndraws [integer(1)]\cr The number of draws to simulate for each volume, or
 #' NULL.
 #'
 #' @return A matrix of simulated log-volumes with dimensions `ndraws` by

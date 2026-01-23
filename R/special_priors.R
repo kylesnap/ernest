@@ -137,6 +137,7 @@ create_uniform_prior <- function(
 }
 
 #' Recycle prior parameters to the right length
+#' @noRd
 recycle_params <- function(names, lower, upper, ..., .call = caller_env()) {
   n_dim <- if (is.null(names)) NULL else length(names)
   params <- vctrs::vec_recycle_common(

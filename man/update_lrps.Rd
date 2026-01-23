@@ -20,18 +20,26 @@ update_lrps(x, ...)
 \method{update_lrps}{unif_ellipsoid}(x, unit = NULL, log_volume = NA, ...)
 }
 \arguments{
-\item{x}{An \code{ernest_lrps} object.}
+\item{x}{[\link{ernest_lrps}]\cr A likelihood-restricted prior sampler.}
 
-\item{unit}{A matrix of live points within the sampler. If NULL, no LRPS
-updates based on the state of the live points will be made.}
+\item{...}{Presently ignored.}
 
-\item{log_volume}{The current log-volume of the nested sampling run.}
+\item{unit}{\verb{[matrix(double(), integer(), x$n_dim)]}\cr The current live set
+stored within the run. Optional; if NULL no LRPS updates based on the state
+of the live set will be made.}
+
+\item{log_volume}{\verb{[double(1)]}\cr The current log-volume of the nested
+sampling run.}
 }
 \value{
-An updated \code{ernest_lrps} object with the same class as \code{x}, possibly
-with updated parameters.
+[\link{ernest_lrps}], created by reconstructing \code{x} with updated
+parameters.
 }
 \description{
+Update the behaviour of a likelihood-restricted prior sampler with interim
+information from a nested sampling run.
+}
+\details{
 During a nested sampling run, you may wish to update the internal parameters
 of the LRPS based on sampler performance or other criterion. The frequency of
 these updates is set by the \code{first_update} and \code{update_interval} arguments of

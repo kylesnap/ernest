@@ -4,9 +4,7 @@
 #' samples. This is highly inefficient as an LRPS, but may be useful for
 #' testing the behaviour of a nested sampling specification.
 #'
-#' @returns A list with class `c("unif_cube", "ernest_lrps")`. Can be used with
-#' [ernest_sampler()] to specify the sampling behaviour of a nested sampling
-#' run.
+#' @returns `[unif_cube]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @references Speagle, J. S. (2020). Dynesty: A Dynamic Nested Sampling Package
 #' for Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
@@ -41,8 +39,8 @@ format.unif_cube <- function(x, ...) {
 #' Internal constructor for the uniform unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param n_dim [integer(1)]\cr Number of dimensions.
+#' @param max_loop [integer(1)]\cr Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected

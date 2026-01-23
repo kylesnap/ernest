@@ -8,31 +8,30 @@
 \method{calculate}{ernest_run}(x, ndraws = 1000L, ...)
 }
 \arguments{
-\item{x}{An \code{ernest_run} object.}
+\item{x}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
-\item{ndraws}{A positive integer. The number of log-volume
-sequences to simulate. If equal to zero, no simulations will be made, and a
-one draw vector of log-volumes are produced from the estimates contained in
-\code{x}.}
+\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to simulate.
+If equal to zero, no simulations will be made, and a one draw vector of
+log-volumes are produced from the estimates contained in \code{x}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A \code{\link[tibble:tibble]{tibble::tibble()}}, containing \code{niter + nlive} rows
-and several columns:
+[\code{\link[tibble:tibble]{tibble::tibble()}}] with class \code{ernest_estimate}.
+
+The iterative estimates from the nested sampling run. Contains the following
+columns:
 \itemize{
-\item \code{log_lik}: The log-likelihood of the model.
-\item \code{log_volume}: The log-volume of the prior space.
-\item \code{log_weight}: The log weights of the live points.
-\item \code{log_evidence}: The log-evidence of the model.
-\item \code{log_evidence_err}: The standard error of the log-evidence (only available
-when \code{ndraws = 0}).
+\item \code{log_lik}: [\link{rvar}] The log-likelihood of the model.
+\item \code{log_volume}: [\link{rvar}] The log-volume of the prior space.
+\item \code{log_weight}: [\link{rvar}] The log weights of the points in the live set.
+\item \code{log_evidence}: [\link{rvar}] The log-evidence of the model.
 }
 
-The tibble has the additional class \code{ernest_estimate}, which has its own
-\link[=plot.ernest_estimate]{plot} method.
-
-Each column is returned as an \code{\link[posterior:rvar]{posterior::rvar()}} vector.
+If \code{ndraws = 0}, an additional column is included:
+\itemize{
+\item \code{log_evidence_err}: [\link{rvar}] The standard error of the log-evidence.
+}
 }
 \description{
 Computes evidence and related quantities from a nested

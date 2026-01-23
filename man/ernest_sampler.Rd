@@ -11,41 +11,42 @@ ernest_sampler(
   nlive = 500,
   first_update = NULL,
   update_interval = NULL,
-  seed = NULL
+  seed = NA
 )
 }
 \arguments{
-\item{log_lik}{A function which takes a vector of parameters as a vector and
-returns the log-likelihood of a given model. Wrapped using
-\code{\link[=create_likelihood]{create_likelihood()}} unless it is already of class \code{ernest_likelihood}.}
+\item{log_lik}{\verb{[function]} or [\link{ernest_likelihood}]\cr
+A function which computes the log-likelihood of a given model. If a
+function, it is wrapped with \code{\link[=create_likelihood]{create_likelihood()}}.}
 
-\item{prior}{An object with class \link{ernest_prior}. Describes the prior space
-within which to generate sample parameters for \code{log_lik}.}
+\item{prior}{[\link{ernest_prior}]\cr Describes the prior space
+within which to generate samples.}
 
-\item{sampler}{An object of class \link{ernest_lrps}. Describes the
-likelihood-restricted prior sampling technique to adopt during the run.}
-
-\item{nlive}{A strictly positive integer. The number of points to generate
+\item{sampler}{[\link{ernest_lrps}]\cr Specifies the
+likelihood-restricted prior sampling method used to replace points
 within the live set.}
 
-\item{first_update}{An optional positive integer. The number of likelihood
+\item{nlive}{\verb{[integer(1)]}\cr The number of points to generate
+within the live set. Strictly positive.}
+
+\item{first_update}{\verb{[integer(1)]}\cr The number of likelihood
 calls to make with the default \link[=unif_cube]{uniform LRPS} method before
-swapping to the technique described by \code{sampler}. If left \code{NULL},
+swapping to the technique described by \code{sampler}. Optional; if left \code{NULL}
 this is set to \code{nlive * 2.5}.}
 
-\item{update_interval}{An optional positive integer. The number of likelihood
-calls between updates to the \code{sampler} object. If \code{NULL}, this is set to
-\code{nlive * 1.5}.}
+\item{update_interval}{\verb{[integer(1)]}\cr The number of likelihood
+calls between updates to the \code{sampler} object. Optional; if left \code{NULL}
+this is set to \code{nlive * 1.5}.}
 
-\item{seed}{An optional integer. Sets the random seed controlling the
-random number generator for nested sampling runs. If left \code{NA}, runs will
-preserve the \link{.Random.seed} set within R.}
+\item{seed}{\verb{[integer(1)]}\cr Sets the random seed controlling the
+random number generator for nested sampling runs. Optional; if left \code{NA}
+the \link{.Random.seed} set within R is preserved and restored after a run.}
 }
 \value{
-An object of class \code{ernest_sampler}, which is a list containing the
-inputs used as arguments to this function, along with an environment
-\code{run_env} which is used to store the \code{nlive} live particles throughout
-a nested sampling run.
+\verb{[ernest_sampler]}\cr
+A named list, containing a specification for a nested sampling run. Contains
+the arguments passed to this function as well as an environment \code{run_env},
+which is used to store the live set during sampling.
 }
 \description{
 Initializes an \code{ernest_sampler} object containing the components required to
@@ -87,13 +88,4 @@ unit_sampler <- ernest_sampler(
   sampler = unif_cube()
 )
 unit_sampler
-}
-\seealso{
-\itemize{
-\item \code{\link[=create_likelihood]{create_likelihood()}} describes the requirements of the \code{log_lik_fn}
-parameter.
-\item \code{\link[=create_prior]{create_prior()}} describes the requriements of the \code{prior} parameter.
-\item \link{ernest_lrps} describes the general requirements of likelihood-restricted
-prior samplers.
-}
 }

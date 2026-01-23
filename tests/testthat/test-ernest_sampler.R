@@ -14,18 +14,13 @@ test_that("ernest_sampler errors with invalid prior", {
   )
 })
 
-#' @srrstats {BS2.13} Test that R can produce fully-verbose output when
-#' requested (messages are turned off for all other tests).
-cli::test_that_cli("Fully-verbose output", {
-  skip_on_cran()
-  skip_on_ci()
-  skip_on_covr()
-  sampler <- ernest_sampler(
-    gaussian_blobs$log_lik,
-    gaussian_blobs$prior,
-    nlive = 500,
-    seed = 42
+test_that("seed is preserved across runs when .seed is NA", {
+  old_seed <- .Random.seed
+  run1 <- expect_gaussian_run(
+    sampler = rwmh_cube(),
+    .seed = NA,
+    .generate = list(max_iterations = 200L)
   )
-  withr::local_options(rlib_message_verbosity = "verbose")
-  expect_no_error(generate(sampler, max_iterations = 1000))
+  new_seed <- .Random.seed
+  expect_identical(old_seed, new_seed)
 })

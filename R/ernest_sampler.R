@@ -4,30 +4,31 @@
 #' perform nested sampling. This object can then be used to build sequences of
 #' nested samples with [generate()].
 #'
-#' @param log_lik A function which takes a vector of parameters as a vector and
-#' returns the log-likelihood of a given model. Wrapped using
-#' [create_likelihood()] unless it is already of class `ernest_likelihood`.
-#' @param prior An object with class [ernest_prior]. Describes the prior space
-#' within which to generate sample parameters for `log_lik`.
-#' @param sampler An object of class [ernest_lrps]. Describes the
-#' likelihood-restricted prior sampling technique to adopt during the run.
-#' @param nlive A strictly positive integer. The number of points to generate
+#' @param log_lik `[function]` or [[ernest_likelihood]]\cr
+#' A function which computes the log-likelihood of a given model. If a
+#' function, it is wrapped with [create_likelihood()].
+#' @param prior [[ernest_prior]]\cr Describes the prior space
+#' within which to generate samples.
+#' @param sampler [[ernest_lrps]]\cr Specifies the
+#' likelihood-restricted prior sampling method used to replace points
 #' within the live set.
-#' @param first_update An optional positive integer. The number of likelihood
+#' @param nlive `[integer(1)]`\cr The number of points to generate
+#' within the live set. Strictly positive.
+#' @param first_update `[integer(1)]`\cr The number of likelihood
 #' calls to make with the default [uniform LRPS][unif_cube()] method before
-#' swapping to the technique described by `sampler`. If left `NULL`,
+#' swapping to the technique described by `sampler`. Optional; if left `NULL`
 #' this is set to `nlive * 2.5`.
-#' @param update_interval An optional positive integer. The number of likelihood
-#' calls between updates to the `sampler` object. If `NULL`, this is set to
-#' `nlive * 1.5`.
-#' @param seed An optional integer. Sets the random seed controlling the
-#' random number generator for nested sampling runs. If left `NA`, runs will
-#' preserve the [.Random.seed] set within R.
+#' @param update_interval `[integer(1)]`\cr The number of likelihood
+#' calls between updates to the `sampler` object. Optional; if left `NULL`
+#' this is set to `nlive * 1.5`.
+#' @param seed `[integer(1)]`\cr Sets the random seed controlling the
+#' random number generator for nested sampling runs. Optional; if left `NA`
+#' the [.Random.seed] set within R is preserved and restored after a run.
 #'
-#' @return An object of class `ernest_sampler`, which is a list containing the
-#' inputs used as arguments to this function, along with an environment
-#' `run_env` which is used to store the `nlive` live particles throughout
-#' a nested sampling run.
+#' @returns `[ernest_sampler]`\cr
+#' A named list, containing a specification for a nested sampling run. Contains
+#' the arguments passed to this function as well as an environment `run_env`,
+#' which is used to store the live set during sampling.
 #'
 #' @details
 #' The `ernest_sampler` object is tested with [compile()] before it is
@@ -47,13 +48,6 @@
 #' When set to quiet, messages are not displayed and the condition is not
 #' signaled. See [rlang::abort()] for more information.
 #'
-#' @seealso
-#' * [create_likelihood()] describes the requirements of the `log_lik_fn`
-#'   parameter.
-#' * [create_prior()] describes the requriements of the `prior` parameter.
-#' * [ernest_lrps] describes the general requirements of likelihood-restricted
-#' prior samplers.
-#'
 #' @srrstats {BS1.3, BS1.3b} Describes how to set different sampling techniques.
 #' @srrstats {G2.13, BS2.1, BS2.4} Both `compile()` and the checks performed by
 #' ernest_sampler catch missing values or incommensurability between the
@@ -65,7 +59,6 @@
 #' values contain the objects used to generate a run, including the prior
 #' specification.
 #'
-#' @export
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
@@ -80,6 +73,7 @@
 #'   sampler = unif_cube()
 #' )
 #' unit_sampler
+#' @export
 ernest_sampler <- function(
   log_lik,
   prior,

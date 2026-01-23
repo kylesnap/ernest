@@ -26,8 +26,8 @@
 #' splits are accepted, updating \eqn{V} to the volume of the currently split
 #' ellipsoid.
 #'
-#' @returns A list with class `c("multi_ellipsoid", "ernest_lrps")`. Use with
-#' [ernest_sampler()] to specify nested sampling behaviour.
+#' @returns `[multi_ellipsoid]`, a named list that inherits from
+#' [[ernest_lrps]].
 #'
 #' @references
 #' * Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
@@ -38,8 +38,6 @@
 #'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 #'   Royal Astronomical Society, 493, 3132–3158.
 #'   \doi{10.1093/mnras/staa278}
-#'
-#'
 #'
 #' @family ernest_lrps
 #' @examples
@@ -78,8 +76,8 @@ format.multi_ellipsoid <- function(x, ...) {
 #' Internal constructor for multi ellipsoid LRPS objects.
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum proposal attempts.
+#' @param n_dim [integer(1)]\cr Number of dimensions.
+#' @param max_loop [integer(1)]\cr Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #' @param enlarge Double. Volume enlargement factor.
 #' @param min_reduction Double. Minimum volume reduction for splitting.

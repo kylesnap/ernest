@@ -2,23 +2,24 @@
 % Please edit documentation in R/slice_rectangle.R
 \name{slice_rectangle}
 \alias{slice_rectangle}
-\title{Generate samples with slice sampling}
+\title{Generate new points with slice sampling}
 \usage{
 slice_rectangle(enlarge = 1)
 }
 \arguments{
-\item{enlarge}{Optional double, greater than or equal to 1. Factor by which
-to inflate the hyperrectangle's volume before sampling (see Details).}
+\item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the
+hyperrectangle's volume before sampling (see Details). Optional, and must be
+greater or equal to 1 if provided; if left \code{NA}, sampling is initially
+bounded by the unit hypercube at each iteration.}
 }
 \value{
-An object of class \code{c("slice_rectangle", "ernest_lrps")} that can be
-used with \code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour.
+\verb{[slice_rectangle]}, a named list that inherits from
+[\link{ernest_lrps}].
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-Create new live points by evolving a current live point through
-slice sampling within a bounding hyperrectangle, shrinking the rectangle
-when proposals are rejected.
+Create new samples for the live set by evolving a current point in the set
+through slice sampling within a bounding hyperrectangle, shrinking the
+rectangle when proposals are rejected.
 }
 \details{
 The slice LRPS generates proposals by uniformly sampling within a bounding
@@ -32,7 +33,7 @@ This continues until either a valid proposal is found or the rectangle has
 shrunk to the point where no further clamping operations can be performed.
 
 By default, the hyperrectangle spans the extreme values of the current
-set of live points in each dimension. This may risk excluding valid regions
+live set in each dimension. This may risk excluding valid regions
 of the parameter space, particularly where the posterior is multimodal or
 highly non-Gaussian. To mitigate this, set \code{enlarge > 1}, which inflates the
 hyperrectagle's volume by the specified factor before sampling. Setting

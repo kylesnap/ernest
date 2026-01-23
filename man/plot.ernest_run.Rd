@@ -10,22 +10,20 @@
 \method{plot}{ernest_run}(x, which = c("evidence", "weight", "likelihood"), ndraws = NULL, ...)
 }
 \arguments{
-\item{x}{An \link{ernest_estimate} or \link{ernest_run} object containing results
-from a nested sampling run.}
+\item{x}{[\link{ernest_run}] or [\link{ernest_estimate}]\cr An object containing
+results from nested sampling.}
 
-\item{which}{Character vector specifying which diagnostic plots to
-display. Options are \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.
-Multiple plots can be selected (see Details).}
+\item{which}{\verb{[character()]}\cr Choose which plots to display. Must be one
+or more of \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{A positive integer. The number of log-volume
-sequences to simulate. If equal to zero, no simulations will be made, and a
-one draw vector of log-volumes are produced from the estimates contained in
-\code{x}.}
+\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to simulate.
+If equal to zero, no simulations will be made, and a one draw vector of
+log-volumes are produced from the estimates contained in \code{x}.}
 }
 \value{
-Invisibly returns \code{x}. A \code{ggplot2::ggplot()} object is printed as a
+\verb{[invisible(x)]}. A \code{ggplot2::ggplot()} object is printed as a
 side effect.
 }
 \description{
@@ -38,15 +36,15 @@ Interpreting these plots can help diagnose issues such as poor or
 insufficient prior sampling and model misspecification. Use \code{which} to select
 the plots to display:
 \itemize{
-\item \strong{Evidence (\code{which = "evidence"}):} Plots the estimated marginal
+\item \code{which = "evidence"}: Plots the estimated marginal
 likelihood (evidence) as a function of log-prior volume, with uncertainty
 intervals. Peaks in this plot indicate regions of prior volume that
 contribute most to the evidence estimate.
-\item \strong{Posterior Weight (\code{which = "weight"}):} Shows the distribution of
+\item \code{which = "weight"}: Shows the distribution of
 posterior mass across log-prior volume. This plot highlights which regions
 of the prior volume contain the most posterior probability, helping to
 identify where the sampler concentrated its effort.
-\item \strong{Normalized Likelihood (\code{which = "likelihood"}):} Displays the normalized
+\item \code{which = "likelihood"}: Displays the normalized
 likelihood as a function of log-prior volume. Smoothness in this plot
 indicates effective likelihood-restricted prior sampling, while
 irregularities may suggest sampling difficulties or, in some cases,
@@ -59,12 +57,12 @@ uncertainty (see {summary.ernest_run}).
 
 If \code{x} is an \code{ernest_estimate} (or if \code{ndraws} is specified), the plots
 are based on simulated values from the log-volume. The highest density
-continuous intervals (HDCIs) are computed using {ggdist::median_hdci()} for
+continuous intervals (HDCIs) are computed using \code{\link[ggdist:point_interval]{ggdist::median_hdci()}} for
 both the \code{evidence} and \code{weight} plots.
 }
 \note{
-Plotting multiple diagnostics with \code{which} requires the {patchwork} package.
-Plotting \code{ernest_estimate} objects requires the {ggdist} package.
+Plotting multiple diagnostics with \code{which} requires the patchwork package.
+Plotting \code{ernest_estimate} objects requires the ggdist package.
 }
 \examples{
 # Plot results from a run.

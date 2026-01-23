@@ -13,25 +13,24 @@
 )
 }
 \arguments{
-\item{x}{An \link{ernest_run} object containing the results of a nested sampling
-run.}
+\item{x}{[\link{ernest_run}] The results of a nested sampling run.}
 
 \item{...}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> One or more variables
 to plot from the run. If omitted, all variables are plotted.}
 
-\item{.which}{Character string specifying the type of plot to produce.
-Options are \code{"density"} for the posterior density of each parameter or
-\code{"trace"} for the trace of variables along log-prior volume.}
+\item{.which}{\verb{[charcacter(1)]} Character string specifying the type of plot
+to produce. Options are \code{"density"} for the posterior density of each
+parameter or \code{"trace"} for the trace of variables along log-volume.}
 
-\item{.units}{Case-sensitive string. The scale for the sampled points:
+\item{.units}{\verb{[character(1)]}\cr The scale of the sampled points:
 \itemize{
 \item \code{"original"}: Points are on the scale of the prior space.
 \item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
 
-\item{.radial}{Logical. If \code{TRUE}, returns an additional column \code{.radial}
-containing the radial coordinate (i.e., the Euclidean norm) for each
-sampled point.}
+\item{.radial}{\verb{[logical(1)]}\cr If \code{TRUE}, returns an additional column
+\code{.radial} containing the radial coordinate (i.e., the Euclidean norm) for
+each sampled point.}
 }
 \value{
 A \code{ggplot2::ggplot()} object.
@@ -48,7 +47,7 @@ nested sampling run through two types of plots:
 using \code{ggdist::stat_halfeye()} to visualize uncertainty and distribution
 shape.
 \item \strong{Trace plots} display the evolution of variables as a function of
-log-prior volume, with points coloured by posterior weight. This can help
+log-volume, with points coloured by posterior weight. This can help
 diagnose sampling behavior and identify regions of interest in the prior
 volume.
 }

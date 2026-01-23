@@ -2,18 +2,16 @@
 % Please edit documentation in R/unif_cube.R
 \name{unif_cube}
 \alias{unif_cube}
-\title{Generate samples from the unconstrained prior distribution}
+\title{Generate new points from the unconstrained prior distribution}
 \usage{
 unif_cube()
 }
 \value{
-A list with class \code{c("unif_cube", "ernest_lrps")}. Can be used with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour of a nested sampling
-run.
+\verb{[unif_cube]}, a named list that inherits from [\link{ernest_lrps}].
 }
 \description{
 Use rejection sampling across the entire prior distribution to create new
-live points. This is highly inefficient as an LRPS, but may be useful for
+samples. This is highly inefficient as an LRPS, but may be useful for
 testing the behaviour of a nested sampling specification.
 }
 \examples{

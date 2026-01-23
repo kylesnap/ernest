@@ -4,15 +4,13 @@
 #' normalized likelihood, posterior weights, and evidence as functions
 #' of log-prior volume.
 #'
-#' @param x An [ernest_estimate] or [ernest_run] object containing results
-#' from a nested sampling run.
-#' @param which Character vector specifying which diagnostic plots to
-#' display. Options are `"evidence"`, `"weight"`, and `"likelihood"`.
-#' Multiple plots can be selected (see Details).
+#' @param x [[ernest_run]] or [[ernest_estimate]]\cr An object containing
+#' results from nested sampling.
+#' @param which `[character()]`\cr Choose which plots to display. Must be one
+#' or more of `"evidence"`, `"weight"`, and `"likelihood"`.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns
-#' Invisibly returns `x`. A `ggplot2::ggplot()` object is printed as a
+#' @returns `[invisible(x)]`. A `ggplot2::ggplot()` object is printed as a
 #' side effect.
 #'
 #' @details
@@ -20,15 +18,15 @@
 #' insufficient prior sampling and model misspecification. Use `which` to select
 #' the plots to display:
 #'
-#' - **Evidence (`which = "evidence"`):** Plots the estimated marginal
+#' * `which = "evidence"`: Plots the estimated marginal
 #' likelihood (evidence) as a function of log-prior volume, with uncertainty
 #' intervals. Peaks in this plot indicate regions of prior volume that
 #' contribute most to the evidence estimate.
-#' - **Posterior Weight (`which = "weight"`):** Shows the distribution of
+#' * `which = "weight"`: Shows the distribution of
 #' posterior mass across log-prior volume. This plot highlights which regions
 #' of the prior volume contain the most posterior probability, helping to
 #' identify where the sampler concentrated its effort.
-#' - **Normalized Likelihood (`which = "likelihood"`):** Displays the normalized
+#' * `which = "likelihood"`: Displays the normalized
 #' likelihood as a function of log-prior volume. Smoothness in this plot
 #' indicates effective likelihood-restricted prior sampling, while
 #' irregularities may suggest sampling difficulties or, in some cases,
@@ -40,12 +38,12 @@
 #'
 #' If `x` is an `ernest_estimate` (or if `ndraws` is specified), the plots
 #' are based on simulated values from the log-volume. The highest density
-#' continuous intervals (HDCIs) are computed using {ggdist::median_hdci()} for
+#' continuous intervals (HDCIs) are computed using [ggdist::median_hdci()] for
 #' both the `evidence` and `weight` plots.
 #'
 #' @note
-#' Plotting multiple diagnostics with `which` requires the {patchwork} package.
-#' Plotting `ernest_estimate` objects requires the {ggdist} package.
+#' Plotting multiple diagnostics with `which` requires the patchwork package.
+#' Plotting `ernest_estimate` objects requires the ggdist package.
 #'
 #' @srrstats {BS6.1} Default plot for return object.
 #'
@@ -67,7 +65,6 @@
 #' est <- calculate(example_run, ndraws = 100)
 #' plot(est)
 #' @rdname plot.ernest_run
-#' @aliases plot.ernest_estimate
 #' @export
 plot.ernest_estimate <- function(
   x,
@@ -99,7 +96,6 @@ plot.ernest_run <- function(
   ndraws = NULL,
   ...
 ) {
-  check_number_whole(ndraws, min = 1, allow_null = TRUE)
   which <- arg_match(
     which,
     values = c("evidence", "weight", "likelihood"),
@@ -191,7 +187,7 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' Generates a ggplot object for an `ernest_run` object containing a nested
 #' sampling run.
 #'
-#' @param object An `ernest_run` object containing a nested sampling run.
+#' @param object Results from a nested sampling run.
 #' @param ... Additional arguments passed to the method.
 #'
 #' @return A ggplot object.

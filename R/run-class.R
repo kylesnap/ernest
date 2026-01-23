@@ -47,27 +47,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @param x The `ernest_run` or `ernest_sampler` object.
 #' @param parsed A list with the previous dead points from the run.
 #'
-#' @return
-#' A new `ernest_run` object, which is a named list containing:
-#' * `niter`: Integer. Number of iterations performed.
-#' * `neval`: Integer. Total number of likelihood function evaluations.
-#' * `log_evidence`: Double. The log-evidence estimate.
-#' * `log_evidence_err`: Double. The standard error of the log-evidence
-#' estimate.
-#' * `information`: Double. The estimated Kullback-Leibler divergence.
-#' * `samples`: A list, containing the posterior samples ordered by their
-#' log-likelihood values:
-#'  * `samples`: A matrix. The samples transformed to the parameter space.
-#'  * `original`: A matrix. The samples in the unit hypercube.
-#' * `weights: A named list, containing the following for each point in
-#' `samples`:
-#'  * `id`: The point ID for each sample.
-#'  * `evaluations`: The number of likelihood evaluations used to create each
-#'  sample.
-#'  * `log_weight`: The log-weight for each sample.
-#'  * `imp_weight`: The normalized importance weight for each sample.
-#'  * `log_lik`: The log-likelihood for each sample.
-#'  * `birth_lik`: The log-likelihood of the point used to create each sample.
+#' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
   live_order <- order(x$run_env$log_lik)
@@ -152,27 +132,30 @@ print.ernest_run <- function(x, ...) {
 
 #' Summarize a nested sampling run
 #'
-#' Returns a concise summary of an `ernest_run` object, including key statistics and posterior summaries.
+#' Returns a concise summary of an `ernest_run` object, including key
+#' statistics and a description of the posterior distribution.
 #'
-#' @param object An `ernest_run` object.
+#' @param object [[ernest_run]]\cr Results from a nested sampling run.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @return A list of class `summary.ernest_run` with:
-#' * `nlive`: Number of points in the live set.
-#' * `niter`: Number of iterations.
-#' * `neval`: Number of likelihood evaluations.
-#' * `log_evidence`: Log-evidence estimate.
-#' * `log_evidence_err`: Standard error of log-evidence.
-#' * `information`: Estimated Kullback-Leibler divergence between the prior
-#' and posterior.
-#' * `reweighted_samples`: Posterior samples resampled by normalized weights.
-#' * `mle`: Maximum likelihood estimate extracted during the run, stored in a
-#' list with the elements:
-#'    * `log_lik`: The maximum log-likelihood value.
-#'    * `original`, `unit_cube`: The corresponding sample in the original
-#'    parameter space and the unit hypercube, respectively.
-#' * `posterior`: `tibble` with posterior mean, sd, median, 15th and
-#' 85th percentiles for each parameter.
+#' @returns `[summary.ernest_run]`
+#' A named list, containing:
+#' * `nlive`: `[integer(1)]` Number of points in the live set.
+#' * `niter`: `[integer(1)]` Number of iterations.
+#' * `neval`: `[integer(1)]` Number of likelihood evaluations.
+#' * `log_evidence`: `[numeric(1)]` Log-evidence estimate.
+#' * `log_evidence_err`: `[numeric(1)]` Standard error of log-evidence.
+#' * `information`: `[numeric(1)]` Estimated Kullback-Leibler divergence between
+#' the prior and posterior.
+#' * `reweighted_samples`: [[posterior::draws_matrix]] Posterior samples,
+#' resampled by normalized weights.
+#' * `mle`: `[list]` Maximum likelihood estimate extracted during the run,
+#' stored in a list with the elements:
+#'    * `log_lik`: `[double(1)]` The maximum log-likelihood value.
+#'    * `original`, `unit_cube`: `[double(n_dim)]` The parameter values at the
+#'    MLE, expressed in the original parameter space and within the unit cube.
+#' * `posterior`: [[tibble]] with columns for the posterior mean, sd, median,
+#' and the 15th and 85th percentiles for each parameter.
 #' * `seed`: The RNG seed used.
 #'
 #' @seealso

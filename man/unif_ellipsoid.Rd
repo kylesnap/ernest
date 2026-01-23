@@ -2,21 +2,19 @@
 % Please edit documentation in R/unif_ellipsoid.R
 \name{unif_ellipsoid}
 \alias{unif_ellipsoid}
-\title{Generate samples from the spanning ellipsoid}
+\title{Generate new points from the spanning ellipsoid}
 \usage{
 unif_ellipsoid(enlarge = 1.25)
 }
 \arguments{
-\item{enlarge}{Double, greater than or equal to 1. Factor by which to inflate
-the bounding ellipsoid's volume before sampling (see Details).}
+\item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the bounding
+ellipsoid's volume before sampling (see Details). Must be at least 1.0.}
 }
 \value{
-A list with class \code{c("unif_ellipsoid", "ernest_lrps")}. Use with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
+\verb{[unif_ellipsoid]}, a named list that inherits from [\link{ernest_lrps}].
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-Uses the bounding ellipsoid of the live points to define the region of prior
+Uses the bounding ellipsoid of the live set to define the region of prior
 space that contains new points. Effective for unimodal and roughly-Gaussian
 posteriors.
 }

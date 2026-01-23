@@ -4,17 +4,12 @@
 #' live set. This ensures the sampler is viable before new points are drawn
 #' during the nested sampling algorithm.
 #'
-#' @param object An [ernest_sampler] or [ernest_run] object.
-#'   * For `ernest_sampler`: Prepares a new sampler with a fresh set of live
-#'     points.
-#'   * For `ernest_run`: Regenerates a live set from previous results, unless
-#'     `clear = TRUE`.
-#' @param clear Logical. If `TRUE`, clears results from previous runs before
-#' compiling. If `FALSE`, retains previous results and validates the live
-#' set.
+#' @param object [`[ernest_run]`][ernest_run] or
+#' [`[ernest_sampler]`][ernest_sampler]\cr Results from a nested sampling run.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @details `compile()` validates the live set bound to `object`, ensuring that:
+#' @details
+#' `compile()` validates the live set bound to `object`, ensuring that:
 #'
 #' * Each point in the set is within the unit hypercube.
 #' * The likelihood function returns valid values (finite double or `-Inf`) for
@@ -26,13 +21,17 @@
 #' If validation fails, the live set is removed from `object`, preventing
 #' further sampling until the issue is resolved.
 #'
-#' @return A validated `object`, with a valid live set stored in its
-#' `run_env` environment.
+#' @returns A copy of `[object]`.
+#'
+#' The copy is guaranteed to have a valid live set, created according to the
+#' class of `object` and the value of `clear`:
+#' * If `object` is an `ernest_sampler`, or if `clear = TRUE`, a new live set is
+#' created from scratch.
+#' * If `object` is an `ernest_run`, the live set is regenerated from previous
+#' results.
 #'
 #' @seealso
-#' * [ernest_sampler()] for creating an `ernest_sampler` object.
-#' * [generate()] for running nested sampling and details on the `ernest_run`
-#'   object.
+#' * [generate()] for running samplers with compiled live sets.
 #'
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
@@ -51,7 +50,7 @@
 #' # Make a new sampler from a previous run
 #' sampler_3 <- compile(example_run, clear = TRUE)
 #' sampler_3
-#' @rdname compile
+#' @rdname compile.ernest_run
 #' @export
 compile.ernest_sampler <- function(object, ...) {
   preserve_seed(object)
@@ -73,7 +72,12 @@ compile.ernest_sampler <- function(object, ...) {
   object
 }
 
-#' @rdname compile
+#' @rdname compile.ernest_run
+#'
+#' @param clear `[logical(1)]`\cr If `TRUE`, clears results from previous runs
+#' before compiling. If `FALSE`, retains previous results and validates the live
+#' set.
+#'
 #' @export
 compile.ernest_run <- function(
   object,
@@ -126,7 +130,7 @@ compile.ernest_run <- function(
 #' Create a live sample with `nlive` points
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param nlive Integer. The number of points to generate.
+#' @param nlive [integer(1)]\cr The number of points to generate.
 #' @param call The calling environment for error handling.
 #'
 #' @return A list containing `unit` and `log_lik` matrices or vectors.

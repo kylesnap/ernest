@@ -3,20 +3,21 @@
 #' Creates a modified version of a log-likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters provided.
 #'
-#' @param fn,matrix_fn A function to compute log-likelihood values. Choose one
-#' of `fn` or `matrix_fn`:
-#' * `fn`: Accepts a numeric vector of parameters and returns a scalar
-#' log-likelihood.
-#' * `matrix_fn`: Accepts a numeric matrix of parameters, with each row a vector
-#' of parameters, and returns a numeric vector of log-likelihoods.
-#' @param on_nonfinite A case-sensitive string specifying what to do when `fn`
-#' returns a non-finite value other than `-Inf` (i.e., `NaN`, `NA`, `Inf`):
+#' @param fn,matrix_fn `[function]`\cr A model's log-likelihood function.
+#' Provide either `fn` or `matrix_fn`:
+#' * `fn`: Should accept a parameter as a numeric vector and return a single
+#' numeric value representing the log-likelihood, or `-Inf`.
+#' * `matrix_fn`: Should accept a matrix of parameter vectors (rows as samples,
+#' columns as elements of the parameter vector) and return a
+#' vector of log-likelihoods or `-Inf` values for each row.
+#' @param on_nonfinite `[character]`\cr How the sampler should handle values
+#' returned by `fn` or `matrix_fn` that are not finite and not equal to `-Inf`.
+#' Must be one of:
 #' * `"warn"`: Issue a warning and return `-Inf`.
 #' * `"quiet"`: Silently return `-Inf`.
 #' * `"abort"`: Stop execution and signal an error.
 #'
-#' @returns
-#' A function with class `ernest_likelihood`.
+#' @returns `[ernest_likelihood]`, which inherits from `function`.
 #'
 #' @details
 #' Provide model likelihoods as a log-density function, which take a vector of
@@ -25,16 +26,9 @@
 #' Likelihoods are typically the most computationally expensive function to
 #' evaluate in a nested sampling run. ernest allows you to implement your
 #' likelihood as a function over a single parameter vector (`fn`) or over a
-#' matrix of parameters (`matrix_fn`). Use `fn` or `matrix_fn` to select the
-#' method:
+#' matrix of parameters (`matrix_fn`).
 #'
-#' * `fn`: Expects a single parameter vector and returns a scalar likelihood.
-#' Internally, `create_likelihood` wraps this function with [apply], so it can
-#' be called over matrices of parameters.
-#' * `matrix_fn`: Expects a matrix of parameter vectors (rows as samples,
-#' columns as parameters) and returns a vector of log-likelihoods for each row.
-#'
-#' In both cases, ernest expects the log-likelihood function to return a
+#' ernest expects the log-likelihood function to return a
 #' finite double or `-Inf` for each parameter vector. The behaviour when
 #' encountering non-finite values other than `-Inf` (such as `NaN`, `Inf`, or
 #' `NA`) is controlled by `on_nonfinite`.

@@ -1,16 +1,13 @@
 #' Generate new points from the spanning ellipsoid
 #'
-#' @description
-#' `r lifecycle::badge("experimental")`
 #' Uses the bounding ellipsoid of the live set to define the region of prior
 #' space that contains new points. Effective for unimodal and roughly-Gaussian
 #' posteriors.
 #'
-#' @param enlarge Double, greater than or equal to 1. Factor by which to inflate
-#' the bounding ellipsoid's volume before sampling (see Details).
+#' @param enlarge `[double(1)]`\cr Factor by which to inflate the bounding
+#' ellipsoid's volume before sampling (see Details). Must be at least 1.0.
 #'
-#' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
-#' [ernest_sampler()] to specify nested sampling behaviour.
+#' @returns `[unif_ellipsoid]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @details Nested likelihood contours rarely form perfect ellipses, so sampling
 #' from the spanning ellipsoid without enlargement may exclude valid regions.
@@ -85,8 +82,8 @@ format.unif_ellipsoid <- function(x, ...) {
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum proposal attempts.
+#' @param n_dim [integer(1)]\cr Number of dimensions.
+#' @param max_loop [integer(1)]\cr Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
 #' @return An LRPS specification, a list with class
@@ -158,7 +155,7 @@ propose.unif_ellipsoid <- function(
 #' @param center Vector. The center of the ellipsoid.
 #' @param inv_sqrt_shape Matrix. The inverse square root of the shape matrix.
 #' @param enlarge Double. Enlargement factor for the ellipsoid.
-#' @param max_loop Positive integer. Maximum number of attempts to generate
+#' @param max_loop Positive [integer(1)]\cr Maximum number of attempts to generate
 #' a point.
 #'
 #' @returns A list with:

@@ -3,13 +3,12 @@
 #' Produces visualizations of the posterior distributions or the evolution of
 #' variables along the log-prior volume from a nested sampling run.
 #'
-#' @param x An [ernest_run] object containing the results of a nested sampling
-#' run.
+#' @param x [[ernest_run]] The results of a nested sampling run.
 #' @param ... <[`tidy-select`][dplyr::dplyr_tidy_select]> One or more variables
 #' to plot from the run. If omitted, all variables are plotted.
-#' @param .which Character string specifying the type of plot to produce.
-#' Options are `"density"` for the posterior density of each parameter or
-#' `"trace"` for the trace of variables along log-prior volume.
+#' @param .which `[charcacter(1)]` Character string specifying the type of plot
+#' to produce. Options are `"density"` for the posterior density of each
+#' parameter or `"trace"` for the trace of variables along log-volume.
 #' @inheritParams as_draws.ernest_run
 #'
 #' @returns
@@ -22,7 +21,7 @@
 #' using `ggdist::stat_halfeye()` to visualize uncertainty and distribution
 #' shape.
 #' - **Trace plots** display the evolution of variables as a function of
-#' log-prior volume, with points coloured by posterior weight. This can help
+#' log-volume, with points coloured by posterior weight. This can help
 #' diagnose sampling behavior and identify regions of interest in the prior
 #' volume.
 #'

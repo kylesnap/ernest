@@ -1,16 +1,16 @@
 #' Generate new points with slice sampling
 #'
-#' @description
-#' `r lifecycle::badge("experimental")`
 #' Create new samples for the live set by evolving a current point in the set
 #' through slice sampling within a bounding hyperrectangle, shrinking the
 #' rectangle when proposals are rejected.
 #'
-#' @param enlarge Optional double, greater than or equal to 1. Factor by which
-#' to inflate the hyperrectangle's volume before sampling (see Details).
+#' @param enlarge `[double(1)]`\cr Factor by which to inflate the
+#' hyperrectangle's volume before sampling (see Details). Optional, and must be
+#' greater or equal to 1 if provided; if left `NA`, sampling is initially
+#' bounded by the unit hypercube at each iteration.
 #'
-#' @returns An object of class `c("slice_rectangle", "ernest_lrps")` that can be
-#' used with [ernest_sampler()] to specify the sampling behaviour.
+#' @returns `[slice_rectangle]`, a named list that inherits from
+#' [[ernest_lrps]].
 #'
 #' @details
 #' The slice LRPS generates proposals by uniformly sampling within a bounding
@@ -69,8 +69,8 @@ format.slice_rectangle <- function(x, ...) {
 #' Internal constructor for the slice sampling LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param n_dim [integer(1)]\cr Number of dimensions.
+#' @param max_loop [integer(1)]\cr Maximum number of proposal attempts.
 #' @param enlarge Inflate the hyperrectangle's volume before sampling.
 #' @param cache Optional cache environment.
 #'

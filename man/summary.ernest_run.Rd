@@ -7,35 +7,38 @@
 \method{summary}{ernest_run}(object, ...)
 }
 \arguments{
-\item{object}{An \code{ernest_run} object.}
+\item{object}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A list of class \code{summary.ernest_run} with:
+\verb{[summary.ernest_run]}
+A named list, containing:
 \itemize{
-\item \code{nlive}: Number of live points.
-\item \code{niter}: Number of iterations.
-\item \code{neval}: Number of likelihood evaluations.
-\item \code{log_evidence}: Log-evidence estimate.
-\item \code{log_evidence_err}: Standard error of log-evidence.
-\item \code{information}: Estimated Kullback-Leibler divergence between the prior
-and posterior.
-\item \code{reweighted_samples}: Posterior samples resampled by normalized weights.
-\item \code{mle}: Maximum likelihood estimate extracted during the run, stored in a
-list with the elements:
+\item \code{nlive}: \verb{[integer(1)]} Number of points in the live set.
+\item \code{niter}: \verb{[integer(1)]} Number of iterations.
+\item \code{neval}: \verb{[integer(1)]} Number of likelihood evaluations.
+\item \code{log_evidence}: \verb{[numeric(1)]} Log-evidence estimate.
+\item \code{log_evidence_err}: \verb{[numeric(1)]} Standard error of log-evidence.
+\item \code{information}: \verb{[numeric(1)]} Estimated Kullback-Leibler divergence between
+the prior and posterior.
+\item \code{reweighted_samples}: [\link[posterior:draws_matrix]{posterior::draws_matrix}] Posterior samples,
+resampled by normalized weights.
+\item \code{mle}: \verb{[list]} Maximum likelihood estimate extracted during the run,
+stored in a list with the elements:
 \itemize{
-\item \code{log_lik}: The maximum log-likelihood value.
-\item \code{original}, \code{unit_cube}: The corresponding sample in the original
-parameter space and the unit hypercube, respectively.
+\item \code{log_lik}: \verb{[double(1)]} The maximum log-likelihood value.
+\item \code{original}, \code{unit_cube}: \verb{[double(n_dim)]} The parameter values at the
+MLE, expressed in the original parameter space and within the unit cube.
 }
-\item \code{posterior}: \code{tibble} with posterior mean, sd, median, 15th and
-85th percentiles for each parameter.
+\item \code{posterior}: [\link{tibble}] with columns for the posterior mean, sd, median,
+and the 15th and 85th percentiles for each parameter.
 \item \code{seed}: The RNG seed used.
 }
 }
 \description{
-Returns a concise summary of an \code{ernest_run} object, including key statistics and posterior summaries.
+Returns a concise summary of an \code{ernest_run} object, including key
+statistics and a description of the posterior distribution.
 }
 \examples{
 data(example_run)

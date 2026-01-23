@@ -4,13 +4,12 @@
 #' through a Metropolis-Hastings random walk, rejecting steps that fail to meet
 #' the likelihood criterion.
 #'
-#' @param steps Positive integer. Number of steps to take when generating a
-#' proposal point.
-#' @param target_acceptance Number between `1 / steps` and 1.0. Target
-#' acceptance rate for proposed points.
+#' @param steps `[integer(1)]`\cr Number of steps to take when generating a
+#' proposal point. Must be greater or equal to 2.
+#' @param target_acceptance `[double(1)]`\cr Target acceptance rate for proposed
+#' points. Must be a number between `1 / steps` and 1.
 #'
-#' @returns An object of class `c("rwmh_cube", "ernest_lrps")` that can be
-#' used with [ernest_sampler()] to specify the sampling behaviour.
+#' @returns `[rwmh_cube]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @details
 #' The random walk LRPS generates proposals by performing a fixed number of
@@ -90,10 +89,10 @@ format.rwmh_cube <- function(x, ...) {
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param n_dim [integer(1)]\cr Number of dimensions.
+#' @param max_loop [integer(1)]\cr Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
-#' @param steps Integer. Number of steps in the random walk.
+#' @param steps [integer(1)]\cr Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected

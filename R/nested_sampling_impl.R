@@ -5,16 +5,16 @@
 #'
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
 #' state and configuration.
-#' @param max_iterations Integer. Maximum number of iterations to perform.
-#' @param max_evaluations Integer. Maximum number of likelihood function evals.
+#' @param max_iterations [integer(1)]\cr Maximum number of iterations to perform.
+#' @param max_evaluations [integer(1)]\cr Maximum number of likelihood function evals.
 #' @param min_logz Numeric. Minimum change in log-evidence (log Z) required to
 #' continue sampling.
 #' @param last_criterion Numeric. Log-likelihood value of the last removed
 #' sample (default: -1e300).
 #' @param log_vol Numeric. Current log prior volume.
 #' @param log_z Numeric. Current log-evidence.
-#' @param curiter Integer. Current iteration.
-#' @param cureval Integer. Current number of likelihood calls.
+#' @param curiter [integer(1)]\cr Current iteration.
+#' @param cureval [integer(1)]\cr Current number of likelihood calls.
 #' @param show_progress Logical. If TRUE, displays a progress bar during
 #' sampling.
 #'

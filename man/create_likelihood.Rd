@@ -8,17 +8,19 @@
 create_likelihood(fn, matrix_fn, on_nonfinite = c("warn", "quiet", "abort"))
 }
 \arguments{
-\item{fn, matrix_fn}{A function to compute log-likelihood values. Choose one
-of \code{fn} or \code{matrix_fn}:
+\item{fn, matrix_fn}{\verb{[function]}\cr A model's log-likelihood function.
+Provide either \code{fn} or \code{matrix_fn}:
 \itemize{
-\item \code{fn}: Accepts a numeric vector of parameters and returns a scalar
-log-likelihood.
-\item \code{matrix_fn}: Accepts a numeric matrix of parameters, with each row a vector
-of parameters, and returns a numeric vector of log-likelihoods.
+\item \code{fn}: Should accept a parameter as a numeric vector and return a single
+numeric value representing the log-likelihood, or \code{-Inf}.
+\item \code{matrix_fn}: Should accept a matrix of parameter vectors (rows as samples,
+columns as elements of the parameter vector) and return a
+vector of log-likelihoods or \code{-Inf} values for each row.
 }}
 
-\item{on_nonfinite}{A case-sensitive string specifying what to do when \code{fn}
-returns a non-finite value other than \code{-Inf} (i.e., \code{NaN}, \code{NA}, \code{Inf}):
+\item{on_nonfinite}{\verb{[character]}\cr How the sampler should handle values
+returned by \code{fn} or \code{matrix_fn} that are not finite and not equal to \code{-Inf}.
+Must be one of:
 \itemize{
 \item \code{"warn"}: Issue a warning and return \code{-Inf}.
 \item \code{"quiet"}: Silently return \code{-Inf}.
@@ -26,7 +28,7 @@ returns a non-finite value other than \code{-Inf} (i.e., \code{NaN}, \code{NA}, 
 }}
 }
 \value{
-A function with class \code{ernest_likelihood}.
+\verb{[ernest_likelihood]}, which inherits from \code{function}.
 }
 \description{
 Creates a modified version of a log-likelihood function that always returns
@@ -39,17 +41,9 @@ free parameter values and return the corresponding log-likelihood value.
 Likelihoods are typically the most computationally expensive function to
 evaluate in a nested sampling run. ernest allows you to implement your
 likelihood as a function over a single parameter vector (\code{fn}) or over a
-matrix of parameters (\code{matrix_fn}). Use \code{fn} or \code{matrix_fn} to select the
-method:
-\itemize{
-\item \code{fn}: Expects a single parameter vector and returns a scalar likelihood.
-Internally, \code{create_likelihood} wraps this function with \link{apply}, so it can
-be called over matrices of parameters.
-\item \code{matrix_fn}: Expects a matrix of parameter vectors (rows as samples,
-columns as parameters) and returns a vector of log-likelihoods for each row.
-}
+matrix of parameters (\code{matrix_fn}).
 
-In both cases, ernest expects the log-likelihood function to return a
+ernest expects the log-likelihood function to return a
 finite double or \code{-Inf} for each parameter vector. The behaviour when
 encountering non-finite values other than \code{-Inf} (such as \code{NaN}, \code{Inf}, or
 \code{NA}) is controlled by \code{on_nonfinite}.

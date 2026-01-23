@@ -40,10 +40,6 @@ test_that("plot.ernest_run validates input arguments", {
     plot(example_run, ndraws = 1.5),
     "must be a whole number"
   )
-  expect_error(
-    plot(example_run, ndraws = 0),
-    "larger than or equal to 1 or `NULL`"
-  )
 })
 
 describe("plotting an ernest_estimate object", {

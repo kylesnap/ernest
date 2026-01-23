@@ -54,7 +54,7 @@
 #' @rdname compile
 #' @export
 compile.ernest_sampler <- function(object, ...) {
-  withr::local_seed(attr(object, "seed"))
+  preserve_seed(object)
   check_dots_empty()
   object <- refresh_ernest_sampler(object)
 
@@ -95,7 +95,7 @@ compile.ernest_run <- function(
     object <- do.call(new_ernest_sampler, elem)
     return(compile(object, ...))
   }
-  withr::local_seed(attr(object, "seed"))
+  preserve_seed(object)
 
   # Fill live set
   live_positions <- vctrs::vec_as_location(

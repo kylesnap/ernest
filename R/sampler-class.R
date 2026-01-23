@@ -30,7 +30,7 @@ new_ernest_sampler <- function(
   first_update = NULL,
   update_interval = NULL,
   run_env = NULL,
-  seed = NULL,
+  seed = NA_integer_,
   ...,
   .class = NULL,
   .call = caller_env()
@@ -60,10 +60,7 @@ new_ernest_sampler <- function(
     call = .call
   )
   check_environment(run_env, allow_null = TRUE, call = .call)
-  check_number_whole(seed, min = 1, allow_null = TRUE, call = .call)
-  if (is.null(seed)) {
-    seed <- sample.int(.Machine$integer.max, 1L)
-  }
+  check_number_whole(seed, min = 1, allow_na = TRUE, call = .call)
 
   unit <- NULL
   log_lik <- NULL

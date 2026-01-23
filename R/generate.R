@@ -95,7 +95,7 @@ generate.ernest_sampler <- function(
   min_logz = 0.05,
   show_progress = NULL
 ) {
-  withr::local_seed(attr(x, "seed"))
+  preserve_seed(x)
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
@@ -131,7 +131,7 @@ generate.ernest_run <- function(
   min_logz = 0.05,
   show_progress = NULL
 ) {
-  withr::local_seed(attr(x, "seed"))
+  preserve_seed(x)
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }

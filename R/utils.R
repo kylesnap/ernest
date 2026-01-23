@@ -1,104 +1,19 @@
-#' Configure logging for ernest runs
+#' Preserve seed for a run
 #'
-#' Set up log for ernest. #' "INFO"-level logging saves the results of each call
-#' to [update_lrps]; "DEBUG"-level logging additionally saves the results of
-#' each call to [propose].
+#' @param object An `ernest_sampler` or `ernest_run` object with a `seed`
+#' attribute.
+#' @inheritParam withr::local_preserve_seed
 #'
-#' @param dir Character or `FALSE.` Directory in which to create the log file.
-#' This directory must already exist. If `FALSE`, logging is disabled.
-#' @param threshold Character. Minimum message level to record, one of
-#' "INFO", "DEBUG", "WARN", "ERROR", or "FATAL".
-#' @param layout Character. Log output format, either "json" or "logfmt".
-#'
-#' @return
-#' A list with S3 class "ernest_logging" if `dir` is a valid directory, or
-#' NULL if `dir` is FALSE. The list contains arguments used to create an
-#' instance of [log4r::logger] when [generate] is called. The return value is
-#' also stored in the R option 'ernest_logging'.
-#'
-#' @srrstats {G4.0} Users can choose the location of logging files.
-#'
-#' @keywords internal
-#' @export
-ernest_logging <- function(
-  dir = tempdir(),
-  threshold = "INFO",
-  layout = c("json", "logfmt")
-) {
-  # Capture the unevaluated expression for comparison
-  dir_expr <- enquo(dir)
-
-  if (isFALSE(dir)) {
-    options("ernest_logging" = NULL)
-    return(NULL)
-  }
-  check_installed("log4r", reason = "writing log files")
-
-  dir <- if (identical(dir_expr, quote(tempdir()))) {
-    tempdir()
-  } else if (!dir.exists(dir)) {
-    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
-    tempdir()
-  } else {
-    normalizePath(dir)
-  }
-  threshold <- arg_match(
-    threshold,
-    values = c("DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-  )
-  layout <- arg_match(layout)
-  file_ext <- switch(layout, "json" = ".json", "logfmt" = ".file")
-  layout <- switch(
-    layout,
-    "json" = log4r::json_log_layout(),
-    "logfmt" = log4r::logfmt_log_layout()
-  )
-
-  config <- structure(
-    list(threshold = threshold, dir = dir, fileext = file_ext, layout = layout),
-    class = "ernest_logging"
-  )
-  options("ernest_logging" = config)
-  config
-}
-
-#' Simple format for ernest_logging
+#' @return invisibly `NA`, if the seed is preserved, otherwise the seed bound to
+#' `object`.
 #' @noRd
-#' @export
-format.ernest_logging <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("logfile configuration {.cls ernest_logging}")
-    cli::cli_text("Directory: {.path {x$dir}}")
-    cli::cli_text("Threshold: {x$threshold}")
-  })
-}
-
-#' Simple print for ernest_logging
-#' @noRd
-#' @export
-print.ernest_logging <- function(x, ...) {
-  print(format(x, ...), sep = "\n")
-}
-
-#' Configure logging when `generate` is called
-#' @noRd
-start_logging <- function() {
-  if (is.null(config <- getOption("ernest_logging"))) {
-    return(NULL)
+preserve_seed <- function(object, .local_envir = parent.frame()) {
+  if (is.na(attr(object, "seed"))) {
+    withr::local_preserve_seed(.local_envir = .local_envir)
+    return(invisible(NA))
   }
-  check_class(config, "ernest_logging")
-  file <- file.path(
-    config$dir,
-    paste0(
-      "ernest_generate_",
-      format(Sys.time(), "%Y%m%d_%H%M%S"),
-      config$fileext
-    )
-  )
-  log4r::logger(
-    threshold = config$threshold,
-    appenders = log4r::file_appender(file, layout = config$layout)
-  )
+  withr::local_seed(attr(object, "seed"), .local_envir = .local_envir)
+  invisible(attr(object, "seed"))
 }
 
 #' Check the class of an object

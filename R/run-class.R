@@ -190,7 +190,7 @@ print.ernest_run <- function(x, ...) {
 summary.ernest_run <- function(object, ...) {
   check_dots_empty()
   nlive <- object$nlive
-  seed <- attr(object, "seed") %||% NA
+  seed <- attr(object, "seed")
   niter <- object$niter
   neval <- object$neval
   log_evidence <- object$log_evidence

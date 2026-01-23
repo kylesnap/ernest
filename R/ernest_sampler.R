@@ -21,9 +21,8 @@
 #' calls between updates to the `sampler` object. If `NULL`, this is set to
 #' `nlive * 1.5`.
 #' @param seed An optional integer. Sets the random seed controlling the
-#' random number generator for nested sampling runs, which is stored in
-#' the resulting `ernest_sampler` as an attribute. If `NULL`, this is
-#' set to a random integer.
+#' random number generator for nested sampling runs. If left `NA`, runs will
+#' preserve the [.Random.seed] set within R.
 #'
 #' @return An object of class `ernest_sampler`, which is a list containing the
 #' inputs used as arguments to this function, along with an environment
@@ -88,7 +87,7 @@ ernest_sampler <- function(
   nlive = 500,
   first_update = NULL,
   update_interval = NULL,
-  seed = NULL
+  seed = NA
 ) {
   if (!inherits(log_lik, "ernest_likelihood")) {
     log_lik <- create_likelihood(fn = log_lik)

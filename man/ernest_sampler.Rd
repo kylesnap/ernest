@@ -25,8 +25,8 @@ within which to generate sample parameters for \code{log_lik}.}
 \item{sampler}{An object of class \link{ernest_lrps}. Describes the
 likelihood-restricted prior sampling technique to adopt during the run.}
 
-\item{nlive}{A strictly positive integer. The number of live points to use
-in the nested sampling run.}
+\item{nlive}{A strictly positive integer. The number of points to generate
+within the live set.}
 
 \item{first_update}{An optional positive integer. The number of likelihood
 calls to make with the default \link[=unif_cube]{uniform LRPS} method before
@@ -38,9 +38,8 @@ calls between updates to the \code{sampler} object. If \code{NULL}, this is set 
 \code{nlive * 1.5}.}
 
 \item{seed}{An optional integer. Sets the random seed controlling the
-random number generator for nested sampling runs, which is stored in
-the resulting \code{ernest_sampler} as an attribute. If \code{NULL}, this is
-set to a random integer.}
+random number generator for nested sampling runs. If left \code{NA}, runs will
+preserve the \link{.Random.seed} set within R.}
 }
 \value{
 An object of class \code{ernest_sampler}, which is a list containing the

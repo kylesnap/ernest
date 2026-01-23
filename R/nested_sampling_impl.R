@@ -58,17 +58,13 @@ nested_sampling_impl <- function(
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_evals <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
-  logger <- start_logging()
-  if (!is.null(logger)) {
-    log4r::warn(logger, "run_info" = format(x))
-  }
 
   i <- 1
   if (show_progress) {
     cli::cli_progress_bar(
       format = paste0(
-        "{pb_spin} Generating samples | {pb_current} iter. | {cureval} log-lik. ",
-        "calls | {pretty_signif(d_log_z)} log-evid. remaining"
+        "{pb_spin} Generating samples | {pb_current} iter. | {cureval} ",
+        "log-lik. calls | {pretty_signif(d_log_z)} log-evid. remaining"
       ),
       type = "custom"
     )

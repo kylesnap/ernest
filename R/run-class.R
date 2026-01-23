@@ -269,14 +269,7 @@ print.summary.ernest_run <- function(x, ...) {
 #' Converts the output from `nested_sampling_impl` into a structured list of
 #' vectors.
 #'
-#' @param results Output from `nested_sampling_impl`, which is a list that
-#' contains these elements:
-#' * `dead_unit`: Sample points in the unit hypercube.
-#' * `dead_log_lik`: Log-likelihoods of dead points.
-#' * `dead_id`: IDs of dead points.
-#' * `dead_evals`: Number of likelihood evals for each dead point.
-#' * `dead_birth`: The log-likelihood of the point used to create each dead
-#' point.
+#' @param results Output from `nested_sampling_impl`.
 #'
 #' @return A named list of vectors and the number of iterations.
 #' @noRd
@@ -302,8 +295,8 @@ parse_results <- function(results) {
 #' Combines dead and live sample information into a single data frame list.
 #'
 #' @param dead The list object from `parse_results`.
-#' @param live The log-likelihood, id, and birth_lik vectors from the current live
-#' set.
+#' @param live The log-likelihood, id, and birth_lik vectors from the current
+#' live set.
 #' @param niter Number of iterations used for the run.
 #' @param nlive Number of points in the live set.
 #'

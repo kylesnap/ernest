@@ -107,10 +107,9 @@ print.ernest_estimate <- function(x, ...) {
 #'
 #' Simulates log-volumes for points in a nested sampling run.
 #'
-#' @param nlive [integer(1)]\cr The number of points in the prior space.
-#' @param niter [integer(1)]\cr The number of iterations in the nested sampling run.
-#' @param ndraws [integer(1)]\cr The number of draws to simulate for each volume, or
-#' NULL.
+#' @param nlive The number of points in the prior space.
+#' @param niter The number of iterations in the nested sampling run.
+#' @param ndraws The number of draws to simulate for each volume, or NULL.
 #'
 #' @return A matrix of simulated log-volumes with dimensions `ndraws` by
 #' `niter + nlive`. If ndraws is NULL, these are the expected values.
@@ -189,9 +188,6 @@ get_logevid <- function(log_weight) {
 }
 
 #' Compute information (KL divergence) for nested sampling
-#'
-#' Calculates the information (Kullback-Leibler divergence) for a nested
-#' sampling run.
 #'
 #' @param log_lik Numeric vector of log-likelihoods.
 #' @param log_volume Numeric vector of log-volumes.

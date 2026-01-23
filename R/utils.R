@@ -2,7 +2,7 @@
 #'
 #' @param object An `ernest_sampler` or `ernest_run` object with a `seed`
 #' attribute.
-#' @inheritParam withr::local_preserve_seed
+#' @param .local_envir Forwarded to withr.
 #'
 #' @return invisibly `NA`, if the seed is preserved, otherwise the seed bound to
 #' `object`.
@@ -66,6 +66,7 @@ check_class <- function(
 #' @param ncol Expected number of columns.
 #' @param lower Numeric. Exclusive lower bounds, recycled to length `ncol`.
 #' @param upper Numeric. Exclusive upper bounds, recycled to length `ncol`.
+#' @param finite Logical. If TRUE, checks that all values are finite.
 #' @param ... Additional arguments passed to error handlers.
 #' @param arg Argument name for error messages.
 #' @param call Call environment for error messages.

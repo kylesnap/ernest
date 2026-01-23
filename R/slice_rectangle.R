@@ -69,8 +69,8 @@ format.slice_rectangle <- function(x, ...) {
 #' Internal constructor for the slice sampling LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim [integer(1)]\cr Number of dimensions.
-#' @param max_loop [integer(1)]\cr Maximum number of proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum number of proposal attempts.
 #' @param enlarge Inflate the hyperrectangle's volume before sampling.
 #' @param cache Optional cache environment.
 #'

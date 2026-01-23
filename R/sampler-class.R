@@ -8,11 +8,12 @@
 #' @param prior An object of class `ernest_prior`. The prior distribution for
 #' the sampler.
 #' @param lrps (Optional) An object of class `ernest_lrps`.
-#' @param nlive [integer(1)]\cr Number of points in the live set.
-#' @param first_update [integer(1)]\cr Iteration at which to perform the first update.
-#' @param update_interval [integer(1)]\cr Number of iterations between updates.
+#' @param nlive  Number of points in the live set.
+#' @param first_update  Iteration at which to perform the first update.
+#' @param update_interval  Number of iterations between updates.
 #' @param run_env (Optional) An environment for storing the live set. If not
 #' provided, a new environment is created.
+#' @param seed  An optional random seed for reproducibility.
 #' @param ... Additional parameters for children of ernest_sampler.
 #' @param .class The subclass inheriting from ernest_sampler.
 #' @param .call The calling environment.

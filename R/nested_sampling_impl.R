@@ -1,25 +1,34 @@
 #' Internal implementation of the nested sampling algorithm
 #'
-#' Performs the core nested sampling loop, updating the live set, accumulating
-#' evidence, and checking stopping criteria.
+#' Executes the core nested sampling loop, iteratively updating the live set,
+#' accumulating evidence, and checking stopping criteria. This function is
+#' responsible for removing the lowest-likelihood live point, updating the
+#' evidence estimate, and proposing new points until convergence or a stopping
+#' condition is met.
 #'
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
-#' state and configuration.
-#' @param max_iterations [integer(1)]\cr Maximum number of iterations to perform.
-#' @param max_evaluations [integer(1)]\cr Maximum number of likelihood function evals.
+#'   state and configuration.
+#' @param max_iterations Integer. Maximum number of iterations to perform.
+#' @param max_evaluations Integer. Maximum number of likelihood function
+#' evaluations.
 #' @param min_logz Numeric. Minimum change in log-evidence (log Z) required to
-#' continue sampling.
+#'   continue sampling.
 #' @param last_criterion Numeric. Log-likelihood value of the last removed
-#' sample (default: -1e300).
+#'   sample (default: -1e300).
 #' @param log_vol Numeric. Current log prior volume.
 #' @param log_z Numeric. Current log-evidence.
-#' @param curiter [integer(1)]\cr Current iteration.
-#' @param cureval [integer(1)]\cr Current number of likelihood calls.
-#' @param show_progress Logical. If TRUE, displays a progress bar during
-#' sampling.
+#' @param curiter Integer. Current iteration.
+#' @param cureval Integer. Current number of likelihood calls.
+#' @param show_progress Logical. If `TRUE`, displays a progress bar during
+#'   sampling.
 #'
-#' @return A list containing the dead points and their associated metadata,
-#' representing the updated state of the nested sampler.
+#' @return
+#' A list containing the dead points and their associated metadata:
+#' * `dead_unit`: List of unit-space coordinates of removed points.
+#' * `dead_log_lik`: List of log-likelihood values for removed points.
+#' * `dead_id`: List of indices of removed points.
+#' * `dead_evals`: List of likelihood evaluations used for each replacement.
+#' * `dead_birth`: List of birth log-likelihoods for removed points.
 #'
 #' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
 #' colinearity, ernest examines whether it has reached a likelihood plateau

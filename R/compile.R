@@ -130,7 +130,7 @@ compile.ernest_run <- function(
 #' Create a live sample with `nlive` points
 #'
 #' @param lrps An object containing the likelihood-restricted prior sampler.
-#' @param nlive [integer(1)]\cr The number of points to generate.
+#' @param nlive The number of points to generate.
 #' @param call The calling environment for error handling.
 #'
 #' @return A list containing `unit` and `log_lik` matrices or vectors.

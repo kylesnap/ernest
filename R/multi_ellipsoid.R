@@ -71,20 +71,25 @@ format.multi_ellipsoid <- function(x, ...) {
   )
 }
 
-#' Create a new multi_ellipsoid LRPS
+#' Internal constructor for multi-ellipsoid LRPS objects
 #'
-#' Internal constructor for multi ellipsoid LRPS objects.
+#' @description
+#' Constructs a new `multi_ellipsoid` object, specifying the logic for
+#' partitioning the unit prior space into multiple bounding ellipsoids for
+#' likelihood-restricted prior sampling (LRPS). Used internally by
+#' [multi_ellipsoid()] and S3 methods.
 #'
-#' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim [integer(1)]\cr Number of dimensions.
-#' @param max_loop [integer(1)]\cr Maximum proposal attempts.
-#' @param cache Optional cache environment.
-#' @param enlarge Double. Volume enlargement factor.
-#' @param min_reduction Double. Minimum volume reduction for splitting.
-#' @param allow_contact Logical. Whether ellipsoids can overlap.
+#' @param unit_log_fn Function or `NULL`. Computes log-likelihood in unit space.
+#' @param n_dim Integer or `NULL`. Number of dimensions of the parameter space.
+#' @param max_loop Integer. Maximum number of proposal attempts (default: 1e6).
+#' @param cache Environment or `NULL`. Stores cached ellipsoid decompositions and related state.
+#' @param enlarge Double. Volume enlargement factor for each ellipsoid (must be ≥ 1).
 #'
-#' @return An LRPS specification, a list with class
-#' `c("multi_ellipsoid", "ernest_lrps")`.
+#' @return
+#' An object of class `multi_ellipsoid` (inherits from `ernest_lrps`): a list
+#' containing the LRPS specification and cached ellipsoid state.
+#'
+#' @keywords internal
 #' @noRd
 new_multi_ellipsoid <- function(
   unit_log_fn = NULL,

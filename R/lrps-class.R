@@ -141,7 +141,6 @@ propose.ernest_lrps <- function(
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
 #' @param n_dim Number of dimensions.
-#' @param p The p-norm to sample from.
 #' @param max_loop Maximum number of attempts to generate a point.
 #'
 #' @returns A list with:

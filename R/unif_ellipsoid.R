@@ -82,8 +82,8 @@ format.unif_ellipsoid <- function(x, ...) {
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim [integer(1)]\cr Number of dimensions.
-#' @param max_loop [integer(1)]\cr Maximum proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
 #' @return An LRPS specification, a list with class
@@ -155,7 +155,7 @@ propose.unif_ellipsoid <- function(
 #' @param center Vector. The center of the ellipsoid.
 #' @param inv_sqrt_shape Matrix. The inverse square root of the shape matrix.
 #' @param enlarge Double. Enlargement factor for the ellipsoid.
-#' @param max_loop Positive [integer(1)]\cr Maximum number of attempts to generate
+#' @param max_loop Positive  Maximum number of attempts to generate
 #' a point.
 #'
 #' @returns A list with:

@@ -137,6 +137,10 @@ create_uniform_prior <- function(
 }
 
 #' Recycle prior parameters to the right length
+#'
+#' @param names Character vector of parameter names (or NULL).
+#' @param lower,upper,... Vectors to be recycled.
+#'
 #' @noRd
 recycle_params <- function(names, lower, upper, ..., .call = caller_env()) {
   n_dim <- if (is.null(names)) NULL else length(names)

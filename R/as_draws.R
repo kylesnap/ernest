@@ -90,19 +90,15 @@ as_draws_rvars.ernest_run <- function(
 
 #' Convert an ernest_run to a weighted draws matrix
 #'
-#' Converts an [ernest_run] object to a weighted draws matrix suitable for use
-#' with the posterior package.
-#'
-#' @param x An [ernest_run] object.
+#' @param x An ernest_run object.
 #' @param ... Additional arguments (currently unused).
-#' @param units Character. The scale for the sampled points: `"original"` or
-#' `"unit_cube"`.
-#' @param radial Logical. If TRUE, includes a `.radial` column with the
-#' Euclidean norm for each sample.
+#' @param units Character. The scale for the sampled points: "original" or
+#'   "unit_cube".
+#' @param radial Logical. If TRUE, includes a .radial column with the
+#'   Euclidean norm for each sample.
 #' @param call Environment to use for error reporting.
 #'
-#' @return A weighted draws matrix of class `draws_matrix`, with log weights
-#' attached.
+#' @return A draws_matrix object with importance weights attached.
 #' @noRd
 as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   check_dots_empty(call = call)

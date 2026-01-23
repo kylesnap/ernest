@@ -118,6 +118,8 @@ plot.ernest_run <- function(
 #' uncertainty simulations.
 #'
 #' @param object An `ernest_estimate` object containing uncertainty simulations.
+#' @param which Which plots to display.
+#' @param call The calling environment for error handling.
 #' @param ... Additional arguments passed to the method.
 #'
 #' @return A ggplot object.
@@ -188,6 +190,8 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' sampling run.
 #'
 #' @param object Results from a nested sampling run.
+#' @param which Which plots to display.
+#' @param call The calling environment for error handling.
 #' @param ... Additional arguments passed to the method.
 #'
 #' @return A ggplot object.

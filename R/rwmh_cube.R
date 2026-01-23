@@ -89,10 +89,10 @@ format.rwmh_cube <- function(x, ...) {
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim [integer(1)]\cr Number of dimensions.
-#' @param max_loop [integer(1)]\cr Maximum number of proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
-#' @param steps [integer(1)]\cr Number of steps in the random walk.
+#' @param steps  Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected

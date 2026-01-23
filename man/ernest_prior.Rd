@@ -35,33 +35,36 @@ create_uniform_prior(
 )
 }
 \arguments{
-\item{fn}{A function specifying the prior transformation.}
+\item{fn}{\verb{[function]} A prior transformation function that maps points from
+the unit hypercube (i.e., each parameter between 0 and 1) to the parameter
+space.}
 
-\item{names}{Unique names for each variable in the prior distribution.
-Optional for non-custom prior distributions.}
+\item{names}{\verb{[character()]} Unique names for each variable in the prior
+distribution. Optional for non-custom prior distributions.}
 
-\item{lower, upper}{Numeric vectors. Expected bounds for the
+\item{lower, upper}{\verb{[double()]} Expected bounds for the
 parameter vectors after hypercube transformation.}
 
-\item{repair}{Describes how to repair the vector of \code{names}. One of
-\code{"check_unique"}, \code{"unique"}, \code{"universal"}, \code{"unique_quiet"},
+\item{repair}{\verb{[character(1)]} Describes how to repair the vector of \code{names}.
+One of \code{"check_unique"}, \code{"unique"}, \code{"universal"}, \code{"unique_quiet"},
 or \code{"universal_quiet"}. See \code{\link[vctrs:vec_as_names]{vctrs::vec_as_names()}} for descriptions of each
 repair strategy.}
 
-\item{x, y}{\code{ernest_prior} objects.}
+\item{x, y}{[\link{ernest_prior}] Prior objects to combine.}
 
 \item{mean}{vector of means.}
 
 \item{sd}{vector of standard deviations.}
 }
 \value{
-A list with class \code{ernest_prior}, containing \code{fn}, \code{lower}, \code{upper},
-and \code{names}. The vector-valued parameters are guaranteed to be of common
-length.
+\verb{[ernest_prior]}
+
+A named list, containing the parameters provided to the function, with
+\code{names}, \code{lower}, and \code{upper} recycled to the same length.
 }
 \description{
-Use an R function to specify the prior distribution of parameters for a
-nested sampling run.
+Creates an object of class \code{ernest_prior}, which defines a prior
+distribution for use in a nested sampling run.
 }
 \details{
 The unit hypercube transformation encodes points in the parameter space

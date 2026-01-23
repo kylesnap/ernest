@@ -1,22 +1,24 @@
 #' Specify a prior distribution for nested sampling
 #'
-#' Use an R function to specify the prior distribution of parameters for a
-#' nested sampling run.
+#' Creates an object of class `ernest_prior`, which defines a prior
+#' distribution for use in a nested sampling run.
 #'
-#' @param fn A function specifying the prior transformation.
-#' @param names Unique names for each variable in the prior distribution.
-#' Optional for non-custom prior distributions.
-#' @param lower,upper Numeric vectors. Expected bounds for the
+#' @param fn `[function]` A prior transformation function that maps points from
+#' the unit hypercube (i.e., each parameter between 0 and 1) to the parameter
+#' space.
+#' @param names `[character()]` Unique names for each variable in the prior
+#' distribution. Optional for non-custom prior distributions.
+#' @param lower,upper `[double()]` Expected bounds for the
 #' parameter vectors after hypercube transformation.
-#' @param repair Describes how to repair the vector of `names`. One of
-#' `"check_unique"`, `"unique"`, `"universal"`, `"unique_quiet"`,
+#' @param repair `[character(1)]` Describes how to repair the vector of `names`.
+#' One of `"check_unique"`, `"unique"`, `"universal"`, `"unique_quiet"`,
 #' or `"universal_quiet"`. See [vctrs::vec_as_names()] for descriptions of each
 #' repair strategy.
 #'
-#' @returns
-#' A list with class `ernest_prior`, containing `fn`, `lower`, `upper`,
-#' and `names`. The vector-valued parameters are guaranteed to be of common
-#' length.
+#' @returns `[ernest_prior]`
+#'
+#' A named list, containing the parameters provided to the function, with
+#' `names`, `lower`, and `upper` recycled to the same length.
 #'
 #' @details
 #' The unit hypercube transformation encodes points in the parameter space
@@ -75,7 +77,16 @@ create_prior <- function(
   )
 }
 
-#' Construct an ernest_prior object
+#' Internal constructor for ernest_prior objects
+#'
+#' @param fn The prior transformation from unit hypercube to parameter space.
+#' @param names Character vector. Names of parameters.
+#' @param lower,upper Lower and upper bounds for each parameter (optional).
+#' @param class Additional classes to assign (e.g., "custom_prior").
+#' @param repair Name repair strategy for `names`.
+#'
+#' @return
+#' An object of class `ernest_prior`.
 #' @noRd
 new_ernest_prior <- function(
   fn,
@@ -157,8 +168,7 @@ new_ernest_prior <- function(
 }
 
 #' @rdname ernest_prior
-#'
-#' @param x,y `ernest_prior` objects.
+#' @param x,y [[ernest_prior]] Prior objects to combine.
 #'
 #' @export
 `+.ernest_prior` <- function(x, y) {

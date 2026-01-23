@@ -69,11 +69,11 @@ library(ernest)
 prior <- create_uniform_prior(lower = -10, upper = 10, names = c("x", "y", "z"))
 
 # Define a log-likelihood function (multivariate normal)
-mu <- c(0, 0, 0)
-Sigma <- diag(1, 3)
-Sigma[Sigma == 0] <- 0.95
+mean <- c(0, 0, 0)
+sigma <- diag(1, 3)
+sigma[Sigma == 0] <- 0.95
 loglike <- create_likelihood(
-  \(x) LaplacesDemon::dmvn(x, mu = mu, Sigma = Sigma, log = TRUE)
+  \(x) mvtnorm::dmvnorm(x, mean = mean, sigma = sigma, log = TRUE)
 )
 
 # Set up and run the sampler

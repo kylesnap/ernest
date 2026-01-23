@@ -4,12 +4,7 @@ test_that("Parameter recovery for a normal distribution", {
   prior <- create_normal_prior(mean = c(0, 0))
   log_l <- create_likelihood(
     \(x) {
-      LaplacesDemon::dmvn(
-        x,
-        mu = c(0, 0),
-        Sigma = diag(2),
-        log = TRUE
-      )
+      mvtnorm::dmvnorm(x, mean = c(0, 0), sigma = diag(2), log = TRUE)
     }
   )
 

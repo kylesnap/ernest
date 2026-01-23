@@ -32,7 +32,6 @@ Suggests:
     extraDistr,
     ggdist,
     knitr,
-    LaplacesDemon,
     log4r,
     patchwork,
     rmarkdown,
@@ -49,7 +48,7 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: algorithm, *_ellipsoid
+Config/testthat/start-first: algorithm, plot, *_ellipsoid
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",

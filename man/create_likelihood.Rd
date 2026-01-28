@@ -5,17 +5,21 @@
 \alias{ernest_likelihood}
 \title{Prepare a likelihood function for nested sampling}
 \usage{
-create_likelihood(fn, matrix_fn, on_nonfinite = c("warn", "quiet", "abort"))
+create_likelihood(
+  scalar_fn,
+  vectorized_fn,
+  on_nonfinite = c("warn", "quiet", "abort")
+)
 }
 \arguments{
-\item{fn, matrix_fn}{\verb{[function]}\cr A model's log-likelihood function.
-Provide either \code{fn} or \code{matrix_fn}:
+\item{scalar_fn}{\verb{[function]}\cr The log-likelihood function. Provide either
+\code{scalar_fn} or \code{vectorized_fn}:
 \itemize{
-\item \code{fn}: Should accept a parameter as a numeric vector and return a single
-numeric value representing the log-likelihood, or \code{-Inf}.
-\item \code{matrix_fn}: Should accept a matrix of parameter vectors (rows as samples,
-columns as elements of the parameter vector) and return a
-vector of log-likelihoods or \code{-Inf} values for each row.
+\item \code{scalar_fn}: Should accept a parameter as a numeric vector and return a
+single numeric value representing the log-likelihood, or \code{-Inf}.
+\item \code{vectorized_fn}: Should accept a matrix of parameter vectors (rows as
+samples, columns as elements of the parameter vector) and return a vector of
+log-likelihoods or \code{-Inf} values for each row.
 }}
 
 \item{on_nonfinite}{\verb{[character]}\cr How the sampler should handle values
@@ -40,8 +44,8 @@ free parameter values and return the corresponding log-likelihood value.
 
 Likelihoods are typically the most computationally expensive function to
 evaluate in a nested sampling run. ernest allows you to implement your
-likelihood as a function over a single parameter vector (\code{fn}) or over a
-matrix of parameters (\code{matrix_fn}).
+likelihood as a function over a single parameter vector (\code{scalar_fn}) or over
+a matrix of parameters (\code{vectorized_fn}).
 
 ernest expects the log-likelihood function to return a
 finite double or \code{-Inf} for each parameter vector. The behaviour when
@@ -55,78 +59,51 @@ matrix or data frame), provide these using an
 \examples{
 library(mvtnorm)
 
-# Example data and model
-data("PlantGrowth")
-mod <- lm(weight ~ group, data = PlantGrowth)
-frame <- model.frame(mod)
-outcome <- model.response(frame)
-predictors <- model.matrix(weight ~ group, frame)
+# Multivariate Normal Distribution
+m <- 3
+mean <- rep(0, m)
+sigma <- diag(m)
+sigma[2, 1] <- sigma[1, 2] <- 3 / 5
+sigma[3, 1] <- sigma[1, 3] <- 1 / 3
+sigma[3, 2] <- sigma[2, 3] <- 11 / 15
+prec <- solve(sigma)
+log_det <- -sum(log(diag(chol(sigma))))
 
-# Log-likelihood function for a linear model (vector input)
-simple_log_lik <- function(predictors, outcome) {
-  function(theta) {
-    mu <- predictors \%*\% theta[1:3]
-    sigma <- theta[4]
-    sum(stats::dnorm(outcome, mean = mu, sd = sigma, log = TRUE))
-  }
+# Provide a Scalar Log-Likelihood Function:
+log_lik <- function(x) {
+  log_det - 0.5 * m * log(2 * pi) - 0.5 * (t(x) \%*\% prec \%*\% x)
 }
+log_lik(c(0, 0, 0))
 
-# Create likelihood using a vector-based function
-simple_ll <- create_likelihood(fn = simple_log_lik(predictors, outcome))
+# `create_likelihood` allows scalar fns. to accept matrix inputs:
+try(log_lik(matrix(rep(0, m * 2), nrow = 2)))
+scalar_ll <- create_likelihood(scalar_fn = log_lik)
+scalar_ll(matrix(rep(0, m * 2), nrow = 2))
 
-# Log-likelihood function for a linear model (matrix input)
-fast_log_lik <- function(predictors, outcome) {
-  n_obs <- length(outcome)
-  function(theta) {
-    if (!is.matrix(theta)) {
-      dim(theta) <- c(1, 4)
-    }
-    apply(
-      theta,
-      1,
-      \(row) {
-        dmvnorm(
-          outcome,
-          mean = predictors \%*\% row[1:3],
-          sigma = diag(row[4]^2, nrow = n_obs),
-          log = TRUE
-        )
-      }
-    )
-  }
+# Provide a Vectorized Log-Likelihood Function:
+v_log_lik <- function(x) {
+  dmvnorm(x, mean = mean, sigma = sigma, log = TRUE)
 }
+v_log_lik(c(0, 0, 0))
+v_log_lik(matrix(rep(0, m * 2), nrow = 2))
 
-# Create likelihood using a matrix-based function
-fast_ll <- create_likelihood(matrix_fn = fast_log_lik(predictors, outcome))
+vector_ll <- create_likelihood(vectorized_fn = v_log_lik)
+vector_ll
 
-# Example: Evaluate at MLE
-params <- c(mod$coefficients, summary(mod)$sigma)
-simple_ll(params)
-fast_ll(params)
+# Control Behaviour when Nonfinite Likelihood Values are Encountered
+# Default: Warn and replace with `-Inf`
+vector_ll(c(0, 0, NA))
 
-# Example: Evaluate a matrix of parameters
-param_mat <- matrix(
-  rep(params, 2),
-  ncol = 4,
-  byrow = TRUE
-)
-param_mat[2, 4] <- param_mat[2, 4] / 2
-simple_ll(param_mat)
-fast_ll(param_mat)
+# Signal an error
+abort_ll <- create_likelihood(log_lik, on_nonfinite = "abort")
+try(abort_ll(c(0, 0, NA)))
 
-# Handling non-finite values (default: warn and replace with -Inf)
-simple_ll(c(mod$coefficients, NA))
-
-# Control non-finite handling with on_nonfinite
-abort_ll <- create_likelihood(
-  fn = simple_log_lik(predictors, outcome),
-  on_nonfinite = "abort"
-)
-try(abort_ll(c(mod$coefficients, NA)))
-
-quiet_ll <- create_likelihood(
-  fn = simple_log_lik(predictors, outcome),
-  on_nonfinite = "quiet"
-)
-quiet_ll(c(mod$coefficients, NA))
+# Silently replace all non-finite values
+quiet_ll <- create_likelihood(vectorized_fn = v_log_lik, on_nonfinite = "quiet")
+quiet_ll(c(0, 0, NA))
+}
+\seealso{
+The \link{cubature}
+(https://bnaras.github.io/cubature/articles/cubature.html) package for more
+examples of scalar and vectorized functions.
 }

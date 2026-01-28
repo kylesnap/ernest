@@ -84,7 +84,7 @@ ernest_sampler <- function(
   seed = NA
 ) {
   if (!inherits(log_lik, "ernest_likelihood")) {
-    log_lik <- create_likelihood(fn = log_lik)
+    log_lik <- create_likelihood(log_lik)
   }
   obj <- new_ernest_sampler(
     log_lik_fn = log_lik,

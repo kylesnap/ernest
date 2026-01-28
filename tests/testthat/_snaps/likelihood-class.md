@@ -1,18 +1,25 @@
-# matrix_fn and fn args are similar / produces likelihoods from `fn`
+#  and fn args are similar / produces likelihoods from `fn`
 
     Code
       ll
     Message
-      Log-likelihood Function (Auto-Generated Matrix Compatibility)
+      Scalar Log-likelihood Function
       function (x) 
-      sum(stats::dnorm(x, mean = c(-1, 0, 1), log = TRUE))
+      {
+          x <- matrix(x, ncol = length(x))
+          distval <- stats::mahalanobis(x, center = mean, cov = sigma)
+          exp(-(3 * log(2 * pi) + logdet + distval)/2)
+      }
 
-# matrix_fn and fn args are similar / produces likelihood from `matrix_fn`
+#  and fn args are similar / produces likelihood from `matrix_fn`
 
     Code
       mat_ll
     Message
-      Log-likelihood Function (User-Provided Matrix Compatibility)
+      Vectorized Log-likelihood Function
       function (x) 
-      mvtnorm::dmvnorm(x, mean = c(-1, 0, 1), log = TRUE)
+      {
+          distval <- stats::mahalanobis(x, center = mean, cov = sigma)
+          exp(matrix(-(3 * log(2 * pi) + logdet + distval)/2, nrow = nrow(x)))
+      }
 

@@ -230,3 +230,22 @@ compute_integral <- function(log_lik, log_volume) {
     .to = double()
   )
 }
+
+#' Vectorize a function
+#'
+#' @param fn A function that accepts a single parameter vector.
+#'
+#' @return A vectorized version of `fn` that accepts a matrix of parameter
+#' vectors.
+#' @noRd
+vectorize_function <- function(fn) {
+  force(fn)
+  function(X) {
+    if (is.vector(X)) {
+      fn(X)
+    } else {
+      Y <- apply(X = X, 1, fn)
+      t(Y)
+    }
+  }
+}

@@ -44,7 +44,7 @@
       Caused by error in `compile()`:
       ! Error when creating the live set.
       Caused by error:
-      ! Couldn't calculate the log. lik of #.# and #.#.
+      ! Couldn't calculate the log-lik of #.# and #.#.
       Caused by error:
       ! Can't convert `log_lik(x)` <character> to <double>.
 
@@ -66,7 +66,7 @@
       Caused by error in `compile()`:
       ! Error when creating the live set.
       Caused by error:
-      ! Couldn't calculate the log. lik of #.# and #.#.
+      ! Couldn't calculate the log-lik of #.# and #.#.
       Caused by error:
       ! Can't convert `log_lik(x)` <complex> to <double>.
 
@@ -81,7 +81,7 @@
       Caused by error in `compile()`:
       ! Error when creating the live set.
       Caused by error:
-      ! Couldn't calculate the log. lik of #.# and #.#.
+      ! Couldn't calculate the log-lik of #.# and #.#.
       Caused by error:
       ! log-lik. values must be either finite or `-Inf`.
       x Detected non-viable value: `NA`.

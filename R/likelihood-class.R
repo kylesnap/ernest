@@ -3,13 +3,13 @@
 #' Creates a modified version of a log-likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters provided.
 #'
-#' @param fn,matrix_fn `[function]`\cr A model's log-likelihood function.
-#' Provide either `fn` or `matrix_fn`:
-#' * `fn`: Should accept a parameter as a numeric vector and return a single
-#' numeric value representing the log-likelihood, or `-Inf`.
-#' * `matrix_fn`: Should accept a matrix of parameter vectors (rows as samples,
-#' columns as elements of the parameter vector) and return a
-#' vector of log-likelihoods or `-Inf` values for each row.
+#' @param scalar_fn `[function]`\cr The log-likelihood function. Provide either
+#' `scalar_fn` or `vectorized_fn`:
+#' * `scalar_fn`: Should accept a parameter as a numeric vector and return a
+#' single numeric value representing the log-likelihood, or `-Inf`.
+#' * `vectorized_fn`: Should accept a matrix of parameter vectors (rows as
+#' samples, columns as elements of the parameter vector) and return a vector of
+#' log-likelihoods or `-Inf` values for each row.
 #' @param on_nonfinite `[character]`\cr How the sampler should handle values
 #' returned by `fn` or `matrix_fn` that are not finite and not equal to `-Inf`.
 #' Must be one of:
@@ -25,8 +25,8 @@
 #'
 #' Likelihoods are typically the most computationally expensive function to
 #' evaluate in a nested sampling run. ernest allows you to implement your
-#' likelihood as a function over a single parameter vector (`fn`) or over a
-#' matrix of parameters (`matrix_fn`).
+#' likelihood as a function over a single parameter vector (`scalar_fn`) or over
+#' a matrix of parameters (`vectorized_fn`).
 #'
 #' ernest expects the log-likelihood function to return a
 #' finite double or `-Inf` for each parameter vector. The behaviour when
@@ -45,33 +45,37 @@
 #' (see `on_nonfinite`). The same parameter also controls behaviour for
 #' non-finite, non-`-Inf` values.
 #'
+#' @seealso The [cubature]
+#' (https://bnaras.github.io/cubature/articles/cubature.html) package for more
+#' examples of scalar and vectorized functions.
+#'
 #' @aliases ernest_likelihood
 #' @example ./data-raw/EXAMPLE_LIKELIHOOD.R
 #' @export
 create_likelihood <- function(
-  fn,
-  matrix_fn,
+  scalar_fn,
+  vectorized_fn,
   on_nonfinite = c("warn", "quiet", "abort")
 ) {
-  arg <- check_exclusive(fn, matrix_fn)
-  if (arg == "fn" && inherits(fn, "ernest_likelihood")) {
-    return(new_ernest_likelihood(
-      attr(fn, "body"),
-      matrix_compat = attr(fn, "matrix_compat"),
-      on_nonfinite = on_nonfinite
-    ))
-  }
-  matrix_compat <- ifelse(arg == "matrix_fn", "user", "auto")
+  interface <- check_exclusive(scalar_fn, vectorized_fn)
   fn <- switch(
-    arg,
-    "fn" = as_function(fn),
-    "matrix_fn" = as_function(matrix_fn)
+    interface,
+    "scalar_fn" = scalar_fn,
+    "vectorized_fn" = vectorized_fn
   )
-  new_ernest_likelihood(
-    fn = fn,
-    matrix_compat = matrix_compat,
-    on_nonfinite = on_nonfinite
-  )
+  if (inherits(fn, "ernest_likelihood")) {
+    new_ernest_likelihood(
+      fn = attr(fn, "body"),
+      interface = interface,
+      on_nonfinite = on_nonfinite
+    )
+  } else {
+    new_ernest_likelihood(
+      fn = fn,
+      interface = interface,
+      on_nonfinite = on_nonfinite
+    )
+  }
 }
 
 #' Construct an internal ernest likelihood function
@@ -80,9 +84,9 @@ create_likelihood <- function(
 #' handling for use in nested sampling.
 #'
 #' @param fn A function that computes likelihood values.
-#' @param ... Arguments to be forwarded to `fn`.
-#' @param on_nonfinite Case-sensitive string, one of `"warn"`, `"quiet"`,
-#' or `"abort"`.
+#' @param interface Either "scalar" or "vectorized", indicating whether `fn`
+#' accepts a single parameter vector or a matrix of parameter vectors.
+#' @param on_nonfinite How to handle non-finite likelihood values.
 #' @param .call Calling environment for error reporting.
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
@@ -93,13 +97,26 @@ create_likelihood <- function(
 #' @noRd
 new_ernest_likelihood <- function(
   fn,
-  matrix_compat = c("auto", "user"),
+  interface = c("scalar_fn", "vectorized_fn"),
   on_nonfinite = c("warn", "quiet", "abort"),
   call = caller_env()
 ) {
   check_function(fn, call = call)
-  matrix_compat <- arg_match(matrix_compat, call = call)
+  interface <- arg_match(interface, call = call)
   on_nonfinite <- arg_match(on_nonfinite, call = call)
+
+  force(fn)
+  vectorized_fn <- switch(
+    interface,
+    "scalar_fn" = vectorize_function(fn),
+    "vectorized_fn" = function(X) {
+      if (!is.matrix(X)) {
+        dim(X) <- c(1, length(X))
+      }
+      fn(X)
+    }
+  )
+
   nonfinite_expr <- switch(
     on_nonfinite,
     "warn" = expr({
@@ -121,21 +138,19 @@ new_ernest_likelihood <- function(
     })
   )
 
-  force(fn)
   x <- NULL
+  lab <- "log_lik(x)"
   catching_fn <- new_function(
     exprs(x = ),
     expr({
       try_fetch(
         {
-          y <- fn(x)
-          y <- vctrs::vec_cast(
-            y,
-            to = double(),
-            x_arg = "log_lik(x)",
-            call = NULL
-          )
-          y_missing <- which(is.nan(y) | y == Inf | is.na(y))
+          if (!is_double(x)) {
+            stop_input_type(x, "a numeric vector or matrix", call = NULL)
+          }
+          y <- vectorized_fn(x)
+          y <- vctrs::vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
+          y_missing <- which(y == Inf | is.nan(y) | is.na(y))
           if (!vctrs::vec_is_empty(y_missing)) {
             !!nonfinite_expr
           }
@@ -143,7 +158,7 @@ new_ernest_likelihood <- function(
         },
         error = function(cnd) {
           cli::cli_abort(
-            "Couldn't calculate the log. lik of {x}.",
+            "Couldn't calculate the log-lik of {x}.",
             call = NULL,
             parent = cnd
           )
@@ -152,29 +167,11 @@ new_ernest_likelihood <- function(
     })
   )
 
-  rowwise_fn <- if (matrix_compat == "auto") {
-    function(x) {
-      if (!is.matrix(x)) {
-        catching_fn(x)
-      } else {
-        apply(x, 1, catching_fn)
-      }
-    }
-  } else {
-    catching_fn
-  }
-
-  parallel_fn <- function(x) {
-    if (!is_double(x)) {
-      stop_input_type(x, "a numeric vector or matrix", call = NULL)
-    }
-    rowwise_fn(x)
-  }
-
   structure(
-    parallel_fn,
+    catching_fn,
     body = expr(!!fn),
-    matrix_compat = matrix_compat,
+    interface = interface,
+    on_nonfinite = on_nonfinite,
     class = c("ernest_likelihood", class(fn))
   )
 }
@@ -182,12 +179,12 @@ new_ernest_likelihood <- function(
 #' @noRd
 #' @export
 print.ernest_likelihood <- function(x, ...) {
-  compat_str <- if (attr(x, "matrix_compat") == "auto") {
-    "Auto-Generated"
-  } else {
-    "User-Provided"
-  }
-  cli::cli_text("Log-likelihood Function ({compat_str} Matrix Compatibility)")
+  compat_str <- switch(
+    attr(x, "interface"),
+    "scalar_fn" = "Scalar",
+    "vectorized_fn" = "Vectorized"
+  )
+  cli::cli_text("{compat_str} Log-likelihood Function")
   fn <- attr(x, "body")
   cli::cli_code({
     format(fn)

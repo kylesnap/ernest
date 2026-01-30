@@ -1,4 +1,4 @@
-#  and fn args are similar / produces likelihoods from `fn`
+# ernest_likelihood / produces scalar likelihoods
 
     Code
       ll
@@ -11,7 +11,7 @@
           exp(-(3 * log(2 * pi) + logdet + distval)/2)
       }
 
-#  and fn args are similar / produces likelihood from `matrix_fn`
+# ernest_likelihood / produces likelihood from `vectorized_fn`
 
     Code
       mat_ll

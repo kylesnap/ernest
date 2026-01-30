@@ -35,12 +35,12 @@ test_that("create_likelihood throws errors", {
   )
 })
 
-describe(" and fn args are similar", {
+describe("ernest_likelihood", {
   test_matrix <- matrix(c(0.0, 0.1, 0.2, 0.3, 0.4, 0.5), nrow = 2)
   expected_ll <- matrix_fn(test_matrix)
 
   ll <- create_likelihood(fn)
-  it("produces likelihoods from `fn`", {
+  it("produces scalar likelihoods", {
     expect_s3_class(ll, c("ernest_likelihood", "function"))
     expect_equal(attr(ll, "interface"), "scalar_fn")
     expect_equal(ll(c(0.0, 0.2, 0.4)), expected_ll[1])
@@ -49,7 +49,7 @@ describe(" and fn args are similar", {
   })
 
   mat_ll <- create_likelihood(vectorized_fn = matrix_fn)
-  it("produces likelihood from `matrix_fn`", {
+  it("produces likelihood from `vectorized_fn`", {
     expect_s3_class(mat_ll, c("ernest_likelihood", "function"))
     expect_equal(attr(mat_ll, "interface"), "vectorized_fn")
     expect_equal(mat_ll(c(0.0, 0.2, 0.4)), expected_ll[1])

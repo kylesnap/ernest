@@ -12,8 +12,8 @@ create_likelihood(
 )
 }
 \arguments{
-\item{scalar_fn}{\verb{[function]}\cr The log-likelihood function. Provide either
-\code{scalar_fn} or \code{vectorized_fn}:
+\item{scalar_fn, vectorized_fn}{\verb{[function]}\cr The log-likelihood function.
+Provide either \code{scalar_fn} or \code{vectorized_fn}:
 \itemize{
 \item \code{scalar_fn}: Should accept a parameter as a numeric vector and return a
 single numeric value representing the log-likelihood, or \code{-Inf}.

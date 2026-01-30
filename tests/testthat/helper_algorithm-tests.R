@@ -22,8 +22,8 @@ gaussian_blobs <- list(
 
     dx1 <- x - mu1
     dx2 <- x - mu2
-    val1 <- -0.5 * drop(dx1 %*% sigma_inv %*% dx1)
-    val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
+    val1 <- -0.5 * drop(dx1) %*% sigma_inv %*% drop(dx1)
+    val2 <- -0.5 * drop(dx2) %*% sigma_inv %*% drop(dx2)
     matrixStats::logSumExp(c(val1, val2))
   },
   prior = create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:2]),

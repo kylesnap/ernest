@@ -108,6 +108,7 @@ new_ernest_run_ <- function(x, parsed) {
 }
 
 #' @srrstats {BS6.0} Default print for return object.
+#' @importFrom prettyunits pretty_round
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {

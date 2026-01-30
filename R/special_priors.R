@@ -1,13 +1,31 @@
 #' @srrstats {BS2.5} Special priors perform checks to ensure that their
 #' parameters are admissable to each distribution.
 
-#' Normally-Distributed Prior (Possibly Truncated)
+#' Create a special prior distribution
 #'
-#' @rdname ernest_prior
+#' Constructs a prior transformation object for priors with indpendent marginals
+#' that are either normally or uniformly distributed. Additionally, normal
+#' marginals can be truncated using the [extraDistr] package.
 #'
-#' @param mean,sd `[double()]`\cr Means and standard deviations for each marginal
-#' distribution.
-#' @importFrom prettyunits pretty_round
+#' @param names `[character()]`\cr Optional names for each parameter.
+#' If `NULL`, default names and indices are generated.
+#' @param mean,sd `[double()]`\cr Mean and standard deviation for each marginal
+#' normal distribution. `sd` must be strictly positive.
+#' @param lower,upper `[double()]`\cr Lower and upper bounds for each parameter.
+#' If used with `create_normal_prior()`, these define the truncation limits.
+#' @inheritParams create_prior
+#'
+#' @returns An [ernest_prior], additionally inheriting from the specialized
+#' class `uniform_prior` or `normal_prior`.
+#'
+#' @details
+#' The provided transformations are vectorized: they accept a matrix of points
+#' in the unit hypercube and return a matrix of transformed values.
+#'
+#' @seealso [create_prior()] for more on priors within nested sampling.
+#' @family priors
+#' @rdname special_priors
+#' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R
 #' @export
 create_normal_prior <- function(
   names = NULL,
@@ -30,67 +48,68 @@ create_normal_prior <- function(
       "All elements of {.arg sd} must be strictly positive and non-missing."
     )
   }
-  params <- recycle_params(
-    names = names,
-    lower = lower,
-    upper = upper,
-    mean = mean,
-    sd = sd
-  )
-  truncated <- any(is.finite(params$lower)) || any(is.finite(params$upper))
-  names <- names %||%
-    sprintf(
-      "Normal_%s_%s",
-      gsub("-", "m", pretty_round(params$mean, 1)),
-      pretty_round(params$sd, 1)
+  names <- if (!is.null(names)) {
+    names
+  } else {
+    sprintf("Normal_%d", seq(vctrs::vec_size_common("mean" = mean, "sd" = sd)))
+  }
+  c(mean, sd, lower, upper) %<-%
+    vctrs::vec_recycle_common(
+      "mean" = mean,
+      "sd" = sd,
+      "lower" = lower,
+      "upper" = upper,
+      .size = length(names)
     )
 
-  x <- NULL
+  truncated <- any(is.finite(lower)) || any(is.finite(upper))
+  if (truncated) {
+    check_installed("extraDistr", "calculating a truncated normal prior")
+  }
   fn <- if (truncated) {
-    check_installed(
-      "extraDistr",
-      "calculate quantiles for the truncated normal distribution"
-    )
-    new_function(
-      exprs(x = ),
-      expr(
-        (!!extraDistr::qtnorm)(
-          x,
-          mean = !!params$mean,
-          sd = !!params$sd,
-          a = !!params$lower,
-          b = !!params$upper
-        )
-      ),
-      env = empty_env()
-    )
+    function(x) {
+      nrow <- nrow(x) %||% 1
+      y <- extraDistr::qtnorm(
+        c(x),
+        a = rep(lower, each = nrow),
+        b = rep(upper, each = nrow),
+        mean = rep(mean, each = nrow),
+        sd = rep(sd, each = nrow)
+      )
+      dim(y) <- dim(x)
+      y
+    }
   } else {
-    new_function(
-      exprs(x = ),
-      expr(
-        (!!stats::qnorm)(
-          x,
-          mean = !!params$mean,
-          sd = !!params$sd
-        )
-      ),
-      env = empty_env()
-    )
+    function(x) {
+      nrow <- nrow(x) %||% 1
+      y <- stats::qnorm(
+        c(x),
+        mean = rep(mean, each = nrow),
+        sd = rep(sd, each = nrow)
+      )
+      dim(y) <- dim(x)
+      y
+    }
   }
 
-  new_ernest_prior(
-    fn = fn,
-    names = names,
-    lower = params$lower,
-    upper = params$upper,
-    class = c(if (truncated) "trunc_prior", "normal_prior"),
-    repair = repair
+  do.call(
+    new_ernest_prior,
+    list2(
+      fn = fn,
+      names = names,
+      mean = mean,
+      sd = sd,
+      lower = lower,
+      upper = upper,
+      interface = "vectorized_fn",
+      .class = c(if (truncated) "trunc_prior", "normal_prior"),
+      .repair = repair
+    )
   )
 }
 
-#' Uniform Prior
-#'
-#' @rdname ernest_prior
+#' Uniform distribution
+#' @rdname special_priors
 #' @export
 create_uniform_prior <- function(
   names = NULL,
@@ -110,48 +129,39 @@ create_uniform_prior <- function(
   if (!is_double(upper, finite = TRUE)) {
     stop_input_type(upper, "a double vector with finite values")
   }
-  params <- recycle_params(names, lower = lower, upper = upper)
-  names <- names %||%
+  names <- if (!is.null(names)) {
+    names
+  } else {
     sprintf(
-      "Uniform_%s_%s",
-      gsub("-", "m", pretty_round(params$lower, 1)),
-      gsub("-", "m", pretty_round(params$upper, 1))
+      "Uniform_%d",
+      seq(vctrs::vec_size_common("lower" = lower, "upper" = upper))
     )
-  diff <- params$upper - params$lower
-  # Evaluating in the empty-environment requires prefix operators
-  fn <- new_function(
-    exprs(x = ),
-    expr(
-      (!!`+`)(!!params$lower, (!!`*`)(x, !!diff))
-    ),
-    env = empty_env()
-  )
+  }
+  c(lower, upper) %<-%
+    vctrs::vec_recycle_common(
+      "lower" = lower,
+      "upper" = upper,
+      .size = length(names)
+    )
+
+  fn <- function(x) {
+    nrow <- nrow(x) %||% 1
+    y <- stats::qunif(
+      c(x),
+      min = rep(lower, each = nrow),
+      max = rep(upper, each = nrow)
+    )
+    dim(y) <- dim(x)
+    y
+  }
 
   new_ernest_prior(
     fn = fn,
     names = names,
-    lower = params$lower,
-    upper = params$upper,
-    repair = repair,
-    class = "uniform_prior"
-  )
-}
-
-#' Recycle prior parameters to the right length
-#'
-#' @param names Character vector of parameter names (or NULL).
-#' @param lower,upper,... Vectors to be recycled.
-#'
-#' @noRd
-recycle_params <- function(names, lower, upper, ..., .call = caller_env()) {
-  n_dim <- if (is.null(names)) NULL else length(names)
-  params <- vctrs::vec_recycle_common(
     lower = lower,
     upper = upper,
-    ...,
-    .size = n_dim,
-    .call = .call
+    interface = "vectorized_fn",
+    .repair = repair,
+    .class = "uniform_prior"
   )
-  params$.n_dim <- n_dim %||% vctrs::vec_size_common(!!!params)
-  params
 }

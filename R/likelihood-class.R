@@ -3,8 +3,8 @@
 #' Creates a modified version of a log-likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters provided.
 #'
-#' @param scalar_fn `[function]`\cr The log-likelihood function. Provide either
-#' `scalar_fn` or `vectorized_fn`:
+#' @param scalar_fn,vectorized_fn `[function]`\cr The log-likelihood function.
+#' Provide either `scalar_fn` or `vectorized_fn`:
 #' * `scalar_fn`: Should accept a parameter as a numeric vector and return a
 #' single numeric value representing the log-likelihood, or `-Inf`.
 #' * `vectorized_fn`: Should accept a matrix of parameter vectors (rows as
@@ -109,11 +109,11 @@ new_ernest_likelihood <- function(
   vectorized_fn <- switch(
     interface,
     "scalar_fn" = vectorize_function(fn),
-    "vectorized_fn" = function(X) {
-      if (!is.matrix(X)) {
-        dim(X) <- c(1, length(X))
+    "vectorized_fn" = function(x) {
+      if (!is.matrix(x)) {
+        dim(x) <- c(1, length(x))
       }
-      fn(X)
+      fn(x)
     }
   )
 

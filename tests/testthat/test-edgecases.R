@@ -59,7 +59,7 @@ test_that("Missing values in the prior", {
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
   expect_error(
     create_prior(prior_fn, names = LETTERS[1:2]),
-    "`fn` cannot return non-numeric, missing, or `NaN` values."
+    "must return only finite values."
   )
 })
 

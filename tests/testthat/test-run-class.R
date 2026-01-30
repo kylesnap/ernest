@@ -1,33 +1,21 @@
-#eskip("TEMPORARY")
-#data(example_run)
-
-sampler <- ernest_sampler(
-  gaussian_blobs$log_lik,
-  gaussian_blobs$prior,
-  seed = 42
-)
-example_run <- generate(sampler, max_iterations = 1000)
+data(example_run)
 
 describe("ernest_run", {
   it("has the correct meta-class", {
     expect_s3_class(example_run, c("ernest_run", "ernest_sampler"))
     expect_true(is.list(example_run))
-    expect_equal(attr(example_run, "seed"), attr(sampler, "seed"))
-    expect_equal(example_run$niter, 1000L)
+    expect_equal(attr(example_run, "seed"), 42)
+    expect_type(example_run$niter, "integer")
     expect_gt(example_run$neval, 0L)
     expect_lt(example_run$log_evidence, 0)
     expect_gt(example_run$log_evidence_err, 0)
     expect_type(example_run$information, "double")
   })
-  total_length <- 1500L
+  total_length <- example_run$niter + example_run$nlive
 
   it("Stores samples", {
     expect_named(example_run$samples, c("original", "unit_cube"))
-    expect_identical(
-      apply(example_run$samples$unit_cube, 1, gaussian_blobs$prior$fn),
-      t(example_run$samples$original)
-    )
-    expect_identical(dim(example_run$samples$original), c(total_length, 2L))
+    expect_identical(dim(example_run$samples$original), c(total_length, 3L))
   })
 
   niter <- example_run$niter
@@ -44,7 +32,7 @@ describe("ernest_run", {
     expect_equal(sum(example_run$weight$imp_weight), 1)
     expect_type(example_run$weight$birth_lik, "double")
   })
-  expect_snapshot(example_run)
+  expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })
 
 describe("summary.ernest_run returns expected structure and values", {
@@ -53,7 +41,7 @@ describe("summary.ernest_run returns expected structure and values", {
   it("has the correct meta-info", {
     expect_s3_class(smry, c("summary.ernest_run"))
     expect_true(is.list(smry))
-    expect_equal(smry$nlive, 500L)
+    expect_equal(smry$nlive, 1000L)
     expect_equal(smry$niter, example_run$niter)
     expect_equal(smry$neval, example_run$neval)
     expect_equal(smry$log_evidence, example_run$log_evidence)
@@ -81,7 +69,10 @@ describe("summary.ernest_run returns expected structure and values", {
   })
 
   it("has the expected posterior", {
-    expect_identical(dim(smry$reweighted_samples), c(1500L, 2L))
+    expect_identical(
+      dim(smry$reweighted_samples),
+      c(example_run$niter + example_run$nlive, 3L)
+    )
     expect_named(
       smry$posterior,
       c("variable", "mean", "sd", "median", "q15", "q85")

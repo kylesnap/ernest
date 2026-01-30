@@ -23,8 +23,9 @@
     Code
       create_prior(prior_fn, names = LETTERS[1])
     Condition
-      Error in `new_ernest_prior()`:
-      ! `rowwise_fn` must have 1000 rows, not 0.
+      Error:
+      ! Can't convert `prior$fn(x)` <double[,0]> to <double[,1]>.
+      Non-recyclable dimensions.
 
 # Fails on character types
 
@@ -32,7 +33,7 @@
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
       Error:
-      ! Can't convert `out` <character> to <double>.
+      ! Can't convert `prior$fn(x)` <character[,2]> to <double[,2]>.
 
 ---
 
@@ -54,7 +55,7 @@
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
       Error:
-      ! Can't convert `out` <complex> to <double>.
+      ! Can't convert `prior$fn(x)` <complex[,2]> to <double[,2]>.
 
 ---
 

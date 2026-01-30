@@ -4,14 +4,14 @@
       example_run
     Message
       Nested sampling run:
-      * No. points: 500
-      * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
-      * Prior: uniform prior distribution with 2 dimensions (A and B)
+      * No. points: #
+      * Sampling method: #-step random walk sampling (acceptance target = #.#%)
+      * Prior: uniform prior distribution with # dimensions (x, y, and z)
       -- Results ---------------------------------------------------------------------
-      * Iterations: 1000
-      * Likelihood evals.: 11203
-      * Log-evidence: -7.1156 (± 1.9058)
-      * Information: 6.165
+      * Iterations: #
+      * Likelihood evals.: #
+      * Log-evidence: -#.# (± #.#)
+      * Information: #.#
 
 # summary.ernest_run returns expected structure and values / has the expected posterior
 
@@ -26,7 +26,7 @@
         "row.names": {
           "type": "integer",
           "attributes": {},
-          "value": [1, 2]
+          "value": [1, 2, 3]
         },
         "class": {
           "type": "character",
@@ -43,32 +43,32 @@
         {
           "type": "character",
           "attributes": {},
-          "value": ["A", "B"]
+          "value": ["x", "y", "z"]
         },
         {
           "type": "double",
           "attributes": {},
-          "value": [-0.05652933, -0.04601343]
+          "value": [-0.00571574, 0.03017027, -0.0037809]
         },
         {
           "type": "double",
           "attributes": {},
-          "value": [2.28723902, 2.34610747]
+          "value": [2.79226024, 2.80469196, 2.82475901]
         },
         {
           "type": "double",
           "attributes": {},
-          "value": [-0.03116833, -0.08325333]
+          "value": [-0.0173789, 0.01649964, 0.01920456]
         },
         {
           "type": "double",
           "attributes": {},
-          "value": [-2.59695916, -2.58772456]
+          "value": [-1.93985718, -1.90605249, -1.96360447]
         },
         {
           "type": "double",
           "attributes": {},
-          "value": [2.38923974, 2.58079068]
+          "value": [1.99558637, 2.03935854, 1.96687335]
         }
       ]
     }

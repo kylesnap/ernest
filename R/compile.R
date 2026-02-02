@@ -138,12 +138,9 @@ compile.ernest_run <- function(
 create_live <- function(lrps, nlive, call = caller_env()) {
   try_fetch(
     {
-      live <- replicate(nlive, propose(lrps))
-      live <- list(
-        "unit" = do.call(rbind, live["unit", ]),
-        "log_lik" = list_c(live["log_lik", ])
-      )
-      live
+      unit <- matrix(stats::runif(nlive * lrps$n_dim), ncol = lrps$n_dim)
+      log_lik <- lrps$unit_log_fn(unit)
+      live <- list("unit" = unit, "log_lik" = log_lik)
     },
     error = function(cnd) {
       cli::cli_abort(

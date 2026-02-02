@@ -20,11 +20,9 @@ gaussian_blobs <- list(
     mu2 <- -c(1, 1)
     sigma_inv <- diag(2) / 0.1**2
 
-    dx1 <- x - mu1
-    dx2 <- x - mu2
-    val1 <- -0.5 * drop(dx1) %*% sigma_inv %*% drop(dx1)
-    val2 <- -0.5 * drop(dx2) %*% sigma_inv %*% drop(dx2)
-    matrixStats::logSumExp(c(val1, val2))
+    dx1 <- -0.5 * mahalanobis(x, c(1, 1), sigma_inv, inverted = TRUE)
+    dx2 <- -0.5 * mahalanobis(x, c(-1, -1), sigma_inv, inverted = TRUE)
+    matrixStats::colLogSumExps(rbind(dx1, dx2))
   },
   prior = create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:2]),
   # Analytic evidence for two Gaussian blobs
@@ -137,7 +135,7 @@ expect_gaussian_run <- function(
   .seed = 42L
 ) {
   expect_run(
-    log_lik = gaussian_blobs$log_lik,
+    log_lik = create_likelihood(vectorized_fn = gaussian_blobs$log_lik),
     prior = gaussian_blobs$prior,
     sampler = sampler,
     nlive = nlive,

@@ -142,23 +142,34 @@ propose.ernest_lrps <- function(
 #' must satisfy.
 #' @param n_dim Number of dimensions.
 #' @param max_loop Maximum number of attempts to generate a point.
+#' @param n_batch Number of points to propose per iteration. Defaults to the
+#' `ernest.n_batch` option, or 1 if unset.
 #'
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
 #' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #' @noRd
-propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
-  proposal <- double(n_dim)
+propose_cube <- function(
+  unit_log_fn,
+  criterion,
+  n_dim,
+  max_loop,
+  n_batch = getOption("ernest.n_batch", 1L)
+) {
+  proposal <- matrix(double(), nrow = n_batch, ncol = n_dim)
   for (i in seq_len(max_loop)) {
-    proposal <- stats::runif(n_dim)
+    proposal[,] <- stats::runif(n_batch * n_dim)
     log_lik <- unit_log_fn(proposal)
-    if (is.finite(log_lik) && log_lik > criterion) {
-      return(list(
-        unit = proposal,
-        log_lik = log_lik,
-        neval = i
-      ))
+    accepted <- match(TRUE, log_lik >= criterion)
+    if (!is.na(accepted)) {
+      return(
+        list(
+          unit = proposal[accepted, ],
+          log_lik = log_lik[accepted],
+          neval = i
+        )
+      )
     }
   }
   list(unit = NULL, log_lik = NULL, neval = max_loop)

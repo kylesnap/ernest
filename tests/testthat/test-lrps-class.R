@@ -34,7 +34,7 @@ describe("new_ernest_lrps", {
     lrps <- new_ernest_lrps(fn, 2L)
     expect_lrps(lrps)
 
-    local_options("ernest.max_loop" = 100L)
+    local_options("ernest.max_loop" = 100L, "ernest.n_batch" = 100L)
     obj <- new_ernest_lrps(fn, 2L)
     expect_lrps(obj)
     expect_equal(obj$max_loop, 100L)

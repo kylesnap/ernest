@@ -10,24 +10,10 @@ test_that("different seeds and noise levels don't impact evidence estimates", {
   sqrt_eps <- sqrt(.Machine$double.eps)
   noisy_gaussian_blob_ll <- function(x) {
     ll <- gaussian_blobs$log_lik(x)
-    ll + rnorm(1, mean = 0, sd = sqrt_eps)
+    ll + rnorm(length(ll), mean = 0, sd = sqrt_eps)
   }
   expect_run(
-    log_lik = noisy_gaussian_blob_ll,
-    prior = gaussian_blobs$prior,
-    sampler = rwmh_cube(),
-    nlive = 100,
-    .expected_log_z = gaussian_blobs$log_z_analytic,
-    .seed = 42L
-  )
-
-  sqrt_eps <- sqrt(.Machine$double.eps)
-  noisy_gaussian_blob_ll <- function(x) {
-    ll <- gaussian_blobs$log_lik(x)
-    ll + rnorm(1, mean = 0, sd = sqrt_eps)
-  }
-  expect_run(
-    log_lik = noisy_gaussian_blob_ll,
+    log_lik = create_likelihood(vectorized_fn = noisy_gaussian_blob_ll),
     prior = gaussian_blobs$prior,
     sampler = rwmh_cube(),
     nlive = 100,

@@ -121,7 +121,7 @@ visualize_density <- function(selected) {
       mapping = ggplot2::aes(xdist = .data[[".dist"]]),
       point_interval = "median_hdci"
     ) +
-    facet_grid(rows = vars(.data[[".variable"]])) +
+    facet_grid(rows = vars(.data[[".variable"]]), scales = "free_x") +
     scale_x_continuous("Value") +
     scale_y_continuous("Density") +
     theme_minimal()
@@ -158,7 +158,7 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     ggplot(aes(x = log_volume, y = .value, colour = weights)) +
     geom_point() +
     scale_colour_distiller("Posterior Weight", palette = "Reds") +
-    facet_grid(rows = vars(.data[[".variable"]])) +
+    facet_grid(rows = vars(.data[[".variable"]]), scales = "free_y") +
     scale_x_continuous("Log-volume") +
     scale_y_continuous("Value") +
     theme_minimal()

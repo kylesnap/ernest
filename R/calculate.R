@@ -98,7 +98,6 @@ print.ernest_estimate <- function(x, ...) {
     "Log-volume: {log_vol}",
     "Log-evidence: {log_z}"
   ))
-  NextMethod(x)
 }
 
 # HELPERS FOR CALCULATING EVIDENCE ------

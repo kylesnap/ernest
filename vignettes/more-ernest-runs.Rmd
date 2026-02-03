@@ -1,8 +1,8 @@
 ---
-title: "More Nested Sampling Runs with Ernest"
+title: "More Nested Sampling Runs with ernest"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{More Nested Sampling Runs with Ernest}
+  %\VignetteIndexEntry{More Nested Sampling Runs with ernest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,6 +25,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(ernest)
+library(posterior)
 set.seed(42)
 ```
 
@@ -42,32 +43,35 @@ gaussian_blobs_loglik <- function(x) {
   sigma <- 0.1
   mu1 <- c(1, 1)
   mu2 <- -c(1, 1)
-  sigma_inv <- diag(2) / sigma^2
+  sigma_inv <- diag(2) / 0.1**2
 
-  if (!is.matrix(x)) dim(x) <- c(1, length(x))
-  dx1 <- sweep(x, 2, mu1)
-  dx2 <- sweep(x, 2, mu2)
-  val1 <- -0.5 * rowSums((dx1 %*% sigma_inv) * dx1)
-  val2 <- -0.5 * rowSums((dx2 %*% sigma_inv) * dx2)
-  matrixStats::rowLogSumExps(cbind(val1, val2))
+  dx1 <- -0.5 * mahalanobis(x, c(1, 1), sigma_inv, inverted = TRUE)
+  dx2 <- -0.5 * mahalanobis(x, c(-1, -1), sigma_inv, inverted = TRUE)
+  matrixStats::colLogSumExps(rbind(dx1, dx2))
 }
 
 # Uniform prior over [-5, 5] in each dimension
 prior <- create_uniform_prior(lower = -5, upper = 5, names = c("A", "B"))
+
+# Expected log-evidence:
+expect_evid <- -6.679
 ```
 
 Set up the sampler and run nested sampling:
 
 ```{r}
-sampler <- ernest_sampler(gaussian_blobs_loglik, prior, n_points = 100)
+sampler <- ernest_sampler(
+  create_likelihood(vectorized_fn = gaussian_blobs_loglik),
+  prior,
+  nlive = 100
+)
 result <- generate(sampler, show_progress = FALSE)
 ```
 
-For this distribution, the analytical evidence is $\mathcal{Z} = \log(2^2 * \pi * 0.1^2 / 100) \approx -6.679$. Use `summary` to extract the log-evidence (`log_evidence`) and its uncertainty (`log_evidence_err`):
+Use `summary` to extract the log-evidence and its uncertainty:
 
 ```{r}
-smry <- summary(result)
-smry
+summary(result)
 ```
 
 Plot the progress of the evidence estimate:
@@ -123,12 +127,12 @@ smry
 Plot the posterior distribution:
 
 ```{r}
-visualize(result, type = "density")
+visualize(result, .which = "trace")
 ```
 
 ## Adding Data
 
-Often, the likelihood depends on observed data. In ernest, you must incorporate the data within your likelihood function. Here, we show how to supply data using `create_likelihood()` and an anonymous function, with a certified dataset from the U.S. National Institute of Science and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
+Often, the likelihood depends on observed data. In ernest, you must incorporate the data within your likelihood function. Here, we show an example of binding data to a log-likelihood function through a function factory. The data is a test case, provided by the U.S. National Institute of Science and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
 
 ```{r}
 # Sample data: vector of observations
@@ -138,27 +142,23 @@ y <- c(
 )
 
 # Model likelihood: Y ~ N(mu, sd)
-log_lik <- function(theta, data) {
-  if (theta[2] <= 0) {
-    return(-Inf)
+gaussian_log_lik <- function(data) {
+  force(data)
+  
+  function(theta) {
+    if (theta[2] <= 0) return(-Inf)
+    sum(stats::dnorm(data, mean = theta[1], sd = theta[2], log = TRUE))
   }
-  sum(stats::dnorm(data, mean = theta[1], sd = theta[2], log = TRUE))
 }
-```
 
-Note: `log_lik` returns `-Inf` for non-positive standard deviations, explicitly censoring impossible parameter values.
-
-Supply the data by creating an annonymous function and wrapping it with `create_likelihood`:
-
-```{r}
-anon_log_lik <- \(theta) log_lik(theta, data = y)
-
+log_lik <- gaussian_log_lik(y)
 expected_mean <- 100000000.200000000000000
 expected_sd <- 0.108372230793914
-anon_log_lik(c(expected_mean, expected_sd))
+log_lik(c(expected_mean, expected_sd))
 ```
+Note how `log_lik` returns `-Inf` for non-positive standard deviations, explicitly censoring impossible parameter values.
 
-Define the prior for the mean and standard deviation, then run the sampler. The prior is constrained near the expected posterior values: the number of iterations required is proportional to the product of the number of live points (`n_points`) and the [KL divergence](https://en.wikipedia.org/wiki/Kullback–Leibler_divergence) between prior and posterior.
+Define the prior for the mean and standard deviation, then run the sampler. The prior is constrained so that nested sampling can more quickly begin integrating across the model's posterior:
 
 ```{r}
 prior <- create_uniform_prior(
@@ -166,22 +166,14 @@ prior <- create_uniform_prior(
   upper = c(100000001, 1),
   names = c("mu", "sigma")
 )
-sampler <- ernest_sampler(anon_log_lik, prior)
+sampler <- ernest_sampler(log_lik, prior)
 result <- generate(sampler, show_progress = FALSE)
 ```
 
-Examine the estimated posterior distribution:
+Examine the estimated posterior distribution and prepare a summary:
 
 ```{r}
-draws <- as_draws(result) |>
-  posterior::resample_draws()
-```
-
-Summarize the posterior for each parameter (e.g., median and 95% interval):
-
-```{r}
-posterior::summarise_draws(
-  draws,
-  \(x) quantile(x, probs = c(0.05, 0.5, 0.95))
-)
+as_draws(result) |>
+  resample_draws() |>
+  summarise_draws(\(x) quantile(x, probs = c(0.05, 0.5, 0.95)))
 ```

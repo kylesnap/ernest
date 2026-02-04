@@ -5,7 +5,8 @@
 #' likelihood shell.
 #'
 #' @param x [[ernest_run]]\cr Results from a nested sampling run.
-#' @param ndraws `[integer(1)]`\cr The number of log-volume sequences to simulate.
+#' @param ndraws `[integer(1)]`\cr The number of log-volume sequences to
+#' simulate.
 #' If equal to zero, no simulations will be made, and a one draw vector of
 #' log-volumes are produced from the estimates contained in `x`.
 #' @inheritParams rlang::args_dots_empty
@@ -45,7 +46,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   nlive <- x$nlive
   log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
   log_vol_rng <- range(log_vol)
-  dead_log_vol = log_vol[x$niter]
+  dead_log_vol <- log_vol[x$niter]
 
   if (ndraws == 0L) {
     integration <- compute_integral(x$weights$log_lik, log_vol)

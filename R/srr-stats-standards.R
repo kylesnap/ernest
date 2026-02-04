@@ -33,6 +33,7 @@ NULL
 #' @srrstatsNA {G3.1, G3.1a} ernest only calculates COV matrices with C++
 #' routines (see: ellipsoid fitting). Currently, these routines are untested
 #' with other cov. estimation techniques.
+#' @srrstatsNA {G4.0} ernest does not currently write files.
 #' @srrstatsNA {BS1.0} The term 'hyperparameter' is avoided.
 #' @srrstatsNA {BS1.4, BS1.5} Ernest does not currently use an MCMC convergence
 #' checker (due to NS's primary focus on estimating evidence).

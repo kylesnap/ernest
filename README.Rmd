@@ -1,6 +1,5 @@
 ---
 output: github_document
-bibliography: vignettes/references.bib
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -40,6 +39,14 @@ Install the development version of ernest from [GitHub](https://github.com/kyles
 devtools::install_github("kylesnap/ernest")
 ```
 
+You’ll also need a working C++ compiler. To get it:
+
+-   On Windows, install [Rtools](#0).
+
+-   On Mac, install Xcode from the app store.
+
+-   On Linux, `sudo apt-get install r-base-dev` or similar.
+
 ## Why use ernest?
 
 Often, statisticians are faced with multiple competing models that intend to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called [marginal likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found by integrating a model's likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using [Bayes factors](https://en.wikipedia.org/wiki/Bayes_factor), plays an important role in Bayesian inference.
@@ -55,65 +62,70 @@ This approach to estimating evidence offers several advantages over methods like
 
 ernest's implementation of NS offers R users several benefits:
 
--   **Native R implementation**: John Skilling's [@skilling2004, @skilling2006] NS algorithm is implemented in R, with no Python or Fortran dependencies. (C++ is used to implement the included likelihood samplers to improve run-time efficiency).
+-   **Native R implementation**: John Skilling's NS algorithm is implemented in R, with no Python or Fortran dependencies. (C++ is used to implement the included likelihood samplers to improve run-time efficiency).
 -   **Type- and size-safety**: ernest helps ensure that the user provides likelihood functions and prior specifications meet the requirements of the NS algorithm.
 -   **Familiar methods**: Sampler specifications and results are stored in S3 objects. Start or continue an NS run with `generate()`, review results with `summary()`, and simulate estimation error with `calculate()`.
 -   **Powerful visualizations**: Plot evidence estimates and analyse posterior distributions using [ggplot2](https://ggplot2.tidyverse.org) and [posterior](https://mc-stan.org/posterior/).
 
 ## Example
 
-``` r
+```{r}
 library(ernest)
 
 # Define a prior (i.i.d. multivariate uniform)
-prior <- create_uniform_prior(lower = -10, upper = 10, names = c("x", "y", "z"))
+prior <- create_uniform_prior(names = c("x", "y", "z"), lower = -10, upper = 10)
 
 # Define a log-likelihood function (multivariate normal)
-mean <- c(0, 0, 0)
-sigma <- diag(1, 3)
-sigma[Sigma == 0] <- 0.95
-loglike <- create_likelihood(
-  \(x) mvtnorm::dmvnorm(x, mean = mean, sigma = sigma, log = TRUE)
-)
+log_lik_mvn <- function(theta) {
+  n_dim <- 3
+  sigma <- diag(0.95, nrow = 3) # Covariance matrix
+  det_sigma <- log(det(sigma))
+  prec <- solve(sigma) # Precision matrix (Sigma^-1)
+  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+
+  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
+}
 
 # Set up and run the sampler
 sampler <- ernest_sampler(
-  log_lik = loglike,
+  log_lik_mvn,
   prior = prior,
-  n_points = 500
+  nlive = 500
 )
-run <- generate(sampler)
+run <- generate(sampler, show_progress = FALSE)
 
-# Summarise and visualise results
+# Summarize and visualize results
 summary(run)
-plot(run)
-visualize(run, type = "trace")
+plot(run, which = "evidence")
+visualize(run, x, .which = "trace")
 ```
 
 For advanced usage, including custom priors and hierarchical models, see the package vignettes.
 
-## Learn More
-
--   **About NS**: `vignette("nested-sampling-with-ernest")`, @skilling2004, @skilling2006, and @buchner2023.
--   **How to use ernest**: `vignette("more-ernest-runs.Rmd")`.
-
 ## Prior Work
 
-NS has been implemented in many languages; some offer R interfaces. This non-exhaustive list of popular NS implementations is adapted from @fowlie2021:
+NS has been implemented in many languages. This non-exhaustive list of popular NS implementations is adapted from [Fowlie (2021)](http://arxiv.org/abs/2010.13884):
 
-| Package | Citation | Language(s) |
-|:---------------------|:--------------------:|:--------------------------:|
-| [nestle](https://github.com/kbarbary/nestle/tree/master) | @barbary2015 | Python |
-| [dynesty](https://github.com/joshspeagle/dynesty) | @speagle2020 | Python |
-| [DIAMONDS](https://github.com/EnricoCorsaro/DIAMONDS/) | @corsaro2014 | C++ |
-| [MultiNest](https://github.com/JohannesBuchner/MultiNest) | @feroz2009 | Fortran; interfaces for C++, Python, R, and MatLab |
-| [PolyChord](https://github.com/PolyChord/PolyChordLite) | @handley2015 | Fortran; interfaces for C++ and Python |
-| [DNest4](https://github.com/eggplantbren/DNest4) | @brewer2018 | C++; interfaces with Python, R, and Julia |
+-   In Python: [nestle](https://github.com/kbarbary/nestle/tree/master) and [dynesty](https://github.com/joshspeagle/dynesty)
+
+-   In C++: [DIAMONDS](https://github.com/EnricoCorsaro/DIAMONDS/) and [DNest4](https://github.com/eggplantbren/DNest4)\*
+
+-   In Fortran: [MultiNest](https://github.com/JohannesBuchner/MultiNest)\* and [PolyChord](https://github.com/PolyChord/PolyChordLite)
+
+(\* Indicates software that includes an R interface.)
 
 ernest's design, API, and NS implementation are based on the nestle package, with further inspiration from dynesty.
 
-The [nestcheck](https://github.com/ejhigson/nestcheck/tree/master) Python package provides routines for error estimation and diagnostic plotting with nested sampling runs [@higson2019]. Several of ernest's methods are based on this work.
+The [nestcheck](https://github.com/ejhigson/nestcheck/tree/master) Python package provides routines for error estimation and diagnostic plotting with nested sampling runs. Several of ernest's methods are based on this work.
 
-------------------------------------------------------------------------
+## Citing ernest
 
-\emph{References}
+When using ernest, please at least include the following citations:
+
+-   Dewsnap K. (2025). “ernest: A Toolkit for Nested Sampling.” R package version XXX, \<URL: (<https://kylesnap.github.io/ernest/>)\>
+
+-   Skilling, J. (2006). Nested Sampling for General Bayesian Computation. *Bayesian Analysis*, 1(4), 833–859. \<DOI: <https://doi.org/10.1214/06-BA127>\>
+
+-   Buchner, J. (2023). Nested Sampling Methods. *Statistics Surveys*, 17, 169–215. \<DOI: <https://doi.org/10.1214/23-SS144>\>
+
+Additional citations for ernest can be found in the package's vignettes and within function documentation.

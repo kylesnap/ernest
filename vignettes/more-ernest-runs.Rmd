@@ -1,8 +1,8 @@
 ---
-title: "More Nested Sampling Runs with ernest"
+title: "More Examples with ernest"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{More Nested Sampling Runs with ernest}
+  %\VignetteIndexEntry{More Examples with ernest}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -19,32 +19,31 @@ knitr::opts_chunk$set(
 #' also used within ernest's test suite to validate its behaviour.
 #' @srrstats {G5.1} Tests and test data are provided here for users to
 #' interact with.
-#' @srrstats {BS1.1} Demonstrates how to enter data through an
-#' anonymous function.
+#' @srrstats {BS1.1} Demonstrates how to enter data through a likelihood
+#' function.
 ```
 
-```{r setup}
+```{r setup, message = FALSE}
 library(ernest)
 library(posterior)
-set.seed(42)
 ```
 
-ernest uses comprehensive tests to verify its sampling behaviour against the Python package [nestle](https://github.com/kbarbary/nestle/blob/master/). This vignette describes some of these tests and demonstrates how to construct likelihood functions for ernest.
+This vignette describes the test problems used by ernest to validate its sampling behaviour. By reading this, you will learn how different models can be expressed within ernest and how to examine the `ernest_run` produced by a sampling run.
 
-## Two Gaussian "Blobs"
+## Multimodal Bivariate Gaussian "Blobs"
 
-We estimate the Bayesian evidence for a simple two-dimensional problem with two well-separated Gaussian modes—a classical nested sampling test problem, as the evidence can be solved analytically.
+*From the Python package [nestle](https://github.com/kbarbary/nestle/blob/master/).*
 
-Define the log-likelihood and prior:
+The goal is to estimate the evidence of a multimodal distribution, made up of a mixture of two well-separated bivariate Gaussian distributions. As nested sampling is designed to handle multimodal distributions, this provides a good test of ernest's ability to explore a complicated likelihood surface.
 
 ```{r}
 # Log-likelihood for two Gaussian blobs
-gaussian_blobs_loglik <- function(x) {
-  sigma <- 0.1
-  mu1 <- c(1, 1)
-  mu2 <- -c(1, 1)
-  sigma_inv <- diag(2) / 0.1**2
+sigma <- 0.1
+mu1 <- c(1, 1)
+mu2 <- -c(1, 1)
+sigma_inv <- diag(2) / 0.1**2
 
+gaussian_blobs_loglik <- function(x) {
   dx1 <- -0.5 * mahalanobis(x, c(1, 1), sigma_inv, inverted = TRUE)
   dx2 <- -0.5 * mahalanobis(x, c(-1, -1), sigma_inv, inverted = TRUE)
   matrixStats::colLogSumExps(rbind(dx1, dx2))
@@ -53,38 +52,35 @@ gaussian_blobs_loglik <- function(x) {
 # Uniform prior over [-5, 5] in each dimension
 prior <- create_uniform_prior(lower = -5, upper = 5, names = c("A", "B"))
 
-# Expected log-evidence:
-expect_evid <- -6.679
-```
-
-Set up the sampler and run nested sampling:
-
-```{r}
-sampler <- ernest_sampler(
+# Run the model
+blob_sampler <- ernest_sampler(
   create_likelihood(vectorized_fn = gaussian_blobs_loglik),
   prior,
-  nlive = 100
+  nlive = 100,
+  seed = 42L
 )
-result <- generate(sampler, show_progress = FALSE)
+blob_result <- generate(blob_sampler, show_progress = FALSE)
 ```
 
-Use `summary` to extract the log-evidence and its uncertainty:
+The expected log-evidence, found analytically, is $-6.679$. We may use the summary and calculate methods to examine how accurate our results from sampling are:
 
 ```{r}
-summary(result)
+summary(blob_result)
+calculate(blob_result, ndraws = 500)
 ```
 
-Plot the progress of the evidence estimate:
-
-```{r}
-plot(result)
+```{r include = FALSE}
+rm(blob_sampler, blob_result)
 ```
 
-## Example: Estimating the Evidence for the Eggbox Problem
+## Eggbox Distribution
 
-The "eggbox" problem is a challenging test case for nested sampling due to its highly multimodal likelihood surface. Define the log-likelihood and prior:
+*From the Python package [nestle](https://github.com/kbarbary/nestle/blob/master/).*
+
+The eggbox likelihood is another useful test case that demonstrates ernest's ability to properly integrate across multimodal likelihood surfaces.
 
 ```{r}
+# Log-likelihood for the eggbox function
 eggbox_loglik <- function(x) {
   tmax <- 5.0 * pi
   if (!is.matrix(x)) dim(x) <- c(1, length(x))
@@ -95,8 +91,6 @@ eggbox_loglik <- function(x) {
 # Uniform prior over [0, 1] in each dimension
 eggbox_prior <- create_uniform_prior(names = c("A", "B"))
 ```
-
-Visualize the likelihood surface:
 
 ```{r echo = FALSE}
 eggbox_sample <- expand.grid(
@@ -113,38 +107,59 @@ library(ggplot2)
 ggplot(eggbox_sample, aes(A, B, fill = logl)) +
   geom_tile() +
   scale_fill_viridis_c("Log-Lik.")
+rm(eggbox_sample)
 ```
 
-Run the sampler and compare the estimated log-evidence to the nestle result ($\approx 235.895$):
+Analytic results indicate that we should expect a log-evidence of $235.895$.
 
 ```{r}
-sampler <- ernest_sampler(eggbox_loglik, eggbox_prior)
-result <- generate(sampler, show_progress = FALSE)
-smry <- summary(result)
-smry
-```
-
-Plot the posterior distribution:
-
-```{r}
-visualize(result, .which = "trace")
-```
-
-## Adding Data
-
-Often, the likelihood depends on observed data. In ernest, you must incorporate the data within your likelihood function. Here, we show an example of binding data to a log-likelihood function through a function factory. The data is a test case, provided by the U.S. National Institute of Science and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
-
-```{r}
-# Sample data: vector of observations
-y <- c(
-  100000000.2, 100000000.1, 100000000.3, 100000000.1, 100000000.3,
-  100000000.1, 100000000.3, 100000000.1, 100000000.3, 100000000.1, 100000000.3
+egg_sampler <- ernest_sampler(
+  eggbox_loglik,
+  eggbox_prior,
+  sampler = multi_ellipsoid(),
+  seed = 42L
 )
+egg_result <- generate(egg_sampler, show_progress = FALSE)
+summary(egg_result)
+```
 
-# Model likelihood: Y ~ N(mu, sd)
+We can further visualise the multimodal structure of each variable:
+```{r}
+visualize(egg_result, .which = "trace")
+```
+
+```{r include = FALSE}
+rm(egg_sampler, egg_result)
+```
+
+## Incorporating Data within Likelihood Functions
+
+Nested sampling runs are capable of generating estimates of the posterior distribution. To examine this, we provide a test problem from the National Institute of Standards and Technology ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
+```{r}
+y <- c(0.2, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1) + 1e+08
+```
+
+The certified posterior quantiles for the mean and standard deviation of `y` are:
+
+| Parameter | 2.5%                  | 50.0%                 | 97.5%                |
+|-----------|-----------------------|-----------------------|----------------------|
+| mu        | 100000000.13281908588 | 100000000.20000000000 | 100000000.26718091412|
+| sigma     | 0.069871704416342     | 0.103462818336964     | 0.175493354741336    |
+
+```{r include = FALSE}
+ref <- tibble::tribble(
+  ~variable, ~`2.5%`, ~`50%`, ~`97.5%`,
+  "mu", 100000000.13281908588, 100000000.20000000000, 100000000.26718091412,
+  "sigma", 0.069871704416342, 0.103462818336964, 0.175493354741336
+)
+```
+
+To run this model, we must incorporate the data `y` into the likelihood function. We do this through a function factory that captures a vector of observations from its environment. The produced function then computes the log-likelihood of a Gaussian model with parameters mean `mu` and standard deviation `sigma`.
+
+```{r}
 gaussian_log_lik <- function(data) {
   force(data)
-  
+
   function(theta) {
     if (theta[2] <= 0) return(-Inf)
     sum(stats::dnorm(data, mean = theta[1], sd = theta[2], log = TRUE))
@@ -152,28 +167,36 @@ gaussian_log_lik <- function(data) {
 }
 
 log_lik <- gaussian_log_lik(y)
-expected_mean <- 100000000.200000000000000
-expected_sd <- 0.108372230793914
-log_lik(c(expected_mean, expected_sd))
-```
-Note how `log_lik` returns `-Inf` for non-positive standard deviations, explicitly censoring impossible parameter values.
-
-Define the prior for the mean and standard deviation, then run the sampler. The prior is constrained so that nested sampling can more quickly begin integrating across the model's posterior:
-
-```{r}
 prior <- create_uniform_prior(
-  lower = c(99999999, 0.01),
-  upper = c(100000001, 1),
-  names = c("mu", "sigma")
+  names = c("mu", "sigma"),
+  lower = c(1e+08 - 1, 0.01),
+  upper = c(1e+08 + 1, 1)
 )
-sampler <- ernest_sampler(log_lik, prior)
-result <- generate(sampler, show_progress = FALSE)
+nist_sampler <- ernest_sampler(log_lik, prior, seed = 42L)
+nist_result <- generate(nist_sampler, show_progress = FALSE)
 ```
 
-Examine the estimated posterior distribution and prepare a summary:
+We rely on the posterior R package to examine the posterior distribution by summarising each variable by its quantiles. To better visualise the correspondence between the expected and actual values, we can plot their respective IQRs.
 
 ```{r}
-as_draws(result) |>
+post <- as_draws(nist_result) |>
   resample_draws() |>
-  summarise_draws(\(x) quantile(x, probs = c(0.05, 0.5, 0.95)))
+  summarise_draws(\(x) quantile(x, probs = c(0.025, 0.5, 0.975)))
+post
+```
+
+```{r echo = FALSE}
+all <- rbind(post, ref)
+all$src <- rep(c("est", "act"), each = 2)
+all
+
+ggplot(all, aes(x = src)) +
+  geom_crossbar(aes(ymin = `2.5%`, y = `50%`, ymax = `97.5%`)) +
+  facet_grid(rows = vars(variable), scales = "free_y") +
+  scale_y_continuous("Value") +
+  scale_x_discrete(
+    "Data Source",
+    breaks = c("act", "est"),
+    labels = c("Actual", "Expected")
+  )
 ```

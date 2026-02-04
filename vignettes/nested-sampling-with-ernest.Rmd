@@ -7,8 +7,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
 ---
-
-# Nested Sampling with `ernest`
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 This vignette introduces the nested sampling algorithm and demonstrates how to use the ernest R package to estimate model evidence for a Bayesian model. After reading this, you will know more about the foundations of nested sampling, and you will be able to use ernest to perform a basic nested sampling run over a regression model and review the results.
 
@@ -78,7 +82,7 @@ Nested sampling creates a series of shells by generating an i.i.d. sample from t
 
 To demonstrate nested sampling in ernest, we fit a well-known model of how seizure counts in patients with epilepsy change when exposed to an anti-convulsant therapy [@thall1990]. This data, available in the brms [@brms] R package, is fit using a Poisson model with a log link:
 
-``` R
+``` r
 > fit1 <- brm(
 +   count ~ zAge + zBase * Trt,
 +   prior = set_prior("normal(0, 2.5)", class = "b") +

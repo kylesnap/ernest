@@ -27,6 +27,14 @@ Install the development version of ernest from
 devtools::install_github("kylesnap/ernest")
 ```
 
+You’ll also need a working C++ compiler. To get it:
+
+- On Windows, install [Rtools](#0).
+
+- On Mac, install Xcode from the app store.
+
+- On Linux, `sudo apt-get install r-base-dev` or similar.
+
 ## Why use ernest?
 
 Often, statisticians are faced with multiple competing models that
@@ -68,10 +76,10 @@ methods like Markov chain Monte Carlo (MCMC):
 
 ernest’s implementation of NS offers R users several benefits:
 
-- **Native R implementation**: John Skilling’s Skilling (2006) NS
-  algorithm is implemented in R, with no Python or Fortran dependencies.
-  (C++ is used to implement the included likelihood samplers to improve
-  run-time efficiency).
+- **Native R implementation**: John Skilling’s NS algorithm is
+  implemented in R, with no Python or Fortran dependencies. (C++ is used
+  to implement the included likelihood samplers to improve run-time
+  efficiency).
 - **Type- and size-safety**: ernest helps ensure that the user provides
   likelihood functions and prior specifications meet the requirements of
   the NS algorithm.
@@ -89,155 +97,99 @@ ernest’s implementation of NS offers R users several benefits:
 library(ernest)
 
 # Define a prior (i.i.d. multivariate uniform)
-prior <- create_uniform_prior(lower = -10, upper = 10, names = c("x", "y", "z"))
+prior <- create_uniform_prior(names = c("x", "y", "z"), lower = -10, upper = 10)
 
 # Define a log-likelihood function (multivariate normal)
-mean <- c(0, 0, 0)
-sigma <- diag(1, 3)
-sigma[Sigma == 0] <- 0.95
-loglike <- create_likelihood(
-  \(x) mvtnorm::dmvnorm(x, mean = mean, sigma = sigma, log = TRUE)
-)
+log_lik_mvn <- function(theta) {
+  n_dim <- 3
+  sigma <- diag(0.95, nrow = 3) # Covariance matrix
+  det_sigma <- log(det(sigma))
+  prec <- solve(sigma) # Precision matrix (Sigma^-1)
+  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+
+  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
+}
 
 # Set up and run the sampler
 sampler <- ernest_sampler(
-  log_lik = loglike,
+  log_lik_mvn,
   prior = prior,
-  n_points = 500
+  nlive = 500
 )
-run <- generate(sampler)
+run <- generate(sampler, show_progress = FALSE)
 
-# Summarise and visualise results
+# Summarize and visualize results
 summary(run)
-plot(run)
-visualize(run, type = "trace")
+#> Summary of nested sampling run:
+#> ── Run Information ─────────────────────────────────────────────────────────────
+#> * No. points: 500
+#> * Iterations: 4633
+#> * Likelihood evals.: 101352
+#> * Log-evidence: -8.9259 (± 0.1137)
+#> * Information: 4.732
+#> ── Posterior Summary ───────────────────────────────────────────────────────────
+#> # A tibble: 3 × 6
+#>   variable      mean    sd   median   q15   q85
+#>   <chr>        <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0472    2.80  0.00714 -2.03  1.85
+#> 2 y        -0.000385  2.81 -0.00925 -1.89  1.87
+#> 3 z        -0.111     2.75 -0.0345  -2.01  1.78
+#> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
+#> * Log-likelihood: -2.6811
+#> * Original parameters: -0.0116, -0.0448, and -0.0105
+plot(run, which = "evidence")
 ```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
+``` r
+visualize(run, x, .which = "trace")
+```
+
+<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
 
 For advanced usage, including custom priors and hierarchical models, see
 the package vignettes.
 
-## Learn More
-
-- **About NS**: `vignette("nested-sampling-with-ernest")`, Skilling
-  (2004), Skilling (2006), and Buchner (2023).
-- **How to use ernest**: `vignette("more-ernest-runs.Rmd")`.
-
 ## Prior Work
 
-NS has been implemented in many languages; some offer R interfaces. This
-non-exhaustive list of popular NS implementations is adapted from
-Fowlie, Handley, and Su (2021):
+NS has been implemented in many languages. This non-exhaustive list of
+popular NS implementations is adapted from [Fowlie
+(2021)](http://arxiv.org/abs/2010.13884):
 
-| Package | Citation | Language(s) |
-|:---|:--:|:--:|
-| [nestle](https://github.com/kbarbary/nestle/tree/master) | Barbary (2015) | Python |
-| [dynesty](https://github.com/joshspeagle/dynesty) | Speagle (2020) | Python |
-| [DIAMONDS](https://github.com/EnricoCorsaro/DIAMONDS/) | Corsaro and Ridder (2014) | C++ |
-| [MultiNest](https://github.com/JohannesBuchner/MultiNest) | Feroz, Hobson, and Bridges (2009) | Fortran; interfaces for C++, Python, R, and MatLab |
-| [PolyChord](https://github.com/PolyChord/PolyChordLite) | Handley, Hobson, and Lasenby (2015) | Fortran; interfaces for C++ and Python |
-| [DNest4](https://github.com/eggplantbren/DNest4) | Brewer and Foreman-Mackey (2018) | C++; interfaces with Python, R, and Julia |
+- In Python: [nestle](https://github.com/kbarbary/nestle/tree/master)
+  and [dynesty](https://github.com/joshspeagle/dynesty)
+
+- In C++: [DIAMONDS](https://github.com/EnricoCorsaro/DIAMONDS/) and
+  [DNest4](https://github.com/eggplantbren/DNest4)\*
+
+- In Fortran:
+  [MultiNest](https://github.com/JohannesBuchner/MultiNest)\* and
+  [PolyChord](https://github.com/PolyChord/PolyChordLite)
+
+(\* Indicates software that includes an R interface.)
 
 ernest’s design, API, and NS implementation are based on the nestle
 package, with further inspiration from dynesty.
 
 The [nestcheck](https://github.com/ejhigson/nestcheck/tree/master)
 Python package provides routines for error estimation and diagnostic
-plotting with nested sampling runs (Higson et al. 2019). Several of
-ernest’s methods are based on this work.
+plotting with nested sampling runs. Several of ernest’s methods are
+based on this work.
 
-------------------------------------------------------------------------
+## Citing ernest
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+When using ernest, please at least include the following citations:
 
-<div id="ref-barbary2015" class="csl-entry">
+- Dewsnap K. (2025). “ernest: A Toolkit for Nested Sampling.” R package
+  version XXX, \<URL: (<https://kylesnap.github.io/ernest/>)\>
 
-Barbary, Kyle. 2015. *Nestle: Pure Python, MIT-Licensed Implementation
-of Nested Sampling Algorithms for Evaluating Bayesian Evidence.*
-<https://github.com/kbarbary/nestle>.
+- Skilling, J. (2006). Nested Sampling for General Bayesian Computation.
+  *Bayesian Analysis*, 1(4), 833–859. \<DOI:
+  <https://doi.org/10.1214/06-BA127>\>
 
-</div>
+- Buchner, J. (2023). Nested Sampling Methods. *Statistics Surveys*, 17,
+  169–215. \<DOI: <https://doi.org/10.1214/23-SS144>\>
 
-<div id="ref-brewer2018" class="csl-entry">
-
-Brewer, Brendon J., and Daniel Foreman-Mackey. 2018. “DNest4: Diffusive
-Nested Sampling in C++ and Python.” *Journal of Statistical Software* 86
-(September): 1–33. <https://doi.org/10.18637/jss.v086.i07>.
-
-</div>
-
-<div id="ref-buchner2023" class="csl-entry">
-
-Buchner, Johannes. 2023. “Nested Sampling Methods.” *Statistics Surveys*
-17 (none): 169–215. <https://doi.org/10.1214/23-SS144>.
-
-</div>
-
-<div id="ref-corsaro2014" class="csl-entry">
-
-Corsaro, E., and J. De Ridder. 2014. “DIAMONDS: A New Bayesian Nested
-Sampling Tool - Application to Peak Bagging of Solar-Like Oscillations.”
-*Astronomy & Astrophysics* 571 (November): A71.
-<https://doi.org/10.1051/0004-6361/201424181>.
-
-</div>
-
-<div id="ref-feroz2009" class="csl-entry">
-
-Feroz, F., M. P. Hobson, and M. Bridges. 2009. “MULTINEST: An Efficient
-and Robust Bayesian Inference Tool for Cosmology and Particle Physics.”
-*Monthly Notices of the Royal Astronomical Society* 398 (October):
-1601–14. <https://doi.org/10.1111/j.1365-2966.2009.14548.x>.
-
-</div>
-
-<div id="ref-fowlie2021" class="csl-entry">
-
-Fowlie, Andrew, Will Handley, and Liangliang Su. 2021. “Nested Sampling
-with Plateaus.” *Monthly Notices of the Royal Astronomical Society* 503
-(1): 1199–1205. <https://doi.org/10.1093/mnras/stab590>.
-
-</div>
-
-<div id="ref-handley2015" class="csl-entry">
-
-Handley, W. J., M. P. Hobson, and A. N. Lasenby. 2015. “PolyChord:
-Next-Generation Nested Sampling.” *Monthly Notices of the Royal
-Astronomical Society* 453 (4): 4384–98.
-<https://doi.org/10.1093/mnras/stv1911>.
-
-</div>
-
-<div id="ref-higson2019" class="csl-entry">
-
-Higson, Edward, Will Handley, Michael Hobson, and Anthony Lasenby. 2019.
-“Nestcheck: Diagnostic Tests for Nested Sampling Calculations.” *Monthly
-Notices of the Royal Astronomical Society* 483 (2): 2044–56.
-<https://doi.org/10.1093/mnras/sty3090>.
-
-</div>
-
-<div id="ref-skilling2004" class="csl-entry">
-
-Skilling, John. 2004. “Nested Sampling.” *AIP Conference Proceedings*
-735 (1): 395–405. <https://doi.org/10.1063/1.1835238>.
-
-</div>
-
-<div id="ref-skilling2006" class="csl-entry">
-
-———. 2006. “Nested Sampling for General Bayesian Computation.” *Bayesian
-Analysis* 1 (4): 833–59. <https://doi.org/10.1214/06-BA127>.
-
-</div>
-
-<div id="ref-speagle2020" class="csl-entry">
-
-Speagle, Joshua S. 2020. “DYNESTY: A Dynamic Nested Sampling Package for
-Estimating Bayesian Posteriors and Evidences.” *Monthly Notices of the
-Royal Astronomical Society* 493 (April): 3132–58.
-<https://doi.org/10.1093/mnras/staa278>.
-
-</div>
-
-</div>
+Additional citations for ernest can be found in the package’s vignettes
+and within function documentation.

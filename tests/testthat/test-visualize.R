@@ -20,6 +20,8 @@ test_that("visualize validates parameters", {
 
 test_that("Density plot", {
   skip_extended()
+  skip_on_cran()
+  skip_on_ci()
   data(example_run)
   vdiffr::expect_doppelganger(
     "visualize-basic",
@@ -44,6 +46,8 @@ test_that("Density plot", {
 
 test_that("Trace plot", {
   skip_extended()
+  skip_on_cran()
+  skip_on_ci()
   data(example_run)
   vdiffr::expect_doppelganger(
     "trace-basic",

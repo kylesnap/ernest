@@ -45,9 +45,9 @@
 #' (see `on_nonfinite`). The same parameter also controls behaviour for
 #' non-finite, non-`-Inf` values.
 #'
-#' @seealso The [cubature]
-#' (https://bnaras.github.io/cubature/articles/cubature.html) package for more
-#' examples of scalar and vectorized functions.
+#' @seealso See the
+#' [cubature](https://bnaras.github.io/cubature/articles/cubature.html) package
+#' for more examples of scalar and vectorized functions.
 #'
 #' @aliases ernest_likelihood
 #' @example ./data-raw/EXAMPLE_LIKELIHOOD.R

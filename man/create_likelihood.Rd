@@ -103,7 +103,7 @@ quiet_ll <- create_likelihood(vectorized_fn = v_log_lik, on_nonfinite = "quiet")
 quiet_ll(c(0, 0, NA))
 }
 \seealso{
-The \link{cubature}
-(https://bnaras.github.io/cubature/articles/cubature.html) package for more
-examples of scalar and vectorized functions.
+See the
+\href{https://bnaras.github.io/cubature/articles/cubature.html}{cubature} package
+for more examples of scalar and vectorized functions.
 }

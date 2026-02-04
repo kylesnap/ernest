@@ -50,7 +50,7 @@
 #' @srrstats {BS1.2, BS1.2c} Specifies how to design a prior in ernest, and
 #' provides examples.
 #'
-#' @rdname ernest_prior
+#' @aliases ernest_prior
 #' @family priors
 #' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R
 #' @export
@@ -237,7 +237,7 @@ check_prior <- function(
 }
 
 #' Combine two ernest_prior objects
-#' @rdname ernest_prior
+#' @rdname create_prior
 #' @param x,y [[ernest_prior]]\cr Prior objects to combine.
 #'
 #' @export

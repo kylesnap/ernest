@@ -206,7 +206,7 @@ summary.ernest_run <- function(object, ...) {
     "sd",
     "median",
     \(x) {
-      y <- quantile(x, probs = c(0.15, 0.85))
+      y <- stats::quantile(x, probs = c(0.15, 0.85))
       names(y) <- c("q15", "q85")
       y
     }

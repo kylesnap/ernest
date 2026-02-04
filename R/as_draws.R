@@ -29,7 +29,6 @@
 #' * [posterior::as_draws()] for details on the `draws` object.
 #'
 #' @examples
-#' # Load example run
 #' library(posterior)
 #' data(example_run)
 #'
@@ -48,12 +47,7 @@
 #'   units = "unit_cube",
 #'   radial = TRUE
 #' )
-#' plot(
-#'   x = example_run$log_volume,
-#'   y = draws_of(dm_rad$.radial),
-#'   xlab = "Log-volume",
-#'   ylab = "Radial coordinate"
-#' )
+#' plot(x = draws_of(dm_rad$.radial))
 #' @export
 as_draws.ernest_run <- function(
   x,

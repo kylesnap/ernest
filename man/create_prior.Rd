@@ -2,6 +2,7 @@
 % Please edit documentation in R/prior-class.R
 \name{create_prior}
 \alias{create_prior}
+\alias{ernest_prior}
 \alias{+.ernest_prior}
 \title{Prepare a prior transformation for nested sampling}
 \usage{

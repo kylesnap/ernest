@@ -285,9 +285,13 @@ autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
 #' @importFrom ggplot2 theme_minimal
 autoplot_errors <- function(df, fill_name, y_name, xintercept = NULL) {
   df$.width <- factor(df$.width, levels = c("0.95", "0.66"), ordered = TRUE)
-  ggplot(df, aes(log_volume, y = y)) +
+  ggplot(df, aes(.data[["log_volume"]], y = .data[["y"]])) +
     geom_ribbon(
-      aes(ymin = ymin, ymax = ymax, fill = .width)
+      aes(
+        ymin = .data[["ymin"]],
+        ymax = .data[["ymax"]],
+        fill = .data[[".width"]]
+      )
     ) +
     geom_line() +
     geom_vline(xintercept = xintercept, linetype = 2) +
@@ -306,7 +310,7 @@ autoplot_errors <- function(df, fill_name, y_name, xintercept = NULL) {
 #' @return A ggplot object with a line.
 #' @noRd
 autoplot_line <- function(df, y_name, xintercept = NULL) {
-  ggplot(df, aes(x = log_volume, y = y)) +
+  ggplot(df, aes(x = .data[["log_volume"]], y = .data[["y"]])) +
     geom_line() +
     geom_vline(xintercept = xintercept, linetype = 2) +
     scale_x_continuous("Log-volume") +

@@ -32,12 +32,11 @@ Suggests:
     extraDistr,
     ggdist,
     knitr,
-    log4r,
+    mvtnorm,
     patchwork,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,
-    truncnorm,
     vdiffr,
     xml2
 LinkingTo:

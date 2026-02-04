@@ -43,7 +43,6 @@ To produce a weighted posterior sample, use
 importance weights.
 }
 \examples{
-# Load example run
 library(posterior)
 data(example_run)
 
@@ -62,12 +61,7 @@ dm_rad <- as_draws_rvars(
   units = "unit_cube",
   radial = TRUE
 )
-plot(
-  x = example_run$log_volume,
-  y = draws_of(dm_rad$.radial),
-  xlab = "Log-volume",
-  ylab = "Radial coordinate"
-)
+plot(x = draws_of(dm_rad$.radial))
 }
 \seealso{
 \itemize{

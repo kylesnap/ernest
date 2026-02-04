@@ -99,7 +99,7 @@ visualize.ernest_run <- function(
     draws_df <- as.data.frame(posterior::as_draws_df(draws))
     pos <- tidyselect::eval_select(expr, data = draws_df, error_call = call)
     log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
-    visualize_trace(draws_df, pos, log_vol, weights(draws))
+    visualize_trace(draws_df, pos, log_vol, stats::weights(draws))
   }
 }
 
@@ -155,7 +155,11 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
   )
 
   df |>
-    ggplot(aes(x = log_volume, y = .value, colour = weights)) +
+    ggplot(aes(
+      x = .data[["log_volume"]],
+      y = .data[[".value"]],
+      colour = .data[["weights"]]
+    )) +
     geom_point() +
     scale_colour_distiller("Posterior Weight", palette = "Reds") +
     facet_grid(rows = vars(.data[[".variable"]]), scales = "free_y") +

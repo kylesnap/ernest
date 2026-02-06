@@ -10,7 +10,8 @@
 \arguments{
 \item{x}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
-\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to simulate.
+\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
+simulate.
 If equal to zero, no simulations will be made, and a one draw vector of
 log-volumes are produced from the estimates contained in \code{x}.}
 

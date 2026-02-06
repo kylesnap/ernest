@@ -18,7 +18,8 @@ or more of \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 
-\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to simulate.
+\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
+simulate.
 If equal to zero, no simulations will be made, and a one draw vector of
 log-volumes are produced from the estimates contained in \code{x}.}
 }

@@ -188,49 +188,6 @@ list_c <- function(x) {
   inject(c(!!!x))
 }
 
-# Helpers for computing and reporting results -----
-
-#' Compute the nested sampling integral and statistics
-#'
-#' Calculates the nested sampling integral and related statistics from
-#' log-likelihoods and log-volumes.
-#'
-#' @param log_lik Numeric vector of log-likelihoods in descending order.
-#' @param log_volume Numeric vector of log-volumes in ascending order.
-#'
-#' @return A list containing log-likelihoods, log-volumes, log-weights,
-#' log-evidence, log-evidence variance, and information.
-#' @noRd
-compute_integral <- function(log_lik, log_volume) {
-  if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
-    return(list(
-      log_lik = double(0),
-      log_volume = double(0),
-      log_weight = double(0),
-      log_evidence = double(0),
-      log_evidence_var = double(0),
-      information = double(0)
-    ))
-  }
-  log_weight <- drop(get_logweight(log_lik, log_volume))
-  log_evidence <- drop(get_logevid(log_weight))
-  information <- get_information(log_lik, log_volume, log_evidence)
-
-  # Estimate the error around logz
-  dh <- c(information[1], diff(information))
-  log_evidence_var <- abs(cumsum(dh * -diff(c(0, log_volume))))
-
-  vctrs::vec_cast_common(
-    log_lik = log_lik,
-    log_volume = log_volume,
-    log_weight = log_weight,
-    log_evidence = log_evidence,
-    log_evidence_var = log_evidence_var,
-    information = information,
-    .to = double()
-  )
-}
-
 #' Vectorize a function
 #'
 #' @param fn A function that accepts a single parameter vector.

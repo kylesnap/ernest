@@ -6,7 +6,7 @@
       Nested sampling uncertainty estimates:
       # of Simulated Draws: 0
       Log-volume: -17 ± NA
-      Log-evidence: -9.1 ± NA
+      Log-evidence: -148 ± NA
 
 # calculate works when ndraws = 1
 

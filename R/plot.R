@@ -199,9 +199,12 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' @export
 autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
   check_dots_empty()
-  log_vol <- drop(get_logvol(object$nlive, niter = object$niter))
-  integration <- compute_integral(object$weights$log_lik, log_vol)
-  dead_log_vol <- log_vol[object$niter]
+  integration <- compute_integral(
+    object$weights$log_lik,
+    object$niter,
+    object$nlive
+  )
+  dead_log_vol <- integration$log_volume[object$niter]
 
   z_p <- if ("evidence" %in% which) {
     log_evidence_sd <- sqrt(integration$log_evidence_var)

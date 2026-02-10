@@ -49,7 +49,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   dead_log_vol <- log_vol[x$niter]
 
   if (ndraws == 0L) {
-    integration <- compute_integral(x$weights$log_lik, log_vol)
+    integration <- compute_integral(x$weights$log_lik, x$niter, x$nlive)
     return(tibble::new_tibble(
       list(
         "log_lik" = posterior::as_rvar(integration$log_lik),
@@ -102,6 +102,84 @@ print.ernest_estimate <- function(x, ...) {
 }
 
 # HELPERS FOR CALCULATING EVIDENCE ------
+
+#' Compute the nested sampling integral and statistics
+#'
+#' Calculates the nested sampling integral and related statistics from
+#' log-likelihoods and log-volumes.
+#'
+#' @param log_lik Numeric vector of log-likelihoods in descending order.
+#' @param niter Number of iterations
+#' @param nlive Number of live points
+#' @param sample Whether to simulate log-volumes from the beta distribution
+#'
+#' @return A list containing the log-likelihoods, log-volumes, log-weights,
+#' log-evidence, log-evidence variance, and information.
+#' @noRd
+compute_integral <- function(log_lik, niter, nlive, sample = FALSE) {
+  if (length(log_lik) != niter + nlive) {
+    cli::cli_abort("Incompat. length.")
+  }
+  ntot <- length(log_lik)
+  dead_idx <- vctrs::vec_as_location(1:niter, n = ntot)
+  live_idx <- vctrs::vec_as_location(seq(nlive) + niter, n = ntot)
+
+  # log_volume
+  runs <- vctrs::vec_run_sizes(log_lik[dead_idx])
+  log_volume <- c(
+    unlist(lapply(runs, function(n) -seq(0, n - 1))) + nlive,
+    seq(nlive, 1L)
+  )
+  log_volume <- if (!sample) {
+    -1 * (log_volume^-1.0)
+  } else {
+    log(stats::runif(niter + nlive) / log_volume)
+  }
+  log_volume <- cumsum(log_volume)
+
+  # log_weight
+  log_weight <- double(ntot)
+  # Interior points: trapezoidal rule in log-space
+  if (ntot > 2) {
+    log_weight[2:(ntot - 1)] <- logspace_sub(
+      log_volume[1:(ntot - 2)],
+      log_volume[3:ntot]
+    ) -
+      log(2)
+  }
+  # First point
+  log_dvol_lag <- matrixStats::logSumExp(log_volume[1:2]) - log(2)
+  log_weight[1] <- logspace_sub(0, log_dvol_lag)
+  # Last point
+  log_weight[ntot] <- matrixStats::logSumExp(log_volume[(ntot - 1):ntot]) -
+    log(2)
+  log_weight <- log_lik + log_weight
+
+  # Evidence
+  log_z <- Reduce(
+    \(...) matrixStats::logSumExp(lx = c(...)),
+    x = log_weight[-1],
+    init = log_weight[1],
+    accumulate = TRUE
+  )
+
+  # Information
+  information <- get_information(log_lik, log_volume, log_z)
+
+  # Estimate the error around logz
+  dh <- c(information[1], diff(information))
+  log_z_var <- abs(cumsum(dh * -diff(c(0, log_volume))))
+
+  vctrs::vec_cast_common(
+    log_lik = log_lik,
+    log_volume = log_volume,
+    log_weight = log_weight,
+    log_evidence = log_z,
+    log_evidence_var = log_z_var,
+    information = information,
+    .to = double()
+  )
+}
 
 #' Simulate log-volumes for nested sampling
 #'

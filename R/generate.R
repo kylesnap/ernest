@@ -155,11 +155,10 @@ generate.ernest_run <- function(
 
   cur_iter <- x$niter
   cureval <- x$neval
-  log_vol <- drop(get_logvol(x$nlive, niter = cur_iter))
-  prev_integration <- compute_integral(x$weights$log_lik, log_vol)
+  prev_integration <- compute_integral(x$weights$log_lik, x$niter, x$nlive)
   last_criterion <- prev_integration$log_lik[cur_iter]
   log_z <- prev_integration$log_evidence[cur_iter]
-  log_vol <- prev_integration$log_vol[cur_iter]
+  log_vol <- prev_integration$log_volume[cur_iter]
   d_logz <- logaddexp(
     0,
     max(prev_integration$log_lik[1:cur_iter]) + log_vol - log_z

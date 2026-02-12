@@ -4,10 +4,9 @@
 #' through slice sampling within a bounding hyperrectangle, shrinking the
 #' rectangle when proposals are rejected.
 #'
-#' @param enlarge `[double(1)]`\cr Factor by which to inflate the
-#' hyperrectangle's volume before sampling (see Details). Optional, and must be
-#' greater or equal to 1 if provided; if left `NA`, sampling is initially
-#' bounded by the unit hypercube at each iteration.
+#' @param steps `[integer(1)]`\cr Number of times to reslice points during
+#' sampling. Must be larger than zero. Higher values increase the number of
+#' reslicing steps, improving exploration of complex or multimodal posteriors.
 #'
 #' @returns `[slice_rectangle]`, a named list that inherits from
 #' [[ernest_lrps]].
@@ -23,13 +22,9 @@
 #' This continues until either a valid proposal is found or the rectangle has
 #' shrunk to the point where no further clamping operations can be performed.
 #'
-#' By default, the hyperrectangle spans the extreme values of the current
-#' live set in each dimension. This may risk excluding valid regions
-#' of the parameter space, particularly where the posterior is multimodal or
-#' highly non-Gaussian. To mitigate this, set `enlarge > 1`, which inflates the
-#' hyperrectagle's volume by the specified factor before sampling. Setting
-#' `enlarge` to `NA` disables this behaviour, instead slicing from the unit
-#' hypercube at each iteration.
+#' To improve exploration, set `steps > 1`, which increases the number of
+#' reslicing steps during sampling. This controls how many times the sampler
+#' reslices points to better explore complex or multimodal posteriors.
 #'
 #' @references
 #' Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
@@ -40,27 +35,19 @@
 #' lrps <- slice_rectangle()
 #'
 #' # More patient sampler for complex posteriors
-#' patient_lrps <- slice_rectangle(enlarge = 1.25)
+#' patient_lrps <- slice_rectangle(steps = 3)
 #'
 #' @family ernest_lrps
 #' @export
-slice_rectangle <- function(enlarge = 1) {
-  check_number_decimal(enlarge, min = 1, allow_na = TRUE)
-  new_slice_rectangle(enlarge = enlarge)
+slice_rectangle <- function(steps = 1) {
+  new_slice_rectangle(steps = steps)
 }
 
 #' @noRd
 #' @export
 format.slice_rectangle <- function(x, ...) {
-  enlarge_str <- if (is.na(x$enlarge)) {
-    NULL
-  } else {
-    cli::format_inline(
-      "(enlarged by {x$enlarge})"
-    )
-  }
   cli::format_inline(
-    "Slice Sampling LRPS {enlarge_str}"
+    "Slice Sampling LRPS ({x$steps} Step{?s})"
   )
 }
 
@@ -71,8 +58,9 @@ format.slice_rectangle <- function(x, ...) {
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
 #' @param n_dim  Number of dimensions.
 #' @param max_loop  Maximum number of proposal attempts.
-#' @param enlarge Inflate the hyperrectangle's volume before sampling.
+#' @param steps Number of times to reslice points during sampling.
 #' @param cache Optional cache environment.
+#' @param call Error info.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate inputs.
@@ -84,22 +72,19 @@ new_slice_rectangle <- function(
   unit_log_fn = NULL,
   n_dim = NULL,
   max_loop = 1e6L,
-  enlarge = 1.25,
-  cache = NULL
+  steps = 1,
+  cache = NULL,
+  call = caller_env()
 ) {
-  check_number_decimal(enlarge, min = 1, allow_na = TRUE)
+  check_number_whole(steps, min = 1, call = call)
   cache <- cache %||% new_environment()
   env_poke(cache, "n_accept", 0L)
-  if (!is.null(n_dim) && n_dim >= 1L) {
-    env_cache(cache, "lower", rep(0.0, n_dim))
-    env_cache(cache, "upper", rep(1.0, n_dim))
-  }
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
     n_dim = n_dim,
     max_loop = max_loop,
     cache = cache,
-    enlarge = as.double(enlarge),
+    steps = as.integer(steps),
     .class = "slice_rectangle"
   )
 }
@@ -118,8 +103,7 @@ propose.slice_rectangle <- function(
       original = original,
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      lower = env_get(x$cache, "lower", rep(0.0, x$n_dim)),
-      upper = env_get(x$cache, "upper", rep(1.0, x$n_dim)),
+      steps = x$steps,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "neval", x$cache$neval + res$neval)
@@ -129,19 +113,6 @@ propose.slice_rectangle <- function(
 
 #' @rdname update_lrps
 #' @export
-update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
-  if (is.null(unit) || is.na(x$enlarge)) {
-    return(do.call(new_slice_rectangle, as.list(x)))
-  }
-  lower <- matrixStats::colMins(unit)
-  upper <- matrixStats::colMaxs(unit)
-  if (x$enlarge > 1) {
-    center <- (lower + upper) / 2
-    radius <- (upper - lower) / 2
-    new_radius <- radius * x$enlarge^(1 / x$n_dim)
-    lower <- pmax(center - new_radius, 0.0)
-    upper <- pmin(center + new_radius, 1.0)
-  }
-  env_bind(x$cache, lower = lower, upper = upper)
+update_lrps.slice_rectangle <- function(x, ...) {
   do.call(new_slice_rectangle, as.list(x))
 }

@@ -15,7 +15,7 @@ update_lrps(x, ...)
 
 \method{update_lrps}{rwmh_cube}(x, unit = NULL, ...)
 
-\method{update_lrps}{slice_rectangle}(x, unit = NULL, ...)
+\method{update_lrps}{slice_rectangle}(x, ...)
 
 \method{update_lrps}{unif_ellipsoid}(x, unit = NULL, log_volume = NA, ...)
 }

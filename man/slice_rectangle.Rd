@@ -4,13 +4,12 @@
 \alias{slice_rectangle}
 \title{Generate new points with slice sampling}
 \usage{
-slice_rectangle(enlarge = 1)
+slice_rectangle(steps = 1)
 }
 \arguments{
-\item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the
-hyperrectangle's volume before sampling (see Details). Optional, and must be
-greater or equal to 1 if provided; if left \code{NA}, sampling is initially
-bounded by the unit hypercube at each iteration.}
+\item{steps}{\verb{[integer(1)]}\cr Number of times to reslice points during
+sampling. Must be larger than zero. Higher values increase the number of
+reslicing steps, improving exploration of complex or multimodal posteriors.}
 }
 \value{
 \verb{[slice_rectangle]}, a named list that inherits from
@@ -32,20 +31,16 @@ the proposed point is on its boundary and \eqn{\theta} is in its interior.
 This continues until either a valid proposal is found or the rectangle has
 shrunk to the point where no further clamping operations can be performed.
 
-By default, the hyperrectangle spans the extreme values of the current
-live set in each dimension. This may risk excluding valid regions
-of the parameter space, particularly where the posterior is multimodal or
-highly non-Gaussian. To mitigate this, set \code{enlarge > 1}, which inflates the
-hyperrectagle's volume by the specified factor before sampling. Setting
-\code{enlarge} to \code{NA} disables this behaviour, instead slicing from the unit
-hypercube at each iteration.
+To improve exploration, set \code{steps > 1}, which increases the number of
+reslicing steps during sampling. This controls how many times the sampler
+reslices points to better explore complex or multimodal posteriors.
 }
 \examples{
 # Basic usage with default parameters
 lrps <- slice_rectangle()
 
 # More patient sampler for complex posteriors
-patient_lrps <- slice_rectangle(enlarge = 1.25)
+patient_lrps <- slice_rectangle(steps = 3)
 
 }
 \references{

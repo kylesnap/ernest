@@ -21,14 +21,10 @@ class Rectangle {
         lower_(Eigen::ArrayXd::Zero(n_dim_)),
         upper_(Eigen::ArrayXd::Ones(n_dim_)) {};
 
-  // Construct a rectangle from initial vectors of boundaries.
-  inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper) : n_dim_(lower.size()) {
-    Vector low = as_Matrix(lower), up = as_Matrix(upper);
-    lower_ = low.cwiseMin(up);
-    upper_ = up.cwiseMax(low);
-    if (lower_.minCoeff() < 0 || upper_.maxCoeff() > 1) {
-      cpp11::stop("Rectangle bounds OOB.");
-    }
+  // Reset the rectangle to the 0-1 unit hypercube.
+  inline void Reset() {
+    lower_ = Eigen::ArrayXd::Zero(n_dim_);
+    upper_ = Eigen::ArrayXd::Ones(n_dim_);
   }
 
   // Generate a uniform sample from the rectangle.

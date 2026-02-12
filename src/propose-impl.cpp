@@ -46,23 +46,26 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
 // Runs a slice sampler within an initial hyperrectangle.
 [[cpp11::register]]
 cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                      double criterion, cpp11::doubles lower, cpp11::doubles upper,
-                      const int max_loop) {
+                      double criterion, const int steps, const int max_loop) {
   // Setups
-  vol::Rectangle rect(lower, upper);
   Eigen::VectorXd next_draw = as_Matrix(original);
+  vol::Rectangle rect(next_draw.size());
   Eigen::VectorXd inner = next_draw;
 
   size_t draw = 0;
-  for (; draw < max_loop; draw++) {
-    rect.UniformSample(next_draw);
-    double log_lik = unit_log_fn(as_doubles(next_draw));
-    if (log_lik >= criterion) break;
-    if (!rect.Clamp(inner, next_draw)) break;
+  for (size_t step = 0; step < steps; step++) {
+    rect.Reset();
+    for (; draw < max_loop; draw++) {
+      rect.UniformSample(next_draw);
+      double log_lik = unit_log_fn(as_doubles(next_draw));
+      if (log_lik >= criterion) break;
+      if (!rect.Clamp(inner, next_draw)) break;
+    }
+    inner = next_draw;
   }
 
   using namespace cpp11::literals;
-  return cpp11::writable::list({"unit"_nm = as_doubles(next_draw),
-                                "log_lik"_nm = unit_log_fn(as_doubles(next_draw)),
+  return cpp11::writable::list({"unit"_nm = as_doubles(inner),
+                                "log_lik"_nm = unit_log_fn(as_doubles(inner)),
                                 "neval"_nm = draw, "rect"_nm = rect.as_list()});
 }

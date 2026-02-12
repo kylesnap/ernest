@@ -5,14 +5,14 @@ set.seed(42)
 #' error messages
 test_that("slice can be called by user", {
   default <- slice_rectangle()
-  expect_snapshot(slice_rectangle(enlarge = 0.5), error = TRUE)
-  expect_snapshot(slice_rectangle(enlarge = NA))
-  expect_equal(default$enlarge, 1)
+  expect_snapshot(slice_rectangle(steps = 0), error = TRUE)
+  expect_snapshot(slice_rectangle(steps = NA), error = TRUE)
+  expect_equal(default$steps, 1)
   expect_snapshot(default)
 })
 
 describe("slice class", {
-  ptypes <- list(lower = double(), upper = double(), n_accept = integer())
+  ptypes <- list(n_accept = integer())
   it("Can be built and propose points", {
     obj <- expect_all_proposals(
       new_slice_rectangle,
@@ -29,8 +29,6 @@ describe("slice class", {
     samples <- run_sampler(obj)
     new_obj <- update_lrps(obj, samples$unit)
     expect_lrps(new_obj, subclass = "slice_rectangle", !!!ptypes)
-    expect_identical(new_obj$cache$lower, rep(0, 2))
-    expect_identical(new_obj$cache$upper, rep(1, 2))
     new_samples <- run_sampler(new_obj)
 
     skip_extended()

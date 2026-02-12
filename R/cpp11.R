@@ -8,8 +8,8 @@ RandomWalkImpl <- function(original, unit_log_fn, criterion, steps, epsilon) {
   .Call(`_ernest_RandomWalkImpl`, original, unit_log_fn, criterion, steps, epsilon)
 }
 
-SliceImpl <- function(original, unit_log_fn, criterion, lower, upper, max_loop) {
-  .Call(`_ernest_SliceImpl`, original, unit_log_fn, criterion, lower, upper, max_loop)
+SliceImpl <- function(original, unit_log_fn, criterion, steps, max_loop) {
+  .Call(`_ernest_SliceImpl`, original, unit_log_fn, criterion, steps, max_loop)
 }
 
 BoundingEllipsoid <- function(X, point_log_volume) {

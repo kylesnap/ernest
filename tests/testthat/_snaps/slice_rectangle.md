@@ -1,27 +1,25 @@
 # slice can be called by user
 
     Code
-      slice_rectangle(enlarge = 0.5)
+      slice_rectangle(steps = 0)
     Condition
       Error in `slice_rectangle()`:
-      ! `enlarge` must be a number larger than or equal to 1 or `NA`, not the number 0.5.
+      ! `steps` must be a whole number larger than or equal to 1, not the number 0.
 
 ---
 
     Code
-      slice_rectangle(enlarge = NA)
-    Message
-      Slice Sampling LRPS :
-      # Dimensions: Uninitialized
-      # Calls since last update: 0
-      
+      slice_rectangle(steps = NA)
+    Condition
+      Error in `slice_rectangle()`:
+      ! `steps` must be a whole number, not `NA`.
 
 ---
 
     Code
       default
     Message
-      Slice Sampling LRPS (enlarged by 1):
+      Slice Sampling LRPS (1 Step):
       # Dimensions: Uninitialized
       # Calls since last update: 0
       
@@ -31,7 +29,7 @@
     Code
       obj
     Message
-      Slice Sampling LRPS (enlarged by 1.25):
+      Slice Sampling LRPS (1 Step):
       # Dimensions: 2
       # Calls since last update: 65
       

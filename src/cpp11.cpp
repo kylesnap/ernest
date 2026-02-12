@@ -20,10 +20,10 @@ extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP cri
   END_CPP11
 }
 // propose-impl.cpp
-cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, cpp11::doubles lower, cpp11::doubles upper, const int max_loop);
-extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP lower, SEXP upper, SEXP max_loop) {
+cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, const int steps, const int max_loop);
+extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP max_loop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(lower), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(upper), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
+    return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<const int>>(steps), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
   END_CPP11
 }
 // update_lrps-impl.cpp
@@ -49,7 +49,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       2},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
-    {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
+    {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               5},
     {"_ernest_logaddexp",               (DL_FUNC) &_ernest_logaddexp,               2},
     {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,              1},
     {NULL, NULL, 0}

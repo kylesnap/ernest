@@ -1,9 +1,9 @@
-# Generate samples from multiple spanning ellipsoids
+# Generate new points from multiple spanning ellipsoids
 
 Partitions the prior space into a set of ellipsoids whose union bounds
-the set of live points. Samples are created by randomly selecting an
-ellipsoid (weighted by their respective volumes), then using it to
-generate a random point as in
+the live set. New points are created by randomly selecting an ellipsoid
+(weighted by their respective volumes), then using it to generate a
+random point as in
 [unif_ellipsoid](https://kylesnap.github.io/ernest/reference/unif_ellipsoid.md).
 Effective for multimodal posteriors where a single ellipsoid would be
 inefficient.
@@ -18,14 +18,14 @@ multi_ellipsoid(enlarge = 1.25)
 
 - enlarge:
 
-  Double, greater than or equal to 1. Factor by which to inflate the
-  bounding ellipsoid's volume before sampling (see Details).
+  `[double(1)]`  
+  Factor by which to inflate the bounding ellipsoid's volume before
+  sampling (see Details). Must be at least 1.0.
 
 ## Value
 
-A list with class `c("multi_ellipsoid", "ernest_lrps")`. Use with
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-to specify nested sampling behaviour.
+`[multi_ellipsoid]`, a named list that inherits from
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\].
 
 ## Details
 
@@ -35,11 +35,9 @@ to better capture disconnected or elongated regions.
 
 Ellipsoids are generated using the following procedure:
 
-1.  A single ellipsoid is fit to the set of live points, with volume
-    \\V\\.
+1.  A single ellipsoid is fit to the live set, with volume \\V\\.
 
-2.  The live points are clustered into two groups using k-means
-    clustering.
+2.  The live set is clustered into two groups using k-means clustering.
 
 3.  Ellipsoids are fit to each cluster.
 
@@ -79,14 +77,9 @@ data(example_run)
 lrps <- multi_ellipsoid(enlarge = 1.25)
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 500
-#> • LRPS Method: multi_ellipsoid
-#> 
-#> ernest LRPS method <multi_ellipsoid/ernest_lrps>
-#> • Dimensions: 3
-#> • No. Log-Lik Calls: 0
-#> • No. Ellipsoids: 1
-#> • Total Log Volume: 1.001
-#> • Enlargement: 1.25
+#> Nested sampling run specification:
+#> * No. points: 500
+#> * Sampling method: Uniform sampling within bounding ellipsoids (enlarged by
+#> 1.25)
+#> * Prior: uniform prior distribution with 3 dimensions (x, y, and z)
 ```

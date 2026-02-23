@@ -1,119 +1,140 @@
-# Specify a prior distribution for nested sampling
+# Prepare a prior transformation for nested sampling
 
-Use an R function to specify the prior distribution of parameters for a
-nested sampling run.
+Creates a prior transformation object of class `ernest_prior`, which
+defines how to map points from the unit hypercube to the parameter space
+for use in a nested sampling run.
 
 ## Usage
 
 ``` r
 create_prior(
-  fn,
-  names = NULL,
+  point_fn,
+  vectorized_fn,
+  names,
   lower = -Inf,
   upper = Inf,
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
+  repair = c("unique", "universal", "check_unique", "unique_quiet", "universal_quiet")
 )
+
+# S3 method for class 'ernest_prior'
+x + y
 ```
 
 ## Arguments
 
-- fn:
+- point_fn, vectorized_fn:
 
-  A function. Takes a vector of unit cube coordinates and returns a
-  vector of parameters of the same length.
+  `[function]`  
+  The prior transformation function. Provide either `point_fn` or
+  `vectorized_fn`:
+
+  - `point_fn`: Should accept a single parameter vector (numeric vector
+    of length equal to the number of parameters) and return a vector in
+    the original parameter space.
+
+  - `vectorized_fn`: Should accept a matrix of points in the unit
+    hypercube (rows as parameter vectors) and return a matrix of the
+    same shape in the original parameter space.
 
 - names:
 
-  An optional character vector. Names for the variables in the prior
-  distribution.
+  `[character()]`  
+  Unique names for each variable in the prior distribution.
 
 - lower, upper:
 
-  Numeric vectors. Expected bounds for the parameter vectors after
-  hypercube transformation.
+  `[double()]`  
+  Expected lower and upper bounds for the parameter vectors after
+  transformation.
 
-- .n_dim:
+- repair:
 
-  An optional positive integer. The number of dimensions of the prior
-  distribution.
-
-- .name_repair:
-
-  An optional, case-sensitive string. How to repair `names`. Options are
-  `"unique"` (default), `"universal"`, or `"check_unique"`. See
+  `[character(1)]`  
+  Name repair strategy for `names`. One of `"check_unique"`, `"unique"`,
+  `"universal"`, `"unique_quiet"`, or `"universal_quiet"`. See
   [`vctrs::vec_as_names()`](https://vctrs.r-lib.org/reference/vec_as_names.html)
   for details.
 
+- x, y:
+
+  \[ernest_prior\]  
+  Prior objects to combine.
+
 ## Value
 
-A list with with class `ernest_prior`, containing `fn`, `lower`,
-`upper`, and `names`. The vector-valued parameters are guaranteed to be
-of length `n_dim` if provided, or share a common length if otherwise
-left `NULL`.
+`[ernest_prior]`, an object describing the prior transformation, with
+`names`, `lower`, and `upper` recycled to the same length.
 
 ## Details
 
-The unit hypercube transformation encodes points in the parameter space
-as independent and identically distributed points within a unit
-hypercube. Nested sampling implementations, including ernest, use this
+The prior transformation encodes points in the parameter space as
+independent and identically distributed points within a unit hypercube.
+Nested sampling implementations, including ernest, use this
 transformation to simplify likelihood-restricted prior sampling and
 avoid unnecessary rejection steps.
 
-`create_prior` allows you to specify your own prior distribution by
-providing a transformation function. For factorisable priors, this
-function can simply transform each value in (0, 1) using the inverse
-cumulative distribution function (CDF) for each parameter. For more
-complex cases, you can specify hierarchical or conditionally dependent
-priors (see Examples).
+Provide your prior as a transformation function. For factorisable
+priors, this can simply transform each value in (0, 1) using the inverse
+CDF for each parameter. For more complex cases, you can specify
+hierarchical or conditionally dependent priors.
 
 `create_prior` performs regularity checks on your prior function to
-catch basic errors that may affect nested sampling. To pass these
-checks, `fn` must be able to take in a vector of points (each between 0
-and 1) and return a vector of the same length which contains only finite
-values.
+catch basic errors that may affect nested sampling. The function must
+take in a vector (or matrix) of points (each between 0 and 1) and return
+a vector or matrix of the same shape containing only finite values.
+
+If your prior depends on additional data, provide these using an
+anonymous function (see Examples).
 
 ## Note
 
 See
 [vctrs::vector_recycling_rules](https://vctrs.r-lib.org/reference/theory-faq-recycling.html)
-for additional information on how parameters are recycled to a common
-length.
+for information on how parameters are recycled to a common length.
+
+## See also
+
+Other priors:
+[`create_normal_prior()`](https://kylesnap.github.io/ernest/reference/special_priors.md)
 
 ## Examples
 
 ``` r
-# 3D uniform prior in the range [-10, 10]
-unif <- function(x) {
-   -10 + x * 20
+# Specify a prior with independent marginals
+normal <- create_normal_prior(
+  names = c("beta0", "beta1", "beta2"),
+  mean = 0,
+  sd = 5
+)
+uniform <- create_uniform_prior(names = "sd", lower = 0, upper = 5)
+composite <- normal + uniform
+composite
+#> composite prior distribution with 4 dimensions (beta0, beta1, beta2, and sd)
+
+# Propose a conditional (hierarchical) prior in vectorized form
+fn <- function(x) {
+  n <- nrow(x)
+  out <- matrix(NA_real_, nrow = n, ncol = 3)
+  # x[1] follows N(5, 1)
+  out[, 1] <- stats::qnorm(x[, 1], mean = 5, sd = 1)
+  # log10(x[2]) follows Uniform(-1, 1)
+  out[, 2] <- 10^stats::qunif(x[, 2], min = -1, max = 1)
+  # x[3] follows N(x[1], x[2])
+  out[, 3] <- stats::qnorm(x[, 3], mean = out[, 1], sd = out[, 2])
+  out
 }
 
-prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
-#> New names:
-#> • `` -> `...1`
-#> • `` -> `...2`
-#> • `` -> `...3`
-prior$fn(c(0.25, 0.5, 0.75))
-#> [1] -5  0  5
-
-# A normal prior with parameterised mean and standard deviation
-hier_f <- function(theta) {
-  mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
-  sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
-  x <- qnorm(theta[3], mu, sigma) # X ~ N(mu, sigma)
-  c(mu, sigma, x)
-}
-create_prior(
-  hier_f,
-  names = c("mu", "sigma", "x"),
+conditional_prior <- create_prior(
+  vectorized_fn = fn,
+  names = c("mean", "sd", "x"),
   lower = c(-Inf, 0, -Inf)
 )
-#> custom prior distribution <ernest_prior>
-#> 
-#> # A tibble: 3 × 3
-#>   names lower upper
-#>   <chr> <dbl> <dbl>
-#> 1 mu     -Inf   Inf
-#> 2 sigma     0   Inf
-#> 3 x      -Inf   Inf
+
+# Plot the marginals
+sample <- conditional_prior$fn(matrix(runif(1000 * 3), nrow = 1000))
+hist(sample[, 1], main = "mean")
+
+hist(sample[, 2], main = "sd")
+
+hist(sample[, 3], main = "x")
 ```

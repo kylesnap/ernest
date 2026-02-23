@@ -1,7 +1,7 @@
-# Generate samples with slice sampling
+# Generate new points with slice sampling
 
-**\[experimental\]** Create new live points by evolving a current live
-point through slice sampling within a bounding hyperrectangle, shrinking
+Create new samples for the live set by evolving a current point in the
+set through slice sampling within a bounding hyperrectangle, shrinking
 the rectangle when proposals are rejected.
 
 ## Usage
@@ -14,15 +14,16 @@ slice_rectangle(enlarge = 1)
 
 - enlarge:
 
-  Optional double, greater than or equal to 1. Factor by which to
-  inflate the hyperrectangle's volume before sampling (see Details).
+  `[double(1)]`  
+  Factor by which to inflate the hyperrectangle's volume before sampling
+  (see Details). Optional, and must be greater or equal to 1 if
+  provided; if left `NA`, sampling is initially bounded by the unit
+  hypercube at each iteration.
 
 ## Value
 
-An object of class `c("slice_rectangle", "ernest_lrps")` that can be
-used with
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-to specify the sampling behaviour.
+`[slice_rectangle]`, a named list that inherits from
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\].
 
 ## Details
 
@@ -38,12 +39,12 @@ or the rectangle has shrunk to the point where no further clamping
 operations can be performed.
 
 By default, the hyperrectangle spans the extreme values of the current
-set of live points in each dimension. This may risk excluding valid
-regions of the parameter space, particularly where the posterior is
-multimodal or highly non-Gaussian. To mitigate this, set `enlarge > 1`,
-which inflates the hyperrectagle's volume by the specified factor before
-sampling. Setting `enlarge` to `NA` disables this behaviour, instead
-slicing from the unit hypercube at each iteration.
+live set in each dimension. This may risk excluding valid regions of the
+parameter space, particularly where the posterior is multimodal or
+highly non-Gaussian. To mitigate this, set `enlarge > 1`, which inflates
+the hyperrectagle's volume by the specified factor before sampling.
+Setting `enlarge` to `NA` disables this behaviour, instead slicing from
+the unit hypercube at each iteration.
 
 ## References
 

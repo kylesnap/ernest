@@ -1,16 +1,7 @@
 # Update an LRPS
 
-During a nested sampling run, you may wish to update the internal
-parameters of the LRPS based on sampler performance or other criterion.
-The frequency of these updates is set by the `first_update` and
-`update_interval` arguments of
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
-
-If you are creating your own
-[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)
-subclass, implement this method to specify any special update behaviour.
-The default method reconstructs the LRPS with current parameters and
-resets the likelihood call counter in the cache.
+Update the behaviour of a likelihood-restricted prior sampler with
+interim information from a nested sampling run.
 
 ## Usage
 
@@ -34,18 +25,39 @@ update_lrps(x, unit = NULL, log_volume = NA, ...)
 
 - x:
 
-  An `ernest_lrps` object.
+  \[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\]  
+  A likelihood-restricted prior sampler.
+
+- ...:
+
+  Presently ignored.
 
 - unit:
 
-  A matrix of live points within the sampler. If NULL, no LRPS updates
-  based on the state of the live points will be made.
+  `[matrix(double(), integer(), x$n_dim)]`  
+  The current live set stored within the run. Optional; if NULL no LRPS
+  updates based on the state of the live set will be made.
 
 - log_volume:
 
+  `[double(1)]`  
   The current log-volume of the nested sampling run.
 
 ## Value
 
-An updated `ernest_lrps` object with the same class as `x`, possibly
-with updated parameters.
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\],
+created by reconstructing `x` with updated parameters.
+
+## Details
+
+During a nested sampling run, you may wish to update the internal
+parameters of the LRPS based on sampler performance or other criterion.
+The frequency of these updates is set by the `first_update` and
+`update_interval` arguments of
+[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
+
+If you are creating your own
+[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)
+subclass, implement this method to specify any special update behaviour.
+The default method reconstructs the LRPS with current parameters and
+resets the likelihood call counter in the cache.

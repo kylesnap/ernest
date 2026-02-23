@@ -11,7 +11,7 @@ criterion is met."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,8 +22,8 @@ criterion is met."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Nested Sampling Runs with Ernest</a></li>
-    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Examples with ernest</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Nested Sampling with ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -52,11 +52,21 @@ criterion is met.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'ernest_sampler'</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  <span class="va">...</span>,</span>
 <span>  max_iterations <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_calls <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_evaluations <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_logz <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  show_progress <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  show_progress <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'ernest_run'</span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  max_iterations <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  max_evaluations <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_logz <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  show_progress <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -65,79 +75,83 @@ criterion is met.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An object of class <code>ernest_sampler</code> or <code>ernest_run</code>.</p></dd>
+<dd><p>[<a href="ernest_sampler.html">ernest_sampler</a>] or [ernest_run]<br> A nested sampling
+specification.</p></dd>
+
+
+<dt id="arg-max-iterations">max_iterations<a class="anchor" aria-label="anchor" href="#arg-max-iterations"></a></dt>
+<dd><p><code>[integer(1)]</code><br> The maximum number of iterations to
+perform. Optional; if <code>NULL</code> this criterion is ignored.</p></dd>
+
+
+<dt id="arg-max-evaluations">max_evaluations<a class="anchor" aria-label="anchor" href="#arg-max-evaluations"></a></dt>
+<dd><p><code>[integer(1)]</code><br> The maximum number of
+likelihood function evaluations to perform. Optional; if <code>NULL</code> this
+criterion is ignored.</p></dd>
+
+
+<dt id="arg-min-logz">min_logz<a class="anchor" aria-label="anchor" href="#arg-min-logz"></a></dt>
+<dd><p><code>[double(1)]</code><br> The minimum log-ratio between the
+current estimated evidence and the remaining evidence. Must be non-negative;
+if set to zero, this criterion is ignored.</p></dd>
+
+
+<dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
+<dd><p><code>[logical(1)]</code><br> If <code>TRUE</code>, displays a progress spinner
+and iteration counter during sampling. Optional; if <code>NULL</code> the global option
+<code>rlib_message_verbosity</code> is used to determine whether to show progress.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Arguments passed on to <code><a href="compile.html">compile.ernest_run</a></code></p><dl><dt><code>seed</code></dt>
-<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> <code>seed</code> is no longer supported;
-set RNG with the <code>seed</code> argument of <code><a href="ernest_sampler.html">ernest_sampler()</a></code>.</p></dd>
-
-    <dt><code>clear</code></dt>
-<dd><p>Logical. If <code>TRUE</code>, clears results from previous runs before
-compiling. If <code>FALSE</code>, retains previous results and validates live points.</p></dd>
+<dd><p>Arguments passed on to <code><a href="compile.ernest_run.html">compile.ernest_run</a></code></p><dl><dt><code>clear</code></dt>
+<dd><p><code>[logical(1)]</code><br> If <code>TRUE</code>, clears results from previous runs
+before compiling. If <code>FALSE</code>, retains previous results and validates the live
+set.</p></dd>
 
 
 </dl></dd>
 
-
-<dt id="arg-max-iterations">max_iterations<a class="anchor" aria-label="anchor" href="#arg-max-iterations"></a></dt>
-<dd><p>Optional positive integer. The maximum number of
-iterations to perform. If <code>NULL</code>, this criterion is ignored.</p></dd>
-
-
-<dt id="arg-max-calls">max_calls<a class="anchor" aria-label="anchor" href="#arg-max-calls"></a></dt>
-<dd><p>Optional positive integer. The maximum number of calls to
-the likelihood function. If <code>Inf</code>, this criterion is ignored.</p></dd>
-
-
-<dt id="arg-min-logz">min_logz<a class="anchor" aria-label="anchor" href="#arg-min-logz"></a></dt>
-<dd><p>Non-negative double. The minimum log-ratio between the
-current estimated evidence and the remaining evidence. If zero, this
-criterion is ignored.</p></dd>
-
-
-<dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
-<dd><p>Logical. If <code>TRUE</code>, displays a progress spinner and
-iteration counter during sampling. If <code>NULL</code>, then the parameter is inferred
-based on the value of the <code>rlib_message_verbosity</code> option.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An object of class <code>ernest_run</code>, inheriting from <code>ernest_sampler</code>,
-with additional components:</p><ul><li><p><code>n_iter</code>: Integer. Number of iterations.</p></li>
-<li><p><code>n_calls</code>: Integer. Total number of likelihood function calls.</p></li>
-<li><p><code>log_lik</code>: <code>double(n_iter + n_points)</code>. Log-likelihoods for each sample.</p></li>
-<li><p><code>log_volume</code>: <code>double(n_iter + n_points)</code>. Estimated log-prior volumes at
-each iteration.</p></li>
-<li><p><code>log_weight</code>: <code>double(n_iter + n_points)</code>. Unnormalised log-weights for
-each sample.</p></li>
-<li><p><code>log_evidence</code>: <code>double(n_iter + n_points)</code>. Cumulative log-evidence
-estimates at each iteration.</p></li>
-<li><p><code>log_evidence_var</code>: <code>double(n_iter + n_points)</code>. Variance of the
-log-evidence estimate at each iteration.</p></li>
-<li><p><code>information</code>: <code>double(n_iter + n_points)</code>. KL divergence between the prior
-and posterior, estimated at each iteration.</p></li>
-<li><p><code>samples</code>: <code>matrix(nrow = n_iter + n_points, ncol = n_dim)</code>. Parameter
-values for each sample.</p></li>
-<li><p><code>samples_unit</code>: <code>matrix(nrow = n_iter + n_points, ncol = n_dim)</code>. Parameter
-values for each sample in unit hypercube representation.</p></li>
-<li><p><code>id</code>: <code>integer(n_iter + n_points)</code>. Unique integer identifiers for each
-sample from the live set (ranging from 1 to <code>n_points</code>).</p></li>
-<li><p><code>points</code>: <code>integer(n_iter + n_points)</code>. Number of live points present at
-each iteration.</p></li>
-<li><p><code>calls</code>: <code>integer(n_iter + n_points)</code>. Number of calls used to generate a
-new live point at each iteration.</p></li>
-<li><p><code>birth</code>: <code>integer(n_iter + n_points)</code>. <code>id</code> of the live point that was used
-to create the given point. <code>0</code> if the point was created by <code>compile</code> at the
-beginning of a run.</p></li>
+    <p><code>[ernest_run]</code></p>
+<p>A named list containing the results of the nested sampling run, which
+contains <code>nsample = nlive + niter</code> samples from the prior distribution.
+This list inherits from <a href="ernest_sampler.html">ernest_sampler</a>, and additionally contains:</p><ul><li><p><code>niter</code>: <code>[integer(1)]</code> Number of iterations performed.</p></li>
+<li><p><code>neval</code>: <code>[integer(1)]</code> Total number of likelihood function evaluations.
+Note that it is possible for a single call to a likelihood function to
+evaluate the likelihoods of multiple parameter samples.</p></li>
+<li><p><code>log_evidence</code>: <code>[double(1)]</code> The log-evidence estimate.</p></li>
+<li><p><code>log_evidence_err</code>: <code>[double(1)]</code> The standard error of the log-evidence
+estimate, estimated from <code>information</code>.</p></li>
+<li><p><code>information</code>: <code>[double(1)]</code> The estimated Kullback-Leibler divergence.</p></li>
+<li><p><code>samples</code>: <code>[list]</code> The posterior samples ordered by their log-likelihood
+values:</p><ul><li><p><code>original</code>: <code>[matrix(double(), nsample, ndim)]</code> The samples
+transformed to the parameter space.</p></li>
+<li><p><code>unit_cube</code>: <code>[matrix(double(), nsample, ndim)]</code> The samples in
+the unit hypercube.</p></li>
+</ul></li>
+<li><p><code>weights</code>: <code>[list]</code> Additional information on the points generated by the
+run:</p><ul><li><p><code>id</code>: <code>[integer(nsample)]</code> The index of each point in the live set
+for each sample.</p></li>
+<li><p><code>evaluations</code>: <code>[integer(nsample)]</code> The number of likelihood
+evaluations needed to replace each point.</p></li>
+<li><p><code>log_weight</code>: <code>[double(nsample)]</code> The log-weight of each sample.</p></li>
+<li><p><code>imp_weight</code>: <code>[double(nsample)]</code> The normalized importance weight
+for each sample. This is given by normalizing <code>log_weight</code> with
+<code>log_evidence</code>, then applying <code>exp</code> to the result so the weights sum to
+one.</p></li>
+<li><p><code>log_lik</code>: <code>[double(nsample)]</code> The log-likelihood for each sample.</p></li>
+<li><p><code>birth_lik</code>: <code>[double(nsample)]</code> The log-likelihood of the point used
+to create each sample.</p></li>
+</ul></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>At least one of <code>max_iterations</code>, <code>max_calls</code>, or <code>min_logz</code> must
-specify a valid stopping criterion. Setting <code>min_logz</code> to zero while leaving
-<code>max_iterations</code> and <code>max_calls</code> at their defaults will result in an error.</p>
+    <p>At least one of <code>max_iterations</code>, <code>max_evaluations</code>, or <code>min_logz</code>
+must specify a valid stopping criterion. Setting <code>min_logz</code> to zero while
+leaving <code>max_iterations</code> and <code>max_evaluations</code> at their defaults will
+result in an error.</p>
 <p>If <code>x</code> is an <code>ernest_run</code> object, the stopping criteria are checked against
 the current state of the run. An error is thrown if the stopping criteria
 have already been satisfied by <code>x</code>.</p>
@@ -154,49 +168,39 @@ Computation. Bayesian Analysis, 1(4), 833–859. <a href="https://doi.org/10.121
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...1`</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `Uniform` -&gt; `Uniform...2`</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="special_priors.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, upper <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">ll_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, n_point <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span><span class="va">ll_fn</span>, <span class="va">prior</span>, nlive <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> nested sampling specification <span style="color: #0000BB;">&lt;ernest_sampler&gt;</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ernest LRPS method <span style="color: #0000BB;">&lt;rwmh_cube/ernest_lrps&gt;</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Dimensions: 2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Log-Lik Calls: 0</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Accepted Proposals: 0</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Steps: 25</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Target Acceptance: 0.5</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Step Size: 1.000</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Nested sampling run specification:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * No. points: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Stop sampling after a set number of iterations or likelihood calls.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_iterations <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_iterations` reached (100).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────────────────</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Iterations: 100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Calls: 160</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6476 (± 0.1316)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Nested sampling run:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * No. points: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Results ─────────────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Iterations: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Likelihood evals.: 166</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-evidence: -0.5983 (± 0.1235)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Information: 0.08405</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># The final number of calls may exceed `max_calls`, as `generate`</span></span></span>
+<span class="r-in"><span><span class="co"># The final number of calls may exceed `max_evaluations`, as `generate`</span></span></span>
 <span class="r-in"><span><span class="co"># only checks the number of calls when removing a live point.</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_calls <span class="op">=</span> <span class="fl">2600</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Created 100 live points.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> `max_calls` surpassed (2603 &gt; 2600).</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> nested sampling results <span style="color: #0000BB;">&lt;ernest_run/ernest_sampler&gt;</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Points: 100</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> LRPS Method: rwmh_cube</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────────────────</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Iterations: 225</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> No. Calls: 2603</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> Log. Evidence: -0.6453 (± 0.07790)</span>
+<span class="r-in"><span><span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, max_evaluations <span class="op">=</span> <span class="fl">2600</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Nested sampling run:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * No. points: 100</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Results ─────────────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Iterations: 223</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Likelihood evals.: 2607</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-evidence: -0.5962 (± 0.0745)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Information: 0.08494</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use the default stopping criteria</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>  <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span>  <span class="co"># \dontrun{}</span></span></span>

@@ -12,10 +12,10 @@ ernest_sampler(
   log_lik,
   prior,
   sampler = rwmh_cube(),
-  n_points = 500,
+  nlive = 500,
   first_update = NULL,
   update_interval = NULL,
-  seed = NULL
+  seed = NA
 )
 ```
 
@@ -23,57 +23,57 @@ ernest_sampler(
 
 - log_lik:
 
-  A function which takes a vector of parameters as a vector and returns
-  the log-likelihood of a given model. Wrapped using
-  [`create_likelihood()`](https://kylesnap.github.io/ernest/reference/create_likelihood.md)
-  unless it is already of class `ernest_likelihood`.
+  `[function]` or
+  \[[ernest_likelihood](https://kylesnap.github.io/ernest/reference/create_likelihood.md)\]  
+  A function which computes the log-likelihood of a given model. If a
+  function, it is wrapped with
+  [`create_likelihood()`](https://kylesnap.github.io/ernest/reference/create_likelihood.md).
 
 - prior:
 
-  An object with class
-  [ernest_prior](https://kylesnap.github.io/ernest/reference/create_prior.md).
-  Describes the prior space within which to generate sample parameters
-  for `log_lik`.
+  \[[ernest_prior](https://kylesnap.github.io/ernest/reference/create_prior.md)\]  
+  Describes the prior space within which to generate samples.
 
 - sampler:
 
-  An object of class
-  [ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md).
-  Describes the likelihood-restricted prior sampling technique to adopt
-  during the run.
+  \[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\]  
+  Specifies the likelihood-restricted prior sampling method used to
+  replace points within the live set.
 
-- n_points:
+- nlive:
 
-  A strictly positive integer. The number of live points to use in the
-  nested sampling run.
+  `[integer(1)]`  
+  The number of points to generate within the live set. Strictly
+  positive.
 
 - first_update:
 
-  An optional positive integer. The number of likelihood calls to make
-  with the default [uniform
+  `[integer(1)]`  
+  The number of likelihood calls to make with the default [uniform
   LRPS](https://kylesnap.github.io/ernest/reference/unif_cube.md) method
-  before swapping to the technique described by `sampler`. If left
-  `NULL`, this is set to `n_points * 2.5`.
+  before swapping to the technique described by `sampler`. Optional; if
+  left `NULL` this is set to `nlive * 2.5`.
 
 - update_interval:
 
-  An optional positive integer. The number of likelihood calls between
-  updates to the `sampler` object. If `NULL`, this is set to
-  `n_points * 1.5`.
+  `[integer(1)]`  
+  The number of likelihood calls between updates to the `sampler`
+  object. Optional; if left `NULL` this is set to `nlive * 1.5`.
 
 - seed:
 
-  An optional integer. Sets the random seed controlling the random
-  number generator for nested sampling runs, which is stored in the
-  resulting `ernest_sampler` as an attribute. If `NULL`, this is set to
-  a random integer.
+  `[integer(1)]`  
+  Sets the random seed controlling the random number generator for
+  nested sampling runs. Optional; if left `NA` the
+  [.Random.seed](https://rdrr.io/r/base/Random.html) set within R is
+  preserved and restored after a run.
 
 ## Value
 
-An object of class `ernest_sampler`, which is a list containing the
-inputs used as arguments to this function, along with an environment
-`run_env` which is used to store the `n_points` live particles
-throughout a nested sampling run.
+`[ernest_sampler]`  
+A named list, containing a specification for a nested sampling run.
+Contains the arguments passed to this function as well as an environment
+`run_env`, which is used to store the live set during sampling.
 
 ## Details
 
@@ -100,53 +100,28 @@ signaled. See
 [`rlang::abort()`](https://rlang.r-lib.org/reference/abort.html) for
 more information.
 
-## See also
-
-- [`create_likelihood()`](https://kylesnap.github.io/ernest/reference/create_likelihood.md)
-  describes the requirements of the `log_lik_fn` parameter.
-
-- [`create_prior()`](https://kylesnap.github.io/ernest/reference/create_prior.md)
-  describes the requriements of the `prior` parameter.
-
-- [ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)
-  describes the general requirements of likelihood-restricted prior
-  samplers.
-
 ## Examples
 
 ``` r
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
-#> New names:
-#> • `Uniform` -> `Uniform...1`
-#> • `Uniform` -> `Uniform...2`
 ll_fn <- function(x) -sum(x^2)
-sampler <- ernest_sampler(ll_fn, prior, n_points = 100)
+sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 sampler
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 100
-#> • LRPS Method: rwmh_cube
-#> 
-#> ernest LRPS method <rwmh_cube/ernest_lrps>
-#> • Dimensions: 2
-#> • No. Log-Lik Calls: 0
-#> • No. Accepted Proposals: 0
-#> • No. Steps: 25
-#> • Target Acceptance: 0.5
-#> • Step Size: 1.000
+#> Nested sampling run specification:
+#> * No. points: 100
+#> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+#> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
 
 # Use a unit-cube LRPS (not recommended in practice)
 unit_sampler <- ernest_sampler(
   ll_fn,
   prior,
-  n_points = 100,
+  nlive = 100,
   sampler = unif_cube()
 )
 unit_sampler
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 100
-#> • LRPS Method: unif_cube
-#> 
-#> ernest LRPS method <unif_cube/ernest_lrps>
-#> • Dimensions: 2
-#> • No. Log-Lik Calls: 0
+#> Nested sampling run specification:
+#> * No. points: 100
+#> * Sampling method: Uniform unit cube sampling
+#> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
 ```

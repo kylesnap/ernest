@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,8 +35,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/more-ernest-runs.html">More Nested Sampling Runs with Ernest</a></li>
-    <li><a class="dropdown-item" href="articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
+<li><a class="dropdown-item" href="articles/more-ernest-runs.html">More Examples with ernest</a></li>
+    <li><a class="dropdown-item" href="articles/nested-sampling-with-ernest.html">Nested Sampling with ernest</a></li>
   </ul>
 </li>
       </ul>
@@ -66,6 +66,12 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"kylesnap/ernest"</span><span class="op">)</span></span></code></pre></div>
+<p>You’ll also need a working C++ compiler. To get it:</p>
+<ul>
+<li><p>On Windows, install <a href="#id_0">Rtools</a>.</p></li>
+<li><p>On Mac, install Xcode from the app store.</p></li>
+<li><p>On Linux, <code>sudo apt-get install r-base-dev</code> or similar.</p></li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="why-use-ernest">Why use ernest?<a class="anchor" aria-label="anchor" href="#why-use-ernest"></a>
@@ -86,7 +92,7 @@
 <p>ernest’s implementation of NS offers R users several benefits:</p>
 <ul>
 <li>
-<strong>Native R implementation</strong>: John Skilling’s Skilling (2006) NS algorithm is implemented in R, with no Python or Fortran dependencies. (C++ is used to implement the included likelihood samplers to improve run-time efficiency).</li>
+<strong>Native R implementation</strong>: John Skilling’s NS algorithm is implemented in R, with no Python or Fortran dependencies. (C++ is used to implement the included likelihood samplers to improve run-time efficiency).</li>
 <li>
 <strong>Type- and size-safety</strong>: ernest helps ensure that the user provides likelihood functions and prior specifications meet the requirements of the NS algorithm.</li>
 <li>
@@ -102,126 +108,76 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://kylesnap.github.io/ernest/">ernest</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define a prior (i.i.d. multivariate uniform)</span></span>
-<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_uniform_prior.html">create_uniform_prior</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, upper <span class="op">=</span> <span class="fl">10</span>, names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/special_priors.html">create_uniform_prior</a></span><span class="op">(</span>names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span>, lower <span class="op">=</span> <span class="op">-</span><span class="fl">10</span>, upper <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define a log-likelihood function (multivariate normal)</span></span>
-<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">Sigma</span><span class="op">[</span><span class="va">Sigma</span> <span class="op">==</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.95</span></span>
-<span><span class="va">loglike</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_likelihood.html">create_likelihood</a></span><span class="op">(</span></span>
-<span>  \<span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">LaplacesDemon</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/LaplacesDemon/man/dist.Multivariate.Normal.html" class="external-link">dmvn</a></span><span class="op">(</span><span class="va">x</span>, mu <span class="op">=</span> <span class="va">mu</span>, Sigma <span class="op">=</span> <span class="va">Sigma</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">log_lik_mvn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">n_dim</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">0.95</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="co"># Covariance matrix</span></span>
+<span>  <span class="va">det_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">det</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">prec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span> <span class="co"># Precision matrix (Sigma^-1)</span></span>
+<span>  <span class="va">log_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">n_dim</span> <span class="op">+</span> <span class="va">det_sigma</span><span class="op">)</span> <span class="co"># Normalization for MVG</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">theta</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">prec</span>, <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">log_norm</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Set up and run the sampler</span></span>
 <span><span class="va">sampler</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ernest_sampler.html">ernest_sampler</a></span><span class="op">(</span></span>
-<span>  log_lik <span class="op">=</span> <span class="va">loglike</span>,</span>
+<span>  <span class="va">log_lik_mvn</span>,</span>
 <span>  prior <span class="op">=</span> <span class="va">prior</span>,</span>
-<span>  n_points <span class="op">=</span> <span class="fl">500</span></span>
+<span>  nlive <span class="op">=</span> <span class="fl">500</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span><span class="op">)</span></span>
+<span><span class="va">run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate</a></span><span class="op">(</span><span class="va">sampler</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Summarise and visualise results</span></span>
+<span><span class="co"># Summarize and visualize results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run</span>, type <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt; Summary of nested sampling run:</span></span>
+<span><span class="co">#&gt; ── Run Information ─────────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; * No. points: 500</span></span>
+<span><span class="co">#&gt; * Iterations: 4633</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 101352</span></span>
+<span><span class="co">#&gt; * Log-evidence: -8.9259 (± 0.1137)</span></span>
+<span><span class="co">#&gt; * Information: 4.732</span></span>
+<span><span class="co">#&gt; ── Posterior Summary ───────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; # A tibble: 3 × 6</span></span>
+<span><span class="co">#&gt;   variable      mean    sd   median   q15   q85</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 x        -0.0472    2.80  0.00714 -2.03  1.85</span></span>
+<span><span class="co">#&gt; 2 y        -0.000385  2.81 -0.00925 -1.89  1.87</span></span>
+<span><span class="co">#&gt; 3 z        -0.111     2.75 -0.0345  -2.01  1.78</span></span>
+<span><span class="co">#&gt; ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; * Log-likelihood: -2.6811</span></span>
+<span><span class="co">#&gt; * Original parameters: -0.0116, -0.0448, and -0.0105</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span>, which <span class="op">=</span> <span class="st">"evidence"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-2-1.png" width="100%"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run</span>, <span class="va">x</span>, .which <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-2-2.png" width="100%"></p>
 <p>For advanced usage, including custom priors and hierarchical models, see the package vignettes.</p>
-</div>
-<div class="section level2">
-<h2 id="learn-more">Learn More<a class="anchor" aria-label="anchor" href="#learn-more"></a>
-</h2>
-<ul>
-<li>
-<strong>About NS</strong>: <code><a href="articles/nested-sampling-with-ernest.html">vignette("nested-sampling-with-ernest")</a></code>, Skilling (2004), Skilling (2006), and Buchner (2023).</li>
-<li>
-<strong>How to use ernest</strong>: <code>vignette("more-ernest-runs.Rmd")</code>.</li>
-</ul>
 </div>
 <div class="section level2">
 <h2 id="prior-work">Prior Work<a class="anchor" aria-label="anchor" href="#prior-work"></a>
 </h2>
-<p>NS has been implemented in many languages; some offer R interfaces. This non-exhaustive list of popular NS implementations is adapted from Fowlie, Handley, and Su (2021):</p>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr class="header">
-<th align="left">Package</th>
-<th align="center">Citation</th>
-<th align="center">Language(s)</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left"><a href="https://github.com/kbarbary/nestle/tree/master" class="external-link">nestle</a></td>
-<td align="center">Barbary (2015)</td>
-<td align="center">Python</td>
-</tr>
-<tr class="even">
-<td align="left"><a href="https://github.com/joshspeagle/dynesty" class="external-link">dynesty</a></td>
-<td align="center">Speagle (2020)</td>
-<td align="center">Python</td>
-</tr>
-<tr class="odd">
-<td align="left"><a href="https://github.com/EnricoCorsaro/DIAMONDS/" class="external-link">DIAMONDS</a></td>
-<td align="center">Corsaro and Ridder (2014)</td>
-<td align="center">C++</td>
-</tr>
-<tr class="even">
-<td align="left"><a href="https://github.com/JohannesBuchner/MultiNest" class="external-link">MultiNest</a></td>
-<td align="center">Feroz, Hobson, and Bridges (2009)</td>
-<td align="center">Fortran; interfaces for C++, Python, R, and MatLab</td>
-</tr>
-<tr class="odd">
-<td align="left"><a href="https://github.com/PolyChord/PolyChordLite" class="external-link">PolyChord</a></td>
-<td align="center">Handley, Hobson, and Lasenby (2015)</td>
-<td align="center">Fortran; interfaces for C++ and Python</td>
-</tr>
-<tr class="even">
-<td align="left"><a href="https://github.com/eggplantbren/DNest4" class="external-link">DNest4</a></td>
-<td align="center">Brewer and Foreman-Mackey (2018)</td>
-<td align="center">C++; interfaces with Python, R, and Julia</td>
-</tr>
-</tbody>
-</table>
+<p>NS has been implemented in many languages. This non-exhaustive list of popular NS implementations is adapted from <a href="http://arxiv.org/abs/2010.13884" class="external-link">Fowlie (2021)</a>:</p>
+<ul>
+<li><p>In Python: <a href="https://github.com/kbarbary/nestle/tree/master" class="external-link">nestle</a> and <a href="https://github.com/joshspeagle/dynesty" class="external-link">dynesty</a></p></li>
+<li><p>In C++: <a href="https://github.com/EnricoCorsaro/DIAMONDS/" class="external-link">DIAMONDS</a> and <a href="https://github.com/eggplantbren/DNest4" class="external-link">DNest4</a>*</p></li>
+<li><p>In Fortran: <a href="https://github.com/JohannesBuchner/MultiNest" class="external-link">MultiNest</a>* and <a href="https://github.com/PolyChord/PolyChordLite" class="external-link">PolyChord</a></p></li>
+</ul>
+<p>(* Indicates software that includes an R interface.)</p>
 <p>ernest’s design, API, and NS implementation are based on the nestle package, with further inspiration from dynesty.</p>
-<p>The <a href="https://github.com/ejhigson/nestcheck/tree/master" class="external-link">nestcheck</a> Python package provides routines for error estimation and diagnostic plotting with nested sampling runs (Higson et al. 2019). Several of ernest’s methods are based on this work.</p>
-<hr>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
-<div id="ref-barbary2015" class="csl-entry">
-Barbary, Kyle. 2015. <em>Nestle: Pure Python, MIT-Licensed Implementation of Nested Sampling Algorithms for Evaluating Bayesian Evidence.</em> <a href="https://github.com/kbarbary/nestle" class="external-link uri">https://github.com/kbarbary/nestle</a>.
+<p>The <a href="https://github.com/ejhigson/nestcheck/tree/master" class="external-link">nestcheck</a> Python package provides routines for error estimation and diagnostic plotting with nested sampling runs. Several of ernest’s methods are based on this work.</p>
 </div>
-<div id="ref-brewer2018" class="csl-entry">
-Brewer, Brendon J., and Daniel Foreman-Mackey. 2018. “DNest4: Diffusive Nested Sampling in C++ and Python.” <em>Journal of Statistical Software</em> 86 (September): 1–33. <a href="https://doi.org/10.18637/jss.v086.i07" class="external-link uri">https://doi.org/10.18637/jss.v086.i07</a>.
-</div>
-<div id="ref-buchner2023" class="csl-entry">
-Buchner, Johannes. 2023. “Nested Sampling Methods.” <em>Statistics Surveys</em> 17 (none): 169–215. <a href="https://doi.org/10.1214/23-SS144" class="external-link uri">https://doi.org/10.1214/23-SS144</a>.
-</div>
-<div id="ref-corsaro2014" class="csl-entry">
-Corsaro, E., and J. De Ridder. 2014. “DIAMONDS: A New Bayesian Nested Sampling Tool - Application to Peak Bagging of Solar-Like Oscillations.” <em>Astronomy &amp; Astrophysics</em> 571 (November): A71. <a href="https://doi.org/10.1051/0004-6361/201424181" class="external-link uri">https://doi.org/10.1051/0004-6361/201424181</a>.
-</div>
-<div id="ref-feroz2009" class="csl-entry">
-Feroz, F., M. P. Hobson, and M. Bridges. 2009. “MULTINEST: An Efficient and Robust Bayesian Inference Tool for Cosmology and Particle Physics.” <em>Monthly Notices of the Royal Astronomical Society</em> 398 (October): 1601–14. <a href="https://doi.org/10.1111/j.1365-2966.2009.14548.x" class="external-link uri">https://doi.org/10.1111/j.1365-2966.2009.14548.x</a>.
-</div>
-<div id="ref-fowlie2021" class="csl-entry">
-Fowlie, Andrew, Will Handley, and Liangliang Su. 2021. “Nested Sampling with Plateaus.” <em>Monthly Notices of the Royal Astronomical Society</em> 503 (1): 1199–1205. <a href="https://doi.org/10.1093/mnras/stab590" class="external-link uri">https://doi.org/10.1093/mnras/stab590</a>.
-</div>
-<div id="ref-handley2015" class="csl-entry">
-Handley, W. J., M. P. Hobson, and A. N. Lasenby. 2015. “PolyChord: Next-Generation Nested Sampling.” <em>Monthly Notices of the Royal Astronomical Society</em> 453 (4): 4384–98. <a href="https://doi.org/10.1093/mnras/stv1911" class="external-link uri">https://doi.org/10.1093/mnras/stv1911</a>.
-</div>
-<div id="ref-higson2019" class="csl-entry">
-Higson, Edward, Will Handley, Michael Hobson, and Anthony Lasenby. 2019. “Nestcheck: Diagnostic Tests for Nested Sampling Calculations.” <em>Monthly Notices of the Royal Astronomical Society</em> 483 (2): 2044–56. <a href="https://doi.org/10.1093/mnras/sty3090" class="external-link uri">https://doi.org/10.1093/mnras/sty3090</a>.
-</div>
-<div id="ref-skilling2004" class="csl-entry">
-Skilling, John. 2004. “Nested Sampling.” <em>AIP Conference Proceedings</em> 735 (1): 395–405. <a href="https://doi.org/10.1063/1.1835238" class="external-link uri">https://doi.org/10.1063/1.1835238</a>.
-</div>
-<div id="ref-skilling2006" class="csl-entry">
-———. 2006. “Nested Sampling for General Bayesian Computation.” <em>Bayesian Analysis</em> 1 (4): 833–59. <a href="https://doi.org/10.1214/06-BA127" class="external-link uri">https://doi.org/10.1214/06-BA127</a>.
-</div>
-<div id="ref-speagle2020" class="csl-entry">
-Speagle, Joshua S. 2020. “DYNESTY: A Dynamic Nested Sampling Package for Estimating Bayesian Posteriors and Evidences.” <em>Monthly Notices of the Royal Astronomical Society</em> 493 (April): 3132–58. <a href="https://doi.org/10.1093/mnras/staa278" class="external-link uri">https://doi.org/10.1093/mnras/staa278</a>.
-</div>
-</div>
+<div class="section level2">
+<h2 id="citing-ernest">Citing ernest<a class="anchor" aria-label="anchor" href="#citing-ernest"></a>
+</h2>
+<p>When using ernest, please at least include the following citations:</p>
+<ul>
+<li><p>Dewsnap K. (2025). “ernest: A Toolkit for Nested Sampling.” R package version XXX, &lt;URL: (<a href="https://kylesnap.github.io/ernest/" class="uri">https://kylesnap.github.io/ernest/</a>)&gt;</p></li>
+<li><p>Skilling, J. (2006). Nested Sampling for General Bayesian Computation. <em>Bayesian Analysis</em>, 1(4), 833–859. &lt;DOI: <a href="https://doi.org/10.1214/06-BA127" class="external-link uri">https://doi.org/10.1214/06-BA127</a>&gt;</p></li>
+<li><p>Buchner, J. (2023). Nested Sampling Methods. <em>Statistics Surveys</em>, 17, 169–215. &lt;DOI: <a href="https://doi.org/10.1214/23-SS144" class="external-link uri">https://doi.org/10.1214/23-SS144</a>&gt;</p></li>
+</ul>
+<p>Additional citations for ernest can be found in the package’s vignettes and within function documentation.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

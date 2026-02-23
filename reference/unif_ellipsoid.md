@@ -1,8 +1,8 @@
-# Generate samples from the spanning ellipsoid
+# Generate new points from the spanning ellipsoid
 
-**\[experimental\]** Uses the bounding ellipsoid of the live points to
-define the region of prior space that contains new points. Effective for
-unimodal and roughly-Gaussian posteriors.
+Uses the bounding ellipsoid of the live set to define the region of
+prior space that contains new points. Effective for unimodal and
+roughly-Gaussian posteriors.
 
 ## Usage
 
@@ -14,14 +14,14 @@ unif_ellipsoid(enlarge = 1.25)
 
 - enlarge:
 
-  Double, greater than or equal to 1. Factor by which to inflate the
-  bounding ellipsoid's volume before sampling (see Details).
+  `[double(1)]`  
+  Factor by which to inflate the bounding ellipsoid's volume before
+  sampling (see Details). Must be at least 1.0.
 
 ## Value
 
-A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-to specify nested sampling behaviour.
+`[unif_ellipsoid]`, a named list that inherits from
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\].
 
 ## Details
 
@@ -83,14 +83,9 @@ data(example_run)
 lrps <- unif_ellipsoid(enlarge = 1.25)
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 500
-#> • LRPS Method: unif_ellipsoid
-#> 
-#> ernest LRPS method <unif_ellipsoid/ernest_lrps>
-#> • Dimensions: 3
-#> • No. Log-Lik Calls: 0
-#> • Center: 0.5000, 0.5000, 0.5000
-#> • Log Volume: 1.001
-#> • Enlargement: 1.25
+#> Nested sampling run specification:
+#> * No. points: 500
+#> * Sampling method: Uniform sampling within a bounding ellipsoid (enlarged by
+#> 1.25)
+#> * Prior: uniform prior distribution with 3 dimensions (x, y, and z)
 ```

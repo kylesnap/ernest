@@ -1,8 +1,8 @@
-# Generate samples from the unconstrained prior distribution
+# Generate new points from the unconstrained prior distribution
 
 Use rejection sampling across the entire prior distribution to create
-new live points. This is highly inefficient as an LRPS, but may be
-useful for testing the behaviour of a nested sampling specification.
+new samples. This is highly inefficient as an LRPS, but may be useful
+for testing the behaviour of a nested sampling specification.
 
 ## Usage
 
@@ -12,9 +12,8 @@ unif_cube()
 
 ## Value
 
-A list with class `c("unif_cube", "ernest_lrps")`. Can be used with
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-to specify the sampling behaviour of a nested sampling run.
+`[unif_cube]`, a named list that inherits from
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\].
 
 ## References
 
@@ -38,11 +37,8 @@ data(example_run)
 lrps <- unif_cube()
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 500
-#> • LRPS Method: unif_cube
-#> 
-#> ernest LRPS method <unif_cube/ernest_lrps>
-#> • Dimensions: 3
-#> • No. Log-Lik Calls: 0
+#> Nested sampling run specification:
+#> * No. points: 500
+#> * Sampling method: Uniform unit cube sampling
+#> * Prior: uniform prior distribution with 3 dimensions (x, y, and z)
 ```

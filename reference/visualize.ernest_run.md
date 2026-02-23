@@ -1,70 +1,95 @@
-# Plot the posterior distribution of an `ernest_run`
+# Visualize posterior distributions or traces from a nested sampling run
 
-Create a plot of the posterior distributions from a nested sampling run,
-or trace the evolution of discarded live points along the log prior
-volume.
+Produces visualizations of the posterior distributions or the evolution
+of variables along the log-prior volume from a nested sampling run.
 
 ## Usage
 
 ``` r
 # S3 method for class 'ernest_run'
-visualize(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE)
+visualize(
+  x,
+  ...,
+  .which = c("density", "trace"),
+  .units = c("original", "unit_cube"),
+  .radial = FALSE
+)
 ```
 
 ## Arguments
 
 - x:
 
-  An
-  [ernest_run](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)
-  object.
+  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)\]
+  The results of a nested sampling run.
 
 - ...:
 
-  Arguments passed on to
-  [`as_draws.ernest_run`](https://kylesnap.github.io/ernest/reference/as_draws.md)
+  \<[`tidy-select`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html)\>
+  One or more variables to plot from the run. If omitted, all variables
+  are plotted.
 
-  `units`
+- .which:
 
-  :   Case-sensitive string. The scale for the sampled points:
+  `[charcacter(1)]` Character string specifying the type of plot to
+  produce. Options are `"density"` for the posterior density of each
+  parameter or `"trace"` for the trace of variables along log-volume.
 
-      - `"original"`: Points are on the scale of the prior space.
+- .units:
 
-      - `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
+  `[character(1)]`  
+  The scale of the sampled points:
 
-  `radial`
+  - `"original"`: Points are on the scale of the prior space.
 
-  :   Logical. If `TRUE`, returns an additional column `.radial`
-      containing the radial coordinate (i.e., the Euclidean norm) for
-      each sampled point.
+  - `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
 
-- type:
+- .radial:
 
-  Case-sensitive string. The type of plot to create:
-
-  - `"density"`: Shows the posterior density of each parameter.
-
-  - `"trace"`: Shows the distribution of points along estimates of the
-    log prior volume.
-
-- vars:
-
-  \<`tidy-select`\> Variables to plot from the run. If `NULL`, all
-  variables are plotted.
-
-- plot:
-
-  Logical. If `TRUE`, returns a `ggplot` of the visualisation; if
-  `FALSE`, returns a `tibble` of the data used to create the plot.
+  `[logical(1)]`  
+  If `TRUE`, returns an additional column `.radial` containing the
+  radial coordinate (i.e., the Euclidean norm) for each sampled point.
 
 ## Value
 
-A `ggplot` object if `plot = TRUE`, otherwise a `tibble`.
+A
+[`ggplot2::ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+object.
+
+## Details
+
+The [`visualize()`](https://generics.r-lib.org/reference/visualize.html)
+function is designed to quickly explore the results of a nested sampling
+run through two types of plots:
+
+- **Density plots** show the marginal posterior for each selected
+  variable, using
+  [`ggdist::stat_halfeye()`](https://mjskay.github.io/ggdist/reference/stat_halfeye.html)
+  to visualize uncertainty and distribution shape.
+
+- **Trace plots** display the evolution of variables as a function of
+  log-volume, with points coloured by posterior weight. This can help
+  diagnose sampling behavior and identify regions of interest in the
+  prior volume.
+
+Posterior weights are derived from the individual contributions of each
+sampled point in the prior space to a run's log-evidence estimate. A
+point's weight is a function of (a) the point's likelihood and (b) the
+estimated amount of volume within that point's likelihood contour. See
+ernest's vignettes for more information.
+
+## Note
+
+This package requires the tidyselect package to be installed. If
+`which = "trace"` is selected, the ggdist package is also required.
 
 ## See also
 
-[`plot()`](https://rdrr.io/r/graphics/plot.default.html) for visualising
-evidence estimates from an `ernest_run`.
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) for
+  diagnostic plots of nested sampling runs.
+
+- [`as_draws_rvars()`](https://mc-stan.org/posterior/reference/draws_rvars.html)
+  for extracting posterior samples.
 
 ## Examples
 
@@ -73,16 +98,15 @@ evidence estimates from an `ernest_run`.
 library(ggdist)
 data(example_run)
 
-# Plot posterior distributions of the parameters
-visualize(example_run, type = "density")
+# Plot posterior densities for all parameters
+visualize(example_run, .which = "density")
 
 
-# Plot the trace of the radial coordinate in unit scale
+# Plot trace of the radial coordinate in unit-cube scale
 visualize(
   example_run,
-  type = "trace",
-  vars = ".radial",
-  units = "unit_cube",
-  radial = TRUE
+  .which = "trace",
+  .units = "unit_cube",
+  .radial = TRUE
 )
 ```

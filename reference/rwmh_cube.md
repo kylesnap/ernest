@@ -1,8 +1,8 @@
-# Generate samples with a random walk
+# Generate new points with a random walk
 
-Create new live points by evolving a current live point through a
-Metropolis-Hastings random walk, rejecting steps that fail to meet the
-likelihood criterion.
+Create new samples for the live set by evolving a current point in the
+set through a Metropolis-Hastings random walk, rejecting steps that fail
+to meet the likelihood criterion.
 
 ## Usage
 
@@ -14,19 +14,20 @@ rwmh_cube(steps = 25, target_acceptance = 0.5)
 
 - steps:
 
-  Positive integer. Number of steps to take when generating a proposal
-  point.
+  `[integer(1)]`  
+  Number of steps to take when generating a proposal point. Must be
+  greater or equal to 2.
 
 - target_acceptance:
 
-  Number between `1 / steps` and 1.0. Target acceptance rate for
-  proposed points.
+  `[double(1)]`  
+  Target acceptance rate for proposed points. Must be a number between
+  `1 / steps` and 1.
 
 ## Value
 
-An object of class `c("rwmh_cube", "ernest_lrps")` that can be used with
-[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-to specify the sampling behaviour.
+`[rwmh_cube]`, a named list that inherits from
+\[[ernest_lrps](https://kylesnap.github.io/ernest/reference/new_ernest_lrps.md)\].
 
 ## Details
 
@@ -58,7 +59,7 @@ where \\S(0, \epsilon)\\ is a point drawn uniformly from the
 
 ## Control Parameters
 
-- `steps`: Start with 25. Increase to generate samples that more closely
+- `steps`: Start with 25. Increase to generate points that more closely
   follow the posterior distribution; decrease for computational
   efficiency.
 

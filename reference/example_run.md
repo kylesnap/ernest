@@ -4,7 +4,7 @@ Load a precomputed example nested sampling run generated using the
 ernest package. It demonstrates a typical output from a nested sampling
 run on a simple 3-dimensional Gaussian likelihood, with a uniform prior
 over each dimension. This dataset is intended for use in documentation,
-tutorials, and gainining experience with `ernest_run`'s S3 methods.
+tutorials, and gaining experience with `ernest_run`'s S3 methods.
 
 ## Usage
 

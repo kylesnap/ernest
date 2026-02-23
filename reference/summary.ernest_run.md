@@ -1,7 +1,7 @@
 # Summarize a nested sampling run
 
-Provides a summary of an `ernest_run` object, including key statistics
-and a tibble of results for each iteration.
+Returns a concise summary of an `ernest_run` object, including key
+statistics and a description of the posterior distribution.
 
 ## Usage
 
@@ -14,7 +14,8 @@ summary(object, ...)
 
 - object:
 
-  An `ernest_run` object.
+  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)\]  
+  Results from a nested sampling run.
 
 - ...:
 
@@ -22,42 +23,38 @@ summary(object, ...)
 
 ## Value
 
-A list of class `summary.ernest_run` with the following components:
+`[summary.ernest_run]` A named list, containing:
 
-- `n_iter`: Integer. Number of iterations performed.
+- `nlive`: `[integer(1)]` Number of points in the live set.
 
-- `n_points`: Integer. Number of live points used in the run.
+- `niter`: `[integer(1)]` Number of iterations.
 
-- `n_calls`: Integer. Total number of likelihood function calls.
+- `neval`: `[integer(1)]` Number of likelihood evaluations.
 
-- `log_volume`: Double. Final estimated log-prior volume.
+- `log_evidence`: `[numeric(1)]` Log-evidence estimate.
 
-- `log_evidence`: Double. Final log-evidence estimate.
+- `log_evidence_err`: `[numeric(1)]` Standard error of log-evidence.
 
-- `log_evidence_err`: Double. Standard deviation of the log-evidence
-  estimate.
+- `information`: `[numeric(1)]` Estimated Kullback-Leibler divergence
+  between the prior and posterior.
 
-- `draws`: Posterior draws as returned by
-  [`as_draws()`](https://mc-stan.org/posterior/reference/draws.html).
+- `reweighted_samples`:
+  \[[posterior::draws_matrix](https://mc-stan.org/posterior/reference/draws_matrix.html)\]
+  Posterior samples, resampled by normalized weights.
 
-- `run` A
-  [tibble::tibble](https://tibble.tidyverse.org/reference/tibble.html).
+- `mle`: `[list]` Maximum likelihood estimate extracted during the run,
+  stored in a list with the elements:
 
-`run` stores the state of the run at each iteration with these columns:
+  - `log_lik`: `[double(1)]` The maximum log-likelihood value.
 
-- `call`: Cumulative number of likelihood calls.
+  - `original`, `unit_cube`: `[double(n_dim)]` The parameter values at
+    the MLE, expressed in the original parameter space and within the
+    unit cube.
 
-- `log_lik`: Log-likelihood for each sample.
+- `posterior`: \[tibble\] with columns for the posterior mean, sd,
+  median, and the 15th and 85th percentiles for each parameter.
 
-- `log_volume`: Estimated log-prior volume.
-
-- `log_weight`: Unnormalized log-weights (relative to evidence).
-
-- `log_evidence`: Cumulative log-evidence.
-
-- `log_evidence_err`: Standard deviation of log-evidence.
-
-- `information`: Estimated KL divergence at each iteration.
+- `seed`: The RNG seed used.
 
 ## See also
 
@@ -65,37 +62,37 @@ A list of class `summary.ernest_run` with the following components:
   details on the `ernest_run` object.
 
 - [`as_draws()`](https://mc-stan.org/posterior/reference/draws.html) for
-  more information on `draws` objects.
+  details on how posterior samples are extracted.
 
 ## Examples
 
 ``` r
-# Load an example run
 data(example_run)
-
-# Summarize the run and view a tibble of its results.
 run_sm <- summary(example_run)
 run_sm
-#> nested sampling result summary <summary.ernest_run>
-#> • No. Points: 1000
-#> • No. Iterations: 9384
-#> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Calls: 205329
-#> • Log. Volume: -16.87
-#> • Log. Evidence: -9.045 (± 0.08309)
-run_sm$run
-#> # A tibble: 10,384 × 7
-#>     call log_lik log_volume log_weight log_evidence log_evidence_err information
-#>    <int>   <dbl>      <dbl>      <dbl>        <dbl>            <dbl>       <dbl>
-#>  1     1   -147.     -0.001      -145.        -154.         7.02e-33   -4.92e-62
-#>  2     2   -141.     -0.002      -139.        -148.         1.81e-31   -3.29e-59
-#>  3     3   -136.     -0.003      -134.        -143.         1.85e-30   -3.43e-57
-#>  4     4   -136.     -0.004      -133.        -142.         3.74e-30   -1.40e-56
-#>  5     5   -134.     -0.005      -131.        -140.         8.30e-30   -6.90e-56
-#>  6     6   -130.     -0.006      -128.        -137.         3.86e-29   -1.49e-54
-#>  7     7   -130.     -0.007      -128.        -136.         6.84e-29   -4.68e-54
-#>  8     8   -129.     -0.008      -127.        -135.         1.09e-28   -1.18e-53
-#>  9     9   -129.     -0.009      -127.        -135.         1.55e-28   -2.40e-53
-#> 10    10   -126.     -0.01       -123.        -132.         4.02e-28   -1.62e-52
-#> # ℹ 10,374 more rows
+#> Summary of nested sampling run:
+#> ── Run Information ─────────────────────────────────────────────────────────────
+#> * No. points: 1000
+#> * Iterations: 9456
+#> * Likelihood evals.: 207001
+#> * Log-evidence: -9.1176 (± 0.0833)
+#> * Information: 4.930
+#> * RNG seed: 42
+#> ── Posterior Summary ───────────────────────────────────────────────────────────
+#> # A tibble: 3 × 6
+#>   variable     mean    sd  median   q15   q85
+#>   <chr>       <dbl> <dbl>   <dbl> <dbl> <dbl>
+#> 1 x        -0.00572  2.79 -0.0174 -1.94  2.00
+#> 2 y         0.0302   2.80  0.0165 -1.91  2.04
+#> 3 z        -0.00378  2.82  0.0192 -1.96  1.97
+#> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
+#> * Log-likelihood: -2.6803
+#> * Original parameters: 0.0097, -0.0096, and -0.0231
+run_sm$posterior
+#> # A tibble: 3 × 6
+#>   variable     mean    sd  median   q15   q85
+#>   <chr>       <dbl> <dbl>   <dbl> <dbl> <dbl>
+#> 1 x        -0.00572  2.79 -0.0174 -1.94  2.00
+#> 2 y         0.0302   2.80  0.0165 -1.91  2.04
+#> 3 z        -0.00378  2.82  0.0192 -1.96  1.97
 ```

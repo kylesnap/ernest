@@ -1,17 +1,8 @@
 # Create a new likelihood-restricted prior sampler (LRPS)
 
-Nested sampling relies on generating a series of points in the prior
-space with increasing log-likelihood values. This is accomplished using
-a likelihood-restricted prior sampler (LRPS), which generates
-independent and identically distributed points from the prior, subject
-to a hard likelihood constraint.
-
-To create your own LRPS, subclass `new_ernest_lrps` and provide S3
-methods for
-[`propose()`](https://kylesnap.github.io/ernest/reference/propose.md)
-and
-[`update_lrps()`](https://kylesnap.github.io/ernest/reference/update_lrps.md)
-for your subclass.
+Constructs an LRPS, accepted by
+[`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
+and used to create new points during a nested sampling run.
 
 ## Usage
 
@@ -29,37 +20,40 @@ new_ernest_lrps(
 
 ## Arguments
 
-- unit_log_fn, n_dim:
+- unit_log_fn:
 
-  Provided when
-  [`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)
-  is called with a given `ernest_lrps`:
+  `[function]`  
+  Takes a matrix of points in the unit cube and returns a numeric vector
+  of log-likelihood values. Optional, and updated when called by
+  [`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
 
-  - `unit_log_fn` (function, optional): Takes a matrix of points in the
-    unit cube and returns a numeric vector of log-likelihood values.
+- n_dim:
 
-  - `n_dim` (integer, optional): Number of dimensions of the prior
-    space.
+  `[integer(1)]`  
+  Number of dimensions within the prior space. Optional, and updated
+  when called by
+  [`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
 
 - max_loop:
 
-  Positive integer. Maximum number of attempts to generate points via
-  region-based sampling. Usually hidden from users, but can be set via
-  the `ernest.max_loop` option.
+  `[integer(1)]`  
+  Maximum number of attempts to generate points. Inferred from the
+  `ernest.max_loop` option.
 
 - cache:
 
-  (environment, optional) Environment for caching values. If `NULL`, a
-  new environment is created.
+  `[environment]` Environment for caching information required for the
+  specific LRPS method. Created if left `NULL`.
 
 - ...:
 
   \<[`dynamic-dots`](https://rlang.r-lib.org/reference/dyn-dots.html)\>
-  Name-value pairs for additional elements for subclasses of this LRPS.
+  Name-value pairs for additional elements for `ernest_lrps'` subclasses
 
 - .class:
 
-  (character vector, optional) Subclasses of this LRPS.
+  `[character()]`  
+  Names for the subclass of `ernest_lrps`.
 
 - .call:
 
@@ -71,5 +65,19 @@ new_ernest_lrps(
 
 ## Value
 
-An LRPS specification: a list containing the input arguments, with a
-class specific to the LRPS type.
+`[ernest_lrps]`, a named list containing the arguments provided.
+
+## Details
+
+Nested sampling relies on generating a series of points in the prior
+space with increasing log-likelihood values. This is accomplished using
+a likelihood-restricted prior sampler (LRPS), which generates
+independent and identically distributed points from the prior, subject
+to a hard likelihood constraint.
+
+To create your own LRPS, subclass `new_ernest_lrps` and provide S3
+methods for
+[`propose()`](https://kylesnap.github.io/ernest/reference/propose.md)
+and
+[`update_lrps()`](https://kylesnap.github.io/ernest/reference/update_lrps.md)
+for your subclass.

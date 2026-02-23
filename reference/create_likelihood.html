@@ -9,7 +9,7 @@ either a finite value or -Inf for each vector of parameters provided."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">ernest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,8 +20,8 @@ either a finite value or -Inf for each vector of parameters provided."></head><b
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Nested Sampling Runs with Ernest</a></li>
-    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Quickstart: Nested Sampling with Ernest</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/more-ernest-runs.html">More Examples with ernest</a></li>
+    <li><a class="dropdown-item" href="../articles/nested-sampling-with-ernest.html">Nested Sampling with ernest</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -46,21 +46,31 @@ either a finite value or <code>-Inf</code> for each vector of parameters provide
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span><span class="va">fn</span>, on_nonfinite <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"quiet"</span>, <span class="st">"abort"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_likelihood</span><span class="op">(</span></span>
+<span>  <span class="va">scalar_fn</span>,</span>
+<span>  <span class="va">vectorized_fn</span>,</span>
+<span>  on_nonfinite <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"warn"</span>, <span class="st">"quiet"</span>, <span class="st">"abort"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-fn">fn<a class="anchor" aria-label="anchor" href="#arg-fn"></a></dt>
-<dd><p>A function that takes a vector of parameters and returns a
-scalar log-likelihood value (either a finite double or <code>-Inf</code>).</p></dd>
+<dl><dt id="arg-scalar-fn-vectorized-fn">scalar_fn, vectorized_fn<a class="anchor" aria-label="anchor" href="#arg-scalar-fn-vectorized-fn"></a></dt>
+<dd><p><code>[function]</code><br> The log-likelihood function.
+Provide either <code>scalar_fn</code> or <code>vectorized_fn</code>:</p><ul><li><p><code>scalar_fn</code>: Should accept a parameter as a numeric vector and return a
+single numeric value representing the log-likelihood, or <code>-Inf</code>.</p></li>
+<li><p><code>vectorized_fn</code>: Should accept a matrix of parameter vectors (rows as
+samples, columns as elements of the parameter vector) and return a vector of
+log-likelihoods or <code>-Inf</code> values for each row.</p></li>
+</ul></dd>
 
 
 <dt id="arg-on-nonfinite">on_nonfinite<a class="anchor" aria-label="anchor" href="#arg-on-nonfinite"></a></dt>
-<dd><p>A case-sensitive string. Action to perform when <code>fn</code>
-returns a value that is non-finite and not <code>-Inf</code> (i.e., <code>NaN</code>, <code>NA</code>, <code>Inf</code>):</p><ul><li><p><code>"warn"</code>: Issue a warning and return <code>-Inf</code>.</p></li>
+<dd><p><code>[character]</code><br> How the sampler should handle values
+returned by <code>fn</code> or <code>matrix_fn</code> that are not finite and not equal to <code>-Inf</code>.
+Must be one of:</p><ul><li><p><code>"warn"</code>: Issue a warning and return <code>-Inf</code>.</p></li>
 <li><p><code>"quiet"</code>: Silently return <code>-Inf</code>.</p></li>
 <li><p><code>"abort"</code>: Stop execution and signal an error.</p></li>
 </ul></dd>
@@ -68,53 +78,95 @@ returns a value that is non-finite and not <code>-Inf</code> (i.e., <code>NaN</c
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A function with class <code>ernest_likelihood</code>. When provided a parameter vector
-this function will always return either a scalar finite double, the value
-<code>-Inf</code>, or an error message.</p>
+    <p><code>[ernest_likelihood]</code>, which inherits from <code>function</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Model likelihoods should be provided as a log-density function. The first
-argument of <code>fn</code> should be a vector of free parameters.</p>
-<p>If the model likelihood is conditional on some data, then use this step to
-incorporate this data into your nested sampling run. We recommended using
-an (anonymous function)<code><a href="https://rlang.r-lib.org/reference/as_function.html" class="external-link">rlang::as_function()</a></code> to do this (see Examples).</p>
-<p>It is expected that the log-likelihood function returns a scalar finite
-double or <code>-Inf</code> for each parameter vector. Non-finite values other than
-<code>-Inf</code>, such as <code>NaN</code>, <code>Inf</code>, or <code>NA</code> (i.e. missing values) are handled
-with the behavior of <code>on_nonfinite</code>.</p>
+    <p>Provide model likelihoods as a log-density function, which take a vector of
+free parameter values and return the corresponding log-likelihood value.</p>
+<p>Likelihoods are typically the most computationally expensive function to
+evaluate in a nested sampling run. ernest allows you to implement your
+likelihood as a function over a single parameter vector (<code>scalar_fn</code>) or over
+a matrix of parameters (<code>vectorized_fn</code>).</p>
+<p>ernest expects the log-likelihood function to return a
+finite double or <code>-Inf</code> for each parameter vector. The behaviour when
+encountering non-finite values other than <code>-Inf</code> (such as <code>NaN</code>, <code>Inf</code>, or
+<code>NA</code>) is controlled by <code>on_nonfinite</code>.</p>
+<p>If your log-likelihood depends on additional data (e.g., an observation
+matrix or data frame), provide these using an
+(anonymous function)<code><a href="https://rlang.r-lib.org/reference/as_function.html" class="external-link">rlang::as_function()</a></code> (see Examples).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>See the
+<a href="https://bnaras.github.io/cubature/articles/cubature.html" class="external-link">cubature</a> package
+for more examples of scalar and vectorized functions.</p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A 3D Gaussian likelihood function</span></span></span>
-<span class="r-in"><span><span class="va">n_dim</span> <span class="op">&lt;-</span> <span class="fl">3</span></span></span>
-<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">0.95</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">det_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">determinant</a></span><span class="op">(</span><span class="va">sigma</span>, logarithm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">modulus</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">det_sigma</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://mvtnorm.R-forge.R-project.org" class="external-link">mvtnorm</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Multivariate Normal Distribution</span></span></span>
+<span class="r-in"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">3</span></span></span>
+<span class="r-in"><span><span class="va">mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">m</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span><span class="op">[</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">sigma</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">3</span> <span class="op">/</span> <span class="fl">5</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span><span class="op">[</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">sigma</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">3</span></span></span>
+<span class="r-in"><span><span class="va">sigma</span><span class="op">[</span><span class="fl">3</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">sigma</span><span class="op">[</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">11</span> <span class="op">/</span> <span class="fl">15</span></span></span>
 <span class="r-in"><span><span class="va">prec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">log_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">n_dim</span> <span class="op">+</span> <span class="va">det_sigma</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">log_det</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">theta</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">prec</span>, <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">log_norm</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Provide a Scalar Log-Likelihood Function:</span></span></span>
+<span class="r-in"><span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">log_det</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">m</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">prec</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span><span class="va">fn</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.679876</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] -2.128207</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Bind data to the likelihood function an anonymous function.</span></span></span>
-<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">100000000</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">11</span>, min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="kw">if</span> <span class="op">(</span><span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="op">}</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, mean <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">theta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># `create_likelihood` allows scalar fns. to accept matrix inputs:</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">m</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Error in t(x) %*% prec : non-conformable arguments</span>
+<span class="r-in"><span><span class="va">scalar_ll</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span>scalar_fn <span class="op">=</span> <span class="va">log_lik</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">scalar_ll</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">m</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.128207 -2.128207</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Provide a Vectorized Log-Likelihood Function:</span></span></span>
+<span class="r-in"><span><span class="va">v_log_lik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">dmvnorm</a></span><span class="op">(</span><span class="va">x</span>, mean <span class="op">=</span> <span class="va">mean</span>, sigma <span class="op">=</span> <span class="va">sigma</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="fu">create_likelihood</span><span class="op">(</span>\<span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="fu">log_lik</span><span class="op">(</span><span class="va">theta</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> likelihood function <span style="color: #0000BB;">&lt;ernest_likelihood&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #AFAF00;">function</span> <span style="color: #D7AF00;">(</span>theta<span style="color: #D7AF00;">)</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">log_lik</span><span style="color: #D7AF00;">(</span>theta, y<span style="color: #D7AF00;">)</span></span>
+<span class="r-in"><span><span class="fu">v_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.128207</span>
+<span class="r-in"><span><span class="fu">v_log_lik</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">m</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.128207 -2.128207</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">vector_ll</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span>vectorized_fn <span class="op">=</span> <span class="va">v_log_lik</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">vector_ll</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Vectorized Log-likelihood Function</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #AFAF00;">function</span> <span style="color: #D7AF00;">(</span>x<span style="color: #D7AF00;">)</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #D7AF00;">{</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>     <span style="font-weight: bold;">dmvnorm</span><span style="color: #BBBB00;">(</span>x, mean = mean, sigma = sigma, log = <span style="color: #D75FAF;">TRUE</span><span style="color: #BBBB00;">)</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #D7AF00;">}</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Control Behaviour when Nonfinite Likelihood Values are Encountered</span></span></span>
+<span class="r-in"><span><span class="co"># Default: Warn and replace with `-Inf`</span></span></span>
+<span class="r-in"><span><span class="fu">vector_ll</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Replacing `NA` with `-Inf`.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -Inf</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Signal an error</span></span></span>
+<span class="r-in"><span><span class="va">abort_ll</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span><span class="va">log_lik</span>, on_nonfinite <span class="op">=</span> <span class="st">"abort"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">abort_ll</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Error : Couldn't calculate the log-lik of 0, 0, and NA.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Caused by error:</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> log-lik. values must be either finite or `-Inf`.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Detected non-viable value: `NA`.</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Silently replace all non-finite values</span></span></span>
+<span class="r-in"><span><span class="va">quiet_ll</span> <span class="op">&lt;-</span> <span class="fu">create_likelihood</span><span class="op">(</span>vectorized_fn <span class="op">=</span> <span class="va">v_log_lik</span>, on_nonfinite <span class="op">=</span> <span class="st">"quiet"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">quiet_ll</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -Inf</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

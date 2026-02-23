@@ -10,11 +10,21 @@ stopping criterion is met.
 # S3 method for class 'ernest_sampler'
 generate(
   x,
-  ...,
   max_iterations = NULL,
-  max_calls = NULL,
+  max_evaluations = NULL,
   min_logz = 0.05,
-  show_progress = NULL
+  show_progress = NULL,
+  ...
+)
+
+# S3 method for class 'ernest_run'
+generate(
+  x,
+  max_iterations = NULL,
+  max_evaluations = NULL,
+  min_logz = 0.05,
+  show_progress = NULL,
+  ...
 )
 ```
 
@@ -22,99 +32,109 @@ generate(
 
 - x:
 
-  An object of class `ernest_sampler` or `ernest_run`.
+  \[[ernest_sampler](https://kylesnap.github.io/ernest/reference/ernest_sampler.md)\]
+  or \[ernest_run\]  
+  A nested sampling specification.
+
+- max_iterations:
+
+  `[integer(1)]`  
+  The maximum number of iterations to perform. Optional; if `NULL` this
+  criterion is ignored.
+
+- max_evaluations:
+
+  `[integer(1)]`  
+  The maximum number of likelihood function evaluations to perform.
+  Optional; if `NULL` this criterion is ignored.
+
+- min_logz:
+
+  `[double(1)]`  
+  The minimum log-ratio between the current estimated evidence and the
+  remaining evidence. Must be non-negative; if set to zero, this
+  criterion is ignored.
+
+- show_progress:
+
+  `[logical(1)]`  
+  If `TRUE`, displays a progress spinner and iteration counter during
+  sampling. Optional; if `NULL` the global option
+  `rlib_message_verbosity` is used to determine whether to show
+  progress.
 
 - ...:
 
   Arguments passed on to
-  [`compile.ernest_run`](https://kylesnap.github.io/ernest/reference/compile.md)
-
-  `seed`
-
-  :   **\[deprecated\]** `seed` is no longer supported; set RNG with the
-      `seed` argument of
-      [`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
+  [`compile.ernest_run`](https://kylesnap.github.io/ernest/reference/compile.ernest_run.md)
 
   `clear`
 
-  :   Logical. If `TRUE`, clears results from previous runs before
-      compiling. If `FALSE`, retains previous results and validates live
-      points.
-
-- max_iterations:
-
-  Optional positive integer. The maximum number of iterations to
-  perform. If `NULL`, this criterion is ignored.
-
-- max_calls:
-
-  Optional positive integer. The maximum number of calls to the
-  likelihood function. If `Inf`, this criterion is ignored.
-
-- min_logz:
-
-  Non-negative double. The minimum log-ratio between the current
-  estimated evidence and the remaining evidence. If zero, this criterion
-  is ignored.
-
-- show_progress:
-
-  Logical. If `TRUE`, displays a progress spinner and iteration counter
-  during sampling. If `NULL`, then the parameter is inferred based on
-  the value of the `rlib_message_verbosity` option.
+  :   `[logical(1)]`  
+      If `TRUE`, clears results from previous runs before compiling. If
+      `FALSE`, retains previous results and validates the live set.
 
 ## Value
 
-An object of class `ernest_run`, inheriting from `ernest_sampler`, with
-additional components:
+`[ernest_run]`
 
-- `n_iter`: Integer. Number of iterations.
+A named list containing the results of the nested sampling run, which
+contains `nsample = nlive + niter` samples from the prior distribution.
+This list inherits from
+[ernest_sampler](https://kylesnap.github.io/ernest/reference/ernest_sampler.md),
+and additionally contains:
 
-- `n_calls`: Integer. Total number of likelihood function calls.
+- `niter`: `[integer(1)]` Number of iterations performed.
 
-- `log_lik`: `double(n_iter + n_points)`. Log-likelihoods for each
-  sample.
+- `neval`: `[integer(1)]` Total number of likelihood function
+  evaluations. Note that it is possible for a single call to a
+  likelihood function to evaluate the likelihoods of multiple parameter
+  samples.
 
-- `log_volume`: `double(n_iter + n_points)`. Estimated log-prior volumes
-  at each iteration.
+- `log_evidence`: `[double(1)]` The log-evidence estimate.
 
-- `log_weight`: `double(n_iter + n_points)`. Unnormalised log-weights
-  for each sample.
+- `log_evidence_err`: `[double(1)]` The standard error of the
+  log-evidence estimate, estimated from `information`.
 
-- `log_evidence`: `double(n_iter + n_points)`. Cumulative log-evidence
-  estimates at each iteration.
+- `information`: `[double(1)]` The estimated Kullback-Leibler
+  divergence.
 
-- `log_evidence_var`: `double(n_iter + n_points)`. Variance of the
-  log-evidence estimate at each iteration.
+- `samples`: `[list]` The posterior samples ordered by their
+  log-likelihood values:
 
-- `information`: `double(n_iter + n_points)`. KL divergence between the
-  prior and posterior, estimated at each iteration.
+  - `original`: `[matrix(double(), nsample, ndim)]` The samples
+    transformed to the parameter space.
 
-- `samples`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`. Parameter
-  values for each sample.
+  - `unit_cube`: `[matrix(double(), nsample, ndim)]` The samples in the
+    unit hypercube.
 
-- `samples_unit`: `matrix(nrow = n_iter + n_points, ncol = n_dim)`.
-  Parameter values for each sample in unit hypercube representation.
+- `weights`: `[list]` Additional information on the points generated by
+  the run:
 
-- `id`: `integer(n_iter + n_points)`. Unique integer identifiers for
-  each sample from the live set (ranging from 1 to `n_points`).
+  - `id`: `[integer(nsample)]` The index of each point in the live set
+    for each sample.
 
-- `points`: `integer(n_iter + n_points)`. Number of live points present
-  at each iteration.
+  - `evaluations`: `[integer(nsample)]` The number of likelihood
+    evaluations needed to replace each point.
 
-- `calls`: `integer(n_iter + n_points)`. Number of calls used to
-  generate a new live point at each iteration.
+  - `log_weight`: `[double(nsample)]` The log-weight of each sample.
 
-- `birth`: `integer(n_iter + n_points)`. `id` of the live point that was
-  used to create the given point. `0` if the point was created by
-  `compile` at the beginning of a run.
+  - `imp_weight`: `[double(nsample)]` The normalized importance weight
+    for each sample. This is given by normalizing `log_weight` with
+    `log_evidence`, then applying `exp` to the result so the weights sum
+    to one.
+
+  - `log_lik`: `[double(nsample)]` The log-likelihood for each sample.
+
+  - `birth_lik`: `[double(nsample)]` The log-likelihood of the point
+    used to create each sample.
 
 ## Details
 
-At least one of `max_iterations`, `max_calls`, or `min_logz` must
+At least one of `max_iterations`, `max_evaluations`, or `min_logz` must
 specify a valid stopping criterion. Setting `min_logz` to zero while
-leaving `max_iterations` and `max_calls` at their defaults will result
-in an error.
+leaving `max_iterations` and `max_evaluations` at their defaults will
+result in an error.
 
 If `x` is an `ernest_run` object, the stopping criteria are checked
 against the current state of the run. An error is thrown if the stopping
@@ -135,48 +155,38 @@ Bayesian Analysis, 1(4), 833–859.
 
 ``` r
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
-#> New names:
-#> • `Uniform` -> `Uniform...1`
-#> • `Uniform` -> `Uniform...2`
 ll_fn <- function(x) -sum(x^2)
-sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
+sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 sampler
-#> nested sampling specification <ernest_sampler>
-#> • No. Points: 100
-#> • LRPS Method: rwmh_cube
-#> 
-#> ernest LRPS method <rwmh_cube/ernest_lrps>
-#> • Dimensions: 2
-#> • No. Log-Lik Calls: 0
-#> • No. Accepted Proposals: 0
-#> • No. Steps: 25
-#> • Target Acceptance: 0.5
-#> • Step Size: 1.000
+#> Nested sampling run specification:
+#> * No. points: 100
+#> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+#> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
 
 # Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
-#> ℹ Created 100 live points.
-#> ✔ `max_iterations` reached (100).
-#> nested sampling results <ernest_run/ernest_sampler>
-#> • No. Points: 100
-#> • LRPS Method: rwmh_cube
-#> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Iterations: 100
-#> • No. Calls: 160
-#> • Log. Evidence: -0.6476 (± 0.1316)
+#> Nested sampling run:
+#> * No. points: 100
+#> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+#> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
+#> ── Results ─────────────────────────────────────────────────────────────────────
+#> * Iterations: 100
+#> * Likelihood evals.: 166
+#> * Log-evidence: -0.5983 (± 0.1235)
+#> * Information: 0.08405
 
-# The final number of calls may exceed `max_calls`, as `generate`
+# The final number of calls may exceed `max_evaluations`, as `generate`
 # only checks the number of calls when removing a live point.
-generate(sampler, max_calls = 2600)
-#> ℹ Created 100 live points.
-#> ✔ `max_calls` surpassed (2603 > 2600).
-#> nested sampling results <ernest_run/ernest_sampler>
-#> • No. Points: 100
-#> • LRPS Method: rwmh_cube
-#> ────────────────────────────────────────────────────────────────────────────────
-#> • No. Iterations: 225
-#> • No. Calls: 2603
-#> • Log. Evidence: -0.6453 (± 0.07790)
+generate(sampler, max_evaluations = 2600)
+#> Nested sampling run:
+#> * No. points: 100
+#> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+#> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
+#> ── Results ─────────────────────────────────────────────────────────────────────
+#> * Iterations: 223
+#> * Likelihood evals.: 2607
+#> * Log-evidence: -0.5962 (± 0.0745)
+#> * Information: 0.08494
 
 # Use the default stopping criteria
 if (FALSE)  generate(sampler)  # \dontrun{}

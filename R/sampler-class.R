@@ -8,11 +8,12 @@
 #' @param prior An object of class `ernest_prior`. The prior distribution for
 #' the sampler.
 #' @param lrps (Optional) An object of class `ernest_lrps`.
-#' @param n_points Integer. Number of live points to use in the sampler.
-#' @param first_update Integer. Iteration at which to perform the first update.
-#' @param update_interval Integer. Number of iterations between updates.
-#' @param run_env (Optional) An environment for storing live points. If not
+#' @param nlive  Number of points in the live set.
+#' @param first_update  Iteration at which to perform the first update.
+#' @param update_interval  Number of iterations between updates.
+#' @param run_env (Optional) An environment for storing the live set. If not
 #' provided, a new environment is created.
+#' @param seed  An optional random seed for reproducibility.
 #' @param ... Additional parameters for children of ernest_sampler.
 #' @param .class The subclass inheriting from ernest_sampler.
 #' @param .call The calling environment.
@@ -26,11 +27,11 @@ new_ernest_sampler <- function(
   log_lik_fn = NULL,
   prior = NULL,
   lrps = NULL,
-  n_points = NULL,
+  nlive = NULL,
   first_update = NULL,
   update_interval = NULL,
   run_env = NULL,
-  seed = NULL,
+  seed = NA_integer_,
   ...,
   .class = NULL,
   .call = caller_env()
@@ -39,9 +40,9 @@ new_ernest_sampler <- function(
   check_class(prior, "ernest_prior", call = .call)
   check_class(lrps, "ernest_lrps", call = .call)
   check_number_whole(
-    n_points,
+    nlive,
     min = 1,
-    arg = "n_points",
+    arg = "nlive",
     allow_infinite = FALSE,
     call = .call
   )
@@ -60,10 +61,7 @@ new_ernest_sampler <- function(
     call = .call
   )
   check_environment(run_env, allow_null = TRUE, call = .call)
-  check_number_whole(seed, min = 1, allow_null = TRUE, call = .call)
-  if (is.null(seed)) {
-    seed <- sample.int(.Machine$integer.max, 1L)
-  }
+  check_number_whole(seed, min = 1, allow_na = TRUE, call = .call)
 
   unit <- NULL
   log_lik <- NULL
@@ -85,7 +83,7 @@ new_ernest_sampler <- function(
     log_lik_fn = log_lik_fn,
     prior = prior,
     lrps = lrps,
-    n_points = as.integer(n_points),
+    nlive = as.integer(nlive),
     first_update = as.integer(first_update),
     update_interval = as.integer(update_interval),
     run_env = run_env %||% new_environment()
@@ -114,22 +112,12 @@ refresh_ernest_sampler <- function(x) {
 
 #' @export
 #' @noRd
-format.ernest_sampler <- function(x, ...) {
-  glue::glue(
-    "No. Points: {x$n_points}",
-    "LRPS Method: {class(x$lrps)[[1]]}",
-    .sep = "\n"
-  )
-}
-
-#' @export
-#' @noRd
 print.ernest_sampler <- function(x, ...) {
-  cli::cli_text("nested sampling specification {.cls ernest_sampler}")
-  lines <- strsplit(format(x), split = "\n")[[1]]
-  names(lines) <- rep("*", length(lines))
-  cli::cli_bullets(lines)
-  cli::cat_line()
-  print(x$lrps)
+  cli::cli_text("Nested sampling run specification:")
+  cli::cli_bullets(c(
+    "* No. points: {x$nlive}",
+    "* Sampling method: {format(x$lrps, ...)}",
+    "* Prior: {format(x$prior, ...)}"
+  ))
   invisible(x)
 }

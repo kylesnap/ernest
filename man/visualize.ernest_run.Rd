@@ -2,65 +2,85 @@
 % Please edit documentation in R/visualize.R
 \name{visualize.ernest_run}
 \alias{visualize.ernest_run}
-\title{Plot the posterior distribution of an \code{ernest_run}}
+\title{Visualize posterior distributions or traces from a nested sampling run}
 \usage{
-\method{visualize}{ernest_run}(x, ..., type = c("density", "trace"), vars = NULL, plot = TRUE)
+\method{visualize}{ernest_run}(
+  x,
+  ...,
+  .which = c("density", "trace"),
+  .units = c("original", "unit_cube"),
+  .radial = FALSE
+)
 }
 \arguments{
-\item{x}{An \link{ernest_run} object.}
+\item{x}{[\link{ernest_run}] The results of a nested sampling run.}
 
-\item{...}{
-  Arguments passed on to \code{\link[=as_draws.ernest_run]{as_draws.ernest_run}}
-  \describe{
-    \item{\code{units}}{Case-sensitive string. The scale for the sampled points:
+\item{...}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> One or more variables
+to plot from the run. If omitted, all variables are plotted.}
+
+\item{.which}{\verb{[charcacter(1)]} Character string specifying the type of plot
+to produce. Options are \code{"density"} for the posterior density of each
+parameter or \code{"trace"} for the trace of variables along log-volume.}
+
+\item{.units}{\verb{[character(1)]}\cr The scale of the sampled points:
 \itemize{
 \item \code{"original"}: Points are on the scale of the prior space.
 \item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
-    \item{\code{radial}}{Logical. If \code{TRUE}, returns an additional column \code{.radial}
-containing the radial coordinate (i.e., the Euclidean norm) for each
-sampled point.}
-  }}
 
-\item{type}{Case-sensitive string. The type of plot to create:
-\itemize{
-\item \code{"density"}: Shows the posterior density of each parameter.
-\item \code{"trace"}: Shows the distribution of points along estimates of the log
-prior volume.
-}}
-
-\item{vars}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> Variables to
-plot from the run. If \code{NULL}, all variables are plotted.}
-
-\item{plot}{Logical. If \code{TRUE}, returns a \code{ggplot} of the visualisation;
-if \code{FALSE}, returns a \code{tibble} of the data used to create the plot.}
+\item{.radial}{\verb{[logical(1)]}\cr If \code{TRUE}, returns an additional column
+\code{.radial} containing the radial coordinate (i.e., the Euclidean norm) for
+each sampled point.}
 }
 \value{
-A \code{ggplot} object if \code{plot = TRUE}, otherwise a \code{tibble}.
+A \code{ggplot2::ggplot()} object.
 }
 \description{
-Create a plot of the posterior distributions from a nested sampling run,
-or trace the evolution of discarded live points along the log prior
+Produces visualizations of the posterior distributions or the evolution of
+variables along the log-prior volume from a nested sampling run.
+}
+\details{
+The \code{visualize()} function is designed to quickly explore the results of a
+nested sampling run through two types of plots:
+\itemize{
+\item \strong{Density plots} show the marginal posterior for each selected variable,
+using \code{ggdist::stat_halfeye()} to visualize uncertainty and distribution
+shape.
+\item \strong{Trace plots} display the evolution of variables as a function of
+log-volume, with points coloured by posterior weight. This can help
+diagnose sampling behavior and identify regions of interest in the prior
 volume.
+}
+
+Posterior weights are derived from the individual contributions of each
+sampled point in the prior space to a run's log-evidence estimate. A point's
+weight is a function of (a) the point's likelihood and (b) the estimated
+amount of volume within that point's likelihood contour. See ernest's
+vignettes for more information.
+}
+\note{
+This package requires the {tidyselect} package to be installed. If
+\code{which = "trace"} is selected, the {ggdist} package is also required.
 }
 \examples{
 # Load example run
 library(ggdist)
 data(example_run)
 
-# Plot posterior distributions of the parameters
-visualize(example_run, type = "density")
+# Plot posterior densities for all parameters
+visualize(example_run, .which = "density")
 
-# Plot the trace of the radial coordinate in unit scale
+# Plot trace of the radial coordinate in unit-cube scale
 visualize(
   example_run,
-  type = "trace",
-  vars = ".radial",
-  units = "unit_cube",
-  radial = TRUE
+  .which = "trace",
+  .units = "unit_cube",
+  .radial = TRUE
 )
 }
 \seealso{
-\code{\link[=plot]{plot()}} for visualising evidence estimates from an
-\code{ernest_run}.
+\itemize{
+\item \code{\link[=plot]{plot()}} for diagnostic plots of nested sampling runs.
+\item \code{\link[=as_draws_rvars]{as_draws_rvars()}} for extracting posterior samples.
+}
 }

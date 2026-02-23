@@ -29,13 +29,13 @@ describe("rwmh_cube class", {
   it("Can be updated with a matrix of points", {
     obj <- new_rwmh_cube(fn, n_dim = 2)
     samples <- run_sampler(obj)
-    acc_ratio <- sum(samples$n_accept) / sum(samples$n_call)
+    acc_ratio <- sum(samples$n_accept) / sum(samples$neval)
     new_eps <- exp((acc_ratio - 0.5) / 2 / 0.5)
 
     new_obj <- update_lrps(obj, samples$unit)
     expect_lrps(new_obj, subclass = "rwmh_cube", !!!ptypes)
     expect_equal(new_obj$cache$epsilon, new_eps)
-    expect_identical(new_obj$cache$n_call, 0L)
+    expect_identical(new_obj$cache$neval, 0L)
     expect_identical(new_obj$cache$n_accept, 0L)
     new_samples <- run_sampler(new_obj)
 

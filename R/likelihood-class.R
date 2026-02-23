@@ -3,68 +3,79 @@
 #' Creates a modified version of a log-likelihood function that always returns
 #' either a finite value or `-Inf` for each vector of parameters provided.
 #'
-#' @param fn A function that takes a vector of parameters and returns a
-#' scalar log-likelihood value (either a finite double or `-Inf`).
-#' @param on_nonfinite A case-sensitive string. Action to perform when `fn`
-#' returns a value that is non-finite and not `-Inf` (i.e., `NaN`, `NA`, `Inf`):
+#' @param scalar_fn,vectorized_fn `[function]`\cr The log-likelihood function.
+#' Provide either `scalar_fn` or `vectorized_fn`:
+#' * `scalar_fn`: Should accept a parameter as a numeric vector and return a
+#' single numeric value representing the log-likelihood, or `-Inf`.
+#' * `vectorized_fn`: Should accept a matrix of parameter vectors (rows as
+#' samples, columns as elements of the parameter vector) and return a vector of
+#' log-likelihoods or `-Inf` values for each row.
+#' @param on_nonfinite `[character]`\cr How the sampler should handle values
+#' returned by `fn` or `matrix_fn` that are not finite and not equal to `-Inf`.
+#' Must be one of:
 #' * `"warn"`: Issue a warning and return `-Inf`.
 #' * `"quiet"`: Silently return `-Inf`.
 #' * `"abort"`: Stop execution and signal an error.
 #'
-#' @returns
-#' A function with class `ernest_likelihood`. When provided a parameter vector
-#' this function will always return either a scalar finite double, the value
-#' `-Inf`, or an error message.
+#' @returns `[ernest_likelihood]`, which inherits from `function`.
 #'
 #' @details
-#' Model likelihoods should be provided as a log-density function. The first
-#' argument of `fn` should be a vector of free parameters.
+#' Provide model likelihoods as a log-density function, which take a vector of
+#' free parameter values and return the corresponding log-likelihood value.
 #'
-#' If the model likelihood is conditional on some data, then use this step to
-#' incorporate this data into your nested sampling run. We recommended using
-#' an (anonymous function)[rlang::as_function()] to do this (see Examples).
+#' Likelihoods are typically the most computationally expensive function to
+#' evaluate in a nested sampling run. ernest allows you to implement your
+#' likelihood as a function over a single parameter vector (`scalar_fn`) or over
+#' a matrix of parameters (`vectorized_fn`).
 #'
-#' It is expected that the log-likelihood function returns a scalar finite
-#' double or `-Inf` for each parameter vector. Non-finite values other than
-#' `-Inf`, such as `NaN`, `Inf`, or `NA` (i.e. missing values) are handled
-#' with the behavior of `on_nonfinite`.
+#' ernest expects the log-likelihood function to return a
+#' finite double or `-Inf` for each parameter vector. The behaviour when
+#' encountering non-finite values other than `-Inf` (such as `NaN`, `Inf`, or
+#' `NA`) is controlled by `on_nonfinite`.
 #'
-#' @srrstats {BS1.1, BS3.0} Instructions on how to bind data to likelihood
-#' calculation provided here in text and in the example. Also explicitly
-#' documents how NA likelihood values are handled.
-#' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15, G2.16} create_likelihood
-#' controls the behaviour of the likelihood function when it returns a missing
-#' value (see `on_nonfinite`). The same parameter also controls the
-#' behaviour when non-finite, non-`-Inf` values are returned.
+#' If your log-likelihood depends on additional data (e.g., an observation
+#' matrix or data frame), provide these using an
+#' (anonymous function)[rlang::as_function()] (see Examples).
 #'
-#' @examples
-#' # A 3D Gaussian likelihood function
-#' n_dim <- 3
-#' sigma <- diag(0.95, nrow = 3)
-#' det_sigma <- determinant(sigma, logarithm = TRUE)$modulus
-#' attributes(det_sigma) <- NULL
-#' prec <- solve(sigma)
-#' log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
+#' @srrstats {BS1.1, BS3.0} Instructions for binding data to likelihood
+#' calculation are provided here and in the example. Explicitly documents
+#' handling of NA likelihoods.
+#' @srrstats {G2.14, G2.14a, G2.14b, G2.14c, G2.15, G2.16} `create_likelihood`
+#' controls behaviour when the likelihood returns a missing value
+#' (see `on_nonfinite`). The same parameter also controls behaviour for
+#' non-finite, non-`-Inf` values.
 #'
-#' fn <- function(theta) {
-#'   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
-#' }
-#' log_lik <- create_likelihood(fn)
-#' log_lik(c(0, 0, 0))
+#' @seealso See the
+#' [cubature](https://bnaras.github.io/cubature/articles/cubature.html) package
+#' for more examples of scalar and vectorized functions.
 #'
-#' # Bind data to the likelihood function an anonymous function.
-#' y <- 100000000 * runif(11, min = 0.1, max = 0.3)
-#' log_lik <- function(theta, y) {
-#'   if (theta[2] <= 0) {
-#'     return(-Inf)
-#'   }
-#'   sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
-#' }
-#' create_likelihood(\(theta) log_lik(theta, y))
 #' @aliases ernest_likelihood
+#' @example ./data-raw/EXAMPLE_LIKELIHOOD.R
 #' @export
-create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
-  new_ernest_likelihood(fn = fn, on_nonfinite = on_nonfinite)
+create_likelihood <- function(
+  scalar_fn,
+  vectorized_fn,
+  on_nonfinite = c("warn", "quiet", "abort")
+) {
+  interface <- check_exclusive(scalar_fn, vectorized_fn)
+  fn <- switch(
+    interface,
+    "scalar_fn" = scalar_fn,
+    "vectorized_fn" = vectorized_fn
+  )
+  if (inherits(fn, "ernest_likelihood")) {
+    new_ernest_likelihood(
+      fn = attr(fn, "body"),
+      interface = interface,
+      on_nonfinite = on_nonfinite
+    )
+  } else {
+    new_ernest_likelihood(
+      fn = fn,
+      interface = interface,
+      on_nonfinite = on_nonfinite
+    )
+  }
 }
 
 #' Construct an internal ernest likelihood function
@@ -73,9 +84,9 @@ create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
 #' handling for use in nested sampling.
 #'
 #' @param fn A function that computes likelihood values.
-#' @param ... Arguments to be forwarded to `fn`.
-#' @param on_nonfinite Case-sensitive string, one of `"warn"`, `"quiet"`,
-#' or `"abort"`.
+#' @param interface Either "scalar" or "vectorized", indicating whether `fn`
+#' accepts a single parameter vector or a matrix of parameter vectors.
+#' @param on_nonfinite How to handle non-finite likelihood values.
 #' @param .call Calling environment for error reporting.
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
@@ -86,71 +97,97 @@ create_likelihood <- function(fn, on_nonfinite = c("warn", "quiet", "abort")) {
 #' @noRd
 new_ernest_likelihood <- function(
   fn,
+  interface = c("scalar_fn", "vectorized_fn"),
   on_nonfinite = c("warn", "quiet", "abort"),
   call = caller_env()
 ) {
-  fn <- as_function(fn, call = call)
+  check_function(fn, call = call)
+  interface <- arg_match(interface, call = call)
   on_nonfinite <- arg_match(on_nonfinite, call = call)
+
+  force(fn)
+  vectorized_fn <- switch(
+    interface,
+    "scalar_fn" = vectorize_function(fn),
+    "vectorized_fn" = function(x) {
+      if (!is.matrix(x)) {
+        dim(x) <- c(1, length(x))
+      }
+      fn(x)
+    }
+  )
 
   nonfinite_expr <- switch(
     on_nonfinite,
     "warn" = expr({
-      cli::cli_warn("Replacing `{code}` with `-Inf`.")
-      code <- -Inf
+      cli::cli_warn(
+        "Replacing `{unique(y[y_missing])}` with `-Inf`.",
+        call = NULL
+      )
+      y[y_missing] <- -Inf
     }),
-    "quiet" = expr(code <- -Inf),
-    "abort" = expr(
-      cli::cli_abort(c(
-        "log-lik. values must be either finite or `-Inf`, not {code}."
-      ))
-    )
+    "quiet" = expr(y[y_missing] <- -Inf),
+    "abort" = expr({
+      cli::cli_abort(
+        c(
+          "log-lik. values must be either finite or `-Inf`.",
+          "x" = "Detected non-viable value: `{unique(y[y_missing])}`."
+        ),
+        call = NULL
+      )
+    })
   )
+
+  x <- NULL
+  lab <- "log_lik(x)"
+  catching_fn <- new_function(
+    exprs(x = ),
+    expr({
+      try_fetch(
+        {
+          if (!is_double(x)) {
+            stop_input_type(x, "a numeric vector or matrix", call = NULL)
+          }
+          y <- vectorized_fn(x)
+          y <- vctrs::vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
+          y_missing <- which(y == Inf | is.nan(y) | is.na(y))
+          if (!vctrs::vec_is_empty(y_missing)) {
+            !!nonfinite_expr
+          }
+          y
+        },
+        error = function(cnd) {
+          cli::cli_abort(
+            "Couldn't calculate the log-lik of {x}.",
+            call = NULL,
+            parent = cnd
+          )
+        }
+      )
+    })
+  )
+
   structure(
-    function(unit) {
-      safe_log_lik(fn(unit), nonfinite_expr)
-    },
-    body = fn,
+    catching_fn,
+    body = expr(!!fn),
+    interface = interface,
+    on_nonfinite = on_nonfinite,
     class = c("ernest_likelihood", class(fn))
   )
-}
-
-#' Checks evaluated code for errors and nonfiniteness
-#' @param code Result of calling log_lik_fn(unit)
-#' @param error_expr Expression of what to do when an error is detected.
-#' @return `code`, which is either an -Inf or a scalar double, or the result
-#' of evaluating `error_expr`.
-#' @noRd
-safe_log_lik <- function(code, error_expr) {
-  code <- vctrs::vec_cast(code, to = double(), x_arg = "log-lik.")
-  if (vctrs::vec_size(code) != 1L) {
-    size <- vctrs::vec_size(code)
-    cli::cli_abort(
-      "log-lik. values must be single scalars, not vectors of size {size}."
-    )
-  }
-  if (is.na(code)) {
-    eval(error_expr)
-  }
-  if (!is.finite(code) && code != -Inf) {
-    eval(error_expr)
-  }
-  code
-}
-
-#' @noRd
-#' @export
-format.ernest_likelihood <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("likelihood function {.cls ernest_likelihood}")
-    cli::cat_line()
-    fn <- attr(x, "body")
-    cli::cli_code(format(fn))
-  })
 }
 
 #' @noRd
 #' @export
 print.ernest_likelihood <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  compat_str <- switch(
+    attr(x, "interface"),
+    "scalar_fn" = "Scalar",
+    "vectorized_fn" = "Vectorized"
+  )
+  cli::cli_text("{compat_str} Log-likelihood Function")
+  fn <- attr(x, "body")
+  cli::cli_code({
+    format(fn)
+  })
   invisible(x)
 }

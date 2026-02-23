@@ -20,11 +20,9 @@ gaussian_blobs <- list(
     mu2 <- -c(1, 1)
     sigma_inv <- diag(2) / 0.1**2
 
-    dx1 <- x - mu1
-    dx2 <- x - mu2
-    val1 <- -0.5 * drop(dx1 %*% sigma_inv %*% dx1)
-    val2 <- -0.5 * drop(dx2 %*% sigma_inv %*% dx2)
-    matrixStats::logSumExp(c(val1, val2))
+    dx1 <- -0.5 * mahalanobis(x, c(1, 1), sigma_inv, inverted = TRUE)
+    dx2 <- -0.5 * mahalanobis(x, c(-1, -1), sigma_inv, inverted = TRUE)
+    matrixStats::colLogSumExps(rbind(dx1, dx2))
   },
   prior = create_uniform_prior(lower = -5, upper = 5, names = LETTERS[1:2]),
   # Analytic evidence for two Gaussian blobs
@@ -96,8 +94,8 @@ eggbox <- list(
 expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
   sampler <- ernest_sampler(..., seed = .seed)
   run <- inject(generate(sampler, !!!.generate))
-  log_z <- tail(run$log_evidence, 1)
-  log_z_err <- sqrt(tail(run$log_evidence_var, 1))
+  log_z <- run$log_evidence
+  log_z_err <- run$log_evidence_err
 
   delta_log_z <- abs(log_z - .expected_log_z)
   if (delta_log_z > 3.0 * log_z_err) {
@@ -109,7 +107,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
       sprintf("Run Estimate: %.3f (ERR: %.3f)", log_z, log_z_err)
     ))
   }
-  tot_weight <- sum(exp(run$log_weight - log_z))
+  tot_weight <- sum(run$weights$imp_weight)
   if (abs(tot_weight - 1) > sqrt(.Machine$double.eps)) {
     fail(sprintf(
       "Log-weights should sum to one, not %.3f.",
@@ -123,7 +121,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
 #' Runs a sampler on the 2D Gaussian blobs test problem.
 #'
 #' @param sampler LRPS object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -131,16 +129,16 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
 #' @return The run object (invisible).
 expect_gaussian_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
 ) {
   expect_run(
-    log_lik = gaussian_blobs$log_lik,
+    log_lik = create_likelihood(vectorized_fn = gaussian_blobs$log_lik),
     prior = gaussian_blobs$prior,
     sampler = sampler,
-    n_points = n_points,
+    nlive = nlive,
     ...,
     .expected_log_z = gaussian_blobs$log_z_analytic,
     .generate = .generate,
@@ -151,7 +149,7 @@ expect_gaussian_run <- function(
 #' Runs a sampler on the 3D correlated Gaussian test problem.
 #'
 #' @param sampler Sampler object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -159,7 +157,7 @@ expect_gaussian_run <- function(
 #' @return The run object (invisible).
 expect_3D_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
@@ -168,7 +166,7 @@ expect_3D_run <- function(
     log_lik = gaussian_3D$log_lik,
     prior = gaussian_3D$prior,
     sampler = sampler,
-    n_points = n_points,
+    nlive = nlive,
     ...,
     .expected_log_z = gaussian_3D$log_z_analytic,
     .generate = .generate,
@@ -179,7 +177,7 @@ expect_3D_run <- function(
 #' Runs a sampler on the eggbox test problem
 #'
 #' @param sampler Sampler object to test.
-#' @param n_points Integer. Number of live points.
+#' @param nlive Integer. Number of points in the live set.
 #' @param ... Additional arguments passed to `expect_run()`.
 #' @param .generate Optional. Arguments for the `generate()` function.
 #' @param .seed Integer. Random seed.
@@ -187,7 +185,7 @@ expect_3D_run <- function(
 #' @return The run object (invisible).
 expect_eggbox_run <- function(
   sampler,
-  n_points = 100,
+  nlive = 100,
   ...,
   .generate = NULL,
   .seed = 42L
@@ -196,7 +194,7 @@ expect_eggbox_run <- function(
     log_lik = eggbox$log_lik,
     prior = eggbox$prior,
     sampler = sampler,
-    n_points = 100,
+    nlive = 100,
     ...,
     .expected_log_z = eggbox$log_z_raster,
     .generate = .generate,

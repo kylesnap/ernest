@@ -1,90 +1,82 @@
 data(example_run)
 
-test_that("ernest_run object structure and content", {
-  expect_s3_class(example_run, "ernest_run")
-  expect_true(is.list(example_run))
-  expect_true(all(
-    c("id", "points", "birth", "samples", "samples_unit", "log_lik") %in%
-      names(example_run)
-  ))
-  expect_type(example_run$id, "integer")
-  expect_type(example_run$points, "integer")
-  expect_type(example_run$birth, "integer")
-  expect_type(example_run$samples, "double")
-  expect_type(example_run$samples_unit, "double")
-  expect_type(example_run$log_lik, "double")
-  expect_equal(length(example_run$id), length(example_run$log_lik))
-  expect_equal(dim(example_run$samples_unit)[1], length(example_run$log_lik))
-  expect_equal(dim(example_run$samples)[1], length(example_run$log_lik))
-  expect_snapshot(example_run)
+describe("ernest_run", {
+  it("has the correct meta-class", {
+    expect_s3_class(example_run, c("ernest_run", "ernest_sampler"))
+    expect_true(is.list(example_run))
+    expect_equal(attr(example_run, "seed"), 42)
+    expect_type(example_run$niter, "integer")
+    expect_gt(example_run$neval, 0L)
+    expect_lt(example_run$log_evidence, 0)
+    expect_gt(example_run$log_evidence_err, 0)
+    expect_type(example_run$information, "double")
+  })
+  total_length <- example_run$niter + example_run$nlive
+
+  it("Stores samples", {
+    expect_named(example_run$samples, c("original", "unit_cube"))
+    expect_identical(dim(example_run$samples$original), c(total_length, 3L))
+  })
+
+  niter <- example_run$niter
+  it("Stores weights as list", {
+    expect_named(
+      example_run$weights,
+      c("id", "evaluations", "log_lik", "log_weight", "imp_weight", "birth_lik")
+    )
+    expect_length(example_run$weights$id, total_length)
+    expect_type(example_run$weights$id, "integer")
+    expect_type(example_run$weight$evaluations, "integer")
+    expect_type(example_run$weight$log_lik, "double")
+    expect_type(example_run$weight$log_weight, "double")
+    expect_equal(sum(example_run$weight$imp_weight), 1)
+    expect_type(example_run$weight$birth_lik, "double")
+  })
+  expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })
 
-test_that("ernest_run log_lik and prior mapping", {
-  log_lik <- example_run$log_lik_fn
-  prior_fn <- example_run$prior$fn
-  n <- example_run$n_points + example_run$n_iter
-  row_match <- matrix(nrow = n, ncol = 3L)
-  logl_match <- double(n)
-  for (i in seq_len(nrow(example_run$samples))) {
-    row_match[i, ] <- prior_fn(example_run$samples_unit[i, ])
-    logl_match[i] <- log_lik(row_match[i, ])
-  }
-  colnames(row_match) <- example_run$spec$prior$names
-  dimnames(example_run$samples) <- NULL
-  expect_equal(row_match, example_run$samples)
-  expect_equal(logl_match, example_run$log_lik)
-})
-
-test_that("summary.ernest_run returns expected structure and values", {
+describe("summary.ernest_run returns expected structure and values", {
+  set.seed(42)
   smry <- summary(example_run)
-  expect_s3_class(smry, "summary.ernest_run")
-  expect_true(is.list(smry))
-  expect_true(all(
-    c(
-      "n_iter",
-      "n_points",
-      "n_calls",
-      "log_volume",
-      "log_evidence",
-      "log_evidence_err",
-      "run",
-      "draws"
-    ) %in%
-      names(smry)
-  ))
-  expect_equal(smry$n_points, example_run$n_points)
-  expect_equal(smry$log_volume, tail(example_run$log_volume, 1))
-  expect_equal(smry$log_evidence, tail(example_run$log_evidence, 1))
-  expect_type(smry$n_iter, "integer")
-  expect_type(smry$n_calls, "integer")
-  expect_type(smry$log_volume, "double")
-  expect_type(smry$log_evidence, "double")
-  expect_type(smry$log_evidence_err, "double")
-  expect_true(is.data.frame(smry$run))
-  expect_true(nrow(smry$run) >= 1)
-})
+  it("has the correct meta-info", {
+    expect_s3_class(smry, c("summary.ernest_run"))
+    expect_true(is.list(smry))
+    expect_equal(smry$nlive, 1000L)
+    expect_equal(smry$niter, example_run$niter)
+    expect_equal(smry$neval, example_run$neval)
+    expect_equal(smry$log_evidence, example_run$log_evidence)
+    expect_equal(smry$log_evidence_err, example_run$log_evidence_err)
+    expect_equal(smry$information, example_run$information)
+    expect_equal(smry$seed, attr(example_run, "seed"))
+  })
 
-test_that("summary.ernest_run run tibble columns", {
-  smry <- summary(example_run)
-  expect_true(all(
-    c(
-      "call",
-      "log_lik",
-      "log_volume",
-      "log_weight",
-      "log_evidence",
-      "log_evidence_err",
-      "information"
-    ) %in%
-      names(smry$run)
-  ))
-  expect_equal(nrow(smry$run), example_run$n_iter + example_run$n_points)
-  expect_type(smry$run$call, "integer")
-  expect_type(smry$run$log_lik, "double")
-  expect_type(smry$run$log_volume, "double")
-  expect_type(smry$run$log_weight, "double")
-  expect_type(smry$run$log_evidence, "double")
-  expect_type(smry$run$log_evidence_err, "double")
-  expect_type(smry$run$information, "double")
-  expect_snapshot(smry)
+  it("has the correct meta-info", {
+    expect_s3_class(smry, c("summary.ernest_run"))
+    expect_true(is.list(smry))
+    expect_equal(smry$niter, example_run$niter)
+    expect_equal(smry$neval, example_run$neval)
+    expect_equal(smry$log_evidence, example_run$log_evidence)
+    expect_equal(smry$log_evidence_err, example_run$log_evidence_err)
+    expect_equal(smry$information, example_run$information)
+    expect_equal(smry$seed, attr(example_run, "seed"))
+  })
+
+  it("has the expected MLE", {
+    max_idx <- which.max(example_run$weights$log_lik)
+    max_loglik <- example_run$weights$log_lik[max_idx]
+    expect_named(smry$mle, c("log_lik", "original", "unit_cube"))
+    expect_equal(smry$mle$log_lik, max_loglik)
+  })
+
+  it("has the expected posterior", {
+    expect_identical(
+      dim(smry$reweighted_samples),
+      c(example_run$niter + example_run$nlive, 3L)
+    )
+    expect_named(
+      smry$posterior,
+      c("variable", "mean", "sd", "median", "q15", "q85")
+    )
+    expect_snapshot_value(smry$posterior, style = "json2", tolerance = 0.1)
+  })
 })

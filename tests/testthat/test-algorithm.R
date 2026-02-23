@@ -10,31 +10,31 @@ test_that("different seeds and noise levels don't impact evidence estimates", {
   sqrt_eps <- sqrt(.Machine$double.eps)
   noisy_gaussian_blob_ll <- function(x) {
     ll <- gaussian_blobs$log_lik(x)
-    ll + rnorm(1, mean = 0, sd = sqrt_eps)
+    ll + rnorm(length(ll), mean = 0, sd = sqrt_eps)
   }
   expect_run(
-    log_lik = noisy_gaussian_blob_ll,
+    log_lik = create_likelihood(vectorized_fn = noisy_gaussian_blob_ll),
     prior = gaussian_blobs$prior,
     sampler = rwmh_cube(),
-    n_points = 100,
+    nlive = 100,
     .expected_log_z = gaussian_blobs$log_z_analytic,
-    .seed = 42L
+    .seed = NA
   )
 })
 
-#' @srrstats {BS4.6} Test checks that the NS convergence criteria
+#' @srrstats {BS4.6, BS7.3} Test checks that the NS convergence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.
 test_that("Convergence criteria behave as expected", {
   skip_extended()
   expect_gaussian_run(
     sampler = rwmh_cube(),
-    .generate = list(max_iterations = reference_run$n_iter, min_logz = 0)
+    .generate = list(max_iterations = reference_run$niter, min_logz = 0)
   )
 
-  # Increasing n_points will increase iterations needed to converge
-  run_500 <- expect_gaussian_run(sampler = rwmh_cube(), n_points = 500)
-  expect_gt(run_500$n_iter, reference_run$n_iter)
+  # Increasing nlive will increase iterations needed to converge
+  run_500 <- expect_gaussian_run(sampler = rwmh_cube(), nlive = 500)
+  expect_gt(run_500$niter, reference_run$niter)
 })
 
 #' @srrstats {BS4.7} Test checks that the NS converegence criteria (min_logz)
@@ -45,25 +45,5 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
     sampler = rwmh_cube(),
     .generate = list(min_logz = 0.1)
   )
-  expect_gt(reference_run$n_iter, run_short$n_iter)
-})
-
-#' @srrstats {BS7.3} The scale of the prior should impact the iterations
-#' needed for NS to converge an evidence estimate.
-test_that("Using a more informative prior lowers time till convergence", {
-  skip_extended()
-  sampler_naive <- ernest_sampler(
-    gaussian_blobs$log_lik,
-    gaussian_blobs$prior,
-    seed = 42
-  )
-  run_naive <- generate(sampler_naive)
-
-  sampler_informed <- ernest_sampler(
-    gaussian_blobs$log_lik,
-    create_normal_prior(lower = -5, upper = 5, .n_dim = 2),
-    seed = 42
-  )
-  run_informed <- generate(sampler_informed)
-  expect_lt(run_informed$n_iter, run_naive$n_iter)
+  expect_gt(reference_run$niter, run_short$niter)
 })

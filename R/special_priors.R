@@ -1,39 +1,45 @@
-#' Specify a prior with normally distributed marginals
+#' @srrstats {BS2.5} Special priors perform checks to ensure that their
+#' parameters are admissable to each distribution.
+
+#' Create a special prior distribution
 #'
-#' A specialisation of [create_prior()] where the parameter space is
-#' described by independent normal variables, possibly truncated.
+#' Constructs a prior transformation object for priors with indpendent marginals
+#' that are either normally or uniformly distributed. Additionally, normal
+#' marginals can be truncated using the [extraDistr] package.
 #'
-#' @inheritParams stats::qnorm
-#' @param mean Numeric vector of means.
-#' @param sd Numeric vector of standard deviations (must be strictly positive.)
-#' @param lower,upper Numeric vector of bounds for a truncated normal
-#' distribution.
+#' @param names `[character()]`\cr Optional names for each parameter.
+#' If `NULL`, default names and indices are generated.
+#' @param mean,sd `[double()]`\cr Mean and standard deviation for each marginal
+#' normal distribution. `sd` must be strictly positive.
+#' @param lower,upper `[double()]`\cr Lower and upper bounds for each parameter.
+#' If used with `create_normal_prior()`, these define the truncation limits.
 #' @inheritParams create_prior
 #'
-#' @returns A `normal_prior`, a subclass of `ernest_prior` with an efficient
-#' implementation of the unit hypercube transformation.
+#' @returns An [ernest_prior], additionally inheriting from the specialized
+#' class `uniform_prior` or `normal_prior`.
 #'
-#' @inherit create_prior note
+#' @details
+#' The provided transformations are vectorized: they accept a matrix of points
+#' in the unit hypercube and return a matrix of transformed values.
 #'
-#' @srrstats {BS2.5} create_normal_prior performs checks to ensure that the sd
-#' parameter is strictly positive.
-#'
-#' @seealso
-#' * [create_prior()] for more on the `ernest_prior` object.
-#' * [truncnorm::qtruncnorm()] for the truncated normal quantile function.
-#' @family special_priors
+#' @seealso [create_prior()] for more on priors within nested sampling.
+#' @family priors
+#' @rdname special_priors
+#' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R
 #' @export
-#' @examples
-#' prior <- create_normal_prior(.n_dim = 3)
-#' prior$fn(c(0.25, 0.5, 0.75))
 create_normal_prior <- function(
+  names = NULL,
   mean = 0,
   sd = 1,
-  names = "Normal",
   lower = -Inf,
   upper = Inf,
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
+  )
 ) {
   mean <- vctrs::vec_cast(mean, double())
   sd <- vctrs::vec_cast(sd, double())
@@ -42,107 +48,120 @@ create_normal_prior <- function(
       "All elements of {.arg sd} must be strictly positive and non-missing."
     )
   }
-  n_dim <- vctrs::vec_size_common(
-    mean = mean,
-    sd = sd,
-    lower = lower,
-    upper = upper,
-    names = names,
-    .size = .n_dim
-  )
-
-  prior <- new_ernest_prior(
-    fn = \(x) x,
-    n_dim = n_dim,
-    lower = lower,
-    upper = upper,
-    names = names,
-    name_repair = .name_repair,
-    class = "uniform_prior"
-  )
-  params <- vctrs::vec_recycle_common(
-    mean = mean,
-    sd = sd,
-    .size = n_dim
-  )
-
-  truncated <- any(is.finite(prior$lower)) || any(is.finite(prior$upper))
-  unit <- NULL
-  prior$fn <- if (truncated) {
-    check_installed(
-      "truncnorm",
-      "calculate the quantile function of the truncated normal distribution"
-    )
-    new_function(
-      exprs(unit = ),
-      expr((!!truncnorm::qtruncnorm)(
-        unit,
-        mean = !!params$mean,
-        sd = !!params$sd,
-        a = !!prior$lower,
-        b = !!prior$upper
-      )),
-      env = empty_env()
-    )
+  names <- if (!is.null(names)) {
+    names
   } else {
-    new_function(
-      exprs(unit = ),
-      expr((!!stats::qnorm)(unit, mean = !!params$mean, sd = !!params$sd)),
-      env = empty_env()
+    sprintf("Normal_%d", seq(vctrs::vec_size_common("mean" = mean, "sd" = sd)))
+  }
+  c(mean, sd, lower, upper) %<-%
+    vctrs::vec_recycle_common(
+      "mean" = mean,
+      "sd" = sd,
+      "lower" = lower,
+      "upper" = upper,
+      .size = length(names)
     )
+
+  truncated <- any(is.finite(lower)) || any(is.finite(upper))
+  if (truncated) {
+    check_installed("extraDistr", "calculating a truncated normal prior")
+  }
+  fn <- if (truncated) {
+    function(x) {
+      nrow <- nrow(x) %||% 1
+      y <- extraDistr::qtnorm(
+        c(x),
+        a = rep(lower, each = nrow),
+        b = rep(upper, each = nrow),
+        mean = rep(mean, each = nrow),
+        sd = rep(sd, each = nrow)
+      )
+      dim(y) <- dim(x)
+      y
+    }
+  } else {
+    function(x) {
+      nrow <- nrow(x) %||% 1
+      y <- stats::qnorm(
+        c(x),
+        mean = rep(mean, each = nrow),
+        sd = rep(sd, each = nrow)
+      )
+      dim(y) <- dim(x)
+      y
+    }
   }
 
   do.call(
     new_ernest_prior,
-    c(
-      as.list(prior),
-      "mean" = params$mean,
-      "sd" = params$sd,
-      class = "normal_prior"
+    list2(
+      fn = fn,
+      names = names,
+      mean = mean,
+      sd = sd,
+      lower = lower,
+      upper = upper,
+      interface = "vectorized_fn",
+      .class = c(if (truncated) "trunc_prior", "normal_prior"),
+      .repair = repair
     )
   )
 }
 
-#' Specify a prior with uniformly distributed marginals
-#'
-#' A specialisation of [create_prior()] where the parameter space is
-#' described by independent uniform marginals.
-#'
-#' @param lower,upper Numeric vector of bounds for the uniform distribution.
-#' @inheritParams create_prior
-#'
-#' @returns A `uniform_prior`, a subclass of `ernest_prior` with an efficient
-#' implementation of the unit hypercube transformation.
-#'
-#' @inherit create_prior note
-#'
-#' @family special_priors
+#' Uniform distribution
+#' @rdname special_priors
 #' @export
-#' @examples
-#' prior <- create_uniform_prior(lower = c(3, -2), upper = c(5, 4))
-#' prior$fn(c(0.33, 0.67))
 create_uniform_prior <- function(
+  names = NULL,
   lower = 0,
   upper = 1,
-  names = "Uniform",
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
-) {
-  prior <- new_ernest_prior(
-    fn = \(x) x,
-    n_dim = .n_dim,
-    lower = lower,
-    upper = upper,
-    names = names,
-    class = "uniform_prior"
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
   )
-  diff <- prior$upper - prior$lower
-  prior$fn <- function(x) {
-    prior$lower + x * diff
+) {
+  if (!is_double(lower, finite = TRUE)) {
+    stop_input_type(lower, "a double vector with finite values")
+  }
+  if (!is_double(upper, finite = TRUE)) {
+    stop_input_type(upper, "a double vector with finite values")
+  }
+  names <- if (!is.null(names)) {
+    names
+  } else {
+    sprintf(
+      "Uniform_%d",
+      seq(vctrs::vec_size_common("lower" = lower, "upper" = upper))
+    )
+  }
+  c(lower, upper) %<-%
+    vctrs::vec_recycle_common(
+      "lower" = lower,
+      "upper" = upper,
+      .size = length(names)
+    )
+
+  fn <- function(x) {
+    nrow <- nrow(x) %||% 1
+    y <- stats::qunif(
+      c(x),
+      min = rep(lower, each = nrow),
+      max = rep(upper, each = nrow)
+    )
+    dim(y) <- dim(x)
+    y
   }
 
-  do.call(
-    new_ernest_prior,
-    c(as.list(prior), class = "uniform_prior")
+  new_ernest_prior(
+    fn = fn,
+    names = names,
+    lower = lower,
+    upper = upper,
+    interface = "vectorized_fn",
+    .repair = repair,
+    .class = "uniform_prior"
   )
 }

@@ -33,11 +33,12 @@ NULL
 #' @srrstatsNA {G3.1, G3.1a} ernest only calculates COV matrices with C++
 #' routines (see: ellipsoid fitting). Currently, these routines are untested
 #' with other cov. estimation techniques.
+#' @srrstatsNA {G4.0} ernest does not currently write files.
 #' @srrstatsNA {BS1.0} The term 'hyperparameter' is avoided.
 #' @srrstatsNA {BS1.4, BS1.5} Ernest does not currently use an MCMC convergence
 #' checker (due to NS's primary focus on estimating evidence).
 #' @srrstatsNA {BS2.7, BS2.9, BS2.10, BS2.11} NS does not rely on setting
-#' explicit starting values before generating samples.
+#' explicit starting values before generating new points.
 #' @srrstatsNA {BS2.15} Ernest aims to gracefully report errors during a run,
 #' but does not allow for them to be ignored as warnings. The best behaviour for
 #' NS to "skip" invalid points when encountered is yet to be determined.
@@ -46,8 +47,8 @@ NULL
 #' @srrstatsNA {G5.11, G5.11a} Ernest does not download data for external tests.
 #' @srrstatsNA {BS5.3, BS5.4, BS5.5} Currently, no convergence checker is
 #' implemented. As Ernest performs nested sampling, runs terminate once the
-#' estimated log evidence falls below a threshold (or a plateau/stopping
-#' condition is encountered). The behaviour of the log evidence estimates can be
+#' estimated log-evidence falls below a threshold (or a plateau/stopping
+#' condition is encountered). The behaviour of the log-evidence estimates can be
 #' examined through plots and summary functions.
 #' @srrstatsNA {BS6.5} To avoid overcrowding ggplot objects with multiple
 #' facets, side-by-side trace plots with posterior distributions are currently

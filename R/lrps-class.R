@@ -1,6 +1,28 @@
 #' Create a new likelihood-restricted prior sampler (LRPS)
 #'
-#' @description
+#' Constructs an LRPS, accepted by [ernest_sampler()] and used to create new
+#' points during a nested sampling run.
+#'
+#' @param unit_log_fn `[function]`\cr Takes a matrix of points in the unit
+#' cube and returns a numeric vector of log-likelihood values. Optional, and
+#' updated when called by `ernest_sampler()`.
+#' @param n_dim `[integer(1)]`\cr Number of dimensions within the prior space.
+#' Optional, and updated when called by `ernest_sampler()`.
+#' @param max_loop `[integer(1)]`\cr Maximum number of attempts to generate
+#' points. Inferred from the `ernest.max_loop` option.
+#' @param cache `[environment]` Environment for caching information required for
+#' the specific LRPS method. Created if left `NULL`.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Name-value pairs for
+#' additional elements for `ernest_lrps'` subclasses
+#' @param .class `[character()]`\cr Names for the subclass of `ernest_lrps`.
+#' @inheritParams rlang::check_exclusive
+#'
+#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
+#' types or error messages.
+#'
+#' @returns `[ernest_lrps]`, a named list containing the arguments provided.
+#'
+#' @details
 #' Nested sampling relies on generating a series of points in the prior space
 #' with increasing log-likelihood values. This is accomplished using a
 #' likelihood-restricted prior sampler (LRPS), which generates independent and
@@ -10,26 +32,6 @@
 #' To create your own LRPS, subclass `new_ernest_lrps` and provide S3 methods
 #' for [propose()] and [update_lrps()] for your subclass.
 #'
-#' @param unit_log_fn,n_dim Provided when [ernest_sampler()] is called with a
-#'   given `ernest_lrps`:
-#'   * `unit_log_fn` (function, optional): Takes a matrix of points in the unit
-#'     cube and returns a numeric vector of log-likelihood values.
-#'   * `n_dim` (integer, optional): Number of dimensions of the prior space.
-#' @param max_loop Positive integer. Maximum number of attempts to generate
-#'   points via region-based sampling. Usually hidden from users, but can be set
-#'   via the `ernest.max_loop` option.
-#' @param cache (environment, optional) Environment for caching values. If
-#'   `NULL`, a new environment is created.
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Name-value pairs for
-#'   additional elements for subclasses of this LRPS.
-#' @param .class (character vector, optional) Subclasses of this LRPS.
-#' @inheritParams rlang::check_exclusive
-#'
-#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
-#' types or error messages.
-#'
-#' @returns An LRPS specification: a list containing the input arguments, with a
-#' class specific to the LRPS type.
 #' @aliases ernest_lrps
 #' @keywords internal
 #' @export
@@ -59,7 +61,7 @@ new_ernest_lrps <- function(
     max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
-  env_poke(elem$cache, "n_call", 0L)
+  env_poke(elem$cache, "neval", 0L)
 
   new_elem <- list2(...)
   check_unique_names(elem, new_elem)
@@ -71,47 +73,42 @@ new_ernest_lrps <- function(
 
 #' @noRd
 #' @export
-format.ernest_lrps <- function(x, ...) {
-  glue::glue(
-    "Sampler: {class(x)[1]}",
-    "Dimensions: {n_dim}",
-    "No. Log-Lik Calls: {env_get(x$cache, 'n_call', 0)}",
-    n_dim = x$n_dim %||% "{.emph 'Undefined'}",
-    .sep = "\n"
-  )
-}
+format.ernest_lrps <- function(x, ...) "Abstract"
 
 #' @noRd
 #' @export
 print.ernest_lrps <- function(x, ...) {
-  lines <- strsplit(format(x), split = "\n")[[1]]
-  names(lines) <- rep("*", length(lines))
-  lines <- utils::tail(lines, -1)
-  cli::cli_text("ernest LRPS method {.cls {class(x)}}")
-  cli::cli_bullets(lines)
+  cli::cli_text("{format(x)}:")
+
+  cli::cli_par()
+  cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
+  cli::cli_text("# Calls since last update: {env_get(x$cache, 'neval', 0)}")
+  cli::cli_end()
+  invisible(x)
 }
 
 #' Generate a new point using LRPS
 #'
-#' @description
-#' Developer-facing function, used when creating your own [ernest_lrps]
-#' subclass.
+#' Use an LRPS method to replace points within the live set during a nested
+#' sampling run. This method must be implemented on all classes that inherit
+#' from `ernest_lrps`.
 #'
-#' When specifying your subclass, you must implement this method to define how
-#' your sampler generates new points that satisfy the likelihood constraint.
+#' @param x [[ernest_lrps]]\cr A likelihood-restricted prior sampler.
+#' @param original `[double(x$n_dim)]`\cr A parameter vector which can be used
+#' to start the proposal process. Optional; if `NULL` proposals are generated
+#' from sampling the unconstrained [unit cube][unif_cube()].
+#' @param criterion `[double(1)]`\cr A log-likelihood value that restricts
+#' the region of prior space to sample from.
 #'
-#' @param x An `ernest_lrps` object.
-#' @param original Optional double vector. Points in the prior space used to
-#' start the proposal process. If `NULL`, a new point is generated by
-#' sampling from the unconstrained unit cube (see [unif_cube()]).
-#' @param criterion Double scalar. A log-likelihood value that proposed points
-#' must satisfy.
+#' @returns `[list]`, containing at least these named elements:
 #'
-#' @returns A list with:
-#' * `unit`: Matrix of proposed points in the prior space.
-#' * `log_lik`: Numeric vector of log-likelihood values for the proposed
-#' points.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `unit`: `[double(x$n_dim)]` The replacement point, expressed in the
+#' unit-cube.
+#' * `log_lik`: `[double(1)]` The log-likelihood value at `unit`.
+#' * `neval`: `[integer(1)]` The number of evaluations of `unit_log_fn` needed
+#' to generate `unit`. Do not confuse this with the number of samples evaluated
+#' during the call to `propose`, as `unit_log_fn` may be capable of evaluating
+#' multiple parameters with a single call.
 #'
 #' @keywords internal
 #' @export
@@ -143,35 +140,58 @@ propose.ernest_lrps <- function(
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
-#' @param n_dim Integer. Number of dimensions.
-#' @param p The p-norm to sample from.
-#' @param max_loop Positive integer. Maximum number of attempts to generate
-#' a point.
+#' @param n_dim Number of dimensions.
+#' @param max_loop Maximum number of attempts to generate a point.
+#' @param n_batch Number of points to propose per iteration. Defaults to the
+#' `ernest.n_batch` option, or 1 if unset.
 #'
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #' @noRd
-propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
-  proposal <- double(n_dim)
+propose_cube <- function(
+  unit_log_fn,
+  criterion,
+  n_dim,
+  max_loop,
+  n_batch = getOption("ernest.n_batch", 1L)
+) {
+  proposal <- matrix(double(), nrow = n_batch, ncol = n_dim)
   for (i in seq_len(max_loop)) {
-    proposal <- stats::runif(n_dim)
+    proposal[,] <- stats::runif(n_batch * n_dim)
     log_lik <- unit_log_fn(proposal)
-    if (is.finite(log_lik) && log_lik > criterion) {
-      return(list(
-        unit = proposal,
-        log_lik = log_lik,
-        n_call = i
-      ))
+    accepted <- match(TRUE, log_lik >= criterion)
+    if (!is.na(accepted)) {
+      return(
+        list(
+          unit = proposal[accepted, ],
+          log_lik = log_lik[accepted],
+          neval = i
+        )
+      )
     }
   }
-  list(unit = NULL, log_lik = NULL, n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, neval = max_loop)
 }
 
 #' Update an LRPS
 #'
-#' @description
+#' Update the behaviour of a likelihood-restricted prior sampler with interim
+#' information from a nested sampling run.
+#'
+#' @param x [[ernest_lrps]]\cr A likelihood-restricted prior sampler.
+#' @param unit `[matrix(double(), integer(), x$n_dim)]`\cr The current live set
+#' stored within the run. Optional; if NULL no LRPS updates based on the state
+#' of the live set will be made.
+#' @param log_volume `[double(1)]`\cr The current log-volume of the nested
+#' sampling run.
+#' @param ... Presently ignored.
+#'
+#' @returns [[ernest_lrps]], created by reconstructing `x` with updated
+#' parameters.
+#'
+#' @details
 #' During a nested sampling run, you may wish to update the internal parameters
 #' of the LRPS based on sampler performance or other criterion. The frequency of
 #' these updates is set by the `first_update` and `update_interval` arguments of
@@ -182,13 +202,6 @@ propose_cube <- function(unit_log_fn, criterion, n_dim, max_loop) {
 #' LRPS with current parameters and resets the likelihood call counter in the
 #' cache.
 #'
-#' @param x An `ernest_lrps` object.
-#' @param unit A matrix of live points within the sampler. If NULL, no LRPS
-#' updates based on the state of the live points will be made.
-#' @param log_volume The current log-volume of the nested sampling run.
-#'
-#' @returns An updated `ernest_lrps` object with the same class as `x`, possibly
-#' with updated parameters.
 #' @keywords internal
 #' @export
 update_lrps <- function(x, ...) {
@@ -198,6 +211,6 @@ update_lrps <- function(x, ...) {
 #' @noRd
 #' @export
 update_lrps.ernest_lrps <- function(x, unit = NULL, ...) {
-  env_poke(x$cache, "n_call", 0L)
+  env_poke(x$cache, "neval", 0L)
   do.call(new_ernest_lrps, as.list(x))
 }

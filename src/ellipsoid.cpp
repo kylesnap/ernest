@@ -253,10 +253,10 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
 cpp11::list vol::Ellipsoid::as_list(const std::list<Ellipsoid>& ellipsoids) {
   cpp11::writable::doubles probs;
   cpp11::writable::list ellipsoid_list;
-  double total_log_vol = 0.0;
+  double total_log_vol = -1e300;
   for (auto ell : ellipsoids) {
     probs.push_back(ell.log_volume());
-    total_log_vol += ell.log_volume();
+    total_log_vol = Rf_logspace_add(total_log_vol, ell.log_volume());
     ellipsoid_list.push_back(ell.as_list());
   }
   std::transform(probs.begin(), probs.end(), probs.begin(),

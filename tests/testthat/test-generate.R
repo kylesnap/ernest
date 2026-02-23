@@ -1,15 +1,15 @@
 data(example_run)
 
 test_that("generate fails with poor arguments", {
-  max_iterations <- example_run$n_iter
+  max_iterations <- example_run$niter
   expect_error(
-    generate(example_run, max_iterations = example_run$n_iter),
+    generate(example_run, max_iterations = example_run$niter),
     "`max_iterations` must be strictly larger"
   )
 
   expect_error(
-    generate(example_run, max_calls = example_run$n_calls),
-    "`max_calls` must be strictly larger"
+    generate(example_run, max_evaluations = example_run$neval),
+    "`max_evaluations` must be strictly larger"
   )
 
   expect_error(
@@ -26,9 +26,9 @@ test_that("generate fails with poor arguments", {
 
 test_that("generate can continue a previous run", {
   continued <- generate(example_run, min_logz = 0.025)
-  prev_dead <- example_run$n_iter - example_run$n_points
+  prev_dead <- example_run$niter - example_run$nlive
   expect_identical(
-    example_run$samples[1:prev_dead, ],
-    continued$samples[1:prev_dead, ]
+    example_run$samples$unit_cube[1:prev_dead, ],
+    continued$samples$unit_cube[1:prev_dead, ]
   )
 })

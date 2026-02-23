@@ -1,16 +1,15 @@
-#' Generate samples with a random walk
+#' Generate new points with a random walk
 #'
-#' Create new live points by evolving a current live point through
-#' a Metropolis-Hastings random walk, rejecting steps that fail to meet the
-#' likelihood criterion.
+#' Create new samples for the live set by evolving a current point in the set
+#' through a Metropolis-Hastings random walk, rejecting steps that fail to meet
+#' the likelihood criterion.
 #'
-#' @param steps Positive integer. Number of steps to take when generating a
-#' proposal point.
-#' @param target_acceptance Number between `1 / steps` and 1.0. Target
-#' acceptance rate for proposed points.
+#' @param steps `[integer(1)]`\cr Number of steps to take when generating a
+#' proposal point. Must be greater or equal to 2.
+#' @param target_acceptance `[double(1)]`\cr Target acceptance rate for proposed
+#' points. Must be a number between `1 / steps` and 1.
 #'
-#' @returns An object of class `c("rwmh_cube", "ernest_lrps")` that can be
-#' used with [ernest_sampler()] to specify the sampling behaviour.
+#' @returns `[rwmh_cube]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @details
 #' The random walk LRPS generates proposals by performing a fixed number of
@@ -37,7 +36,7 @@
 #' $d$-dimensional ball centered on the origin with radius \eqn{\epsilon}.
 #'
 #' @section Control Parameters:
-#' * `steps`: Start with 25. Increase to generate samples that more closely
+#' * `steps`: Start with 25. Increase to generate points that more closely
 #' follow the posterior distribution; decrease for computational efficiency.
 #' * `target_acceptance`: Start with 0.4-0.6. Lower values encourage more global
 #' exploration of the posterior, higher values encourage explorations close
@@ -79,13 +78,9 @@ rwmh_cube <- function(
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "No. Accepted Proposals: {x$cache$n_accept %||% 0}",
-    "No. Steps: {x$steps}",
-    "Target Acceptance: {x$target_acceptance}",
-    "Step Size: {pretty(x$cache$epsilon %||% 1)}",
-    .sep = "\n"
+  acc_per <- pretty_round(100 * x$target_acceptance, 1)
+  cli::format_inline(
+    "{x$steps}-step random walk sampling (acceptance target = {acc_per}%)"
   )
 }
 
@@ -94,10 +89,10 @@ format.rwmh_cube <- function(x, ...) {
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
-#' @param steps Integer. Number of steps in the random walk.
+#' @param steps  Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
@@ -155,7 +150,7 @@ propose.rwmh_cube <- function(
       steps = x$steps,
       epsilon = x$cache$epsilon
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     env_poke(x$cache, "n_accept", x$cache$n_accept + res$n_accept)
     res
   }
@@ -168,7 +163,7 @@ update_lrps.rwmh_cube <- function(x, unit = NULL, ...) {
     return(do.call(new_rwmh_cube, as.list(x)))
   }
   # Newton-like update to epsilon based on the acceptance ratio
-  cur_call <- env_get(x$cache, "n_call", 0L)
+  cur_call <- env_get(x$cache, "neval", 0L)
   cur_accept <- env_get(x$cache, "n_accept", 0L)
   cur_eps <- env_get(x$cache, "epsilon", 1.0)
   if (cur_call != 0L) {

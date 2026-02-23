@@ -7,51 +7,48 @@
 \method{summary}{ernest_run}(object, ...)
 }
 \arguments{
-\item{object}{An \code{ernest_run} object.}
+\item{object}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A list of class \code{summary.ernest_run} with the following components:
+\verb{[summary.ernest_run]}
+A named list, containing:
 \itemize{
-\item \code{n_iter}: Integer. Number of iterations performed.
-\item \code{n_points}: Integer. Number of live points used in the run.
-\item \code{n_calls}: Integer. Total number of likelihood function calls.
-\item \code{log_volume}: Double. Final estimated log-prior volume.
-\item \code{log_evidence}: Double. Final log-evidence estimate.
-\item \code{log_evidence_err}: Double. Standard deviation of the log-evidence
-estimate.
-\item \code{draws}: Posterior draws as returned by \code{\link[=as_draws]{as_draws()}}.
-\item \code{run} A \link[tibble:tibble]{tibble::tibble}.
+\item \code{nlive}: \verb{[integer(1)]} Number of points in the live set.
+\item \code{niter}: \verb{[integer(1)]} Number of iterations.
+\item \code{neval}: \verb{[integer(1)]} Number of likelihood evaluations.
+\item \code{log_evidence}: \verb{[numeric(1)]} Log-evidence estimate.
+\item \code{log_evidence_err}: \verb{[numeric(1)]} Standard error of log-evidence.
+\item \code{information}: \verb{[numeric(1)]} Estimated Kullback-Leibler divergence between
+the prior and posterior.
+\item \code{reweighted_samples}: [\link[posterior:draws_matrix]{posterior::draws_matrix}] Posterior samples,
+resampled by normalized weights.
+\item \code{mle}: \verb{[list]} Maximum likelihood estimate extracted during the run,
+stored in a list with the elements:
+\itemize{
+\item \code{log_lik}: \verb{[double(1)]} The maximum log-likelihood value.
+\item \code{original}, \code{unit_cube}: \verb{[double(n_dim)]} The parameter values at the
+MLE, expressed in the original parameter space and within the unit cube.
 }
-
-\code{run} stores the state of the run at each iteration with these columns:
-\itemize{
-\item \code{call}: Cumulative number of likelihood calls.
-\item \code{log_lik}: Log-likelihood for each sample.
-\item \code{log_volume}: Estimated log-prior volume.
-\item \code{log_weight}: Unnormalized log-weights (relative to evidence).
-\item \code{log_evidence}: Cumulative log-evidence.
-\item \code{log_evidence_err}: Standard deviation of log-evidence.
-\item \code{information}: Estimated KL divergence at each iteration.
+\item \code{posterior}: [\link{tibble}] with columns for the posterior mean, sd, median,
+and the 15th and 85th percentiles for each parameter.
+\item \code{seed}: The RNG seed used.
 }
 }
 \description{
-Provides a summary of an \code{ernest_run} object, including key statistics and a
-tibble of results for each iteration.
+Returns a concise summary of an \code{ernest_run} object, including key
+statistics and a description of the posterior distribution.
 }
 \examples{
-# Load an example run
 data(example_run)
-
-# Summarize the run and view a tibble of its results.
 run_sm <- summary(example_run)
 run_sm
-run_sm$run
+run_sm$posterior
 }
 \seealso{
 \itemize{
 \item \code{\link[=generate]{generate()}} for details on the \code{ernest_run} object.
-\item \code{\link[=as_draws]{as_draws()}} for more information on \code{draws} objects.
+\item \code{\link[=as_draws]{as_draws()}} for details on how posterior samples are extracted.
 }
 }

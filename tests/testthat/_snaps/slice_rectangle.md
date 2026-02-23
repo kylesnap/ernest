@@ -11,31 +11,28 @@
     Code
       slice_rectangle(enlarge = NA)
     Message
-      ernest LRPS method <slice_rectangle/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * Centre: Undefined
-      * Enlargement: Disabled
+      Slice Sampling LRPS :
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 
 ---
 
     Code
       default
     Message
-      ernest LRPS method <slice_rectangle/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * Centre: Undefined
-      * Enlargement: 1
+      Slice Sampling LRPS (enlarged by 1):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 
 # slice class / Can be built and propose points
 
     Code
       obj
     Message
-      ernest LRPS method <slice_rectangle/ernest_lrps>
-      * Dimensions: 2
-      * No. Log-Lik Calls: 65
-      * Centre: 0.5000, 0.5000
-      * Enlargement: 1.25
+      Slice Sampling LRPS (enlarged by 1.25):
+      # Dimensions: 2
+      # Calls since last update: 65
+      
 

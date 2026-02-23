@@ -1,46 +1,49 @@
-#' Specify a prior distribution for nested sampling
+#' Prepare a prior transformation for nested sampling
 #'
-#' Use an R function to specify the prior distribution of parameters for a
-#' nested sampling run.
+#' Creates a prior transformation object of class `ernest_prior`, which defines
+#' how to map points from the unit hypercube to the parameter space for use in
+#' a nested sampling run.
 #'
-#' @param fn A function. Takes a vector of unit cube coordinates and
-#' returns a vector of parameters of the same length.
-#' @param names An optional character vector. Names for the variables in the
-#' prior distribution.
-#' @param lower,upper Numeric vectors. Expected bounds for the
-#' parameter vectors after hypercube transformation.
-#' @param .n_dim An optional positive integer. The number of dimensions of the
-#' prior distribution.
-#' @param .name_repair An optional, case-sensitive string. How to repair
-#' `names`. Options are `"unique"` (default), `"universal"`, or
-#' `"check_unique"`. See [vctrs::vec_as_names()] for details.
+#' @param point_fn,vectorized_fn `[function]`\cr The prior transformation
+#' function. Provide either `point_fn` or `vectorized_fn`:
+#' * `point_fn`: Should accept a single parameter vector (numeric vector of
+#' length equal to the number of parameters) and return a vector in the original
+#' parameter space.
+#' * `vectorized_fn`: Should accept a matrix of points in the unit hypercube
+#' (rows as parameter vectors) and return a matrix of the same shape in the
+#' original parameter space.
+#' @param names `[character()]`\cr Unique names for each variable in the prior
+#' distribution.
+#' @param lower,upper `[double()]`\cr Expected lower and upper bounds for the
+#' parameter vectors after transformation.
+#' @param repair `[character(1)]`\cr Name repair strategy for `names`. One of
+#' `"check_unique"`, `"unique"`, `"universal"`, `"unique_quiet"`, or
+#' `"universal_quiet"`. See [vctrs::vec_as_names()] for details.
 #'
-#' @returns
-#' A list with with class `ernest_prior`, containing `fn`, `lower`, `upper`,
-#' and `names`. The vector-valued parameters are guaranteed to be of
-#' length `n_dim` if provided, or share a common length if otherwise left
-#' `NULL`.
+#' @returns `[ernest_prior]`, an object describing the prior transformation,
+#' with `names`, `lower`, and `upper` recycled to the same length.
 #'
 #' @details
-#' The unit hypercube transformation encodes points in the parameter space
-#' as independent and identically distributed points within a unit hypercube.
-#' Nested sampling implementations, including ernest, use this transformation
-#' to simplify likelihood-restricted prior sampling and avoid unnecessary
-#' rejection steps.
+#' The prior transformation encodes points in the parameter space as independent
+#' and identically distributed points within a unit hypercube. Nested sampling
+#' implementations, including ernest, use this transformation to simplify
+#' likelihood-restricted prior sampling and avoid unnecessary rejection steps.
 #'
-#' `create_prior` allows you to specify your own prior distribution by providing
-#' a transformation function. For factorisable priors, this function can simply
-#' transform each value in (0, 1) using the inverse cumulative distribution
-#' function (CDF) for each parameter. For more complex cases, you can specify
-#' hierarchical or conditionally dependent priors (see Examples).
+#' Provide your prior as a transformation function. For factorisable priors,
+#' this can simply transform each value in (0, 1) using the inverse CDF for each
+#' parameter. For more complex cases, you can specify hierarchical or
+#' conditionally dependent priors.
 #'
 #' `create_prior` performs regularity checks on your prior function to catch
-#' basic errors that may affect nested sampling. To pass these checks, `fn` must
-#' be able to take in a vector of points (each between 0 and 1) and return
-#' a vector of the same length which contains only finite values.
+#' basic errors that may affect nested sampling. The function must take in a
+#' vector (or matrix) of points (each between 0 and 1) and return a vector or
+#' matrix of the same shape containing only finite values.
 #'
-#' @note See [vctrs::vector_recycling_rules] for additional information on
-#' how parameters are recycled to a common length.
+#' If your prior depends on additional data, provide these using an anonymous
+#' function (see Examples).
+#'
+#' @note See [vctrs::vector_recycling_rules] for information on how parameters
+#' are recycled to a common length.
 #'
 #' @srrstats {G2.0a, G2.1a} Documents expectations on the vector parameters
 #' `lower` and `upper`.
@@ -48,113 +51,134 @@
 #' provides examples.
 #'
 #' @aliases ernest_prior
-#' @examples
-#' # 3D uniform prior in the range [-10, 10]
-#' unif <- function(x) {
-#'    -10 + x * 20
-#' }
-#'
-#' prior <- create_prior(unif, lower = -10, upper = 10, .n_dim = 3)
-#' prior$fn(c(0.25, 0.5, 0.75))
-#'
-#' # A normal prior with parameterised mean and standard deviation
-#' hier_f <- function(theta) {
-#'   mu <- qnorm(theta[1], mean = 5) # mu ~ N(5, 1)
-#'   sigma <- 10 ^ qunif(theta[2], min = -1, max = 1) # log10(sigma) ~ U[-1, 1]
-#'   x <- qnorm(theta[3], mu, sigma) # X ~ N(mu, sigma)
-#'   c(mu, sigma, x)
-#' }
-#' create_prior(
-#'   hier_f,
-#'   names = c("mu", "sigma", "x"),
-#'   lower = c(-Inf, 0, -Inf)
-#' )
+#' @family priors
+#' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R
 #' @export
 create_prior <- function(
-  fn,
-  names = NULL,
+  point_fn,
+  vectorized_fn,
+  names,
   lower = -Inf,
   upper = Inf,
-  .n_dim = NULL,
-  .name_repair = c("unique", "universal", "check_unique")
-) {
-  fn <- as_function(fn)
-
-  prior <- new_ernest_prior(
-    fn = fn,
-    n_dim = .n_dim,
-    names = names,
-    lower = lower,
-    upper = upper,
-    name_repair = .name_repair
+  repair = c(
+    "unique",
+    "universal",
+    "check_unique",
+    "unique_quiet",
+    "universal_quiet"
   )
-  check_prior(prior)
-  prior
+) {
+  interface <- check_exclusive(point_fn, vectorized_fn)
+  fn <- switch(
+    interface,
+    "point_fn" = point_fn,
+    "vectorized_fn" = vectorized_fn
+  )
+  new_ernest_prior(
+    fn,
+    names,
+    lower,
+    upper,
+    interface = interface,
+    .class = "custom_prior",
+    .repair = repair
+  )
 }
 
-#' Construct an object of class 'ernest_prior'.
+#' Internal constructor for ernest_prior objects
 #'
-#' @param fn The prior transformation function.
-#' @param n_dim Number of dimensions.
-#' @param names Character vector of variable names.
-#' @param lower,upper Numeric vectors of bounds.
-#' @param class Character vector of additional S3 classes.
-#' @param name_repair Character string indicating how to repair variable names.
-#' Options are `"unique"` (default), `"universal"`, or `"check_unique"`.
-#' @param ... Dots forwarded from subclasses of ernest_prior.
-#' @param call The calling environment for error messages.
+#' @param fn The prior transformation from unit hypercube to parameter space.
+#' @param names Character vector. Names of parameters.
+#' @param lower,upper Lower and upper bounds for each parameter (optional).
+#' @param class Additional classes to assign (e.g., "custom_prior").
+#' @param repair Name repair strategy for `names`.
 #'
-#' @returns An object of class 'ernest_prior', which is a structured list
-#' containing the prior function, dimensionality, variable names, and bounds.
+#' @return
+#' An object of class `ernest_prior`.
 #' @noRd
 new_ernest_prior <- function(
-  fn = NULL,
-  n_dim = NULL,
+  fn,
+  names,
   lower = -Inf,
   upper = Inf,
-  names = NULL,
-  name_repair = c("unique", "universal", "check_unique"),
+  interface = c("point_fn", "vectorized_fn"),
   ...,
-  class = NULL,
-  call = caller_env()
+  .class = NULL,
+  .repair = "check_unique",
+  .call = caller_env()
 ) {
-  check_function(fn, call = call)
-  check_number_whole(n_dim, min = 1, allow_null = TRUE, call = call)
-  name_repair <- arg_match0(
-    name_repair,
-    c("unique", "universal", "check_unique")
+  check_function(fn, call = .call)
+  n_dim <- length(names)
+  if (n_dim < 1) {
+    cli::cli_abort("`names` must be at least length one, not length {n_dim}.")
+  }
+  names <- vctrs::vec_as_names(names, repair = .repair, call = .call)
+  bounds <- vctrs::vec_recycle_common(
+    !!!vctrs::vec_cast_common(
+      "lower" = lower,
+      "upper" = upper,
+      .to = double(),
+      .call = .call
+    ),
+    ...,
+    .size = n_dim,
+    .call = .call
   )
-  names <- vctrs::vec_cast(names, to = character()) %||% ""
-  lower <- vctrs::vec_cast(lower, to = double()) %||% -Inf
-  upper <- vctrs::vec_cast(upper, to = double()) %||% Inf
-  meta <- vctrs::df_list(
-    "names" = names,
-    "lower" = lower,
-    "upper" = upper,
-    .size = n_dim
-  )
-  meta$names <- vctrs::vec_as_names(
-    meta$names,
-    repair = name_repair,
-    call = call
-  )
-  n_dim <- vctrs::vec_size(meta$names)
-  if (any(meta$lower >= meta$upper)) {
+  if (any(bounds$lower >= bounds$upper)) {
     cli::cli_abort(
-      "`lower` must be strictly smaller than `upper`.",
-      call = call
+      "`lower` bounds must be strictly smaller than `upper` bounds.",
+      call = .call
     )
   }
+  interface <- arg_match(interface, call = .call)
 
-  elems <- list2(fn = fn, !!!meta)
-  new_elems <- list2(...)
-  check_unique_names(c(elems, new_elems))
+  force(fn)
+  batch_fn <- switch(
+    interface,
+    "point_fn" = vectorize_function(fn),
+    "vectorized_fn" = fn
+  )
+
+  lab <- "prior$fn(x)"
+  catching_fn <- function(x) {
+    if (!is_double(x)) {
+      stop_input_type(x, "a numeric vector or matrix", call = NULL)
+    }
+    if (!is.matrix(x)) {
+      dim(x) <- c(1, length(x))
+    }
+    y <- batch_fn(x)
+    y <- vctrs::vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
+    if (any(y == Inf | is.nan(y) | is.na(y))) {
+      cli::cli_abort(
+        "`{lab}` must return only finite values.",
+        call = NULL
+      )
+    }
+    y
+  }
+  check_prior(
+    catching_fn,
+    n_dim,
+    lower = bounds$lower,
+    upper = bounds$upper,
+    arg = "prior$fn(x)",
+    call = .call
+  )
+
   structure(
-    c(elems, new_elems),
+    list2(
+      "fn" = catching_fn,
+      "names" = names,
+      !!!bounds
+    ),
     n_dim = n_dim,
-    class = c(class, "ernest_prior")
+    body = expr(!!fn),
+    interface = interface,
+    class = c(.class, "ernest_prior")
   )
 }
+
 
 #' Check the validity of a prior transformation function.
 #'
@@ -162,78 +186,89 @@ new_ernest_prior <- function(
 #' returns finite double vectors/matrices of the correct dimensions and within
 #' specified bounds, for both vector and matrix inputs.
 #'
-#' @param prior The ernest_prior object.
+#' @param fn The prior transformation function.
+#' @param n_dim Dimensionality.
+#' @param lower,upper Numeric vectors. Expected bounds for the
+#' parameter vectors after hypercube transformation.
+#' @param arg Argument name for error reporting.
 #' @param call Environment for error reporting.
 #'
 #' @srrstats {G2.0, G2.1} Uses vctrs functions to ensure that the inputs are of
 #' the commensurate size and type.
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate parameters.
-#' @srrstats {G2.4c} Ensures that names is a unique character string,
-#' thanks to the `make.unique()` function.
+#' @srrstats {G2.4c} Ensures that names is a unique character string using
+#' vctrs.
 #' @srrstats {BS2.2, BS2.3} Ensures that the lengths of the prior parameters are
 #' validated before the NS algorithm is invoked.
 #'
-#' @returns `NULL` if all checks pass, otherwise an error is raised.
+#' @returns The test matrix if all checks pass.
 #' @importFrom cli cli_warn
 #' @noRd
-check_prior <- function(prior, n_tests = 1000, call = caller_env()) {
-  n_dim <- attr(prior, "n_dim")
-  vec_test <- stats::runif(n_dim)
-  vec_result <- prior$fn(vec_test)
-  if (!is_double(vec_result)) {
-    obj_type <- obj_type_friendly(vec_result)
-    cli::cli_abort(
-      "`fn` must return a numeric vector, not {obj_type}.",
-      call = call
-    )
-  }
-  if (vctrs::vec_size(vec_result) != n_dim) {
-    act <- vctrs::vec_size(vec_result)
-    cli::cli_abort(
-      "`fn` must return a vector of length {n_dim}, not one of length {act}.",
-      call = call
-    )
-  }
-
-  test <- matrix(stats::runif(n_tests * n_dim), nrow = n_tests)
-  result <- apply(test, 1, prior$fn) |> t()
-  tryCatch(
-    for (i in seq_len(n_dim)) {
-      if (any(!is_double(result[i, ], finite = TRUE))) {
-        cli::cli_abort(
-          "`fn` must return vectors that only contain finite values.",
-          call = call
-        )
-      }
-      oo_lower <- any(result[i, ] < prior$lower)
-      oo_upper <- any(result[i, ] > prior$upper)
-
-      if (oo_lower || oo_upper) {
-        bound_str <- if (oo_lower && oo_upper) {
-          "`lower` and `upper`"
-        } else if (oo_lower) {
-          "`lower`"
-        } else {
-          "`upper`"
-        }
-        cli::cli_abort("`fn` must respect the {bound_str} bounds.", call = call)
-      }
-    },
-    error = function(cnd) {
-      cli::cli_abort(
-        c(
-          "`fn` failed a sanity check.",
-          "x" = "Input: {pretty(test[i,])}",
-          "x" = "Output: {pretty(result[i,])}"
-        ),
-        parent = cnd,
-        call = call
-      )
-    }
+check_prior <- function(
+  fn,
+  n_dim,
+  lower = -Inf,
+  upper = Inf,
+  arg = caller_arg(fn),
+  call = caller_env()
+) {
+  test_vector <- rep(0.5, n_dim)
+  output_test <- fn(test_vector)
+  output_test <- vctrs::vec_cast(
+    output_test,
+    matrix(double(), ncol = n_dim),
+    x_arg = arg,
+    call = call
   )
-  invisible(NULL)
+
+  test_matrix <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
+  output_test_mat <- fn(test_matrix)
+  check_matrix(
+    output_test_mat,
+    nrow = 1000,
+    ncol = n_dim,
+    lower = lower,
+    upper = upper,
+    arg = arg,
+    call = call
+  )
+  output_test_mat
 }
+
+#' Combine two ernest_prior objects
+#' @rdname create_prior
+#' @param x,y [[ernest_prior]]\cr Prior objects to combine.
+#'
+#' @export
+`+.ernest_prior` <- function(x, y) {
+  check_class(x, "ernest_prior")
+  check_class(y, "ernest_prior")
+
+  n_dim <- c(attr(x, "n_dim"), attr(y, "n_dim"))
+  bodies <- list(attr(x, "body"), attr(y, "body"))
+  cum_dim <- cumsum(n_dim)
+
+  fn <- new_function(
+    exprs(x = ),
+    expr({
+      vctrs::vec_c(
+        (!!bodies[[1]])(x[1:!!cum_dim[1]]),
+        (!!bodies[[2]])(x[!!(cum_dim[1] + 1):!!cum_dim[2]])
+      )
+    })
+  )
+
+  new_ernest_prior(
+    fn = fn,
+    names = c(x$names, y$names),
+    lower = c(x$lower, y$lower),
+    upper = c(x$upper, y$upper),
+    .repair = "unique",
+    .class = "composite_prior"
+  )
+}
+
 
 #' Format for ernest_prior
 #'
@@ -244,23 +279,10 @@ check_prior <- function(prior, n_tests = 1000, call = caller_env()) {
 #' @noRd
 #' @export
 format.ernest_prior <- function(x, ...) {
-  cli::cli_format_method({
-    name <- switch(
-      class(x)[[1]],
-      "uniform_prior" = "uniform",
-      "normal_prior" = "normal",
-      "custom"
-    )
-    cli::cli_text("{name} prior distribution {.cls {class(x)}}")
-    cli::cat_line()
-    cli::cat_print(tibble::tibble(
-      "names" = x$names,
-      "lower" = x$lower,
-      "upper" = x$upper,
-      "mean" = x$mean,
-      "sd" = x$sd
-    ))
-  })
+  name <- sub("_prior", "", class(x)[[1]])
+  cli::format_inline(
+    "{name} prior distribution with {attr(x, 'n_dim')} dimensions ({x$names})"
+  )
 }
 
 #' Print for ernest_prior

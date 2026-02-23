@@ -27,11 +27,8 @@
     Code
       default
     Message
-      ernest LRPS method <rwmh_cube/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * No. Accepted Proposals: 0
-      * No. Steps: 25
-      * Target Acceptance: 0.5
-      * Step Size: 1.000
+      25-step random walk sampling (acceptance target = 50.0%):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 

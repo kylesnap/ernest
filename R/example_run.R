@@ -4,7 +4,7 @@
 #' package. It demonstrates a typical output from a nested sampling run on a
 #' simple 3-dimensional Gaussian likelihood, with a uniform prior over each
 #' dimension. This dataset is intended for use in documentation, tutorials,
-#' and gainining experience with `ernest_run`'s S3 methods.
+#' and gaining experience with `ernest_run`'s S3 methods.
 #'
 #' The likelihood used to generate the points is \eqn{MVN(0, \Sigma)}, with
 #' each variance in \eqn{\Sigma} set to 1 and each covariance set to 0.95.

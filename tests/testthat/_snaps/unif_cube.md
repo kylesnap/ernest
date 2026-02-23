@@ -3,7 +3,8 @@
     Code
       default
     Message
-      ernest LRPS method <unif_cube/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
+      Uniform unit cube sampling:
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 

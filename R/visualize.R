@@ -1,140 +1,169 @@
-#' Plot the posterior distribution of an `ernest_run`
+#' Visualize posterior distributions or traces from a nested sampling run
 #'
-#' Create a plot of the posterior distributions from a nested sampling run,
-#' or trace the evolution of discarded live points along the log prior
+#' Produces visualizations of the posterior distributions or the evolution of
+#' variables along the log-prior volume from a nested sampling run.
+#'
+#' @param x [[ernest_run]] The results of a nested sampling run.
+#' @param ... <[`tidy-select`][dplyr::dplyr_tidy_select]> One or more variables
+#' to plot from the run. If omitted, all variables are plotted.
+#' @param .which `[charcacter(1)]` Character string specifying the type of plot
+#' to produce. Options are `"density"` for the posterior density of each
+#' parameter or `"trace"` for the trace of variables along log-volume.
+#' @inheritParams as_draws.ernest_run
+#'
+#' @returns
+#' A `ggplot2::ggplot()` object.
+#'
+#' @details
+#' The `visualize()` function is designed to quickly explore the results of a
+#' nested sampling run through two types of plots:
+#' - **Density plots** show the marginal posterior for each selected variable,
+#' using `ggdist::stat_halfeye()` to visualize uncertainty and distribution
+#' shape.
+#' - **Trace plots** display the evolution of variables as a function of
+#' log-volume, with points coloured by posterior weight. This can help
+#' diagnose sampling behavior and identify regions of interest in the prior
 #' volume.
 #'
-#' @param x An [ernest_run] object.
-#' @param type Case-sensitive string. The type of plot to create:
-#' * `"density"`: Shows the posterior density of each parameter.
-#' * `"trace"`: Shows the distribution of points along estimates of the log
-#' prior volume.
-#' @param vars <[`tidy-select`][dplyr::dplyr_tidy_select]> Variables to
-#' plot from the run. If `NULL`, all variables are plotted.
-#' @param plot Logical. If `TRUE`, returns a `ggplot` of the visualisation;
-#' if `FALSE`, returns a `tibble` of the data used to create the plot.
-#' @inheritDotParams as_draws.ernest_run units radial
+#' Posterior weights are derived from the individual contributions of each
+#' sampled point in the prior space to a run's log-evidence estimate. A point's
+#' weight is a function of (a) the point's likelihood and (b) the estimated
+#' amount of volume within that point's likelihood contour. See ernest's
+#' vignettes for more information.
 #'
-#' @returns A `ggplot` object if `plot = TRUE`, otherwise a `tibble`.
+#' @note
+#' This package requires the {tidyselect} package to be installed. If
+#' `which = "trace"` is selected, the {ggdist} package is also required.
 #'
-#' @seealso [plot()] for visualising evidence estimates from an
-#'   `ernest_run`.
+#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure informative error
+#' messages for invalid `which` values.
+#' @srrstats {BS6.2, BS6.3} Provides plot methods for posterior new points and
+#' sequences of samples.
 #'
-#' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure an informative
-#' error message is provided when the user provides an invalid value for
-#' `type`.
-#' @srrstats {BS6.2, BS6.3} Plot method for posterior samples and sequences of
-#' samples.
+#' @seealso
+#' - [plot()] for diagnostic plots of nested sampling runs.
+#' - [as_draws_rvars()] for extracting posterior samples.
 #'
 #' @examples
 #' # Load example run
 #' library(ggdist)
 #' data(example_run)
 #'
-#' # Plot posterior distributions of the parameters
-#' visualize(example_run, type = "density")
+#' # Plot posterior densities for all parameters
+#' visualize(example_run, .which = "density")
 #'
-#' # Plot the trace of the radial coordinate in unit scale
+#' # Plot trace of the radial coordinate in unit-cube scale
 #' visualize(
 #'   example_run,
-#'   type = "trace",
-#'   vars = ".radial",
-#'   units = "unit_cube",
-#'   radial = TRUE
+#'   .which = "trace",
+#'   .units = "unit_cube",
+#'   .radial = TRUE
 #' )
-#' @method visualize ernest_run
 #' @export
 visualize.ernest_run <- function(
   x,
   ...,
-  type = c("density", "trace"),
-  vars = NULL,
-  plot = TRUE
+  .which = c("density", "trace"),
+  .units = c("original", "unit_cube"),
+  .radial = FALSE
 ) {
-  check_dots_used()
   rlang::check_installed(c("ggdist", "tidyselect"))
-  type <- arg_match(type)
+  .which <- arg_match(.which)
+  draws <- as_draws_rvars(x, units = .units, radial = .radial)
 
-  draws <- as_draws_rvars(x, ...)
-  vars <- vars %||% expr(tidyselect::everything())
-  cols <- tidyselect::eval_select(vars, draws)
-  cols <- cols[setdiff(names(cols), ".log_weight")]
-
-  if (type == "density") {
-    visualize_density_(draws, cols, plot)
+  expr <- if (dots_n(...) == 0) {
+    if (length(x$prior$names) > 10) {
+      cli::cli_abort(c(
+        "Cannot automatically plot {length(x$prior$names)} variables.",
+        "i" = "Use {.fn tidyselect::everything()} to override this error."
+      ))
+    }
+    expr(tidyselect::all_of(c(
+      !!x$prior$names,
+      !!(if (.radial) ".radial" else NULL)
+    )))
   } else {
-    visualize_trace_(draws, cols, x$log_volume, plot)
+    if (dots_n(...) > 10) {
+      cli::cli_warn("Plots with more than 10 variables may be cluttered.")
+    }
+    expr(c(...))
+  }
+
+  if (.which == "density") {
+    check_installed("ggdist", "to create density plots.")
+    draws <- posterior::resample_draws(draws)
+    pos <- tidyselect::eval_select(expr, data = draws)
+    selected <- draws[pos]
+    visualize_density(selected)
+  } else {
+    draws_df <- as.data.frame(posterior::as_draws_df(draws))
+    pos <- tidyselect::eval_select(expr, data = draws_df, error_call = call)
+    log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
+    visualize_trace(draws_df, pos, log_vol, stats::weights(draws))
   }
 }
 
-#' Visualize posterior density for selected variables
+#' Creates a faceted plot of the marginal posterior distributions for each
+#' selected variable from a nested sampling run, using `ggdist::stat_halfeye()`
+#' to show uncertainty and distribution shape.
 #'
-#' Generates a tibble or ggplot of posterior densities for selected variables
-#' from a nested sampling run.
+#' @param selected A draws_rvars object containing posterior samples for the
+#' selected variables. This should be resampled before being passed to this
+#' function.
 #'
-#' @param draws A draws_rvars object containing posterior samples.
-#' @param cols Named integer vector of columns to visualize.
-#' @param plot Logical. If TRUE, returns a ggplot; if FALSE, returns a tibble.
-#'
-#' @return A ggplot object or a tibble, depending on `plot`.
+#' @return A `ggplot2::ggplot()` object with one facet per variable.
+#' @importFrom ggplot2 facet_grid vars
 #' @noRd
-visualize_density_ <- function(draws, cols, plot) {
-  resamp <- posterior::resample_draws(draws)
-
-  df <- data.frame(
-    ".var" = names(cols),
-    ".dist" = list_c(resamp[cols])
-  )
-
-  if (!plot) {
-    return(tibble::as_tibble(df))
-  }
-
-  df |>
-    ggplot2::ggplot() +
-    ggdist::stat_halfeye(mapping = ggplot2::aes(xdist = .data[[".dist"]])) +
-    ggplot2::facet_wrap(~ .data[[".var"]], scales = "free_x") +
-    ggplot2::scale_x_continuous("Value") +
-    ggplot2::scale_y_continuous("Density")
-}
-
-#' Visualize trace of variables along log prior volume
-#'
-#' Generates a tibble or ggplot showing the evolution of selected variables
-#' along log prior volume.
-#'
-#' @param draws A draws_rvars object containing posterior samples.
-#' @param cols Named integer vector of columns to visualize.
-#' @param log_vol Numeric vector of log prior volumes.
-#' @param plot Logical. If TRUE, returns a ggplot; if FALSE, returns a tibble.
-#'
-#' @return A ggplot object or a tibble, depending on `plot`.
-#' @noRd
-visualize_trace_ <- function(draws, cols, log_vol, plot) {
-  points <- lapply(draws[cols], posterior::draws_of)
-
-  df <- data.frame(
-    ".var" = rep(names(cols), each = posterior::ndraws(draws)),
-    ".point" = list_c(points),
-    ".log_volume" = rep(log_vol, length(cols)),
-    ".weight" = rep(stats::weights(draws), length(cols))
-  )
-  if (!plot) {
-    return(tibble::as_tibble(df))
-  }
-
-  df |>
-    ggplot2::ggplot(ggplot2::aes(
-      x = .data[[".log_volume"]],
-      y = .data[[".point"]],
-      colour = .data[[".weight"]]
-    )) +
-    ggplot2::geom_point() +
-    ggplot2::facet_grid(
-      rows = ggplot2::vars(.data[[".var"]]),
-      scales = "free_y"
+visualize_density <- function(selected) {
+  tibble(".variable" = names(selected), ".dist" = list_c(selected)) |>
+    ggplot() +
+    ggdist::stat_halfeye(
+      mapping = ggplot2::aes(xdist = .data[[".dist"]]),
+      point_interval = "median_hdci"
     ) +
-    ggplot2::scale_x_continuous("Log-volume") +
-    ggplot2::scale_y_continuous("Value") +
-    ggplot2::scale_colour_viridis_c("Weight")
+    facet_grid(rows = vars(.data[[".variable"]]), scales = "free_x") +
+    scale_x_continuous("Value") +
+    scale_y_continuous("Density") +
+    theme_minimal()
+}
+
+#' Creates a faceted scatter plot showing the evolution of selected variables
+#' as a function of log-prior volume.
+#'
+#' @param draws Data frame of posterior samples for all variables.
+#' @param pos Integer vector of column positions for the selected variables to
+#' plot.
+#' @param log_volume Numeric vector of log-prior volumes for each sample.
+#' @param weights Numeric vector of posterior weights for each sample.
+#'
+#' @return A `ggplot2::ggplot()` object with one facet per variable,
+#' showing traces colored by posterior weight.
+#' @importFrom ggplot2 geom_point scale_colour_distiller
+#' @noRd
+visualize_trace <- function(draws, pos, log_volume, weights) {
+  df <- do.call(
+    rbind,
+    lapply(pos, \(p) {
+      value <- unlist(draws[p], use.names = FALSE)
+      tibble::tibble(
+        ".variable" = names(draws)[p],
+        ".value" = as.numeric(value),
+        "log_volume" = log_volume,
+        "weights" = weights
+      )
+    })
+  )
+
+  df |>
+    ggplot(aes(
+      x = .data[["log_volume"]],
+      y = .data[[".value"]],
+      colour = .data[["weights"]]
+    )) +
+    geom_point() +
+    scale_colour_distiller("Posterior Weight", palette = "Reds") +
+    facet_grid(rows = vars(.data[[".variable"]]), scales = "free_y") +
+    scale_x_continuous("Log-volume") +
+    scale_y_continuous("Value") +
+    theme_minimal()
 }

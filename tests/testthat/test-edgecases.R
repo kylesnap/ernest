@@ -11,15 +11,15 @@ NULL
 #' return zero-lengths.
 test_that("Zero-length likelihood fails", {
   ll <- \(theta) double(0)
-  prior <- create_uniform_prior(.n_dim = 2)
+  prior <- create_uniform_prior(names = LETTERS[1:2])
 
   expect_snapshot(ernest_sampler(ll, prior, seed = 42), error = TRUE)
 })
 
 test_that("Zero-length prior fails", {
   prior_fn <- \(theta) double(0)
-  expect_snapshot(create_prior(prior_fn, .n_dim = 0), error = TRUE)
-  expect_snapshot(create_prior(prior_fn, .n_dim = 1), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = character()), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1]), error = TRUE)
 })
 
 #' Wrong types
@@ -29,26 +29,26 @@ NULL
 
 test_that("Fails on character types", {
   prior_fn <- \(theta) c("A", "B")
-  expect_snapshot(create_prior(prior_fn, .n_dim = 2), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) if (theta[1] < 0) "L" else "U"
-  expect_snapshot_error(ernest_sampler(
-    ll,
-    create_uniform_prior(.n_dim = 2),
-    seed = 42
-  ))
+  expect_snapshot(
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
+  )
 })
 
 test_that("Fails on complex types", {
   prior_fn <- \(theta) 0.15i * theta
-  expect_snapshot(create_prior(prior_fn, .n_dim = 2), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1:2]), error = TRUE)
 
   ll <- \(theta) sum(0.15i * length(theta))
-  expect_snapshot_error(ernest_sampler(
-    ll,
-    create_uniform_prior(.n_dim = 2),
-    seed = 42
-  ))
+  expect_snapshot(
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
+  )
 })
 
 #' Missing type
@@ -58,14 +58,17 @@ test_that("Missing values in the prior", {
   set.seed(42)
   prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
   expect_error(
-    create_prior(prior_fn, .n_dim = 2),
-    "`fn` failed a sanity check."
+    create_prior(prior_fn, names = LETTERS[1:2]),
+    "must return only finite values."
   )
 })
 
+#' Missing value catching
+#'
 #' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
 #' @srrstats {G5.3} Ernest results do not contain NA even when log-lik produces
 #' NA values.
+NULL
 
 test_that("Missing values in the log-likelihood", {
   set.seed(42)
@@ -76,12 +79,14 @@ test_that("Missing values in the log-likelihood", {
     gaussian_blobs$log_lik(theta)
   }
 
-  expect_snapshot_error(
+  expect_snapshot(
     ernest_sampler(
       log_lik = create_likelihood(ll_fn_missing, on_nonfinite = "abort"),
       prior = gaussian_blobs$prior,
       seed = 42
-    )
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
   )
 
   expect_no_message(
@@ -97,21 +102,24 @@ test_that("Missing values in the log-likelihood", {
       create_likelihood(ll_fn_missing, on_nonfinite = "warn"),
       gaussian_blobs$prior,
       seed = 42
-    )
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x)
   )
 
   run <- generate(quiet_na_sampler)
-  expect_false(anyNA(run$log_lik))
+  expect_false(anyNA(run$weights$log_lik))
 })
 
 #' Special tests: Perfectly flat and nearly flat likelihoods
 #'
 #' @srrstats {G5.8d} Covers situations in which the likelihood starts as flat
 #' (caught by compile) or becomes flat after many iterations.
+NULL
+
 test_that("Ernest fails when ll is flat to begin with", {
   ll <- \(theta) 0
   expect_snapshot(
-    ernest_sampler(ll, create_uniform_prior(2), seed = 42),
+    ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42),
     error = TRUE
   )
 })
@@ -135,5 +143,5 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
     ),
     "Stopping run due to a likelihood plateau at 0"
   )
-  expect_all_equal(tail(run$log_lik, 100), 0)
+  expect_all_equal(tail(run$weights$log_lik, 100), 0)
 })

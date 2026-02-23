@@ -1,6 +1,6 @@
 Package: ernest
 Title: A Toolkit for Nested Sampling
-Version: 1.1.1
+Version: 1.2.0
 Authors@R: 
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2132-8083"))
@@ -28,14 +28,15 @@ Imports:
     vctrs,
     withr
 Suggests: 
+    brms,
+    extraDistr,
     ggdist,
     knitr,
-    LaplacesDemon,
-    log4r,
+    mvtnorm,
+    patchwork,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,
-    truncnorm,
     vdiffr,
     xml2
 LinkingTo:
@@ -46,7 +47,7 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: algorithm, *_ellipsoid
+Config/testthat/start-first: algorithm, plot, *_ellipsoid
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",

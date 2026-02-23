@@ -14,22 +14,18 @@
       Warning:
       `enlarge` is set to 1, which is not recommended.
     Message
-      ernest LRPS method <multi_ellipsoid/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * No. Ellipsoids: 0
-      * Total Log Volume: -Inf
-      * Enlargement: 1
+      Uniform sampling within bounding ellipsoids (enlarged by 1):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 
 ---
 
     Code
       default
     Message
-      ernest LRPS method <multi_ellipsoid/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * No. Ellipsoids: 0
-      * Total Log Volume: -Inf
-      * Enlargement: 1.25
+      Uniform sampling within bounding ellipsoids (enlarged by 1.25):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 

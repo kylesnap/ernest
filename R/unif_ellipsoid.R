@@ -1,16 +1,13 @@
-#' Generate samples from the spanning ellipsoid
+#' Generate new points from the spanning ellipsoid
 #'
-#' @description
-#' `r lifecycle::badge("experimental")`
-#' Uses the bounding ellipsoid of the live points to define the region of prior
+#' Uses the bounding ellipsoid of the live set to define the region of prior
 #' space that contains new points. Effective for unimodal and roughly-Gaussian
 #' posteriors.
 #'
-#' @param enlarge Double, greater than or equal to 1. Factor by which to inflate
-#' the bounding ellipsoid's volume before sampling (see Details).
+#' @param enlarge `[double(1)]`\cr Factor by which to inflate the bounding
+#' ellipsoid's volume before sampling (see Details). Must be at least 1.0.
 #'
-#' @returns A list with class `c("unif_ellipsoid", "ernest_lrps")`. Use with
-#' [ernest_sampler()] to specify nested sampling behaviour.
+#' @returns `[unif_ellipsoid]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @details Nested likelihood contours rarely form perfect ellipses, so sampling
 #' from the spanning ellipsoid without enlargement may exclude valid regions.
@@ -62,7 +59,7 @@
 unif_ellipsoid <- function(enlarge = 1.25) {
   check_number_decimal(enlarge, min = 1)
   if (enlarge == 1.0) {
-    cli::cli_alert_warning("`enlarge` is set to 1.0, which is not recommended.")
+    cli::cli_warn("`enlarge` is set to 1.0, which is not recommended.")
   }
   new_unif_ellipsoid(
     unit_log_fn = NULL,
@@ -75,12 +72,8 @@ unif_ellipsoid <- function(enlarge = 1.25) {
 #' @export
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "Center: {pretty(x$cache$center %||% 'Undefined')}",
-    "Log Volume: {pretty(x$cache$log_volume %||% -Inf)}",
-    "Enlargement: {x$enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Uniform sampling within a bounding ellipsoid (enlarged by {x$enlarge})"
   )
 }
 
@@ -89,8 +82,8 @@ format.unif_ellipsoid <- function(x, ...) {
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
 #' @return An LRPS specification, a list with class
@@ -149,7 +142,7 @@ propose.unif_ellipsoid <- function(
       enlarge = x$enlarge,
       max_loop = x$max_loop
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }
@@ -162,13 +155,13 @@ propose.unif_ellipsoid <- function(
 #' @param center Vector. The center of the ellipsoid.
 #' @param inv_sqrt_shape Matrix. The inverse square root of the shape matrix.
 #' @param enlarge Double. Enlargement factor for the ellipsoid.
-#' @param max_loop Positive integer. Maximum number of attempts to generate
+#' @param max_loop Positive  Maximum number of attempts to generate
 #' a point.
 #'
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
-#' * `n_call`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
 #' @noRd
 propose_ellipsoid <- function(
   unit_log_fn,
@@ -192,11 +185,11 @@ propose_ellipsoid <- function(
       return(list(
         unit = proposal,
         log_lik = log_lik,
-        n_call = i
+        neval = i
       ))
     }
   }
-  list(unit = NULL, log_lik = NULL, n_call = max_loop)
+  list(unit = NULL, log_lik = NULL, neval = max_loop)
 }
 
 #' @rdname update_lrps

@@ -1,72 +1,25 @@
-# new_ernest_likelihood fails informatively
-
-    `on_nonfinite` must be one of "warn", "quiet", or "abort", not "loudly".
-
-# create_likelihood with simple function
+# ernest_likelihood / produces scalar likelihoods
 
     Code
       ll
-    Output
-      likelihood function <ernest_likelihood>
-      
+    Message
+      Scalar Log-likelihood Function
       function (x) 
-      -sum((x - 1)^2)
+      {
+          x <- matrix(x, ncol = length(x))
+          distval <- stats::mahalanobis(x, center = mean, cov = sigma)
+          exp(-(3 * log(2 * pi) + logdet + distval)/2)
+      }
 
-# create_likelihood throws errors
-
-    Code
-      create_likelihood("fn")
-    Condition
-      Error in `get()`:
-      ! object 'fn' of mode 'function' was not found
-
----
+# ernest_likelihood / produces likelihood from `vectorized_fn`
 
     Code
-      create_likelihood(test, on_nonfinite = "blob")
-    Condition
-      Error in `new_ernest_likelihood()`:
-      ! `on_nonfinite` must be one of "warn", "quiet", or "abort", not "blob".
-
-# non_finite action options
-
-    Code
-      fail_ll(c(0, 1, 2))
-    Condition
-      Error in `safe_log_lik()`:
-      ! log-lik. values must be either finite or `-Inf`, not NaN.
-
----
-
-    Code
-      warn_ll(c(0, 1, 2))
-    Condition
-      Warning:
-      Replacing `NaN` with `-Inf`.
-    Output
-      [1] -Inf
-
-# fn fails if a non-double is returned
-
-    Code
-      fail_ll(c(0, 1, 2))
-    Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
-
----
-
-    Code
-      warn_ll(c(0, 1, 2))
-    Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
-
----
-
-    Code
-      result <- pass_ll(c(0, 1, 2))
-    Condition
-      Error in `safe_log_lik()`:
-      ! Can't convert `log-lik.` <character> to <double>.
+      mat_ll
+    Message
+      Vectorized Log-likelihood Function
+      function (x) 
+      {
+          distval <- stats::mahalanobis(x, center = mean, cov = sigma)
+          exp(matrix(-(3 * log(2 * pi) + logdet + distval)/2, nrow = nrow(x)))
+      }
 

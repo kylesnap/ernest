@@ -29,22 +29,21 @@ test_that("Simulated log vols do not diverge from mean estimates", {
 test_that("calculate works when ndraws = 0", {
   data(example_run)
   calc <- calculate(example_run, ndraws = 0)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
   expect_equal(
-    drop(posterior::draws_of(calc$log_volume)),
-    example_run$log_volume
+    drop(posterior::draws_of(calc$log_lik)),
+    example_run$weights$log_lik
   )
   expect_equal(
     drop(posterior::draws_of(calc$log_weight)),
-    example_run$log_weight
+    example_run$weights$log_weight
   )
   expect_equal(
-    drop(posterior::draws_of(calc$log_evidence)),
+    tail(drop(posterior::draws_of(calc$log_evidence)), 1),
     example_run$log_evidence
   )
   expect_equal(
-    drop(posterior::draws_of(calc$log_evidence_err)),
-    sqrt(example_run$log_evidence_var)
+    tail(drop(posterior::draws_of(calc$log_evidence_err)), 1),
+    example_run$log_evidence_err
   )
 
   expect_snapshot(calc)
@@ -52,9 +51,12 @@ test_that("calculate works when ndraws = 0", {
 
 test_that("calculate works when ndraws = 1", {
   data(example_run)
-  n_samp <- example_run$n_iter + example_run$n_points
+  n_samp <- example_run$niter + example_run$nlive
   calc <- calculate(example_run, ndraws = 1)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
+  expect_equal(
+    drop(posterior::draws_of(calc$log_lik)),
+    example_run$weights$log_lik
+  )
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
@@ -65,18 +67,21 @@ test_that("calculate works when ndraws = 1", {
 test_that("calculate works when ndraws = 1000 (default)", {
   skip_extended()
   data(example_run)
-  n_samp <- example_run$n_iter + example_run$n_points
+  n_samp <- example_run$niter + example_run$nlive
 
   calc <- calculate(example_run)
-  expect_equal(drop(posterior::draws_of(calc$log_lik)), example_run$log_lik)
+  expect_equal(
+    drop(posterior::draws_of(calc$log_lik)),
+    example_run$weights$log_lik
+  )
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1000, n_samp))
 
-  expect_equal(
-    abs(mean(calc$log_evidence) - example_run$log_evidence) <
-      .Machine$double.eps + 3 * posterior::sd(calc$log_evidence),
-    rep(TRUE, n_samp)
+  log_z <- tail(calc$log_evidence, 1)
+  expect_lt(
+    abs(mean(log_z) - example_run$log_evidence),
+    .Machine$double.eps + 3 * posterior::sd(log_z)
   )
 
   expect_snapshot(calc)

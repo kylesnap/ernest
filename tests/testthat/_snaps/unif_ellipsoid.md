@@ -10,24 +10,22 @@
 
     Code
       unif_ellipsoid(enlarge = 1)
+    Condition
+      Warning:
+      `enlarge` is set to 1.0, which is not recommended.
     Message
-      ! `enlarge` is set to 1.0, which is not recommended.
-      ernest LRPS method <unif_ellipsoid/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * Center: Undefined
-      * Log Volume: -Inf
-      * Enlargement: 1
+      Uniform sampling within a bounding ellipsoid (enlarged by 1):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 
 ---
 
     Code
       default
     Message
-      ernest LRPS method <unif_ellipsoid/ernest_lrps>
-      * Dimensions: 'Undefined'
-      * No. Log-Lik Calls: 0
-      * Center: Undefined
-      * Log Volume: -Inf
-      * Enlargement: 1.25
+      Uniform sampling within a bounding ellipsoid (enlarged by 1.25):
+      # Dimensions: Uninitialized
+      # Calls since last update: 0
+      
 

@@ -77,13 +77,13 @@ test_that("multi_ellipsoid can provide good results", {
 
 describe("MultiBoundingEllipsoids", {
   it("fits points in 3D correctly", {
-    n_points <- 2000
+    nlive <- 2000
     shape <- matrix(
       c(1.439, -1.607, 0.626, -1.607, 2.685, -0.631, 0.626, -0.631, 0.43),
       nrow = 3,
       byrow = TRUE
     )
-    original_points <- uniformly::runif_in_ellipsoid(n_points, shape, 1)
+    original_points <- uniformly::runif_in_ellipsoid(nlive, shape, 1)
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- MultiBoundingEllipsoids(original_points, NA)

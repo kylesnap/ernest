@@ -5,58 +5,85 @@
     Condition
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
-      Caused by error in `ernest_sampler()`:
-      ! log-lik. values must be single scalars, not vectors of size 0.
+      Caused by error in `compile()`:
+      ! `unit` must have 500 rows, not 0.
 
 # Zero-length prior fails
 
     Code
-      create_prior(prior_fn, .n_dim = 0)
+      create_prior(prior_fn, names = character())
     Condition
-      Error in `create_prior()`:
-      ! `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
+      Error in `new_ernest_prior()`:
+      ! `names` must be at least length one, not length 0.
 
 ---
 
     Code
-      create_prior(prior_fn, .n_dim = 1)
+      create_prior(prior_fn, names = LETTERS[1])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a vector of length 1, not one of length 0.
+      Error:
+      ! Can't convert `prior$fn(x)` <double[,0]> to <double[,1]>.
+      Non-recyclable dimensions.
 
 # Fails on character types
 
     Code
-      create_prior(prior_fn, .n_dim = 2)
+      create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a numeric vector, not a character vector.
+      Error:
+      ! Can't convert `prior$fn(x)` <character[,2]> to <double[,2]>.
 
 ---
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't convert `log-lik.` <character> to <double>.
+    Code
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `compile()`:
+      ! Error when creating the live set.
+      Caused by error:
+      ! Couldn't calculate the log-lik of #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, ..., #.#, and #.#.
+      Caused by error:
+      ! Can't convert `log_lik(x)` <character> to <double>.
 
 # Fails on complex types
 
     Code
-      create_prior(prior_fn, .n_dim = 2)
+      create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error in `create_prior()`:
-      ! `fn` must return a numeric vector, not a complex vector.
+      Error:
+      ! Can't convert `prior$fn(x)` <complex[,2]> to <double[,2]>.
 
 ---
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! Can't convert `log-lik.` <complex> to <double>.
+    Code
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `compile()`:
+      ! Error when creating the live set.
+      Caused by error:
+      ! Couldn't calculate the log-lik of #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, ..., #.#, and #.#.
+      Caused by error:
+      ! Can't convert `log_lik(x)` <complex> to <double>.
 
 # Missing values in the log-likelihood
 
-    <ernest_sampler> cannot compile.
-    Caused by error in `ernest_sampler()`:
-    ! log-lik. values must be either finite or `-Inf`, not NA.
+    Code
+      ernest_sampler(log_lik = create_likelihood(ll_fn_missing, on_nonfinite = "abort"),
+      prior = gaussian_blobs$prior, seed = 42)
+    Condition
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `compile()`:
+      ! Error when creating the live set.
+      Caused by error:
+      ! Couldn't calculate the log-lik of #.#, #.#, -#.#, #.#, #.#, #.#, #.#, -#.#, #.#, #.#, -#.#, #.#, #.#, -#.#, -#.#, #.#, #.#, -#.#, ..., -#.#, and -#.#.
+      Caused by error:
+      ! log-lik. values must be either finite or `-Inf`.
+      x Detected non-viable value: `NA`.
 
 ---
 
@@ -69,25 +96,19 @@
       Caused by warning:
       ! Replacing `NA` with `-Inf`.
     Message
-      nested sampling specification <ernest_sampler>
-      * No. Points: 500
-      * LRPS Method: rwmh_cube
-    Output
-      
-    Message
-      ernest LRPS method <rwmh_cube/ernest_lrps>
-      * Dimensions: 2
-      * No. Log-Lik Calls: 0
-      * No. Accepted Proposals: 0
-      * No. Steps: 25
-      * Target Acceptance: 0.5
-      * Step Size: 1.000
+      Nested sampling run specification:
+      * No. points: 500
+      * Sampling method: 25-step random walk sampling (acceptance target = #.#%)
+      * Prior: uniform prior distribution with 2 dimensions (A and B)
 
 # Ernest fails when ll is flat to begin with
 
     Code
-      ernest_sampler(ll, create_uniform_prior(2), seed = 42)
+      ernest_sampler(ll, create_uniform_prior(names = LETTERS[1:2]), seed = 42)
     Condition
-      Error in `create_uniform_prior()`:
-      ! `lower` must be strictly smaller than `upper`.
+      Error in `ernest_sampler()`:
+      ! <ernest_sampler> cannot compile.
+      Caused by error in `compile()`:
+      ! `log_lik` must contain a range of likelihood values.
+      x `log_lik` currently contains one unique value (0).
 

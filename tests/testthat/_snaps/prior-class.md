@@ -1,82 +1,14 @@
-# new_ernest_prior / Explains dimensionality errors
+# ernest_prior / produces scalar likelihoods
 
     Code
-      new_ernest_prior(fn, n_dim = 0)
-    Condition
-      Error:
-      ! `n_dim` must be a whole number larger than or equal to 1 or `NULL`, not the number 0.
-
----
-
-    Code
-      new_ernest_prior(fn, n_dim = 3, lower = c(-Inf, 0))
-    Condition
-      Error in `vctrs::df_list()`:
-      ! Can't recycle `lower` (size 2) to size 3.
-
----
-
-    Code
-      new_ernest_prior(fn, lower = c(-Inf, -Inf, 2), upper = c(Inf, Inf))
-    Condition
-      Error in `vctrs::df_list()`:
-      ! Can't recycle `names` (size 3) to match `upper` (size 2).
-
----
-
-    Can't recycle `names` (size 4) to size 2.
-
-# new_ernest_prior / explains type errors
-
-    Code
-      new_ernest_prior(fn, lower = c("0", "0"))
-    Condition
-      Error in `new_ernest_prior()`:
-      ! Can't convert `lower` <character> to <double>.
-
----
-
-    Code
-      new_ernest_prior(fn, names = c(60, 70))
-    Condition
-      Error in `new_ernest_prior()`:
-      ! Can't convert `names` <double> to <character>.
-
-# new_ernest_prior / explains errors with upper and lower
-
-    Code
-      new_ernest_prior(fn, lower = c(Inf, 0))
-    Condition
-      Error:
-      ! `lower` must be strictly smaller than `upper`.
-
----
-
-    Code
-      new_ernest_prior(fn, upper = c(0, -Inf))
-    Condition
-      Error:
-      ! `lower` must be strictly smaller than `upper`.
-
----
-
-    Code
-      new_ernest_prior(fn, lower = 0, upper = 0)
-    Condition
-      Error:
-      ! `lower` must be strictly smaller than `upper`.
-
-# create_prior / creates a custom prior
-
-    Code
-      prior
+      pr
     Output
-      custom prior distribution <ernest_prior>
-      
-      # A tibble: 3 x 3
-        names lower upper
-        <chr> <dbl> <dbl>
-      1 ...1    -10    10
-      2 ...2    -10    10
-      3 ...3    -10    10
+      custom prior distribution with 3 dimensions (A, B, and C)
+
+# ernest_prior / produces prior from `vectorized_fn`
+
+    Code
+      mat_pr
+    Output
+      custom prior distribution with 3 dimensions (A, B, and C)
 

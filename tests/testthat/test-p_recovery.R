@@ -4,16 +4,11 @@ test_that("Parameter recovery for a normal distribution", {
   prior <- create_normal_prior(mean = c(0, 0))
   log_l <- create_likelihood(
     \(x) {
-      LaplacesDemon::dmvn(
-        x,
-        mu = c(0, 0),
-        Sigma = diag(2),
-        log = TRUE
-      )
+      mvtnorm::dmvnorm(x, mean = c(0, 0), sigma = diag(2), log = TRUE)
     }
   )
 
-  sampler <- ernest_sampler(log_l, prior, n_points = 100, seed = 42)
+  sampler <- ernest_sampler(log_l, prior, nlive = 100, seed = 42)
   run <- generate(sampler, max_iterations = 1000)
   draws <- as_draws(run) |> posterior::resample_draws()
   smry <- posterior::summarise_draws(

@@ -1,105 +1,19 @@
-#' Configure logging for ernest runs
+#' Preserve seed for a run
 #'
-#' Set up log for ernest. #' "INFO"-level logging saves the results of each call
-#' to [update_lrps]; "DEBUG"-level logging additionally saves the results of
-#' each call to [propose].
+#' @param object An `ernest_sampler` or `ernest_run` object with a `seed`
+#' attribute.
+#' @param .local_envir Forwarded to withr.
 #'
-#' @param dir Character or `FALSE.` Directory in which to create the log file.
-#' This directory must already exist. If `FALSE`, logging is disabled.
-#' @param threshold Character. Minimum message level to record, one of
-#' "INFO", "DEBUG", "WARN", "ERROR", or "FATAL".
-#' @param layout Character. Log output format, either "json" or "logfmt".
-#'
-#' @return
-#' A list with S3 class "ernest_logging" if `dir` is a valid directory, or
-#' NULL if `dir` is FALSE. The list contains arguments used to create an
-#' instance of [log4r::logger] when [generate] is called. The return value is
-#' also stored in the R option 'ernest_logging'.
-#'
-#' @srrstats {G4.0} Users can choose the location of logging files.
-#'
-#' @keywords internal
-#' @export
-ernest_logging <- function(
-  dir = tempdir(),
-  threshold = "INFO",
-  layout = c("json", "logfmt")
-) {
-  # Capture the unevaluated expression for comparison
-  dir_expr <- enquo(dir)
-
-  if (isFALSE(dir)) {
-    options("ernest_logging" = NULL)
-    return(NULL)
-  }
-  check_installed("log4r", reason = "writing log files")
-
-  dir <- if (identical(dir_expr, quote(tempdir()))) {
-    tempdir()
-  } else if (!dir.exists(dir)) {
-    cli::cli_warn("Can't find the filepath `dir`. Using {.fn tempdir} instead.")
-    tempdir()
-  } else {
-    normalizePath(dir)
-  }
-  threshold <- arg_match(
-    threshold,
-    values = c("DEBUG", "INFO", "WARN", "ERROR", "FATAL")
-  )
-  layout <- arg_match(layout)
-  file_ext <- switch(layout, "json" = ".json", "logfmt" = ".file")
-  layout <- switch(
-    layout,
-    "json" = log4r::json_log_layout(),
-    "logfmt" = log4r::logfmt_log_layout()
-  )
-
-  config <- structure(
-    list(threshold = threshold, dir = dir, fileext = file_ext, layout = layout),
-    class = "ernest_logging"
-  )
-  options("ernest_logging" = config)
-  config
-}
-
-#' Simple format for ernest_logging
+#' @return invisibly `NA`, if the seed is preserved, otherwise the seed bound to
+#' `object`.
 #' @noRd
-#' @export
-format.ernest_logging <- function(x, ...) {
-  cli::cli_format_method({
-    cli::cli_text("logfile configuration {.cls ernest_logging}")
-    cli::cli_text("Directory: {.path {x$dir}}")
-    cli::cli_text("Threshold: {x$threshold}")
-  })
-}
-
-#' Simple print for ernest_logging
-#' @noRd
-#' @export
-print.ernest_logging <- function(x, ...) {
-  print(format(x, ...), sep = "\n")
-}
-
-#' Configure logging when `generate` is called
-#' @noRd
-start_logging <- function() {
-  if (is.null(config <- getOption("ernest_logging"))) {
-    return(NULL)
+preserve_seed <- function(object, .local_envir = parent.frame()) {
+  if (is.na(attr(object, "seed"))) {
+    withr::local_preserve_seed(.local_envir = .local_envir)
+    return(invisible(NA))
   }
-  check_class(config, "ernest_logging")
-  file <- file.path(
-    config$dir,
-    paste0(
-      "ernest_generate_",
-      format(Sys.time(), "%Y%m%d_%H%M%S"),
-      config$fileext
-    )
-  )
-  alert_info("Logging run to {.file {file}}.")
-  log4r::logger(
-    threshold = config$threshold,
-    appenders = log4r::file_appender(file, layout = config$layout)
-  )
+  withr::local_seed(attr(object, "seed"), .local_envir = .local_envir)
+  invisible(attr(object, "seed"))
 }
 
 #' Check the class of an object
@@ -152,6 +66,7 @@ check_class <- function(
 #' @param ncol Expected number of columns.
 #' @param lower Numeric. Exclusive lower bounds, recycled to length `ncol`.
 #' @param upper Numeric. Exclusive upper bounds, recycled to length `ncol`.
+#' @param finite Logical. If TRUE, checks that all values are finite.
 #' @param ... Additional arguments passed to error handlers.
 #' @param arg Argument name for error messages.
 #' @param call Call environment for error messages.
@@ -165,59 +80,58 @@ check_matrix <- function(
   ncol,
   lower = -Inf,
   upper = Inf,
+  finite = TRUE,
   ...,
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  check_number_whole(nrow, min = 1, call = call)
-  check_number_whole(ncol, min = 1, call = call)
-  bounds <- vctrs::vec_recycle_common(
-    "lower" = lower,
-    "upper" = upper,
-    .size = ncol
-  )
+  if (!is.matrix(x)) {
+    stop_input_type(x, "a matrix", arg = arg, call = call)
+  }
 
-  if (!is.double(x) || !is.matrix(x)) {
+  if (typeof(x) != "double") {
     stop_input_type(
       x,
       "a double matrix",
-      ...,
-      allow_na = FALSE,
-      allow_null = FALSE,
-      arg = arg,
-      call = call
-    )
-  }
-  if (!isTRUE(all.equal(dim(x), c(nrow, ncol)))) {
-    cli::cli_abort(
-      c(
-        "`{arg}` must have dimensions {nrow} x {ncol}.",
-        "x" = "`{arg}` instead has dimensions {nrow(x)} x {ncol(x)}"
-      ),
       arg = arg,
       call = call
     )
   }
 
-  for (i in seq(nrow(x))) {
-    if (any(is.na(x[i, ]) | is.nan(x[i, ]))) {
-      cli::cli_abort(
-        "`{arg}` must not contain missing or `NaN` values.",
-        call = call
-      )
-    }
-    if (any(x[i, ] <= bounds$lower)) {
-      cli::cli_abort(
-        "`{arg}` must respect the lower boundary ({lower}).",
-        call = call
-      )
-    }
-    if (any(x[i, ] >= bounds$upper)) {
-      cli::cli_abort(
-        "`{arg}` must respect the upper boundary ({upper}).",
-        call = call
-      )
-    }
+  if (nrow(x) != nrow) {
+    cli::cli_abort("`{arg}` must have {nrow} rows, not {nrow(x)}.", call = call)
+  }
+  if (ncol(x) != ncol) {
+    cli::cli_abort(
+      "`{arg}` must have {ncol} columns, not {ncol(x)}.",
+      call = call
+    )
+  }
+
+  if (finite && any(!is.finite(x))) {
+    cli::cli_abort(
+      "`{arg}` must contain no nonfinite values.",
+      call = call
+    )
+  }
+
+  if (identical(lower, -Inf) && identical(upper, Inf)) {
+    return(invisible(NULL))
+  }
+
+  bounds <- vctrs::vec_recycle_common(
+    lower = lower,
+    upper = upper,
+    .size = ncol
+  )
+  mins <- matrixStats::colMins(x)
+  maxes <- matrixStats::colMaxs(x)
+
+  if (any(bounds$lower > mins)) {
+    cli::cli_abort("`{arg}` must respect the lower bounds.")
+  }
+  if (any(bounds$upper < maxes)) {
+    cli::cli_abort("`{arg}` must respect the upper bounds.")
   }
   invisible(NULL)
 }
@@ -274,107 +188,6 @@ list_c <- function(x) {
   inject(c(!!!x))
 }
 
-#' Calculate the highest density credible interval (HDI) of an rvar
-#'
-#' Computes the HDI for each element of an rvar object containing posterior
-#' draws.
-#'
-#' @param object An rvar object containing draws.
-#' @param width Numeric. The width of the HDI to compute (default is 0.95).
-#' @param ... Additional arguments (currently unused).
-#'
-#' @return A data frame with the median, lower, and upper bounds of the HDI
-#' for each element.
-#' @noRd
-hdci <- function(object, width = 0.95, ...) {
-  if (!inherits(object, "rvar")) {
-    cli::cli_abort("`object` must be of class 'rvar'.")
-  }
-  check_number_decimal(width, min = 0, max = 1)
-
-  lower <- (1 - width) / 2
-  upper <- (1 + width) / 2
-
-  q <- stats::quantile(object, probs = c(lower, 0.5, upper)) |>
-    t()
-  colnames(q) <- c(".lower", ".var", ".upper")
-  data.frame(q, ".width" = width)
-}
-
-#' Estimate the density of posterior weights across log-volumes
-#'
-#' Computes the density of posterior weights for a range of log-volume values.
-#'
-#' @param log_volume An rvar of log-volume draws.
-#' @param weight An rvar of normalized posterior weights.
-#'
-#' @return A data frame with 128 log-volume values and an rvar of corresponding
-#' densities.
-#' @noRd
-get_density <- function(log_volume, weight) {
-  min_vol <- min(mean(log_volume))
-  log_vol_draws <- posterior::draws_of(log_volume)
-  w_draws <- posterior::draws_of(weight)
-
-  log_vol_spaced <- stats::density(
-    log_vol_draws[1, ],
-    weight = w_draws[1, ],
-    warnWbw = FALSE,
-    from = min_vol,
-    to = 0,
-    n = 128L
-  )$x
-
-  density <- vapply(
-    seq_len(nrow(w_draws)),
-    \(i) {
-      stats::density(
-        log_vol_draws[i, ],
-        weight = w_draws[i, ],
-        warnWbw = FALSE,
-        from = min_vol,
-        to = 0,
-        n = 128L
-      )$y
-    },
-    double(128L)
-  )
-  density_rvar <- posterior::rvar(t(density))
-  data.frame("log_volume" = log_vol_spaced, "density" = density_rvar)
-}
-
-#' Interpolate evidence across log-volume values
-#'
-#' Interpolates evidence estimates across a specified range of log-volume
-#' values.
-#'
-#' @param log_volume An rvar of log-volume draws.
-#' @param log_evidence An rvar of log-evidence draws.
-#' @param log_volume_out Numeric vector of log-volume values at which to
-#' interpolate.
-#'
-#' @return An rvar with interpolated evidence values at each specified
-#' log-volume.
-#' @noRd
-interpolate_evidence <- function(log_volume, log_evidence, log_volume_out) {
-  log_vol_draws <- posterior::draws_of(log_volume)
-  log_evid_draws <- posterior::draws_of(exp(log_evidence))
-
-  interp <- vapply(
-    seq_len(nrow(log_evid_draws)),
-    \(i) {
-      stats::approx(
-        x = log_vol_draws[i, ],
-        y = log_evid_draws[i, ],
-        xout = log_volume_out,
-        rule = 2L
-      )$y
-    },
-    double(128L)
-  )
-  posterior::rvar(t(interp))
-}
-
 # Helpers for computing and reporting results -----
 
 #' Compute the nested sampling integral and statistics
@@ -418,54 +231,21 @@ compute_integral <- function(log_lik, log_volume) {
   )
 }
 
-# CLI Tools ----------
-
-#' Alert the user to success if verbose is not quiet.
+#' Vectorize a function
 #'
-#' @param text Text of the alert.
-#' @param .envir Environment to evaluate the glue expressions in.
-#' @returns NULL, invisibly.
-#' @noRd
-alert_success <- function(text, .envir = caller_env()) {
-  if (getOption("rlib_message_verbosity", "default") != "quiet") {
-    cli::cli_alert_success(text, .envir = .envir)
-  }
-  invisible(NULL)
-}
-
-#' Alert the user to info if verbose is not quiet.
+#' @param fn A function that accepts a single parameter vector.
 #'
-#' @param text Text of the alert.
-#' @param .envir Environment to evaluate the glue expressions in.
-#' @returns NULL, invisibly.
+#' @return A vectorized version of `fn` that accepts a matrix of parameter
+#' vectors.
 #' @noRd
-alert_info <- function(text, .envir = caller_env()) {
-  if (getOption("rlib_message_verbosity", "default") != "quiet") {
-    cli::cli_alert_info(text, .envir = .envir)
+vectorize_function <- function(fn) {
+  force(fn)
+  function(X) {
+    if (is.vector(X)) {
+      fn(X)
+    } else {
+      Y <- apply(X = X, 1, fn)
+      t(Y)
+    }
   }
-  invisible(NULL)
-}
-
-#' Make double vectors pretty
-#'
-#' @param x An object.
-#' @returns `x`, unless it is a numeric vector, then `x` is returned as a
-#' formatted character string.
-#' @noRd
-pretty <- function(x) {
-  if (!is.numeric(x)) {
-    return(x)
-  }
-  max_len <- utils::strOptions()$vec.len
-  digits <- max(3L, getOption("digits") - 3L)
-  strrep <- if (length(x) <= max_len) {
-    pretty_signif(x, digits = digits)
-  } else {
-    c(
-      pretty_signif(x[1:4], digits = digits),
-      "...",
-      pretty_signif(x[length(x)])
-    )
-  }
-  paste0(strrep, collapse = ", ")
 }

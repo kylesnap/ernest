@@ -3,73 +3,93 @@
 \name{generate.ernest_sampler}
 \alias{generate.ernest_sampler}
 \alias{ernest_run}
+\alias{generate.ernest_run}
 \title{Run nested sampling to estimate Bayesian evidence}
 \usage{
 \method{generate}{ernest_sampler}(
   x,
-  ...,
   max_iterations = NULL,
-  max_calls = NULL,
+  max_evaluations = NULL,
   min_logz = 0.05,
-  show_progress = NULL
+  show_progress = NULL,
+  ...
+)
+
+\method{generate}{ernest_run}(
+  x,
+  max_iterations = NULL,
+  max_evaluations = NULL,
+  min_logz = 0.05,
+  show_progress = NULL,
+  ...
 )
 }
 \arguments{
-\item{x}{An object of class \code{ernest_sampler} or \code{ernest_run}.}
+\item{x}{[\link{ernest_sampler}] or [\link{ernest_run}]\cr A nested sampling
+specification.}
+
+\item{max_iterations}{\verb{[integer(1)]}\cr The maximum number of iterations to
+perform. Optional; if \code{NULL} this criterion is ignored.}
+
+\item{max_evaluations}{\verb{[integer(1)]}\cr The maximum number of
+likelihood function evaluations to perform. Optional; if \code{NULL} this
+criterion is ignored.}
+
+\item{min_logz}{\verb{[double(1)]}\cr The minimum log-ratio between the
+current estimated evidence and the remaining evidence. Must be non-negative;
+if set to zero, this criterion is ignored.}
+
+\item{show_progress}{\verb{[logical(1)]}\cr If \code{TRUE}, displays a progress spinner
+and iteration counter during sampling. Optional; if \code{NULL} the global option
+\code{rlib_message_verbosity} is used to determine whether to show progress.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
   \describe{
-    \item{\code{seed}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{seed} is no longer supported;
-set RNG with the \code{seed} argument of \code{\link[=ernest_sampler]{ernest_sampler()}}.}
-    \item{\code{clear}}{Logical. If \code{TRUE}, clears results from previous runs before
-compiling. If \code{FALSE}, retains previous results and validates live points.}
+    \item{\code{clear}}{\verb{[logical(1)]}\cr If \code{TRUE}, clears results from previous runs
+before compiling. If \code{FALSE}, retains previous results and validates the live
+set.}
   }}
-
-\item{max_iterations}{Optional positive integer. The maximum number of
-iterations to perform. If \code{NULL}, this criterion is ignored.}
-
-\item{max_calls}{Optional positive integer. The maximum number of calls to
-the likelihood function. If \code{Inf}, this criterion is ignored.}
-
-\item{min_logz}{Non-negative double. The minimum log-ratio between the
-current estimated evidence and the remaining evidence. If zero, this
-criterion is ignored.}
-
-\item{show_progress}{Logical. If \code{TRUE}, displays a progress spinner and
-iteration counter during sampling. If \code{NULL}, then the parameter is inferred
-based on the value of the \code{rlib_message_verbosity} option.}
 }
 \value{
-An object of class \code{ernest_run}, inheriting from \code{ernest_sampler},
-with additional components:
+\verb{[ernest_run]}
+
+A named list containing the results of the nested sampling run, which
+contains \code{nsample = nlive + niter} samples from the prior distribution.
+This list inherits from \link{ernest_sampler}, and additionally contains:
 \itemize{
-\item \code{n_iter}: Integer. Number of iterations.
-\item \code{n_calls}: Integer. Total number of likelihood function calls.
-\item \code{log_lik}: \code{double(n_iter + n_points)}. Log-likelihoods for each sample.
-\item \code{log_volume}: \code{double(n_iter + n_points)}. Estimated log-prior volumes at
-each iteration.
-\item \code{log_weight}: \code{double(n_iter + n_points)}. Unnormalised log-weights for
-each sample.
-\item \code{log_evidence}: \code{double(n_iter + n_points)}. Cumulative log-evidence
-estimates at each iteration.
-\item \code{log_evidence_var}: \code{double(n_iter + n_points)}. Variance of the
-log-evidence estimate at each iteration.
-\item \code{information}: \code{double(n_iter + n_points)}. KL divergence between the prior
-and posterior, estimated at each iteration.
-\item \code{samples}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
-values for each sample.
-\item \code{samples_unit}: \code{matrix(nrow = n_iter + n_points, ncol = n_dim)}. Parameter
-values for each sample in unit hypercube representation.
-\item \code{id}: \code{integer(n_iter + n_points)}. Unique integer identifiers for each
-sample from the live set (ranging from 1 to \code{n_points}).
-\item \code{points}: \code{integer(n_iter + n_points)}. Number of live points present at
-each iteration.
-\item \code{calls}: \code{integer(n_iter + n_points)}. Number of calls used to generate a
-new live point at each iteration.
-\item \code{birth}: \code{integer(n_iter + n_points)}. \code{id} of the live point that was used
-to create the given point. \code{0} if the point was created by \code{compile} at the
-beginning of a run.
+\item \code{niter}: \verb{[integer(1)]} Number of iterations performed.
+\item \code{neval}: \verb{[integer(1)]} Total number of likelihood function evaluations.
+Note that it is possible for a single call to a likelihood function to
+evaluate the likelihoods of multiple parameter samples.
+\item \code{log_evidence}: \verb{[double(1)]} The log-evidence estimate.
+\item \code{log_evidence_err}: \verb{[double(1)]} The standard error of the log-evidence
+estimate, estimated from \code{information}.
+\item \code{information}: \verb{[double(1)]} The estimated Kullback-Leibler divergence.
+\item \code{samples}: \verb{[list]} The posterior samples ordered by their log-likelihood
+values:
+\itemize{
+\item \code{original}: \verb{[matrix(double(), nsample, ndim)]} The samples
+transformed to the parameter space.
+\item \code{unit_cube}: \verb{[matrix(double(), nsample, ndim)]} The samples in
+the unit hypercube.
+}
+\item \code{weights}: \verb{[list]} Additional information on the points generated by the
+run:
+\itemize{
+\item \code{id}: \verb{[integer(nsample)]} The index of each point in the live set
+for each sample.
+\item \code{evaluations}: \verb{[integer(nsample)]} The number of likelihood
+evaluations needed to replace each point.
+\item \code{log_weight}: \verb{[double(nsample)]} The log-weight of each sample.
+\item \code{imp_weight}: \verb{[double(nsample)]} The normalized importance weight
+for each sample. This is given by normalizing \code{log_weight} with
+\code{log_evidence}, then applying \code{exp} to the result so the weights sum to
+one.
+\item \code{log_lik}: \verb{[double(nsample)]} The log-likelihood for each sample.
+\item \code{birth_lik}: \verb{[double(nsample)]} The log-likelihood of the point used
+to create each sample.
+}
 }
 }
 \description{
@@ -78,9 +98,10 @@ point with a new sample from a likelihood-restricted prior until a stopping
 criterion is met.
 }
 \details{
-At least one of \code{max_iterations}, \code{max_calls}, or \code{min_logz} must
-specify a valid stopping criterion. Setting \code{min_logz} to zero while leaving
-\code{max_iterations} and \code{max_calls} at their defaults will result in an error.
+At least one of \code{max_iterations}, \code{max_evaluations}, or \code{min_logz}
+must specify a valid stopping criterion. Setting \code{min_logz} to zero while
+leaving \code{max_iterations} and \code{max_evaluations} at their defaults will
+result in an error.
 
 If \code{x} is an \code{ernest_run} object, the stopping criteria are checked against
 the current state of the run. An error is thrown if the stopping criteria
@@ -94,15 +115,15 @@ evidence.
 \examples{
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 ll_fn <- function(x) -sum(x^2)
-sampler <- ernest_sampler(ll_fn, prior, n_point = 100)
+sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 sampler
 
 # Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
 
-# The final number of calls may exceed `max_calls`, as `generate`
+# The final number of calls may exceed `max_evaluations`, as `generate`
 # only checks the number of calls when removing a live point.
-generate(sampler, max_calls = 2600)
+generate(sampler, max_evaluations = 2600)
 
 # Use the default stopping criteria
 \dontrun{ generate(sampler) }

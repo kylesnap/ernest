@@ -1,16 +1,16 @@
-#' Generate samples with slice sampling
+#' Generate new points with slice sampling
 #'
-#' @description
-#' `r lifecycle::badge("experimental")`
-#' Create new live points by evolving a current live point through
-#' slice sampling within a bounding hyperrectangle, shrinking the rectangle
-#' when proposals are rejected.
+#' Create new samples for the live set by evolving a current point in the set
+#' through slice sampling within a bounding hyperrectangle, shrinking the
+#' rectangle when proposals are rejected.
 #'
-#' @param enlarge Optional double, greater than or equal to 1. Factor by which
-#' to inflate the hyperrectangle's volume before sampling (see Details).
+#' @param enlarge `[double(1)]`\cr Factor by which to inflate the
+#' hyperrectangle's volume before sampling (see Details). Optional, and must be
+#' greater or equal to 1 if provided; if left `NA`, sampling is initially
+#' bounded by the unit hypercube at each iteration.
 #'
-#' @returns An object of class `c("slice_rectangle", "ernest_lrps")` that can be
-#' used with [ernest_sampler()] to specify the sampling behaviour.
+#' @returns `[slice_rectangle]`, a named list that inherits from
+#' [[ernest_lrps]].
 #'
 #' @details
 #' The slice LRPS generates proposals by uniformly sampling within a bounding
@@ -24,7 +24,7 @@
 #' shrunk to the point where no further clamping operations can be performed.
 #'
 #' By default, the hyperrectangle spans the extreme values of the current
-#' set of live points in each dimension. This may risk excluding valid regions
+#' live set in each dimension. This may risk excluding valid regions
 #' of the parameter space, particularly where the posterior is multimodal or
 #' highly non-Gaussian. To mitigate this, set `enlarge > 1`, which inflates the
 #' hyperrectagle's volume by the specified factor before sampling. Setting
@@ -52,21 +52,15 @@ slice_rectangle <- function(enlarge = 1) {
 #' @noRd
 #' @export
 format.slice_rectangle <- function(x, ...) {
-  center <- "Undefined"
-  log_vol <- -Inf
-  enlarge <- if (is.na(x$enlarge)) "Disabled" else x$enlarge
-  if (all(env_has(x$cache, c("lower", "upper")))) {
-    c(center, log_vol) %<-%
-      list(
-        (x$cache$upper + x$cache$lower) / 2,
-        sum(log(x$cache$rect$upper - x$cache$rect$lower))
-      )
+  enlarge_str <- if (is.na(x$enlarge)) {
+    NULL
+  } else {
+    cli::format_inline(
+      "(enlarged by {x$enlarge})"
+    )
   }
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "Centre: {pretty(center)}",
-    "Enlargement: {enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Slice Sampling LRPS {enlarge_str}"
   )
 }
 
@@ -75,8 +69,8 @@ format.slice_rectangle <- function(x, ...) {
 #' Internal constructor for the slice sampling LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum number of proposal attempts.
+#' @param n_dim  Number of dimensions.
+#' @param max_loop  Maximum number of proposal attempts.
 #' @param enlarge Inflate the hyperrectangle's volume before sampling.
 #' @param cache Optional cache environment.
 #'
@@ -128,7 +122,7 @@ propose.slice_rectangle <- function(
       upper = env_get(x$cache, "upper", rep(1.0, x$n_dim)),
       max_loop = x$max_loop
     )
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }

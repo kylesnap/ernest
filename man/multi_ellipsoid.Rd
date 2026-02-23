@@ -2,21 +2,21 @@
 % Please edit documentation in R/multi_ellipsoid.R
 \name{multi_ellipsoid}
 \alias{multi_ellipsoid}
-\title{Generate samples from multiple spanning ellipsoids}
+\title{Generate new points from multiple spanning ellipsoids}
 \usage{
 multi_ellipsoid(enlarge = 1.25)
 }
 \arguments{
-\item{enlarge}{Double, greater than or equal to 1. Factor by which to inflate
-the bounding ellipsoid's volume before sampling (see Details).}
+\item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the bounding
+ellipsoid's volume before sampling (see Details). Must be at least 1.0.}
 }
 \value{
-A list with class \code{c("multi_ellipsoid", "ernest_lrps")}. Use with
-\code{\link[=ernest_sampler]{ernest_sampler()}} to specify nested sampling behaviour.
+\verb{[multi_ellipsoid]}, a named list that inherits from
+[\link{ernest_lrps}].
 }
 \description{
 Partitions the prior space into a set of ellipsoids whose union bounds
-the set of live points. Samples are created by randomly
+the live set. New points are created by randomly
 selecting an ellipsoid (weighted by their respective volumes), then using it
 to generate a random point as in \link{unif_ellipsoid}. Effective for multimodal
 posteriors where a single ellipsoid would be inefficient.
@@ -28,8 +28,8 @@ better capture disconnected or elongated regions.
 
 Ellipsoids are generated using the following procedure:
 \enumerate{
-\item A single ellipsoid is fit to the set of live points, with volume \eqn{V}.
-\item The live points are clustered into two groups using k-means clustering.
+\item A single ellipsoid is fit to the live set, with volume \eqn{V}.
+\item The live set is clustered into two groups using k-means clustering.
 \item Ellipsoids are fit to each cluster.
 \item The split ellipsoids are accepted if both ellipsoids are non-degenerate,
 and if the combined volume of the split ellipsoids is significantly

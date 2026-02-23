@@ -1,8 +1,8 @@
-#' Generate samples from multiple spanning ellipsoids
+#' Generate new points from multiple spanning ellipsoids
 #'
 #' @description
 #' Partitions the prior space into a set of ellipsoids whose union bounds
-#' the set of live points. Samples are created by randomly
+#' the live set. New points are created by randomly
 #' selecting an ellipsoid (weighted by their respective volumes), then using it
 #' to generate a random point as in [unif_ellipsoid]. Effective for multimodal
 #' posteriors where a single ellipsoid would be inefficient.
@@ -15,8 +15,8 @@
 #' better capture disconnected or elongated regions.
 #'
 #' Ellipsoids are generated using the following procedure:
-#' 1. A single ellipsoid is fit to the set of live points, with volume \eqn{V}.
-#' 2. The live points are clustered into two groups using k-means clustering.
+#' 1. A single ellipsoid is fit to the live set, with volume \eqn{V}.
+#' 2. The live set is clustered into two groups using k-means clustering.
 #' 3. Ellipsoids are fit to each cluster.
 #' 4. The split ellipsoids are accepted if both ellipsoids are non-degenerate,
 #' and if the combined volume of the split ellipsoids is significantly
@@ -26,8 +26,8 @@
 #' splits are accepted, updating \eqn{V} to the volume of the currently split
 #' ellipsoid.
 #'
-#' @returns A list with class `c("multi_ellipsoid", "ernest_lrps")`. Use with
-#' [ernest_sampler()] to specify nested sampling behaviour.
+#' @returns `[multi_ellipsoid]`, a named list that inherits from
+#' [[ernest_lrps]].
 #'
 #' @references
 #' * Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
@@ -38,8 +38,6 @@
 #'   Estimating Bayesian Posteriors and Evidences. Monthly Notices of the
 #'   Royal Astronomical Society, 493, 3132–3158.
 #'   \doi{10.1093/mnras/staa278}
-#'
-#'
 #'
 #' @family ernest_lrps
 #' @examples
@@ -68,31 +66,22 @@ multi_ellipsoid <- function(
 #' @export
 #' @noRd
 format.multi_ellipsoid <- function(x, ...) {
-  n_ell <- length(env_get(x$cache, "prob", double()))
-  log_vol <- env_cache(x$cache, "total_log_volume", -Inf)
-  glue::glue(
-    "{format.ernest_lrps(x)}",
-    "No. Ellipsoids: {n_ell}",
-    "Total Log Volume: {pretty(log_vol)}",
-    "Enlargement: {x$enlarge}",
-    .sep = "\n"
+  cli::format_inline(
+    "Uniform sampling within bounding ellipsoids (enlarged by {x$enlarge})"
   )
 }
 
-#' Create a new multi_ellipsoid LRPS
+#' Internal constructor for multi-ellipsoid LRPS objects
 #'
-#' Internal constructor for multi ellipsoid LRPS objects.
+#' @param unit_log_fn Computes log-likelihood in unit space.
+#' @param n_dim Number of dimensions of the parameter space.
+#' @param max_loop Maximum number of proposal attempts (default: 1e6).
+#' @param cache Stores cached ellipsoid decompositions and related state.
+#' @param enlarge Volume enlargement factor for each ellipsoid (must be ≥ 1).
 #'
-#' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim Integer. Number of dimensions.
-#' @param max_loop Integer. Maximum proposal attempts.
-#' @param cache Optional cache environment.
-#' @param enlarge Double. Volume enlargement factor.
-#' @param min_reduction Double. Minimum volume reduction for splitting.
-#' @param allow_contact Logical. Whether ellipsoids can overlap.
+#' @returns An object of class `multi_ellipsoid`.
 #'
-#' @return An LRPS specification, a list with class
-#' `c("multi_ellipsoid", "ernest_lrps")`.
+#' @keywords internal
 #' @noRd
 new_multi_ellipsoid <- function(
   unit_log_fn = NULL,
@@ -154,7 +143,7 @@ propose.multi_ellipsoid <- function(
       max_loop = x$max_loop
     )
     res <- c(res, ellipsoid_idx = ell_idx)
-    env_poke(x$cache, "n_call", x$cache$n_call + res$n_call)
+    env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
 }

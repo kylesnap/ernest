@@ -2,25 +2,24 @@
 % Please edit documentation in R/rwmh_cube.R
 \name{rwmh_cube}
 \alias{rwmh_cube}
-\title{Generate samples with a random walk}
+\title{Generate new points with a random walk}
 \usage{
 rwmh_cube(steps = 25, target_acceptance = 0.5)
 }
 \arguments{
-\item{steps}{Positive integer. Number of steps to take when generating a
-proposal point.}
+\item{steps}{\verb{[integer(1)]}\cr Number of steps to take when generating a
+proposal point. Must be greater or equal to 2.}
 
-\item{target_acceptance}{Number between \code{1 / steps} and 1.0. Target
-acceptance rate for proposed points.}
+\item{target_acceptance}{\verb{[double(1)]}\cr Target acceptance rate for proposed
+points. Must be a number between \code{1 / steps} and 1.}
 }
 \value{
-An object of class \code{c("rwmh_cube", "ernest_lrps")} that can be
-used with \code{\link[=ernest_sampler]{ernest_sampler()}} to specify the sampling behaviour.
+\verb{[rwmh_cube]}, a named list that inherits from [\link{ernest_lrps}].
 }
 \description{
-Create new live points by evolving a current live point through
-a Metropolis-Hastings random walk, rejecting steps that fail to meet the
-likelihood criterion.
+Create new samples for the live set by evolving a current point in the set
+through a Metropolis-Hastings random walk, rejecting steps that fail to meet
+the likelihood criterion.
 }
 \details{
 The random walk LRPS generates proposals by performing a fixed number of
@@ -49,7 +48,7 @@ $d$-dimensional ball centered on the origin with radius \eqn{\epsilon}.
 \section{Control Parameters}{
 
 \itemize{
-\item \code{steps}: Start with 25. Increase to generate samples that more closely
+\item \code{steps}: Start with 25. Increase to generate points that more closely
 follow the posterior distribution; decrease for computational efficiency.
 \item \code{target_acceptance}: Start with 0.4-0.6. Lower values encourage more global
 exploration of the posterior, higher values encourage explorations close

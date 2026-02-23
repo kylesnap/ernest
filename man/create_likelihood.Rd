@@ -5,14 +5,26 @@
 \alias{ernest_likelihood}
 \title{Prepare a likelihood function for nested sampling}
 \usage{
-create_likelihood(fn, on_nonfinite = c("warn", "quiet", "abort"))
+create_likelihood(
+  scalar_fn,
+  vectorized_fn,
+  on_nonfinite = c("warn", "quiet", "abort")
+)
 }
 \arguments{
-\item{fn}{A function that takes a vector of parameters and returns a
-scalar log-likelihood value (either a finite double or \code{-Inf}).}
+\item{scalar_fn, vectorized_fn}{\verb{[function]}\cr The log-likelihood function.
+Provide either \code{scalar_fn} or \code{vectorized_fn}:
+\itemize{
+\item \code{scalar_fn}: Should accept a parameter as a numeric vector and return a
+single numeric value representing the log-likelihood, or \code{-Inf}.
+\item \code{vectorized_fn}: Should accept a matrix of parameter vectors (rows as
+samples, columns as elements of the parameter vector) and return a vector of
+log-likelihoods or \code{-Inf} values for each row.
+}}
 
-\item{on_nonfinite}{A case-sensitive string. Action to perform when \code{fn}
-returns a value that is non-finite and not \code{-Inf} (i.e., \code{NaN}, \code{NA}, \code{Inf}):
+\item{on_nonfinite}{\verb{[character]}\cr How the sampler should handle values
+returned by \code{fn} or \code{matrix_fn} that are not finite and not equal to \code{-Inf}.
+Must be one of:
 \itemize{
 \item \code{"warn"}: Issue a warning and return \code{-Inf}.
 \item \code{"quiet"}: Silently return \code{-Inf}.
@@ -20,49 +32,78 @@ returns a value that is non-finite and not \code{-Inf} (i.e., \code{NaN}, \code{
 }}
 }
 \value{
-A function with class \code{ernest_likelihood}. When provided a parameter vector
-this function will always return either a scalar finite double, the value
-\code{-Inf}, or an error message.
+\verb{[ernest_likelihood]}, which inherits from \code{function}.
 }
 \description{
 Creates a modified version of a log-likelihood function that always returns
 either a finite value or \code{-Inf} for each vector of parameters provided.
 }
 \details{
-Model likelihoods should be provided as a log-density function. The first
-argument of \code{fn} should be a vector of free parameters.
+Provide model likelihoods as a log-density function, which take a vector of
+free parameter values and return the corresponding log-likelihood value.
 
-If the model likelihood is conditional on some data, then use this step to
-incorporate this data into your nested sampling run. We recommended using
-an (anonymous function)\code{\link[rlang:as_function]{rlang::as_function()}} to do this (see Examples).
+Likelihoods are typically the most computationally expensive function to
+evaluate in a nested sampling run. ernest allows you to implement your
+likelihood as a function over a single parameter vector (\code{scalar_fn}) or over
+a matrix of parameters (\code{vectorized_fn}).
 
-It is expected that the log-likelihood function returns a scalar finite
-double or \code{-Inf} for each parameter vector. Non-finite values other than
-\code{-Inf}, such as \code{NaN}, \code{Inf}, or \code{NA} (i.e. missing values) are handled
-with the behavior of \code{on_nonfinite}.
+ernest expects the log-likelihood function to return a
+finite double or \code{-Inf} for each parameter vector. The behaviour when
+encountering non-finite values other than \code{-Inf} (such as \code{NaN}, \code{Inf}, or
+\code{NA}) is controlled by \code{on_nonfinite}.
+
+If your log-likelihood depends on additional data (e.g., an observation
+matrix or data frame), provide these using an
+(anonymous function)\code{\link[rlang:as_function]{rlang::as_function()}} (see Examples).
 }
 \examples{
-# A 3D Gaussian likelihood function
-n_dim <- 3
-sigma <- diag(0.95, nrow = 3)
-det_sigma <- determinant(sigma, logarithm = TRUE)$modulus
-attributes(det_sigma) <- NULL
-prec <- solve(sigma)
-log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma)
+library(mvtnorm)
 
-fn <- function(theta) {
-  drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
+# Multivariate Normal Distribution
+m <- 3
+mean <- rep(0, m)
+sigma <- diag(m)
+sigma[2, 1] <- sigma[1, 2] <- 3 / 5
+sigma[3, 1] <- sigma[1, 3] <- 1 / 3
+sigma[3, 2] <- sigma[2, 3] <- 11 / 15
+prec <- solve(sigma)
+log_det <- -sum(log(diag(chol(sigma))))
+
+# Provide a Scalar Log-Likelihood Function:
+log_lik <- function(x) {
+  log_det - 0.5 * m * log(2 * pi) - 0.5 * (t(x) \%*\% prec \%*\% x)
 }
-log_lik <- create_likelihood(fn)
 log_lik(c(0, 0, 0))
 
-# Bind data to the likelihood function an anonymous function.
-y <- 100000000 * runif(11, min = 0.1, max = 0.3)
-log_lik <- function(theta, y) {
-  if (theta[2] <= 0) {
-    return(-Inf)
-  }
-  sum(dnorm(y, mean = theta[1], sd = theta[2], log = TRUE))
+# `create_likelihood` allows scalar fns. to accept matrix inputs:
+try(log_lik(matrix(rep(0, m * 2), nrow = 2)))
+scalar_ll <- create_likelihood(scalar_fn = log_lik)
+scalar_ll(matrix(rep(0, m * 2), nrow = 2))
+
+# Provide a Vectorized Log-Likelihood Function:
+v_log_lik <- function(x) {
+  dmvnorm(x, mean = mean, sigma = sigma, log = TRUE)
 }
-create_likelihood(\(theta) log_lik(theta, y))
+v_log_lik(c(0, 0, 0))
+v_log_lik(matrix(rep(0, m * 2), nrow = 2))
+
+vector_ll <- create_likelihood(vectorized_fn = v_log_lik)
+vector_ll
+
+# Control Behaviour when Nonfinite Likelihood Values are Encountered
+# Default: Warn and replace with `-Inf`
+vector_ll(c(0, 0, NA))
+
+# Signal an error
+abort_ll <- create_likelihood(log_lik, on_nonfinite = "abort")
+try(abort_ll(c(0, 0, NA)))
+
+# Silently replace all non-finite values
+quiet_ll <- create_likelihood(vectorized_fn = v_log_lik, on_nonfinite = "quiet")
+quiet_ll(c(0, 0, NA))
+}
+\seealso{
+See the
+\href{https://bnaras.github.io/cubature/articles/cubature.html}{cubature} package
+for more examples of scalar and vectorized functions.
 }

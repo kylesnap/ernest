@@ -8,6 +8,7 @@
 #'
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
 #'   state and configuration.
+#' @param seed Integer or NA. Random seed.
 #' @param max_iterations Integer. Maximum number of iterations to perform.
 #' @param max_evaluations Integer. Maximum number of likelihood function
 #' evaluations.
@@ -46,6 +47,7 @@
 #' @noRd
 nested_sampling_impl <- function(
   x,
+  seed,
   max_iterations,
   max_evaluations,
   min_logz,
@@ -56,6 +58,7 @@ nested_sampling_impl <- function(
   cureval = 0L,
   show_progress = TRUE
 ) {
+  preserve_seed(seed)
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)

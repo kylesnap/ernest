@@ -1,19 +1,17 @@
 #' Preserve seed for a run
 #'
-#' @param object An `ernest_sampler` or `ernest_run` object with a `seed`
-#' attribute.
+#' @param seed A number, or `NA` to preserve the current seed.
 #' @param .local_envir Forwarded to withr.
 #'
-#' @return invisibly `NA`, if the seed is preserved, otherwise the seed bound to
-#' `object`.
+#' @return `seed`, invisibly.
 #' @noRd
-preserve_seed <- function(object, .local_envir = parent.frame()) {
-  if (is.na(attr(object, "seed"))) {
+preserve_seed <- function(seed, .local_envir = parent.frame()) {
+  if (is.na(seed)) {
     withr::local_preserve_seed(.local_envir = .local_envir)
     return(invisible(NA))
   }
-  withr::local_seed(attr(object, "seed"), .local_envir = .local_envir)
-  invisible(attr(object, "seed"))
+  withr::local_seed(seed, .local_envir = .local_envir)
+  invisible(seed)
 }
 
 #' Check the class of an object

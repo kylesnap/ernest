@@ -50,17 +50,6 @@ describe("summary.ernest_run returns expected structure and values", {
     expect_equal(smry$seed, attr(example_run, "seed"))
   })
 
-  it("has the correct meta-info", {
-    expect_s3_class(smry, c("summary.ernest_run"))
-    expect_true(is.list(smry))
-    expect_equal(smry$niter, example_run$niter)
-    expect_equal(smry$neval, example_run$neval)
-    expect_equal(smry$log_evidence, example_run$log_evidence)
-    expect_equal(smry$log_evidence_err, example_run$log_evidence_err)
-    expect_equal(smry$information, example_run$information)
-    expect_equal(smry$seed, attr(example_run, "seed"))
-  })
-
   it("has the expected MLE", {
     max_idx <- which.max(example_run$weights$log_lik)
     max_loglik <- example_run$weights$log_lik[max_idx]

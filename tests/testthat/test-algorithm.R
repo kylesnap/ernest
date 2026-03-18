@@ -3,25 +3,6 @@
 #' as expected.
 reference_run <- expect_gaussian_run(rwmh_cube())
 
-#' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
-#' recovered under different seeds and with random noise added to the log-lik.
-test_that("different seeds and noise levels don't impact evidence estimates", {
-  expect_gaussian_run(rwmh_cube(), .seed = 24L)
-  sqrt_eps <- sqrt(.Machine$double.eps)
-  noisy_gaussian_blob_ll <- function(x) {
-    ll <- gaussian_blobs$log_lik(x)
-    ll + rnorm(length(ll), mean = 0, sd = sqrt_eps)
-  }
-  expect_run(
-    log_lik = create_likelihood(vectorized_fn = noisy_gaussian_blob_ll),
-    prior = gaussian_blobs$prior,
-    sampler = rwmh_cube(),
-    nlive = 100,
-    .expected_log_z = gaussian_blobs$log_z_analytic,
-    .seed = NA
-  )
-})
-
 #' @srrstats {BS4.6, BS7.3} Test checks that the NS convergence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.

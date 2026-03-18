@@ -1,5 +1,5 @@
 fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
-set.seed(42)
+withr::local_seed(42)
 
 #' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
 #' error messages

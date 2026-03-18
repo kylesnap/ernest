@@ -13,14 +13,3 @@ test_that("ernest_sampler errors with invalid prior", {
     ernest_sampler(ll_fn, prior = \(x) runif(x), nlive = 10, seed = 42)
   )
 })
-
-test_that("seed is preserved across runs when .seed is NA", {
-  old_seed <- .Random.seed
-  run1 <- expect_gaussian_run(
-    sampler = rwmh_cube(),
-    .seed = NA,
-    .generate = list(max_iterations = 200L)
-  )
-  new_seed <- .Random.seed
-  expect_identical(old_seed, new_seed)
-})

@@ -100,7 +100,6 @@ generate.ernest_sampler <- function(
   show_progress = NULL,
   ...
 ) {
-  preserve_seed(x)
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
@@ -114,7 +113,8 @@ generate.ernest_sampler <- function(
   x <- compile(x, ...)
 
   results <- nested_sampling_impl(
-    x = x,
+    x,
+    seed = attr(x, "seed"),
     max_iterations = max_iterations,
     max_evaluations = max_evaluations,
     min_logz = min_logz,
@@ -136,7 +136,6 @@ generate.ernest_run <- function(
   show_progress = NULL,
   ...
 ) {
-  preserve_seed(x)
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
@@ -176,6 +175,7 @@ generate.ernest_run <- function(
 
   results <- nested_sampling_impl(
     x = x,
+    seed = attr(x, "seed"),
     max_iterations = max_iterations,
     max_evaluations = max_evaluations,
     min_logz = min_logz,

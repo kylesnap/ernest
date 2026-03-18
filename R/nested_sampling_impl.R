@@ -58,7 +58,7 @@ nested_sampling_impl <- function(
 ) {
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
-  d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
+  d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
   d_log_vol <- log((x$nlive + 1) / x$nlive)
   initial_update <- FALSE
 
@@ -84,7 +84,7 @@ nested_sampling_impl <- function(
       break
     }
     max_lik <- max(live_env$log_lik)
-    d_log_z <- logaddexp(0, max_lik + log_vol - log_z)
+    d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
     if (d_log_z < min_logz) {
       break
     }

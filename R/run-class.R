@@ -63,8 +63,10 @@ new_ernest_run_ <- function(x, parsed) {
   )
   all_samples <- bind_dead_live(parsed, live, x$nlive, parsed$niter)
 
-  log_vol <- drop(get_logvol(x$nlive, niter = parsed$niter))
-  integration <- compute_integral(all_samples$log_lik, log_vol)
+  integration <- compute_integral(
+    all_samples$log_lik,
+    get_log_vol(x$nlive, niter = parsed$niter)
+  )
 
   result_elem <- list2(
     "niter" = parsed$niter,

@@ -128,6 +128,7 @@ plot.ernest_run <- function(
 #' @export
 autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
   check_dots_empty()
+  check_number_whole(attr(object, "ndraws"), min = 1)
   multi_plot <- length(which) > 1
 
   # Generate evidence and weight matrices
@@ -159,10 +160,9 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
     autoplot_errors(df, "HDCI", "Posterior Weight", dead_log_vol)
   }
   l_p <- if ("likelihood" %in% which) {
-    log_lik <- posterior::draws_of(object$log_lik)[1, ]
     df <- tibble::tibble(
       "log_volume" = mean(object$log_volume),
-      "y" = exp(log_lik - max(log_lik))
+      "y" = exp(object$log_lik - max(object$log_lik))
     )
     autoplot_line(df, "Normalized Likelihood", dead_log_vol)
   } else {
@@ -199,9 +199,11 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' @export
 autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
   check_dots_empty()
-  log_vol <- drop(get_logvol(object$nlive, niter = object$niter))
-  integration <- compute_integral(object$weights$log_lik, log_vol)
-  dead_log_vol <- log_vol[object$niter]
+  integration <- compute_integral(
+    object$weights$log_lik,
+    get_log_vol(object$nlive, niter = object$niter)
+  )
+  dead_log_vol <- integration$log_volume[object$niter]
 
   z_p <- if ("evidence" %in% which) {
     log_evidence_sd <- sqrt(integration$log_evidence_var)

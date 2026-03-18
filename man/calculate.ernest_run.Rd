@@ -23,15 +23,20 @@ log-volumes are produced from the estimates contained in \code{x}.}
 The iterative estimates from the nested sampling run. Contains the following
 columns:
 \itemize{
-\item \code{log_lik}: [\link{rvar}] The log-likelihood of the model.
-\item \code{log_volume}: [\link{rvar}] The log-volume of the prior space.
-\item \code{log_weight}: [\link{rvar}] The log weights of the points in the live set.
-\item \code{log_evidence}: [\link{rvar}] The log-evidence of the model.
+\item \code{log_lik}: \verb{[[double()]]} The log-likelihood of the model.
+\item \code{log_volume}: \verb{[[double() or rvar]]} The log-volume of the prior space.
+\item \code{log_weight}: \verb{[[double() or rvar]]} The log weights of the points in the
+live set.
+\item \code{log_evidence}: \verb{[[double() or rvar]]} The log-evidence of the model.
 }
 
-If \code{ndraws = 0}, an additional column is included:
+If \code{ndraws = 0}, columns are retunred as doubles. Else, they are returned
+as [\code{\link[posterior:rvar]{posterior::rvar()}}] objects, with \code{ndraws} rows and the same number of
+columns as the original \code{log_volume} and \code{log_weight} matrices.
+
+If \code{ndraws = 0},  an additional column is included:
 \itemize{
-\item \code{log_evidence_err}: [\link{rvar}] The standard error of the log-evidence.
+\item \code{log_evidence_err}: \verb{[[double()]]} The standard error of the log-evidence.
 }
 }
 \description{

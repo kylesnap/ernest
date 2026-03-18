@@ -72,10 +72,7 @@ describe("plotting an ernest_estimate object", {
   })
 
   it("plots everything", {
-    vdiffr::expect_doppelganger(
-      "all ndraws = 0",
-      plot(calculate(example_run, ndraws = 0))
-    )
+    expect_error(plot(calculate(example_run, ndraws = 0)))
 
     vdiffr::expect_doppelganger(
       "all ndraws = 1",

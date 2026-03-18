@@ -143,7 +143,6 @@ generate.ernest_run <- function(
   check_bool(show_progress)
   x <- compile(x, ...)
   if (inherits_only(x, "ernest_sampler")) {
-    args <- list2(...)
     return(generate(
       x,
       max_iterations = max_iterations,
@@ -155,15 +154,15 @@ generate.ernest_run <- function(
 
   cur_iter <- x$niter
   cureval <- x$neval
-  log_vol <- drop(get_logvol(x$nlive, niter = cur_iter))
-  prev_integration <- compute_integral(x$weights$log_lik, log_vol)
+  prev_integration <- compute_integral(
+    x$weights$log_lik,
+    get_log_vol(x$nlive, niter = cur_iter)
+  )
   last_criterion <- prev_integration$log_lik[cur_iter]
   log_z <- prev_integration$log_evidence[cur_iter]
   log_vol <- prev_integration$log_vol[cur_iter]
-  d_logz <- logaddexp(
-    0,
-    max(prev_integration$log_lik[1:cur_iter]) + log_vol - log_z
-  )
+  max_lik <- max(env_get(x$run_env, "log_lik"))
+  d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
 
   c(max_iterations, max_evaluations, min_logz) %<-%
     check_stopping_criteria(

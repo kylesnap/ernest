@@ -15,13 +15,18 @@
 #'
 #' The iterative estimates from the nested sampling run. Contains the following
 #' columns:
-#' * `log_lik`: [[rvar]] The log-likelihood of the model.
-#' * `log_volume`: [[rvar]] The log-volume of the prior space.
-#' * `log_weight`: [[rvar]] The log weights of the points in the live set.
-#' * `log_evidence`: [[rvar]] The log-evidence of the model.
+#' * `log_lik`: `[[double()]]` The log-likelihood of the model.
+#' * `log_volume`: `[[double() or rvar]]` The log-volume of the prior space.
+#' * `log_weight`: `[[double() or rvar]]` The log weights of the points in the
+#' live set.
+#' * `log_evidence`: `[[double() or rvar]]` The log-evidence of the model.
 #'
-#' If `ndraws = 0`, an additional column is included:
-#' * `log_evidence_err`: [[rvar]] The standard error of the log-evidence.
+#' If `ndraws = 0`, columns are retunred as doubles. Else, they are returned
+#' as [[posterior::rvar()]] objects, with `ndraws` rows and the same number of
+#' columns as the original `log_volume` and `log_weight` matrices.
+#'
+#' If `ndraws = 0`,  an additional column is included:
+#' * `log_evidence_err`: `[[double()]]` The standard error of the log-evidence.
 #'
 #' @references Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 #' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
@@ -43,83 +48,115 @@
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, min = 0)
-  nlive <- x$nlive
-  log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
-  log_vol_rng <- range(log_vol)
-  dead_log_vol <- log_vol[x$niter]
-
-  if (ndraws == 0L) {
-    integration <- compute_integral(x$weights$log_lik, log_vol)
-    return(tibble::new_tibble(
-      list(
-        "log_lik" = posterior::as_rvar(integration$log_lik),
-        "log_volume" = posterior::as_rvar(integration$log_volume),
-        "log_weight" = posterior::as_rvar(integration$log_weight),
-        "log_evidence" = posterior::as_rvar(integration$log_evidence),
-        "log_evidence_err" = posterior::as_rvar(sqrt(
-          integration$log_evidence_var
-        ))
-      ),
-      ndraws = ndraws,
-      nlive = nlive,
-      log_vol_rng = log_vol_rng,
-      dead_log_vol = dead_log_vol,
-      class = "ernest_estimate"
-    ))
-  }
+  est_volume <- get_log_vol(x$nlive, niter = x$niter)
+  log_vol_rng <- range(est_volume)
+  dead_log_vol <- est_volume[x$niter]
 
   log_lik <- x$weights$log_lik
-  log_volume <- get_logvol(x$nlive, x$niter, ndraws = ndraws)
-  log_weight <- get_logweight(log_lik, log_volume)
-  log_evidence <- get_logevid(log_weight)
+  log_volume <- get_log_vol(x$nlive, x$niter, ndraws = ndraws)
+  log_weight <- get_log_w(log_lik, log_volume)
+
+  result <- if (ndraws == 0) {
+    list(
+      "log_lik" = log_lik,
+      "log_volume" = drop(log_volume),
+      "log_weight" = drop(log_weight$log_weight),
+      "log_evidence" = drop(log_weight$log_evidence),
+      "log_evidence_err" = {
+        information <- get_information(
+          log_lik,
+          log_volume,
+          drop(log_weight$log_evidence)
+        )
+        get_log_zvar(information, log_volume)
+      }
+    )
+  } else {
+    list(
+      "log_lik" = log_lik,
+      "log_volume" = posterior::rvar(log_volume),
+      "log_weight" = posterior::rvar(log_weight$log_weight),
+      "log_evidence" = posterior::rvar(log_weight$log_evidence)
+    )
+  }
 
   tibble::new_tibble(
-    list(
-      "log_lik" = posterior::as_rvar(log_lik),
-      "log_volume" = posterior::rvar(log_volume),
-      "log_weight" = posterior::rvar(log_weight),
-      "log_evidence" = posterior::rvar(log_evidence)
-    ),
+    tibble::as_tibble(result),
     ndraws = ndraws,
-    nlive = nlive,
     log_vol_rng = log_vol_rng,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
   )
 }
 
+#' @importFrom tibble tbl_sum
 #' @export
 #' @noRd
-print.ernest_estimate <- function(x, ...) {
-  cli::cli_text("Nested sampling uncertainty estimates:")
-  log_z <- round(x$log_evidence[length(x$log_evidence)], 4)
-  log_vol <- round(x$log_volume[length(x$log_volume)], 4)
-  cli::cli_bullets(c(
-    "# of Simulated Draws: {attr(x, 'ndraws')}",
-    "Log-volume: {log_vol}",
-    "Log-evidence: {log_z}"
-  ))
+tbl_sum.ernest_estimate <- function(x, ...) {
+  desc <- if (attr(x, "ndraws") == 0) {
+    "Expected values"
+  } else {
+    sprintf("Simulated (`ndraws` = %d)", attr(x, "ndraws"))
+  }
+  c(
+    "<ernest_estimate>" = sprintf("%d niter.", nrow(x)),
+    "Log-volumes" = desc
+  )
+}
+
+#' Compute the nested sampling integral and statistics
+#'
+#' Calculates the nested sampling integral and related statistics from
+#' log-likelihoods and log-volumes.
+#'
+#' @param log_lik Numeric vector of log-likelihoods in descending order.
+#' @param log_volume Numeric vector of log-volumes in ascending order.
+#'
+#' @return A list containing log-likelihoods, log-volumes, log-weights,
+#' log-evidence, log-evidence variance, and information.
+#' @noRd
+compute_integral <- function(log_lik, log_volume) {
+  if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
+    return(list(
+      log_lik = double(0),
+      log_volume = double(0),
+      log_weight = double(0),
+      log_evidence = double(0),
+      log_evidence_var = double(0),
+      information = double(0)
+    ))
+  }
+  log_weight <- get_log_w(log_lik, log_volume)
+  information <- get_information(log_lik, log_volume, log_weight$log_evidence)
+  log_evidence_var <- get_log_zvar(information, log_volume)
+
+  vctrs::vec_cast_common(
+    log_lik = log_lik,
+    log_volume = log_volume,
+    log_weight = drop(log_weight$log_weight),
+    log_evidence = drop(log_weight$log_evidence),
+    log_evidence_var = log_evidence_var,
+    information = information,
+    .to = double()
+  )
 }
 
 # HELPERS FOR CALCULATING EVIDENCE ------
 
 #' Simulate log-volumes for nested sampling
 #'
-#' Simulates log-volumes for points in a nested sampling run.
-#'
 #' @param nlive The number of points in the prior space.
 #' @param niter The number of iterations in the nested sampling run.
-#' @param ndraws The number of draws to simulate for each volume, or NULL.
+#' @param ndraws The number of draws to simulate for each volume.
 #'
-#' @return A matrix of simulated log-volumes with dimensions `ndraws` by
-#' `niter + nlive`. If ndraws is NULL, these are the expected values.
+#' @return A matrix of simulated log-volumes.
 #' @noRd
-get_logvol <- function(nlive, niter, ndraws = NULL) {
+get_log_vol <- function(nlive, niter, ndraws = 0) {
   points <- vctrs::vec_c(rep(nlive, niter), seq(nlive, 1, -1))
 
-  if (is.null(ndraws)) {
-    vol <- -1 * (points^-1)
-    return(matrix(cumsum(vol), nrow = 1))
+  if (ndraws == 0) {
+    vol <- cumsum(-1 * (points^-1))
+    return(vol)
   }
   vol <- matrix(
     log(stats::runif(ndraws * length(points))) / rep(points, each = ndraws),
@@ -128,25 +165,34 @@ get_logvol <- function(nlive, niter, ndraws = NULL) {
   matrixStats::rowCumsums(vol)
 }
 
-#' Compute log weights for nested sampling
-#'
 #' Calculates log weights for each point in a nested sampling run using the
 #' trapezoidal rule in log-space.
 #'
-#' @param log_lik Numeric vector of log-likelihoods from the run.
-#' @param log_volume A matrix of log-volume estimates, with each row being a
-#' draw.
+#' @param log_lik Log-likelihood values.
+#' @param log_volume Log-volume values.
+#' @param cum_z Whether to compute cumulative log-evidence values
+#' or a single log-evidence value from the final log-weight values.
 #'
-#' @return A matrix of log weights, matching the shape of `log_volume`.
+#' @return A named list containing `log_weight` and `log_evidence`. Both are
+#' always matrices.
 #' @noRd
-get_logweight <- function(log_lik, log_volume) {
+get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
+  if (!is.matrix(log_lik)) {
+    dim(log_lik) <- c(1, length(log_lik))
+  }
   if (!is.matrix(log_volume)) {
     dim(log_volume) <- c(1, length(log_volume))
   }
-  ndraws <- nrow(log_volume)
-  ncol <- ncol(log_volume)
-  log_dvol <- matrix(0, nrow = nrow(log_volume), ncol = ncol(log_volume))
+  c(log_lik, log_volume) %<-%
+    vctrs::vec_recycle_common(
+      log_lik,
+      log_volume,
+      .call = call
+    )
+  nrow <- nrow(log_lik)
+  ncol <- ncol(log_lik)
 
+  log_dvol <- matrix(0, nrow = nrow, ncol = ncol)
   log_dvol_lead <- log_volume[, seq(1, ncol - 2), drop = FALSE]
   log_dvol_lag <- log_volume[, seq(3, ncol), drop = FALSE]
   log_dvol[, seq(2, ncol - 1)] <- logspace_sub(log_dvol_lead, log_dvol_lag) -
@@ -154,37 +200,42 @@ get_logweight <- function(log_lik, log_volume) {
 
   log_dvol_lag <- matrixStats::rowLogSumExps(log_volume, cols = c(1, 2)) -
     log(2)
-  log_dvol[, 1] <- logspace_sub(matrix(0, nrow = ndraws), log_dvol_lag)
+  log_dvol[, 1] <- logspace_sub(matrix(0, nrow = nrow(log_dvol)), log_dvol_lag)
 
   log_dvol[, ncol] <- matrixStats::rowLogSumExps(
     log_volume,
     cols = c(ncol - 1, ncol)
   ) -
     log(2)
-  sweep(log_dvol, 2, log_lik, "+")
+  log_weight <- log_dvol + log_lik
+
+  log_evidence <- if (cum_z) {
+    get_cum_log_z(log_weight)
+  } else {
+    matrixStats::rowLogSumExps(log_weight)
+  }
+
+  list(
+    "log_weight" = log_weight,
+    "log_evidence" = log_evidence
+  )
 }
 
 #' Compute cumulative log-evidence from log weights
 #'
 #' Calculates the cumulative log-evidence from log weights.
 #'
-#' @param log_weight A matrix of log-weights, each row a draw from log_volume.
+#' @param log_weight A matrix or vector of log-weights.
 #'
 #' @return A matrix of cumulative log-evidences, with the dimensions of
 #' `log_weight`.
 #' @noRd
-get_logevid <- function(log_weight) {
-  if (!is.matrix(log_weight)) {
-    dim(log_weight) <- c(1, length(log_weight))
+get_cum_log_z <- function(log_weight) {
+  if (is.matrix(log_weight)) {
+    logspace_cumsum_mat(log_weight)
+  } else {
+    logspace_cumsum(log_weight)
   }
-  log_z <- log_weight
-  for (i in seq(2, ncol(log_weight))) {
-    log_z[, i] <- matrixStats::rowLogSumExps(
-      log_z,
-      cols = c(i - 1, i)
-    )
-  }
-  log_z
 }
 
 #' Compute information (KL divergence) for nested sampling
@@ -196,6 +247,10 @@ get_logevid <- function(log_weight) {
 #' @return A numeric vector of information values for each iteration.
 #' @noRd
 get_information <- function(log_lik, log_volume, log_evidence) {
+  log_lik <- drop(log_lik)
+  log_volume <- drop(log_volume)
+  log_evidence <- drop(log_evidence)
+
   loglstar_pad <- c(-1e300, log_lik)
   dlogvol <- diff(c(0, log_volume))
   logdvol <- log_volume - dlogvol + log1p(-exp(dlogvol))
@@ -208,6 +263,19 @@ get_information <- function(log_lik, log_volume, log_evidence) {
     exp1 * loglstar_pad[-1] + exp2 * loglstar_pad[-length(loglstar_pad)]
   )
   h_part1 - max_logz * exp(log_evidence - max_logz)
+}
+
+#' Compute standard error of log-evidence
+#'
+#' @param information Numeric vector of information values.
+#' @param log_volume Numeric vector of log-volumes for each iteration.
+#'
+#' @return Numeric vector of standard errors for log-evidence at each iteration.
+#' @noRd
+get_log_zvar <- function(information, log_volume) {
+  dh <- c(information[1], diff(information))
+  log_evidence_var <- abs(cumsum(dh * -diff(c(0, log_volume))))
+  sqrt(log_evidence_var)
 }
 
 #' Log-space subtraction for nested sampling

@@ -3,7 +3,7 @@
 \name{plot.ernest_estimate}
 \alias{plot.ernest_estimate}
 \alias{plot.ernest_run}
-\title{Plot diagnostics for a nested sampling run}
+\title{Plot diagnostics from nested sampling results}
 \usage{
 \method{plot}{ernest_estimate}(x, which = c("evidence", "weight", "likelihood"), ...)
 
@@ -28,14 +28,14 @@ log-volumes are produced from the estimates contained in \code{x}.}
 side effect.
 }
 \description{
-Visualizes key diagnostics from a nested sampling run, including the
-normalized likelihood, posterior weights, and evidence as functions
-of log-prior volume.
+Visualizes key diagnostics from nested sampling outputs, including the
+normalized likelihood, posterior weights, and evidence as functions of
+log-prior volume.
 }
 \details{
-Interpreting these plots can help diagnose issues such as poor or
-insufficient prior sampling and model misspecification. Use \code{which} to select
-the plots to display:
+The plotting methods are structured around internal \verb{autoplot_*} helpers
+(\code{autoplot_evidence()}, \code{autoplot_weight()}, and \code{autoplot_likelihood()}).
+Use \code{which} to select one or more diagnostics:
 \itemize{
 \item \code{which = "evidence"}: Plots the estimated marginal
 likelihood (evidence) as a function of log-prior volume, with uncertainty
@@ -52,18 +52,20 @@ irregularities may suggest sampling difficulties or, in some cases,
 misspecified likelihood functions.
 }
 
-If \code{x} is an \code{ernest_run}, the plots are based on the actual run data. Error
-ribbons are drawn around the \code{evidence} plot from analytic estimates of
-uncertainty (see {summary.ernest_run}).
+If \code{x} is an \code{ernest_run}, plotting uses deterministic integral estimates
+(\code{calculate(x, ndraws = 0)}). For \code{which = "evidence"}, uncertainty bands
+are derived from the analytic standard error stored in
+\code{x$log_evidence_err}.
 
 If \code{x} is an \code{ernest_estimate} (or if \code{ndraws} is specified), the plots
-are based on simulated values from the log-volume. The highest density
-continuous intervals (HDCIs) are computed using \code{\link[ggdist:point_interval]{ggdist::median_hdci()}} for
-both the \code{evidence} and \code{weight} plots.
+are based on simulated log-volume trajectories. In this case,
+\code{plot.ernest_estimate()} requires \code{attr(x, "ndraws") > 1}. Uncertainty for
+\code{evidence} and \code{weight} is summarized using \code{ggdist} interval helpers
+(\code{point_interval()} and \code{curve_interval()}) over interpolated curves.
 }
 \note{
-Plotting multiple diagnostics with \code{which} requires the patchwork package.
-Plotting \code{ernest_estimate} objects requires the ggdist package.
+Plotting multiple diagnostics with \code{which} requires the {patchwork} package.
+Plotting \code{evidence} or \code{weight} diagnostics requires the {ggdist} package.
 }
 \examples{
 # Plot results from a run.

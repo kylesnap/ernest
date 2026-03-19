@@ -1,8 +1,8 @@
-#' Plot diagnostics for a nested sampling run
+#' Plot diagnostics from nested sampling results
 #'
-#' Visualizes key diagnostics from a nested sampling run, including the
-#' normalized likelihood, posterior weights, and evidence as functions
-#' of log-prior volume.
+#' Visualizes key diagnostics from nested sampling outputs, including the
+#' normalized likelihood, posterior weights, and evidence as functions of
+#' log-prior volume.
 #'
 #' @param x [[ernest_run]] or [[ernest_estimate]]\cr An object containing
 #' results from nested sampling.
@@ -14,9 +14,9 @@
 #' side effect.
 #'
 #' @details
-#' Interpreting these plots can help diagnose issues such as poor or
-#' insufficient prior sampling and model misspecification. Use `which` to select
-#' the plots to display:
+#' The plotting methods are structured around internal `autoplot_*` helpers
+#' (`autoplot_evidence()`, `autoplot_weight()`, and `autoplot_likelihood()`).
+#' Use `which` to select one or more diagnostics:
 #'
 #' * `which = "evidence"`: Plots the estimated marginal
 #' likelihood (evidence) as a function of log-prior volume, with uncertainty
@@ -32,18 +32,20 @@
 #' irregularities may suggest sampling difficulties or, in some cases,
 #' misspecified likelihood functions.
 #'
-#' If `x` is an `ernest_run`, the plots are based on the actual run data. Error
-#' ribbons are drawn around the `evidence` plot from analytic estimates of
-#' uncertainty (see {summary.ernest_run}).
+#' If `x` is an `ernest_run`, plotting uses deterministic integral estimates
+#' (`calculate(x, ndraws = 0)`). For `which = "evidence"`, uncertainty bands
+#' are derived from the analytic standard error stored in
+#' `x$log_evidence_err`.
 #'
 #' If `x` is an `ernest_estimate` (or if `ndraws` is specified), the plots
-#' are based on simulated values from the log-volume. The highest density
-#' continuous intervals (HDCIs) are computed using [ggdist::median_hdci()] for
-#' both the `evidence` and `weight` plots.
+#' are based on simulated log-volume trajectories. In this case,
+#' `plot.ernest_estimate()` requires `attr(x, "ndraws") > 1`. Uncertainty for
+#' `evidence` and `weight` is summarized using `ggdist` interval helpers
+#' (`point_interval()` and `curve_interval()`) over interpolated curves.
 #'
 #' @note
-#' Plotting multiple diagnostics with `which` requires the patchwork package.
-#' Plotting `ernest_estimate` objects requires the ggdist package.
+#' Plotting multiple diagnostics with `which` requires the {patchwork} package.
+#' Plotting `evidence` or `weight` diagnostics requires the {ggdist} package.
 #'
 #' @srrstats {BS6.1} Default plot for return object.
 #'
@@ -72,17 +74,7 @@ plot.ernest_estimate <- function(
   ...
 ) {
   check_dots_empty()
-  which <- arg_match(
-    which,
-    values = c("evidence", "weight", "likelihood"),
-    multiple = TRUE
-  )
-  if (length(which) == 0) {
-    cli::cli_abort("At least one plot type must be specified in `which`.")
-  } else if (length(which) > 0) {
-    check_required("patchwork", "to combine multiple plots")
-  }
-  check_required("ggdist", "to calculate HDCIs")
+  which <- check_plot_which(which)
   print(autoplot(x, which, ...))
 }
 
@@ -96,20 +88,38 @@ plot.ernest_run <- function(
   ndraws = NULL,
   ...
 ) {
-  which <- arg_match(
-    which,
-    values = c("evidence", "weight", "likelihood"),
-    multiple = TRUE
-  )
-  if (length(which) == 0) {
-    cli::cli_abort("At least one plot type must be specified in `which`.")
-  } else if (length(which) > 0) {
-    check_required("patchwork", "to combine multiple plots")
-  }
+  which <- check_plot_which(which)
   if (!is.null(ndraws)) {
     x <- calculate(x, ndraws = ndraws)
   }
   print(autoplot(x, which, ...))
+}
+
+
+#' Validate Plot Type Argument
+#'
+#' @param which Character vector: Must be one of "evidence", "weight", or
+#' "likelihood".
+#' @param call The calling environment.
+#'
+#' @return Character vector of validated plot types in standard form.
+#' @noRd
+check_plot_which <- function(which, call = caller_env()) {
+  which <- arg_match(
+    which,
+    values = c("evidence", "weight", "likelihood"),
+    multiple = TRUE,
+    call = call
+  )
+  if (length(which) == 0) {
+    cli::cli_abort(
+      "At least one plot type must be specified in `which`.",
+      call = call
+    )
+  } else if (length(which) > 0) {
+    check_required("patchwork", "to combine multiple plots", call = call)
+  }
+  which
 }
 
 # AUTOPLOT METHODS -----
@@ -125,64 +135,47 @@ plot.ernest_run <- function(
 #' @return A ggplot object.
 #' @noRd
 #' @importFrom ggplot2 autoplot
+#' @importFrom posterior draws_of
 #' @export
 autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
-  check_dots_empty()
-  check_number_whole(attr(object, "ndraws"), min = 1)
-  multi_plot <- length(which) > 1
-
-  # Generate evidence and weight matrices
+  check_dots_empty(call = call)
+  if (attr(object, "ndraws") < 1L) {
+    cli::cli_abort(
+      "`{caller_arg(object)}` must have `ndraws` greater than 1.",
+      call = call
+    )
+  }
+  log_volume <- posterior::draws_of(object$log_volume)
   log_evidence <- posterior::draws_of(object$log_evidence)
-  log_weights <- posterior::draws_of(object$log_weight)
-  evidence <- exp(log_evidence)
-  weights <- exp(sweep(
-    log_weights,
+  log_weight <- posterior::draws_of(object$log_weight)
+  weight <- exp(sweep(
+    log_weight,
     1,
     log_evidence[, ncol(log_evidence)],
     FUN = "-"
   ))
-  log_volume <- posterior::draws_of(object$log_volume)
-
-  n_bins <- 512
-  rng <- attr(object, "log_vol_rng")
-  breaks <- seq(rng[2], rng[1], length.out = n_bins)
-  log_volume <- posterior::draws_of(object$log_volume)
-  dead_log_vol <- attr(object, "dead_log_vol")
-
-  z_p <- if ("evidence" %in% which) {
-    df <- approx_over_vol(log_volume, evidence, breaks)
-    autoplot_errors(df, "HDCI", "Evidence", dead_log_vol)
-  } else {
-    NULL
-  }
-  w_p <- if ("weight" %in% which) {
-    df <- density_over_vol(log_volume, weights, breaks, rng)
-    autoplot_errors(df, "HDCI", "Posterior Weight", dead_log_vol)
-  }
-  l_p <- if ("likelihood" %in% which) {
-    df <- tibble::tibble(
-      "log_volume" = mean(object$log_volume),
-      "y" = exp(object$log_lik - max(object$log_lik))
+  lik <- exp(object$log_lik - max(object$log_lik))
+  xout <- seq(min(attr(object, "log_vol_rng")), 0, length.out = 512)
+  xint <- attr(object, "dead_log_vol")
+  plots <- lapply(which, \(x) {
+    switch(
+      x,
+      "evidence" = autoplot_evidence(
+        log_volume,
+        log_evidence,
+        xout,
+        xintercept = xint
+      ),
+      "weight" = autoplot_weight(log_volume, weight, xout, xintercept = xint),
+      "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
     )
-    autoplot_line(df, "Normalized Likelihood", dead_log_vol)
-  } else {
-    NULL
-  }
+  })
 
-  if (multi_plot) {
-    patchwork::wrap_plots(
-      list(z_p, w_p, l_p)[c("evidence", "weight", "likelihood") %in% which],
-      ncol = 1,
-      axis_titles = "collect"
-    )
+  if (length(plots) > 1) {
+    patchwork::wrap_plots(plots) +
+      patchwork::plot_layout(ncol = 1, axes = "collect")
   } else {
-    if ("evidence" %in% which) {
-      z_p
-    } else if ("weight" %in% which) {
-      w_p
-    } else {
-      l_p
-    }
+    plots[[1]]
   }
 }
 
@@ -198,199 +191,227 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
 #' @noRd
 #' @export
 autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
-  check_dots_empty()
-  integration <- compute_integral(
-    object$weights$log_lik,
-    get_log_vol(object$nlive, niter = object$niter)
+  check_dots_empty(call = call)
+  integral <- calculate(object, ndraws = 0)
+  log_volume <- matrix(integral$log_volume, nrow = 1)
+  log_evidence <- matrix(integral$log_evidence, nrow = 1)
+  weight <- matrix(
+    exp(integral$log_weight - log_evidence[ncol(log_evidence)]),
+    nrow = 1
   )
-  dead_log_vol <- integration$log_volume[object$niter]
+  lik <- exp(integral$log_lik - max(integral$log_lik))
+  xint <- attr(integral, "dead_log_vol")
+  xout <- seq(min(attr(integral, "log_vol_rng")), 0, length.out = 512)
+  plots <- lapply(which, \(x) {
+    switch(
+      x,
+      "evidence" = autoplot_evidence(
+        log_volume,
+        log_evidence,
+        xout,
+        log_evidence_err = object$log_evidence_err,
+        xintercept = xint
+      ),
+      "weight" = autoplot_weight(log_volume, weight, xout, xintercept = xint),
+      "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
+    )
+  })
 
-  z_p <- if ("evidence" %in% which) {
-    log_evidence_sd <- sqrt(integration$log_evidence_var)
-    df_66 <- tibble::tibble(
-      "log_volume" = integration$log_volume,
-      "y" = exp(integration$log_evidence),
-      "ymin" = exp(integration$log_evidence - 1 * log_evidence_sd),
-      "ymax" = exp(integration$log_evidence + 1 * log_evidence_sd),
-      ".width" = 0.66
-    )
-    df_95 <- tibble::tibble(
-      "log_volume" = integration$log_volume,
-      "y" = exp(integration$log_evidence),
-      "ymin" = exp(integration$log_evidence - 2 * log_evidence_sd),
-      "ymax" = exp(integration$log_evidence + 2 * log_evidence_sd),
-      ".width" = 0.95
-    )
-    df <- rbind(df_66, df_95)
-    autoplot_errors(df, "CI", "Evidence", dead_log_vol)
+  if (length(plots) > 1) {
+    patchwork::wrap_plots(plots) +
+      patchwork::plot_layout(ncol = 1, axes = "collect")
   } else {
-    NULL
-  }
-  w_p <- if ("weight" %in% which) {
-    weights <- exp(
-      integration$log_weight -
-        integration$log_evidence[length(integration$log_evidence)]
-    )
-    dens <- stats::density(
-      integration$log_volume,
-      weights = weights,
-      warnWbw = FALSE
-    )
-    df <- tibble::tibble(
-      "log_volume" = dens$x,
-      "y" = dens$y
-    )
-    autoplot_line(df, "Posterior Weight", dead_log_vol)
-  } else {
-    NULL
-  }
-  l_p <- if ("likelihood" %in% which) {
-    lik <- exp(integration$log_lik - max(integration$log_lik))
-    df <- tibble::tibble(
-      "log_volume" = integration$log_volume,
-      "y" = lik
-    )
-    autoplot_line(df, "Normalized Likelihood", dead_log_vol)
-  } else {
-    NULL
-  }
-
-  if (length(which) > 1) {
-    patchwork::wrap_plots(
-      list(z_p, w_p, l_p)[c("evidence", "weight", "likelihood") %in% which],
-      ncol = 1,
-      guides = "collect"
-    )
-  } else {
-    if ("evidence" %in% which) {
-      z_p
-    } else if ("weight" %in% which) {
-      w_p
-    } else {
-      l_p
-    }
+    plots[[1]]
   }
 }
 
-#' Internal helper to plot error ribbons (HDCI or CI) for diagnostics
-#' over log-prior volume.
+#' Plot Evidence Diagnostic Curve
 #'
-#' @param df Data frame containing columns `log_volume`, `y`, `ymin`,
-#' `ymax`, and `.width`.
-#' @param fill_name,y_name Name for the fill legend and y-axis.
-#' @param xintercept Optional value for a vertical reference line.
+#' Internal helper used by [autoplot.ernest_run()] and
+#' [autoplot.ernest_estimate()] to visualize the contribution to evidence over
+#' log-prior volume.
 #'
-#' @return A ggplot object with ribbons and line.
-#' @noRd
+#' @param log_volume Numeric matrix of simulated or deterministic
+#' log-prior-volume trajectories. Rows correspond to draws.
+#' @param log_evidence Numeric matrix of cumulative log-evidence trajectories
+#' matching `log_volume`.
+#' @param xout Numeric vector of x-values used for interpolation when
+#' summarizing draw-wise trajectories.
+#' @param nbands Number of interval bands shown in the lineribbon.
+#' @param log_evidence_err Optional scalar standard error on the log-evidence
+#' scale for deterministic run output.
+#' @param xintercept Optional numeric vector of vertical reference lines,
+#' typically dead-point log-volumes.
+#'
+#' @return A `ggplot2::ggplot()` object.
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_vline
 #' @importFrom ggplot2 scale_fill_brewer scale_x_continuous scale_y_continuous
 #' @importFrom ggplot2 theme_minimal
-autoplot_errors <- function(df, fill_name, y_name, xintercept = NULL) {
-  df$.width <- factor(df$.width, levels = c("0.95", "0.66"), ordered = TRUE)
-  ggplot(df, aes(.data[["log_volume"]], y = .data[["y"]])) +
-    geom_ribbon(
-      aes(
-        ymin = .data[["ymin"]],
-        ymax = .data[["ymax"]],
-        fill = .data[[".width"]]
+#' @noRd
+autoplot_evidence <- function(
+  log_volume,
+  log_evidence,
+  xout,
+  nbands = 3,
+  log_evidence_err = NULL,
+  xintercept = NULL
+) {
+  z_df <- if (!is.null(log_evidence_err)) {
+    fill_name <- "\U00B1 \U03C3"
+    df <- tibble::tibble(
+      x = rep(log_volume, nbands),
+      .value = rep(log_evidence, nbands),
+      .width = rep(
+        ggdist::interval_widths(nbands),
+        each = length(log_volume)
+      ),
+      .lower = stats::qnorm(.data$.width),
+      .upper = stats::qnorm(.data$.width)
+    )
+    df$.lower <- exp(df$.value - (df$.lower * log_evidence_err))
+    df$.upper <- exp(df$.value + (df$.upper * log_evidence_err))
+    df$.value <- exp(df$.value)
+    df
+  } else {
+    fill_name <- "MHD"
+    nout <- length(xout)
+    yout <- posterior::rvar(
+      t(vapply(
+        seq_len(nrow(log_volume)),
+        \(i) {
+          approx(
+            log_volume[i, ],
+            exp(log_evidence[i, ]),
+            rule = 2,
+            xout = xout
+          )$y
+        },
+        double(nout)
+      )),
+      dim = c(nout)
+    )
+    tibble::tibble(
+      x = rep(xout, nbands),
+      !!!ggdist::point_interval(
+        yout,
+        .width = ggdist::interval_widths(nbands)
       )
+    )
+  }
+
+  ggplot(z_df, aes(.data[["x"]], y = .data[[".value"]])) +
+    ggdist::geom_lineribbon(aes(
+      ymin = .data[[".lower"]],
+      ymax = .data[[".upper"]]
+    )) +
+    geom_vline(xintercept = xintercept, linetype = 2) +
+    scale_fill_brewer(
+      fill_name,
+      breaks = ggdist::interval_widths(nbands),
+      labels = ggdist::pretty_widths(nbands),
+      palette = "Reds"
     ) +
-    geom_line() +
-    geom_vline(xintercept = xintercept, linetype = 2) +
-    scale_fill_brewer(fill_name, palette = "Reds") +
     scale_x_continuous("Log-volume") +
-    scale_y_continuous(y_name) +
+    scale_y_continuous("Evidence") +
     theme_minimal()
 }
 
-#' Internal helper to plot a single line for a diagnostic.
+#' Plot Importance-Weight Diagnostic Curve
 #'
-#' @param df Data frame with columns `log_volume` and `y`.
-#' @param y_name Name for the y-axis.
-#' @param xintercept Optional value for a vertical reference line.
+#' @param log_volume Numeric matrix of simulated or deterministic
+#' log-prior-volume trajectories. Rows correspond to draws.
+#' @param weight Numeric matrix of normalized importance weights corresponding
+#' to `log_volume`.
+#' @param xout Numeric vector of x-values used for interpolation.
+#' @param nbands Number of interval bands shown in the lineribbon.
+#' @param xintercept Optional numeric vector of vertical reference lines,
+#' typically dead-point log-volumes.
 #'
-#' @return A ggplot object with a line.
+#' @return A `ggplot2::ggplot()` object.
 #' @noRd
-autoplot_line <- function(df, y_name, xintercept = NULL) {
-  ggplot(df, aes(x = .data[["log_volume"]], y = .data[["y"]])) +
-    geom_line() +
-    geom_vline(xintercept = xintercept, linetype = 2) +
-    scale_x_continuous("Log-volume") +
-    scale_y_continuous(y_name) +
-    theme_minimal()
-}
-
-#' Interpolate diagnostic values over log-prior volume
-#'
-#' @param log_volume Matrix of log-prior volumes (draws x steps).
-#' @param y Matrix of diagnostic values (draws x steps).
-#' @param breaks Numeric vector of breakpoints along `log_volume` for
-#' interpolation.
-#'
-#' @return Tibble with interpolated values and HDCIs.
-#' @noRd
-approx_over_vol <- function(log_volume, y, breaks) {
-  approx <- vapply(
+autoplot_weight <- function(
+  log_volume,
+  weight,
+  xout,
+  nbands = 3,
+  xintercept = NULL
+) {
+  yout <- t(vapply(
     seq_len(nrow(log_volume)),
     \(i) {
-      stats::approx(
+      dens <- ggdist::density_bounded(
         x = log_volume[i, ],
-        y = y[i, ],
-        xout = breaks,
-        rule = 2
-      )$y
+        weights = weight[i, ],
+        bounds = c(NA, 0)
+      )
+      approx(dens$x, dens$y, xout = xout, rule = 2)$y
     },
-    double(length(breaks))
-  )
-  approx <- matrix(
-    approx,
-    nrow = nrow(log_volume),
-    ncol = length(breaks),
-    byrow = TRUE
-  )
-  hdi <- do.call(
-    rbind,
-    apply(approx, 2, \(row) ggdist::mean_hdci(row, .width = c(.66, .95)))
-  )
-  tibble::tibble("log_volume" = rep(breaks, each = 2), !!!hdi)
+    double(length(xout))
+  ))
+  w_df <- if (nrow(yout) == 1) {
+    geom <- ggplot2::geom_line()
+    tibble::tibble(
+      x = xout,
+      .value = drop(yout),
+      .width = na_dbl,
+      .lower = na_dbl,
+      .upper = na_dbl
+    )
+  } else {
+    geom <- ggdist::geom_lineribbon()
+    tibble::tibble(
+      x = rep(xout, nbands),
+      !!!ggdist::curve_interval(
+        posterior::rvar(yout),
+        .width = ggdist::interval_widths(nbands)
+      )
+    )
+  }
+  ggplot(
+    w_df,
+    aes(
+      .data[["x"]],
+      y = .data[[".value"]],
+      ymin = .data[[".lower"]],
+      ymax = .data[[".upper"]]
+    )
+  ) +
+    geom +
+    geom_vline(xintercept = xintercept, linetype = 2) +
+    scale_fill_brewer(
+      "MHD",
+      breaks = ggdist::interval_widths(nbands),
+      labels = ggdist::pretty_widths(nbands),
+      palette = "Reds"
+    ) +
+    scale_x_continuous("Log-volume") +
+    scale_y_continuous("Importance Weight") +
+    theme_minimal()
 }
 
-#' Internal helper to estimate the density of posterior weights over
-#' log-prior volume.
+#' Plot Normalized-Likelihood Diagnostic Curve
 #'
-#' @param log_volume Matrix of log-prior volumes (draws x steps).
-#' @param weights Matrix of normalized weights (draws x steps).
-#' @param breaks Numeric vector of breakpoints for interpolation.
-#' @param bounds Numeric vector of lower and upper bounds for log-prior volume.
+#' @param log_volume Numeric matrix of log-prior-volume trajectories.
+#' @param log_lik Numeric vector of normalized likelihood values.
+#' @param xintercept Optional numeric vector of vertical reference lines,
+#' typically dead-point log-volumes.
 #'
-#' @return Tibble with estimated densities and HDCIs.
+#' @return A `ggplot2::ggplot()` object.
 #' @noRd
-density_over_vol <- function(log_volume, weights, breaks, bounds) {
-  approx <- vapply(
-    seq_len(nrow(log_volume)),
-    \(i) {
-      idx <- which(log_volume[i, ] > bounds[1])
-      ggdist::density_bounded(
-        x = log_volume[i, idx],
-        weights = weights[i, idx],
-        bounds = c(bounds[1], 0),
-        n = 512
-      )$y |>
-        rev()
-    },
-    double(512)
+autoplot_likelihood <- function(
+  log_volume,
+  log_lik,
+  xintercept = NULL
+) {
+  l_df <- tibble::tibble(
+    x = colMeans(log_volume),
+    .value = log_lik
   )
-  approx <- matrix(
-    approx,
-    nrow = nrow(log_volume),
-    ncol = 512,
-    byrow = TRUE
-  )
-  hdi <- do.call(
-    rbind,
-    apply(approx, 2, \(row) {
-      ggdist::mean_hdci(row, .width = c(.66, .95))
-    })
-  )
-  tibble::tibble("log_volume" = rep(breaks, each = 2), !!!hdi)
+
+  ggplot(l_df, aes(.data[["x"]], y = .data[[".value"]])) +
+    geom_line() +
+    geom_vline(xintercept = xintercept, linetype = 2) +
+    scale_x_continuous("Log-volume") +
+    scale_y_continuous("Normalized likelihood") +
+    theme_minimal()
 }

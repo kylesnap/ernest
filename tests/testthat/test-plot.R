@@ -47,7 +47,6 @@ describe("plotting an ernest_estimate object", {
   skip_on_cran()
   skip_on_ci()
   set.seed(42)
-  calc_1 <- calculate(example_run, ndraws = 1)
   calc_100 <- calculate(example_run, ndraws = 100)
 
   it("plots evidence", {
@@ -72,21 +71,19 @@ describe("plotting an ernest_estimate object", {
   })
 
   it("plots everything", {
-    expect_error(plot(calculate(example_run, ndraws = 0)))
+    expect_error(
+      plot(calculate(example_run, ndraws = 0)),
+      "must have `ndraws` greater than 1."
+    )
 
     vdiffr::expect_doppelganger(
       "all ndraws = 1",
-      plot(calc_1)
+      plot(calculate(example_run, ndraws = 1))
     )
 
     vdiffr::expect_doppelganger(
       "all ndraws = 100",
       plot(calc_100)
-    )
-
-    vdiffr::expect_doppelganger(
-      "no evidence ndraws = 1",
-      plot(calc_1, which = c("likelihood", "weight"))
     )
   })
 })

@@ -116,7 +116,7 @@ check_plot_which <- function(which, call = caller_env()) {
       "At least one plot type must be specified in `which`.",
       call = call
     )
-  } else if (length(which) > 0) {
+  } else if (length(which) > 1) {
     check_required("patchwork", "to combine multiple plots", call = call)
   }
   which
@@ -164,9 +164,16 @@ autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
         log_volume,
         log_evidence,
         xout,
-        xintercept = xint
+        xintercept = xint,
+        call = call
       ),
-      "weight" = autoplot_weight(log_volume, weight, xout, xintercept = xint),
+      "weight" = autoplot_weight(
+        log_volume,
+        weight,
+        xout,
+        xintercept = xint,
+        call = call
+      ),
       "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
     )
   })
@@ -210,9 +217,16 @@ autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
         log_evidence,
         xout,
         log_evidence_err = object$log_evidence_err,
-        xintercept = xint
+        xintercept = xint,
+        call = call
       ),
-      "weight" = autoplot_weight(log_volume, weight, xout, xintercept = xint),
+      "weight" = autoplot_weight(
+        log_volume,
+        weight,
+        xout,
+        xintercept = xint,
+        call = call
+      ),
       "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
     )
   })
@@ -254,8 +268,10 @@ autoplot_evidence <- function(
   xout,
   nbands = 3,
   log_evidence_err = NULL,
-  xintercept = NULL
+  xintercept = NULL,
+  call = caller_env()
 ) {
+  check_installed("ggdist", "to plot evidence diagnostics", call = call)
   z_df <- if (!is.null(log_evidence_err)) {
     fill_name <- "\U00B1 \U03C3"
     df <- tibble::tibble(
@@ -274,29 +290,14 @@ autoplot_evidence <- function(
     df
   } else {
     fill_name <- "MHD"
-    nout <- length(xout)
-    yout <- posterior::rvar(
-      t(vapply(
-        seq_len(nrow(log_volume)),
-        \(i) {
-          approx(
-            log_volume[i, ],
-            exp(log_evidence[i, ]),
-            rule = 2,
-            xout = xout
-          )$y
-        },
-        double(nout)
-      )),
-      dim = c(nout)
+    yout <- interpolate_draw_curves(
+      nrow(log_volume),
+      length(xout),
+      \(i) {
+        approx(log_volume[i, ], exp(log_evidence[i, ]), rule = 2, xout = xout)$y
+      }
     )
-    tibble::tibble(
-      x = rep(xout, nbands),
-      !!!ggdist::point_interval(
-        yout,
-        .width = ggdist::interval_widths(nbands)
-      )
-    )
+    interval_df(xout, posterior::rvar(yout), nbands, type = "point")
   }
 
   ggplot(z_df, aes(.data[["x"]], y = .data[[".value"]])) +
@@ -334,10 +335,13 @@ autoplot_weight <- function(
   weight,
   xout,
   nbands = 3,
-  xintercept = NULL
+  xintercept = NULL,
+  call = caller_env()
 ) {
-  yout <- t(vapply(
-    seq_len(nrow(log_volume)),
+  check_installed("ggdist", "to plot importance weights", call = call)
+  yout <- interpolate_draw_curves(
+    nrow(log_volume),
+    length(xout),
     \(i) {
       dens <- ggdist::density_bounded(
         x = log_volume[i, ],
@@ -345,9 +349,8 @@ autoplot_weight <- function(
         bounds = c(NA, 0)
       )
       approx(dens$x, dens$y, xout = xout, rule = 2)$y
-    },
-    double(length(xout))
-  ))
+    }
+  )
   w_df <- if (nrow(yout) == 1) {
     geom <- ggplot2::geom_line()
     tibble::tibble(
@@ -359,13 +362,7 @@ autoplot_weight <- function(
     )
   } else {
     geom <- ggdist::geom_lineribbon()
-    tibble::tibble(
-      x = rep(xout, nbands),
-      !!!ggdist::curve_interval(
-        posterior::rvar(yout),
-        .width = ggdist::interval_widths(nbands)
-      )
-    )
+    interval_df(xout, posterior::rvar(yout), nbands, type = "curve")
   }
   ggplot(
     w_df,
@@ -414,4 +411,39 @@ autoplot_likelihood <- function(
     scale_x_continuous("Log-volume") +
     scale_y_continuous("Normalized likelihood") +
     theme_minimal()
+}
+
+#' Interpolate Draw-wise Curves on a Common Grid
+#'
+#' @param ndraws Number of draws (rows) to evaluate.
+#' @param nout Number of output points per draw.
+#' @param fn Function of one integer argument (draw index) returning a numeric
+#' vector of length `nout`.
+#'
+#' @return Numeric matrix with one row per draw and `nout` columns.
+#' @noRd
+interpolate_draw_curves <- function(ndraws, nout, fn) {
+  t(vapply(seq_len(ndraws), fn, double(nout)))
+}
+
+#' Build Interval Summary Data Frame for Diagnostic Plots
+#'
+#' @param x Numeric vector of x-values for the interpolation grid.
+#' @param y A `posterior::rvar` object containing draw-wise values to summarize.
+#' @param nbands Number of interval bands to compute.
+#' @param type Interval summary type: either `"point"` for
+#' [ggdist::point_interval()] or `"curve"` for [ggdist::curve_interval()].
+#'
+#' @return A tibble ready for use in diagnostic plotting.
+#' @noRd
+interval_df <- function(x, y, nbands, type = c("point", "curve")) {
+  interval_fun <- switch(
+    type,
+    point = ggdist::point_interval,
+    curve = ggdist::curve_interval
+  )
+  tibble::tibble(
+    x = rep(x, nbands),
+    !!!interval_fun(y, .width = ggdist::interval_widths(nbands))
+  )
 }

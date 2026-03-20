@@ -277,7 +277,11 @@ print.summary.ernest_run <- function(x, ...) {
 #' @return A named list of vectors and the number of iterations.
 #' @noRd
 parse_results <- function(results) {
-  dead_unit <- do.call(rbind, results$dead_unit)
+  dead_unit <- if (is.list(results$dead_unit)) {
+    do.call(rbind, results$dead_unit)
+  } else {
+    results$dead_unit
+  }
   dead_log_lik <- list_c(results$dead_log_lik)
   dead_id <- list_c(results$dead_id)
   dead_evals <- list_c(results$dead_evals)

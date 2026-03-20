@@ -6,12 +6,13 @@
 #' evidence estimate, and proposing new points until convergence or a stopping
 #' condition is met.
 #'
-#' @param x An `ernest_sampler` or `ernest_run` object containing the current
-#'   state and configuration.
+#' @param live_env The environment containing the current live set.
+#' @param lrps The likelihood-restricted prior sampler.
+#' @param sampler_info A list containing information about the sampler.
 #' @param control parameters for the nested sampling run, generated from
 #' `set_run_control()`.
 #' @param show_progress Logical. If `TRUE`, displays a progress bar during
-#'   sampling.
+#' sampling.
 #'
 #' @return
 #' A list containing the dead points and their associated metadata:
@@ -35,19 +36,24 @@
 #' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol
 #' @importFrom prettyunits pretty_signif
 #' @noRd
-nested_sampling_impl <- function(x, control, show_progress = TRUE) {
-  preserve_seed(attr(x, "seed"))
-  live_env <- x$run_env
+nested_sampling_impl <- function(
+  live_env,
+  lrps,
+  sampler_info,
+  control,
+  show_progress = TRUE
+) {
+  preserve_seed(sampler_info$seed)
   max_lik <- max(live_env$log_lik)
   log_vol <- control$log_vol
   log_z <- control$log_z
   last_criterion <- control$last_criterion
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
-  d_log_vol <- log((x$nlive + 1) / x$nlive)
+  d_log_vol <- log((sampler_info$nlive + 1) / sampler_info$nlive)
   initial_update <- FALSE
 
-  dead_unit <- vctrs::list_of(.ptype = double(x$nlive))
+  dead_unit <- vctrs::list_of(.ptype = double(sampler_info$nlive))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_evals <- vctrs::list_of(.ptype = integer())
@@ -100,29 +106,32 @@ nested_sampling_impl <- function(x, control, show_progress = TRUE) {
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (!initial_update && cur_eval >= x$first_update) {
-      x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
+    if (!initial_update && cur_eval >= sampler_info$first_update) {
+      lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
       initial_update <- TRUE
     }
-    if (initial_update && (x$lrps$cache$neval %||% 0L) > x$update_interval) {
-      x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
+    if (
+      initial_update &&
+        (lrps$cache$neval %||% 0L) > sampler_info$update_interval
+    ) {
+      lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
     }
 
     # 4. Replace the worst points in live with new points
-    available_idx <- setdiff(seq_len(x$nlive), worst_idx)
+    available_idx <- setdiff(seq_len(sampler_info$nlive), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
-    new_unit <- if (cur_eval <= x$first_update) {
-      propose(x$lrps, criterion = live_env$log_lik[worst_idx])
+    new_unit <- if (cur_eval <= sampler_info$first_update) {
+      propose(lrps, criterion = live_env$log_lik[worst_idx])
     } else {
       propose(
-        x$lrps,
+        lrps,
         original = live_env$unit[copy, ],
         criterion = live_env$log_lik[worst_idx]
       )
     }
     if (is.null(new_unit$unit)) {
       cli::cli_warn(
-        "LRPS failed to generate a point in {x$lrps$max_loop} attempts."
+        "LRPS failed to generate a point in {lrps$max_loop} attempts."
       )
       break
     }

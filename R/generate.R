@@ -104,22 +104,15 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-  c(max_iterations, max_evaluations, min_logz) %<-%
-    check_stopping_criteria(
-      max_iterations,
-      max_evaluations,
-      min_logz
-    )
+  control <- set_run_control(
+    x,
+    max_iterations,
+    max_evaluations,
+    min_logz
+  )
   x <- compile(x, ...)
 
-  results <- nested_sampling_impl(
-    x,
-    seed = attr(x, "seed"),
-    max_iterations = max_iterations,
-    max_evaluations = max_evaluations,
-    min_logz = min_logz,
-    show_progress = show_progress
-  )
+  results <- nested_sampling_impl(x, control, show_progress = show_progress)
   new_ernest_run(x, results)
 }
 
@@ -151,65 +144,34 @@ generate.ernest_run <- function(
     ))
   }
 
-  cur_iter <- x$niter
-  cureval <- x$neval
-  prev_integration <- compute_integral(
-    x$weights$log_lik,
-    get_log_vol(x$nlive, niter = cur_iter)
+  control <- set_run_control(
+    x,
+    max_iterations,
+    max_evaluations,
+    min_logz
   )
-  last_criterion <- prev_integration$log_lik[cur_iter]
-  log_z <- prev_integration$log_evidence[cur_iter]
-  log_vol <- prev_integration$log_vol[cur_iter]
-  max_lik <- max(env_get(x$run_env, "log_lik"))
-  d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
 
-  c(max_iterations, max_evaluations, min_logz) %<-%
-    check_stopping_criteria(
-      max_iterations,
-      max_evaluations,
-      min_logz,
-      cur_iter,
-      cureval,
-      d_logz
-    )
-
-  results <- nested_sampling_impl(
-    x = x,
-    seed = attr(x, "seed"),
-    max_iterations = max_iterations,
-    max_evaluations = max_evaluations,
-    min_logz = min_logz,
-    last_criterion = last_criterion,
-    log_vol = log_vol,
-    log_z = log_z,
-    curiter = cur_iter,
-    cureval = cureval,
-    show_progress = show_progress
-  )
+  results <- nested_sampling_impl(x, control, show_progress = show_progress)
   new_ernest_run(x, results)
 }
 
-#' Check and validate stopping criteria for nested sampling
+#' Generate and validate stopping criteria.
 #'
+#' @param x Object used for nested sampling.
 #' @param max_iterations Maximum number of iterations to perform.
 #' @param max_evaluations Maximum number of likelihood function evals.
 #' @param min_logz Minimum log-ratio between current estimated evidence and
 #' remaining evidence.
-#' @param cur_it Current iteration.
-#' @param cureval Current number of likelihood calls.
-#' @param d_logz Current log-ratio for evidence.
 #' @param call Environment for error reporting.
 #'
-#' @return A named vector of stopping criteria: `max_iterations`,
-#' `max_evaluations`, and `min_logz`.
+#' @return A named list containing `max_iterations`, `max_evaluations`,
+#' `min_logz`, `last_criterion`, `log_z`, `log_vol`, `cur_iter`, and `cur_eval`.
 #' @noRd
-check_stopping_criteria <- function(
+set_run_control <- function(
+  x,
   max_iterations,
   max_evaluations,
   min_logz,
-  cur_it = NULL,
-  cureval = NULL,
-  d_logz = NULL,
   call = caller_env()
 ) {
   check_number_whole(max_iterations, min = 1, allow_null = TRUE, call = call)
@@ -231,31 +193,55 @@ check_stopping_criteria <- function(
   max_iterations <- max_iterations %||% .Machine$integer.max
   max_evaluations <- max_evaluations %||% .Machine$integer.max
 
-  if (!is.null(cur_it) && cur_it >= max_iterations) {
+  if (inherits_only(x, "ernest_sampler")) {
+    return(list(
+      max_iterations = as.integer(max_iterations),
+      max_evaluations = as.integer(max_evaluations),
+      min_logz = as.double(min_logz),
+      last_criterion = -1e300,
+      log_vol = 0,
+      log_z = -1e300,
+      cur_iter = 0L,
+      cur_eval = 0L
+    ))
+  }
+
+  cur_iter <- x$niter
+  cur_eval <- x$neval
+  prev_integration <- compute_integral(
+    x$weights$log_lik,
+    get_log_vol(x$nlive, niter = cur_iter)
+  )
+  last_criterion <- prev_integration$log_lik[cur_iter]
+  log_z <- prev_integration$log_evidence[cur_iter]
+  log_vol <- prev_integration$log_vol[cur_iter]
+  max_lik <- max(env_get(x$run_env, "log_lik"))
+  d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
+
+  if (cur_iter >= max_iterations) {
     cli::cli_abort(
       c(
-        "`max_iterations` must be strictly larger than {cur_it}.",
+        "`max_iterations` must be strictly larger than {cur_iter}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
       ),
       call = call
     )
   }
-  if (!is.null(cureval) && cureval >= max_evaluations) {
+  if (cur_eval >= max_evaluations) {
     cli::cli_abort(
       c(
-        "`max_evaluations` must be strictly larger than {cureval}.",
+        "`max_evaluations` must be strictly larger than {cur_eval}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
       ),
       call = call
     )
   }
-  if (!is.null(d_logz) && min_logz >= d_logz) {
-    d_logz_format <- pretty_round(d_logz, digits = 4)
+  if (min_logz >= d_logz) {
     cli::cli_abort(
       c(
-        "`min_logz` must be strictly smaller than {d_logz_format}.",
+        "`min_logz` must be strictly smaller than {round(d_logz, digits = 3)}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
       ),
@@ -263,9 +249,14 @@ check_stopping_criteria <- function(
     )
   }
 
-  c(
-    "max_iterations" = as.integer(max_iterations),
-    "max_evaluations" = as.integer(max_evaluations),
-    "min_logz" = as.double(min_logz)
+  list(
+    max_iterations = as.integer(max_iterations),
+    max_evaluations = as.integer(max_evaluations),
+    min_logz = as.double(min_logz),
+    last_criterion = last_criterion,
+    log_vol = log_vol,
+    log_z = log_z,
+    cur_iter = as.integer(cur_iter),
+    cur_eval = as.integer(cur_eval)
   )
 }

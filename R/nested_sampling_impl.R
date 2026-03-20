@@ -8,18 +8,8 @@
 #'
 #' @param x An `ernest_sampler` or `ernest_run` object containing the current
 #'   state and configuration.
-#' @param seed Integer or NA. Random seed.
-#' @param max_iterations Integer. Maximum number of iterations to perform.
-#' @param max_evaluations Integer. Maximum number of likelihood function
-#' evaluations.
-#' @param min_logz Numeric. Minimum change in log-evidence (log Z) required to
-#'   continue sampling.
-#' @param last_criterion Numeric. Log-likelihood value of the last removed
-#'   sample (default: -1e300).
-#' @param log_vol Numeric. Current log prior volume.
-#' @param log_z Numeric. Current log-evidence.
-#' @param curiter Integer. Current iteration.
-#' @param cureval Integer. Current number of likelihood calls.
+#' @param control parameters for the nested sampling run, generated from
+#' `set_run_control()`.
 #' @param show_progress Logical. If `TRUE`, displays a progress bar during
 #'   sampling.
 #'
@@ -45,22 +35,14 @@
 #' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol
 #' @importFrom prettyunits pretty_signif
 #' @noRd
-nested_sampling_impl <- function(
-  x,
-  seed,
-  max_iterations,
-  max_evaluations,
-  min_logz,
-  last_criterion = -1e300,
-  log_vol = 0,
-  log_z = -1e300,
-  curiter = 0L,
-  cureval = 0L,
-  show_progress = TRUE
-) {
-  preserve_seed(seed)
+nested_sampling_impl <- function(x, control, show_progress = TRUE) {
+  preserve_seed(attr(x, "seed"))
   live_env <- x$run_env
   max_lik <- max(live_env$log_lik)
+  log_vol <- control$log_vol
+  log_z <- control$log_z
+  last_criterion <- control$last_criterion
+  cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
   d_log_vol <- log((x$nlive + 1) / x$nlive)
   initial_update <- FALSE
@@ -75,20 +57,20 @@ nested_sampling_impl <- function(
   if (show_progress) {
     cli::cli_progress_bar(
       format = paste0(
-        "{pb_spin} Generating samples | {pb_current} iter. | {cureval} ",
+        "{pb_spin} Generating samples | {pb_current} iter. | {cur_eval} ",
         "log-lik. calls | {pretty_signif(d_log_z)} log-evid. remaining"
       ),
       type = "custom"
     )
   }
-  for (i in seq(1, max_iterations - curiter)) {
+  for (i in seq(1, control$max_iterations - control$cur_iter)) {
     # 1. Check stop conditions
-    if (cureval > max_evaluations) {
+    if (cur_eval > control$max_evaluations) {
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
-    if (d_log_z < min_logz) {
+    if (d_log_z < control$min_logz) {
       break
     }
     if (show_progress) {
@@ -118,7 +100,7 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (!initial_update && cureval >= x$first_update) {
+    if (!initial_update && cur_eval >= x$first_update) {
       x$lrps <- update_lrps(x$lrps, unit = live_env$unit, log_volume = log_vol)
       initial_update <- TRUE
     }
@@ -129,7 +111,7 @@ nested_sampling_impl <- function(
     # 4. Replace the worst points in live with new points
     available_idx <- setdiff(seq_len(x$nlive), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
-    new_unit <- if (cureval <= x$first_update) {
+    new_unit <- if (cur_eval <= x$first_update) {
       propose(x$lrps, criterion = live_env$log_lik[worst_idx])
     } else {
       propose(
@@ -148,7 +130,7 @@ nested_sampling_impl <- function(
     live_env$unit[worst_idx, ] <- new_unit$unit
     live_env$birth_lik[worst_idx] <- copy
     dead_evals[[i]] <- new_unit$neval
-    cureval <- cureval + new_unit$neval
+    cur_eval <- cur_eval + new_unit$neval
   }
 
   list(

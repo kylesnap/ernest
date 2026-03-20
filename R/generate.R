@@ -18,6 +18,9 @@
 #' @param show_progress `[logical(1)]`\cr If `TRUE`, displays a progress spinner
 #' and iteration counter during sampling. Optional; if `NULL` the global option
 #' `rlib_message_verbosity` is used to determine whether to show progress.
+#' @param allow_par `[logical(1)]`\cr If `TRUE`, run the nested sampling loop
+#' in parallel by breaking `nlive` into multiple samplers. Requires the
+#' [[mirai]] package.
 #'
 #' @returns `[ernest_run]`
 #'
@@ -98,22 +101,34 @@ generate.ernest_sampler <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  allow_par = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-  control <- set_run_control(
+  control <- get_run_control(
     x,
     max_iterations,
     max_evaluations,
     min_logz
   )
   x <- compile(x, ...)
+  info <- get_sampler_info(x)
 
-  results <- nested_sampling_impl(x, control, show_progress = show_progress)
-  new_ernest_run(x, results)
+  if (!isFALSE(allow_par)) {
+    p_generate(x, info, control, show_progress, allow_par)
+  } else {
+    results <- nested_sampling_impl(
+      live_env = x$run_env,
+      lrps = x$lrps,
+      sampler_info = info,
+      control = control,
+      show_progress = show_progress
+    )
+    new_ernest_run(x, results)
+  }
 }
 
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
@@ -127,6 +142,7 @@ generate.ernest_run <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  allow_par = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -144,15 +160,26 @@ generate.ernest_run <- function(
     ))
   }
 
-  control <- set_run_control(
+  control <- get_run_control(
     x,
     max_iterations,
     max_evaluations,
     min_logz
   )
+  info <- get_sampler_info(x)
 
-  results <- nested_sampling_impl(x, control, show_progress = show_progress)
-  new_ernest_run(x, results)
+  if (!isFALSE(allow_par)) {
+    p_generate(x, info, control, show_progress, allow_par)
+  } else {
+    results <- nested_sampling_impl(
+      live_env = x$run_env,
+      lrps = x$lrps,
+      sampler_info = info,
+      control = control,
+      show_progress = show_progress
+    )
+    new_ernest_run(x, results)
+  }
 }
 
 #' Generate and validate stopping criteria.
@@ -167,7 +194,7 @@ generate.ernest_run <- function(
 #' @return A named list containing `max_iterations`, `max_evaluations`,
 #' `min_logz`, `last_criterion`, `log_z`, `log_vol`, `cur_iter`, and `cur_eval`.
 #' @noRd
-set_run_control <- function(
+get_run_control <- function(
   x,
   max_iterations,
   max_evaluations,
@@ -258,5 +285,20 @@ set_run_control <- function(
     log_z = log_z,
     cur_iter = as.integer(cur_iter),
     cur_eval = as.integer(cur_eval)
+  )
+}
+
+#' Extract sampler information for use in nested sampling.
+#'
+#' @param x An `ernest_sampler` or `ernest_run` object.
+#' @return A named list containing `seed`, `nlive`, `first_update`,
+#' and `update_interval`.
+#' @noRd
+get_sampler_info <- function(x) {
+  list(
+    seed = attr(x, "seed"),
+    nlive = x$nlive,
+    first_update = x$first_update,
+    update_interval = x$update_interval
   )
 }

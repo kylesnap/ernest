@@ -122,6 +122,7 @@ test_that("merging two runs", {
   )
   expect_warning(expect_warning(run3 <- merge(run1, run2)))
   expect_s3_class(run3, c("ernest_run", "ernest_sampler"))
+  print(run3)
   expect_identical(run3$nlive, 800L)
   expect_identical(sort(unique(run3$weights$id)), seq(800L))
 

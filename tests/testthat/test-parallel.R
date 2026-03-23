@@ -27,10 +27,12 @@ test_that("Parallel generate on an ernest_run", {
     prior = gaussian_blobs$prior,
     seed = 42
   )
-  expect_no_error(generate(sampler, max_iterations = 500, allow_par = TRUE))
+  res <- generate(sampler, max_iterations = 500, allow_par = TRUE)
+  print(res)
 })
 
 test_that("Parallel generate on an ernest_run", {
-  expect_no_error(generate(example_run, min_logz = 0.01, allow_par = TRUE))
+  print(example_run)
+  print(generate(example_run, min_logz = 0.01, allow_par = TRUE))
 })
 mirai::daemons(0)

@@ -7,8 +7,8 @@
 \method{merge}{ernest_run}(x, y, ...)
 }
 \arguments{
-\item{x, y}{[\link{ernest_run}]\cr
-Runs generated from compatible nested sampling specifications.}
+\item{x, y}{[\link{ernest_run}]\cr Runs generated from compatible nested sampling
+specifications.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }

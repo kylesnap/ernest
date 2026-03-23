@@ -118,7 +118,13 @@ generate.ernest_sampler <- function(
   info <- get_sampler_info(x)
 
   if (!isFALSE(allow_par)) {
-    p_generate(x, info, control, show_progress, allow_par)
+    p_generate(
+      x,
+      sampler_info = info,
+      run_control = control,
+      show_progress = show_progress,
+      allow_par = allow_par
+    )
   } else {
     results <- nested_sampling_impl(
       live_env = x$run_env,

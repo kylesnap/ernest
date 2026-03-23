@@ -12,6 +12,7 @@
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  allow_par = FALSE,
   ...
 )
 
@@ -21,6 +22,7 @@
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  allow_par = FALSE,
   ...
 )
 }
@@ -42,6 +44,10 @@ if set to zero, this criterion is ignored.}
 \item{show_progress}{\verb{[logical(1)]}\cr If \code{TRUE}, displays a progress spinner
 and iteration counter during sampling. Optional; if \code{NULL} the global option
 \code{rlib_message_verbosity} is used to determine whether to show progress.}
+
+\item{allow_par}{\verb{[logical(1)]}\cr If \code{TRUE}, run the nested sampling loop
+in parallel by breaking \code{nlive} into multiple samplers. Requires the
+[\link{mirai}] package.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}

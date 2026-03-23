@@ -32,6 +32,7 @@ Suggests:
     extraDistr,
     ggdist,
     knitr,
+    mirai,
     mvtnorm,
     patchwork,
     rmarkdown,

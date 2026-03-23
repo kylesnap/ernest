@@ -4,9 +4,9 @@
       z <- merge_sampler(x, y)
     Condition
       Warning:
-      `first_update` values are different between `x` and `y`
+      `first_update` values differ between `x` and `y`
       ! Using default `nlive * 2.5`
       Warning:
-      `update_interval` values are different between `x` and `y`
+      `update_interval` values differ `x` and `y`
       ! Using default `nlive * 1.5`
 

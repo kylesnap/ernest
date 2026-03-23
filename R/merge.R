@@ -7,7 +7,7 @@
 #' specifications.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns [[ernest_run]] containing merged dead points and live points.
+#' @returns [[ernest_run]] A run containing the merged results from `x` and `y`.
 #'
 #' @details
 #' The two runs must use the same prior variable names and LRPS method.
@@ -48,45 +48,75 @@ merge.ernest_run <- function(x, y, ...) {
   z <- merge_sampler(x, y)
   # Merge results
   list_x <- butcher(x)
-  list_y <- butcher(y, first_id = max(list_x$id) + 1)
-  lik_unordered <- c(list_x$log_lik, list_y$log_lik)
-  lik_ordered <- order(lik_unordered)
-  xy_ordered <- data.frame(
-    log_lik = lik_unordered[lik_ordered],
-    id = c(list_x$id, list_y$id)[lik_ordered],
-    evaluations = c(list_x$evaluations, list_x$evaluations)[lik_ordered],
-    birth_lik = c(list_x$birth_lik, list_y$birth_lik)[lik_ordered],
-    .iter = seq_along(c(list_x$birth_lik, list_y$birth_lik))
+  list_y <- butcher(y, first_id = max(list_c(list_x$dead_id)) + 1L)
+  results <- merge_results(list_x, list_y)
+  # Reform sampler
+  env_bind(z$run_env, !!!results$live)
+  z <- refresh_ernest_sampler(z)
+  new_ernest_run(z, results$dead)
+}
+
+#' Merge the dead points from multiple nested sampling runs.
+#'
+#' @param ... Lists of nested sampling results, each containing "unit",
+#' "log_lik", "id", "evals", and "birth_lik" elements.
+#' @param .call Information about the calling environment for error messages.
+#' @returns A list containing merged "live" and "dead" points from the input
+#' runs.
+#'
+#' @noRd
+merge_results <- function(..., .call = caller_env()) {
+  runs <- list2(...)
+  flattened <- lapply(runs, \(r) parse_results(r))
+  results <- list(
+    "unit" = do.call(rbind, lapply(flattened, `[[`, "unit")),
+    "log_lik" = do.call(c, lapply(flattened, `[[`, "log_lik")),
+    "id" = do.call(c, lapply(flattened, `[[`, "id")),
+    "evals" = do.call(c, lapply(flattened, `[[`, "evals")),
+    "birth_lik" = do.call(c, lapply(flattened, `[[`, "birth_lik"))
   )
-  xy_unit <- rbind(list_x$unit, list_y$unit)[lik_ordered, , drop = FALSE]
-  # Get dead points
-  last_death <- match(TRUE, xy_ordered$evaluations == 0) - 1
-  max_lik <- xy_ordered$log_lik[[last_death]]
-  results <- {
-    xy_dead <- xy_ordered[seq(last_death), ]
-    list(
-      "dead_unit" = xy_unit[seq(last_death), ],
-      "dead_log_lik" = xy_dead$log_lik,
-      "dead_id" = xy_dead$id,
-      "dead_evals" = xy_dead$evaluations,
-      "dead_birth" = xy_dead$birth_lik
-    )
-  }
+  order <- order(results$log_lik)
+  results <- list(
+    "unit" = results$unit[order, , drop = FALSE],
+    "log_lik" = results$log_lik[order],
+    "id" = results$id[order],
+    "evals" = results$evals[order],
+    "birth_lik" = results$birth_lik[order]
+  )
   # Get live points
+  first_live <- match(TRUE, results$evals == 0L)
+  min_live <- results$log_lik[[first_live]]
+  ordered <- data.frame(
+    log_lik = results$log_lik,
+    id = results$id,
+    .iter = seq_along(results$log_lik)
+  )
   live_idx <- vapply(
-    split(xy_ordered, xy_ordered$id),
-    \(df) df$.iter[match(TRUE, df$log_lik >= max_lik)],
+    split(ordered, ordered$id),
+    \(df) df$.iter[match(TRUE, df$log_lik >= min_live)],
     integer(1)
   )
-  run_env <- new_environment(list(
-    unit = xy_unit[live_idx, , drop = FALSE],
-    log_lik = xy_ordered$log_lik[live_idx],
-    birth_lik = xy_ordered$birth_lik[live_idx]
-  ))
-  # Reform sampler
-  z$run_env <- run_env
-  z <- refresh_ernest_sampler(z)
-  new_ernest_run(z, results)
+  live <- list(
+    unit = results$unit[live_idx, , drop = FALSE],
+    log_lik = results$log_lik[live_idx],
+    birth_lik = results$birth_lik[live_idx]
+  )
+  # Get dead points
+  dead_idx <- seq_len(first_live - 1L)
+  dead <- list(
+    "dead_unit" = asplit(results$unit[dead_idx, , drop = FALSE], 1),
+    "dead_log_lik" = vctrs::list_of(
+      results$log_lik[dead_idx],
+      .ptype = double()
+    ),
+    "dead_id" = vctrs::list_of(results$id[dead_idx], .ptype = integer()),
+    "dead_evals" = vctrs::list_of(results$evals[dead_idx], .ptype = integer()),
+    "dead_birth" = vctrs::list_of(
+      results$birth_lik[dead_idx],
+      .ptype = double()
+    )
+  )
+  list("live" = live, "dead" = dead)
 }
 
 #' Combine two `ernest_sampler` objects together, warning the user if they are
@@ -124,7 +154,7 @@ merge_sampler <- function(
   first_update <- if (x$first_update != y$first_update) {
     cli::cli_warn(
       c(
-        "`first_update` values are different between `{x_arg}` and `{y_arg}`",
+        "`first_update` values differ between `{x_arg}` and `{y_arg}`",
         "!" = "Using default `nlive * 2.5`"
       ),
       call = call
@@ -136,7 +166,7 @@ merge_sampler <- function(
   update_interval <- if (x$update_interval != y$update_interval) {
     cli::cli_warn(
       c(
-        "`update_interval` values are different between `{x_arg}` and `{y_arg}`",
+        "`update_interval` values differ `{x_arg}` and `{y_arg}`",
         "!" = "Using default `nlive * 1.5`"
       ),
       call = call
@@ -161,7 +191,8 @@ merge_sampler <- function(
   )
 }
 
-#' Simplify nested sampling results into a basic list for merging.
+#' Simplify nested sampling results into a basic list for merging, similar
+#' to the output of the nested_sampling_impl function.
 #'
 #' @param x An ernest_run object.
 #' @param first_id The ID of the first point in the nested sampling run.
@@ -170,15 +201,18 @@ merge_sampler <- function(
 #' @noRd
 butcher <- function(x, first_id = 1, call = caller_env()) {
   check_number_whole(first_id, min = 1, call = call)
-  check_class(x, "ernest_sampler", call = call)
+  check_class(x, "ernest_run", call = call)
   nlive <- length(unique(x$weights$id))
-  id_seq <- seq(from = first_id, length.out = nlive)
-  id_map <- setNames(as.integer(id_seq), unique(x$weights$id))
+  ids <- data.frame(
+    "new" = seq(from = first_id, length.out = nlive),
+    "old" = unique(x$weights$id)
+  )
+  dead_id <- ids$new[match(x$weights$id, ids$old)]
   list(
-    log_lik = x$weights$log_lik,
-    id = unname(id_map[as.character(x$weights$id)]),
-    evaluations = x$weights$evaluations,
-    birth_lik = x$weights$birth_lik,
-    unit = x$samples$unit_cube
+    "dead_log_lik" = vctrs::list_of(x$weights$log_lik, .ptype = double()),
+    "dead_id" = vctrs::list_of(dead_id, .ptype = integer()),
+    "dead_evals" = vctrs::list_of(x$weights$evaluations, .ptype = integer()),
+    "dead_birth" = vctrs::list_of(x$weights$birth_lik, .ptype = double()),
+    "dead_unit" = asplit(x$samples$unit_cube, 1)
   )
 }

@@ -1,6 +1,6 @@
 describe("butcher", {
   it("catches errors", {
-    expect_error(butcher(1), "object with class ernest_sampler")
+    expect_error(butcher(1), "object with class ernest_run")
     expect_error(
       butcher(example_run, 0),
       "whole number larger than or equal to 1"
@@ -11,25 +11,25 @@ describe("butcher", {
     b <- butcher(example_run, first_id = 1)
     expect_named(
       b,
-      c("log_lik", "id", "evaluations", "birth_lik", "unit")
+      c("dead_log_lik", "dead_id", "dead_evals", "dead_birth", "dead_unit")
     )
-    expect_mapequal(
-      b[c("log_lik", "id", "evaluations", "birth_lik")],
-      example_run$weights[c("log_lik", "id", "evaluations", "birth_lik")]
+    expect_equal(
+      b$dead_log_lik,
+      vctrs::list_of(example_run$weights$log_lik, .ptype = double())
     )
   })
 
   test_that("remaps ids", {
     first_id <- 51L
     b <- butcher(example_run, first_id = first_id)
-    expect_identical(sort(unique(b$id)), c(51:1050))
+    expect_identical(sort(unique(list_c(b$dead_id))), seq(from = 51, to = 1050))
 
     gapped_ids <- example_run
     example_run$weights$id[which(
       example_run$weights$id > 200
     )] <- example_run$weights$id[which(example_run$weights$id > 200)] + 1000L
     b <- butcher(gapped_ids, first_id = 1)
-    expect_identical(sort(unique(b$id)), c(1L:1000L))
+    expect_identical(sort(unique(list_c(b$dead_id))), c(1L:1000L))
   })
 })
 

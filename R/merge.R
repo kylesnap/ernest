@@ -51,7 +51,7 @@ merge.ernest_run <- function(x, y, ...) {
   list_y <- butcher(y, first_id = max(list_c(list_x$dead_id)) + 1L)
   results <- merge_results(list_x, list_y)
   # Reform sampler
-  env_bind(z$run_env, !!!results$live)
+  env_bind(z$live_env, !!!results$live)
   z <- refresh_ernest_sampler(z)
   new_ernest_run(z, results$dead)
 }

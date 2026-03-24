@@ -127,7 +127,7 @@ generate.ernest_sampler <- function(
     )
   } else {
     results <- nested_sampling_impl(
-      live_env = x$run_env,
+      live_env = x$live_env,
       lrps = x$lrps,
       sampler_info = info,
       control = control,
@@ -178,7 +178,7 @@ generate.ernest_run <- function(
     p_generate(x, info, control, show_progress, allow_par)
   } else {
     results <- nested_sampling_impl(
-      live_env = x$run_env,
+      live_env = x$live_env,
       lrps = x$lrps,
       sampler_info = info,
       control = control,
@@ -248,7 +248,7 @@ get_run_control <- function(
   last_criterion <- prev_integration$log_lik[cur_iter]
   log_z <- prev_integration$log_evidence[cur_iter]
   log_vol <- prev_integration$log_vol[cur_iter]
-  max_lik <- max(env_get(x$run_env, "log_lik"))
+  max_lik <- max(env_get(x$live_env, "log_lik"))
   d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
 
   if (cur_iter >= max_iterations) {

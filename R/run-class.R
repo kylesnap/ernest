@@ -50,16 +50,16 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  live_order <- order(x$run_env$log_lik)
-  samples_unit <- rbind(parsed$unit, x$run_env$unit[live_order, ])
+  live_order <- order(x$live_env$log_lik)
+  samples_unit <- rbind(parsed$unit, x$live_env$unit[live_order, ])
   colnames(samples_unit) <- x$prior$names
   samples <- t(apply(samples_unit, 1, x$prior$fn))
   colnames(samples) <- x$prior$names
 
   live <- list(
-    "log_lik" = x$run_env$log_lik[live_order],
+    "log_lik" = x$live_env$log_lik[live_order],
     "id" = live_order,
-    "birth_lik" = x$run_env$birth_lik[live_order]
+    "birth_lik" = x$live_env$birth_lik[live_order]
   )
   all_samples <- bind_dead_live(parsed, live, x$nlive, parsed$niter)
 
@@ -97,7 +97,7 @@ new_ernest_run_ <- function(x, parsed) {
     nlive = x$nlive,
     first_update = x$first_update,
     update_interval = x$update_interval,
-    run_env = x$run_env,
+    live_env = x$live_env,
     seed = attr(x, "seed")
   )
 
@@ -105,7 +105,7 @@ new_ernest_run_ <- function(x, parsed) {
     new_ernest_sampler,
     list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
   )
-  env_unbind(obj$run_env, env_names(obj$run_env))
+  env_unbind(obj$live_env, env_names(obj$live_env))
   obj
 }
 

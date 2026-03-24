@@ -47,10 +47,9 @@ p_generate <- function(
     m,
     options = c(".stop", if (show_progress) ".progress" else NULL)
   )
-  result <- collect_results(results, thread_envs)
-  print(dim(result$live$unit))
-  env_bind(x$run_env, !!!result$live)
-  new_ernest_run(x, result$dead)
+  result <- collect_results(results, thread_envs$split)
+  collect_live(x$live_env, thread_envs$live, thread_envs$split)
+  new_ernest_run(x, result)
 }
 
 #' Get the nlive for each worker.

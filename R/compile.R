@@ -40,7 +40,7 @@
 #'
 #' # Compile the sampler to add a live set
 #' compile(sampler)
-#' head(sampler$run_env$unit)
+#' head(sampler$live_env$unit)
 #'
 #' # Continue a previous run
 #' # run <- data(example_run)
@@ -59,10 +59,10 @@ compile.ernest_sampler <- function(object, ...) {
 
   # Fill live set
   live <- create_live(object$lrps, object$nlive)
-  env_poke(object$run_env, "unit", live$unit, create = TRUE)
-  env_poke(object$run_env, "log_lik", live$log_lik, create = TRUE)
+  env_poke(object$live_env, "unit", live$unit, create = TRUE)
+  env_poke(object$live_env, "log_lik", live$log_lik, create = TRUE)
   env_poke(
-    object$run_env,
+    object$live_env,
     "birth_lik",
     rep(-Inf, object$nlive),
     create = TRUE
@@ -107,7 +107,7 @@ compile.ernest_run <- function(
     vctrs::vec_size(object$weights$log_lik)
   )
   env_bind(
-    object$run_env,
+    object$live_env,
     unit = object$samples$unit_cube[-live_positions, ],
     log_lik = object$weights$log_lik[-live_positions],
     birth_lik = object$weights$birth_lik[-live_positions]
@@ -170,7 +170,7 @@ check_live_set <- function(sampler, call = caller_env()) {
   n_dim <- attr(sampler$prior, "n_dim")
 
   # Live Point Check
-  unit <- env_get(sampler$run_env, "unit")
+  unit <- env_get(sampler$live_env, "unit")
   check_matrix(
     unit,
     nrow = nlive,
@@ -182,7 +182,7 @@ check_live_set <- function(sampler, call = caller_env()) {
   )
 
   # Log Lik Checks
-  log_lik <- env_get(sampler$run_env, "log_lik")
+  log_lik <- env_get(sampler$live_env, "log_lik")
   if (!is_bare_double(log_lik, n = nlive)) {
     cli::cli_abort(
       "`log_lik` must be a double vector with length {nlive}.",
@@ -217,7 +217,7 @@ check_live_set <- function(sampler, call = caller_env()) {
   }
 
   # Birth vector
-  birth_lik <- env_get(sampler$run_env, "birth_lik")
+  birth_lik <- env_get(sampler$live_env, "birth_lik")
   if (!is_double(birth_lik)) {
     stop_input_type(birth_lik, "a double vector")
   }

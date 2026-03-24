@@ -27,7 +27,7 @@
 #'
 #' @returns `[ernest_sampler]`\cr
 #' A named list, containing a specification for a nested sampling run. Contains
-#' the arguments passed to this function as well as an environment `run_env`,
+#' the arguments passed to this function as well as an environment `live_env`,
 #' which is used to store the live set during sampling.
 #'
 #' @details
@@ -99,7 +99,7 @@ ernest_sampler <- function(
   try_fetch(
     {
       compile(obj)
-      obj$run_env <- new_environment()
+      obj$live_env <- new_environment()
     },
     error = function(cnd) {
       cli::cli_abort(

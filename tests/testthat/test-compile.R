@@ -39,7 +39,7 @@ describe("create_live", {
 describe("check_live_set", {
   reset_live <- function() {
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       unit = matrix(runif(1000), nrow = 500, ncol = 2),
       log_lik = seq(-10, -1, length.out = 500),
       birth_lik = rep(-Inf, 500)
@@ -53,7 +53,7 @@ describe("check_live_set", {
 
   it("errors if unit is not a matrix", {
     reset_live()
-    env_bind(sampler$run_env, unit = runif(20))
+    env_bind(sampler$live_env, unit = runif(20))
     expect_error(
       check_live_set(sampler),
       "`unit` must be a matrix, not a double vector."
@@ -61,7 +61,7 @@ describe("check_live_set", {
 
     reset_live()
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       unit = matrix(runif(1000), nrow = 250, ncol = 4)
     )
     expect_error(
@@ -75,7 +75,7 @@ describe("check_live_set", {
     trick_mat <- matrix(runif(1000), nrow = 500, ncol = 2)
     trick_mat[5, 2] <- NaN
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       unit = trick_mat
     )
     expect_error(
@@ -88,7 +88,7 @@ describe("check_live_set", {
     reset_live()
     too_short <- seq(-10, -1, length.out = 499)
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       unit = matrix(runif(1000), nrow = 500, ncol = 2),
       log_lik = too_short
     )
@@ -101,7 +101,7 @@ describe("check_live_set", {
     nonfinite <- seq(-10, -1, length.out = 500)
     nonfinite[5] <- NaN
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       log_lik = nonfinite
     )
     expect_error(
@@ -113,7 +113,7 @@ describe("check_live_set", {
     nonfinite <- seq(-10, -1, length.out = 500)
     nonfinite[5] <- Inf
     env_bind(
-      sampler$run_env,
+      sampler$live_env,
       log_lik = nonfinite
     )
     expect_error(
@@ -126,14 +126,14 @@ describe("check_live_set", {
     reset_live()
     nonfinite <- seq(-10, -1, length.out = 500)
     nonfinite[5] <- -Inf
-    env_bind(sampler$run_env, log_lik = nonfinite)
+    env_bind(sampler$live_env, log_lik = nonfinite)
     expect_no_error(check_live_set(sampler))
   })
 
   it("errors if log_lik is a plateau (all values identical)", {
     reset_live()
     log_lik_plateau <- rep(-10, 500L)
-    env_bind(sampler$run_env, log_lik = log_lik_plateau)
+    env_bind(sampler$live_env, log_lik = log_lik_plateau)
     expect_error(
       check_live_set(sampler),
       "`log_lik` currently contains one unique value \\(-10\\)."
@@ -144,7 +144,7 @@ describe("check_live_set", {
     reset_live()
     log_lik_repeats <- seq(-10, -1, length.out = 500)
     log_lik_repeats[250:500] <- log_lik_repeats[250]
-    env_bind(sampler$run_env, log_lik = log_lik_repeats)
+    env_bind(sampler$live_env, log_lik = log_lik_repeats)
     expect_warning(
       check_live_set(sampler),
       "Only 250/500 likelihood values are unique."
@@ -153,14 +153,14 @@ describe("check_live_set", {
 
   it("errors if birth_lik vector is wrong", {
     sampler <- compile(sampler)
-    env_poke(sampler$run_env, "birth_lik", rep(1, 5))
+    env_poke(sampler$live_env, "birth_lik", rep(1, 5))
     expect_error(
       check_live_set(sampler),
       "`birth_lik` must have size 500, not size 5."
     )
 
     reset_live()
-    env_poke(sampler$run_env, "birth_lik", rep(0L, 10))
+    env_poke(sampler$live_env, "birth_lik", rep(0L, 10))
     expect_error(
       check_live_set(sampler),
       "`birth_lik` must be a double vector, not an integer vector."
@@ -171,8 +171,8 @@ describe("check_live_set", {
 describe("compile", {
   it("initializes the live set", {
     sampler <- compile(sampler)
-    orig_units <- sampler$run_env$unit
-    orig_log_lik <- sampler$run_env$log_lik
+    orig_units <- sampler$live_env$unit
+    orig_log_lik <- sampler$live_env$log_lik
 
     expect_equal(dim(orig_units), c(500, 2))
     expected_log_lik <- apply(
@@ -182,7 +182,7 @@ describe("compile", {
     )
 
     expect_equal(orig_log_lik, expected_log_lik)
-    expect_equal(sampler$run_env$birth_lik, rep(-Inf, 500))
+    expect_equal(sampler$live_env$birth_lik, rep(-Inf, 500))
     expect_snapshot(sampler)
   })
 

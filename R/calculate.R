@@ -68,7 +68,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
           log_volume,
           drop(log_weight$log_evidence)
         )
-        get_log_zvar(information, log_volume)
+        sqrt(get_log_zvar(information, log_volume))
       }
     )
   } else {
@@ -270,12 +270,11 @@ get_information <- function(log_lik, log_volume, log_evidence) {
 #' @param information Numeric vector of information values.
 #' @param log_volume Numeric vector of log-volumes for each iteration.
 #'
-#' @return Numeric vector of standard errors for log-evidence at each iteration.
+#' @return Numeric vector of variance for log-evidence at each iteration.
 #' @noRd
 get_log_zvar <- function(information, log_volume) {
   dh <- c(information[1], diff(information))
-  log_evidence_var <- abs(cumsum(dh * -diff(c(0, log_volume))))
-  sqrt(log_evidence_var)
+  abs(cumsum(dh * -diff(c(0, log_volume))))
 }
 
 #' Log-space subtraction for nested sampling

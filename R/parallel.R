@@ -26,7 +26,7 @@ p_generate <- function(
     vctrs::vec_cast(allow_par, integer(), call = call)
   }
   nlive_threaded <- thread_nlive(nlive, workers, call)
-  thread_envs <- split_live(x$run_env, nlive_threaded, sampler_info, call)
+  thread_envs <- split_live(x$live_env, nlive_threaded, sampler_info, call)
 
   m <- mirai::mirai_map(
     thread_envs$live,
@@ -49,7 +49,7 @@ p_generate <- function(
     options = c(".stop", if (show_progress) ".progress" else NULL)
   )
   result <- collect_results(results, thread_envs$split)
-  collect_live(x$run_env, thread_envs$live, thread_envs$split)
+  collect_live(x$live_env, thread_envs$live, thread_envs$split)
   new_ernest_run(x, result)
 }
 
@@ -163,14 +163,14 @@ collect_results <- function(results, split) {
   )
 }
 
-collect_live <- function(run_env, thread_envs, splits) {
+collect_live <- function(live_env, thread_envs, splits) {
   mapply(
     \(t_env, spl) {
-      run_env$unit[spl, ] <- env_get(t_env, "unit")
-      run_env$log_lik[spl] <- env_get(t_env, "log_lik")
-      run_env$birth_lik[spl] <- env_get(t_env, "birth_lik")
+      live_env$unit[spl, ] <- env_get(t_env, "unit")
+      live_env$log_lik[spl] <- env_get(t_env, "log_lik")
+      live_env$birth_lik[spl] <- env_get(t_env, "birth_lik")
       invisible(env_unbind(t_env, c("unit", "log_lik", "birth_lik")))
     }
   )
-  run_env
+  live_env
 }

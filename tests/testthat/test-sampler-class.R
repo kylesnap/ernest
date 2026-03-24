@@ -15,7 +15,7 @@ test_that("ernest_sampler initializes correctly", {
   expect_identical(sampler$nlive, 500L)
   expect_identical(sampler$first_update, 200L)
   expect_identical(sampler$update_interval, 50L)
-  expect_identical(env_depth(sampler$run_env), 1L)
+  expect_identical(env_depth(sampler$live_env), 1L)
   expect_snapshot(sampler)
 })
 

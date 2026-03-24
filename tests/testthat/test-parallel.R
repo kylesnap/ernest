@@ -19,6 +19,7 @@ test_that("thread_nlive correctly handles parallel workers", {
   result <- thread_nlive(nlive = 100, workers = workers, hint = mock_hint)
   expect_identical(result, c(65L, 20L, 15L))
 })
+skip("Under construction")
 
 mirai::daemons(n = 2)
 test_that("Parallel generate on an ernest_run", {

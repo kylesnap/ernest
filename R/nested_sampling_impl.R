@@ -16,11 +16,11 @@
 #'
 #' @return
 #' A list containing the dead points and their associated metadata:
-#' * `dead_unit`: List of unit-space coordinates of removed points.
-#' * `dead_log_lik`: List of log-likelihood values for removed points.
-#' * `dead_id`: List of indices of removed points.
-#' * `dead_evals`: List of likelihood evaluations used for each replacement.
-#' * `dead_birth`: List of birth log-likelihoods for removed points.
+#' * `dead_unit`: Matrix of unit-space coordinates of removed points.
+#' * `dead_log_lik`: Vector of log-likelihood values for removed points.
+#' * `dead_id`: Vector of indices of removed points.
+#' * `dead_evals`: Vector of likelihood evaluations used for each replacement.
+#' * `dead_birth`: Vector of birth log-likelihoods for removed points.
 #'
 #' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
 #' colinearity, ernest examines whether it has reached a likelihood plateau
@@ -143,10 +143,10 @@ nested_sampling_impl <- function(
   }
 
   list(
-    "dead_unit" = dead_unit,
-    "dead_log_lik" = dead_log_lik,
-    "dead_id" = dead_id,
-    "dead_evals" = dead_evals,
-    "dead_birth" = dead_birth
+    "dead_unit" = do.call(rbind, dead_unit),
+    "dead_log_lik" = list_c(dead_log_lik),
+    "dead_id" = list_c(dead_id),
+    "dead_evals" = list_c(dead_evals),
+    "dead_birth" = list_c(dead_birth)
   )
 }

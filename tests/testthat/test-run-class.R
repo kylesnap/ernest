@@ -1,18 +1,18 @@
 data(example_run)
 
-describe("ernest_run", {
-  it("has the correct meta-class", {
-    expect_s3_class(example_run, c("ernest_run", "ernest_sampler"))
-    expect_true(is.list(example_run))
-    expect_equal(attr(example_run, "seed"), 42)
-    expect_type(example_run$niter, "integer")
-    expect_gt(example_run$neval, 0L)
-    expect_lt(example_run$log_evidence, 0)
-    expect_gt(example_run$log_evidence_err, 0)
-    expect_type(example_run$information, "double")
-  })
-  total_length <- example_run$niter + example_run$nlive
+test_that("example_run has the correct columns", {
+  expect_s3_class(example_run, c("ernest_run", "ernest_sampler"))
+  expect_true(is.list(example_run))
+  expect_equal(attr(example_run, "seed"), 42)
+  expect_type(example_run$niter, "integer")
+  expect_gt(example_run$neval, 0L)
+  expect_lt(example_run$log_evidence, 0)
+  expect_gt(example_run$log_evidence_err, 0)
+  expect_type(example_run$information, "double")
+})
 
+describe("ernest_run", {
+  total_length <- example_run$niter + example_run$nlive
   it("Stores samples", {
     expect_named(example_run$samples, c("original", "unit_cube"))
     expect_identical(dim(example_run$samples$original), c(total_length, 3L))

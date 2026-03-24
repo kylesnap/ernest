@@ -1,38 +1,3 @@
-describe("butcher", {
-  it("catches errors", {
-    expect_error(butcher(1), "object with class ernest_run")
-    expect_error(
-      butcher(example_run, 0),
-      "whole number larger than or equal to 1"
-    )
-  })
-
-  it("extracts the correct elements from an ernest_run object", {
-    b <- butcher(example_run, first_id = 1)
-    expect_named(
-      b,
-      c("dead_log_lik", "dead_id", "dead_evals", "dead_birth", "dead_unit")
-    )
-    expect_equal(
-      b$dead_log_lik,
-      vctrs::list_of(example_run$weights$log_lik, .ptype = double())
-    )
-  })
-
-  test_that("remaps ids", {
-    first_id <- 51L
-    b <- butcher(example_run, first_id = first_id)
-    expect_identical(sort(unique(list_c(b$dead_id))), seq(from = 51, to = 1050))
-
-    gapped_ids <- example_run
-    example_run$weights$id[which(
-      example_run$weights$id > 200
-    )] <- example_run$weights$id[which(example_run$weights$id > 200)] + 1000L
-    b <- butcher(gapped_ids, first_id = 1)
-    expect_identical(sort(unique(list_c(b$dead_id))), c(1L:1000L))
-  })
-})
-
 describe("merge_sampler", {
   x <- ernest_sampler(
     log_lik = gaussian_blobs$log_lik,
@@ -122,7 +87,6 @@ test_that("merging two runs", {
   )
   expect_warning(expect_warning(run3 <- merge(run1, run2)))
   expect_s3_class(run3, c("ernest_run", "ernest_sampler"))
-  print(run3)
   expect_identical(run3$nlive, 800L)
   expect_identical(sort(unique(run3$weights$id)), seq(800L))
 

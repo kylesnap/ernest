@@ -45,76 +45,65 @@
 #' summary(merged)
 #' @export
 merge.ernest_run <- function(x, y, ...) {
+  check_class(y, "ernest_run")
   z <- merge_sampler(x, y)
   # Merge results
-  list_x <- butcher(x)
-  list_y <- butcher(y, first_id = max(list_c(list_x$dead_id)) + 1L)
-  results <- merge_results(list_x, list_y)
+  list_x <- butcher_run(x, keep_live = TRUE)
+  list_y <- butcher_run(y, keep_live = TRUE)
+  lists_xy <- merge_ids(list_x, list_y)
+  results <- merge_results(lists_xy)
   # Reform sampler
   env_bind(z$live_env, !!!results$live)
   z <- refresh_ernest_sampler(z)
   new_ernest_run(z, results$dead)
 }
 
-#' Merge the dead points from multiple nested sampling runs.
-#'
-#' @param ... Lists of nested sampling results, each containing "unit",
-#' "log_lik", "id", "evals", and "birth_lik" elements.
-#' @param .call Information about the calling environment for error messages.
-#' @returns A list containing merged "live" and "dead" points from the input
-#' runs.
+#' Correct the IDs of two merged runs.
 #'
 #' @noRd
-merge_results <- function(..., .call = caller_env()) {
+merge_ids <- function(...) {
   runs <- list2(...)
-  flattened <- lapply(runs, \(r) parse_results(r))
-  results <- list(
-    "unit" = do.call(rbind, lapply(flattened, `[[`, "unit")),
-    "log_lik" = do.call(c, lapply(flattened, `[[`, "log_lik")),
-    "id" = do.call(c, lapply(flattened, `[[`, "id")),
-    "evals" = do.call(c, lapply(flattened, `[[`, "evals")),
-    "birth_lik" = do.call(c, lapply(flattened, `[[`, "birth_lik"))
+  # Correct the IDS
+  nlives <- vapply(runs, \(x) length(unique(x$id)), integer(1))
+  .mapply(
+    \(x, start) {
+      x$id <- vctrs::vec_group_id(x$id) + start
+      x
+    },
+    dots = list(runs, c(0, cumsum(nlives)[-length(nlives)])),
+    MoreArgs = NULL
   )
-  order <- order(results$log_lik)
-  results <- list(
-    "unit" = results$unit[order, , drop = FALSE],
-    "log_lik" = results$log_lik[order],
-    "id" = results$id[order],
-    "evals" = results$evals[order],
-    "birth_lik" = results$birth_lik[order]
-  )
+}
+
+#' Merge the dead points from multiple nested sampling runs.
+#'
+#' @param runs A list of nested sampling results from bucher_run. These
+#' should have unique IDs.
+#'
+#' @returns Two lists of "dead" and "live" run information.
+#' @noRd
+merge_results <- function(runs) {
+  all_runs <- vctrs::vec_rbind(!!!lapply(runs, \(x) vctrs::data_frame(!!!x)))
+  all_runs <- all_runs[order(all_runs$log_lik), ]
   # Get live points
-  first_live <- match(TRUE, results$evals == 0L)
-  min_live <- results$log_lik[[first_live]]
-  ordered <- data.frame(
-    log_lik = results$log_lik,
-    id = results$id,
-    .iter = seq_along(results$log_lik)
-  )
-  live_idx <- vapply(
-    split(ordered, ordered$id),
-    \(df) df$.iter[match(TRUE, df$log_lik >= min_live)],
-    integer(1)
-  )
-  live <- list(
-    unit = results$unit[live_idx, , drop = FALSE],
-    log_lik = results$log_lik[live_idx],
-    birth_lik = results$birth_lik[live_idx]
-  )
-  # Get dead points
-  dead_idx <- seq_len(first_live - 1L)
-  dead <- list(
-    "dead_unit" = asplit(results$unit[dead_idx, , drop = FALSE], 1),
-    "dead_log_lik" = vctrs::list_of(
-      results$log_lik[dead_idx],
-      .ptype = double()
-    ),
-    "dead_id" = vctrs::list_of(results$id[dead_idx], .ptype = integer()),
-    "dead_evals" = vctrs::list_of(results$evals[dead_idx], .ptype = integer()),
-    "dead_birth" = vctrs::list_of(
-      results$birth_lik[dead_idx],
-      .ptype = double()
+  first_live <- match(TRUE, all_runs$evals == 0L)
+  min_live <- all_runs$log_lik[[first_live]]
+  live <- vctrs::vec_rbind(
+    !!!lapply(
+      vctrs::vec_split(all_runs, all_runs$id)$val,
+      \(df) df[match(TRUE, df$log_lik >= min_live), ]
     )
+  ) |>
+    vctrs::df_list()
+  live <- live[c("unit", "log_lik", "birth_lik")]
+  # Get dead points
+  dead <- vctrs::df_list(vctrs::vec_slice(all_runs, seq_len(first_live - 1L)))
+  dead <- vctrs::df_list(
+    "dead_unit" = dead$unit,
+    "dead_log_lik" = dead$log_lik,
+    "dead_id" = dead$id,
+    "dead_evals" = dead$evals,
+    "dead_birth" = dead$birth_lik
   )
   list("live" = live, "dead" = dead)
 }
@@ -188,31 +177,5 @@ merge_sampler <- function(
     first_update = first_update,
     update_interval = update_interval,
     seed = seed
-  )
-}
-
-#' Simplify nested sampling results into a basic list for merging, similar
-#' to the output of the nested_sampling_impl function.
-#'
-#' @param x An ernest_run object.
-#' @param first_id The ID of the first point in the nested sampling run.
-#'
-#' @returns A list containing a subset of the elements from `x`.
-#' @noRd
-butcher <- function(x, first_id = 1, call = caller_env()) {
-  check_number_whole(first_id, min = 1, call = call)
-  check_class(x, "ernest_run", call = call)
-  nlive <- length(unique(x$weights$id))
-  ids <- data.frame(
-    "new" = seq(from = first_id, length.out = nlive),
-    "old" = unique(x$weights$id)
-  )
-  dead_id <- ids$new[match(x$weights$id, ids$old)]
-  list(
-    "dead_log_lik" = vctrs::list_of(x$weights$log_lik, .ptype = double()),
-    "dead_id" = vctrs::list_of(dead_id, .ptype = integer()),
-    "dead_evals" = vctrs::list_of(x$weights$evaluations, .ptype = integer()),
-    "dead_birth" = vctrs::list_of(x$weights$birth_lik, .ptype = double()),
-    "dead_unit" = asplit(x$samples$unit_cube, 1)
   )
 }

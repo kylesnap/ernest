@@ -35,5 +35,24 @@ test_that("ernest_rcrd orders draws", {
 })
 
 test_that("ernest_rcrd reports dimensional mismatch", {
-  skip("TODO")
+  run2D <- generate(
+    ernest_sampler(
+      log_lik = gaussian_blobs$log_lik,
+      prior = gaussian_blobs$prior,
+      seed = 42
+    ),
+    max_iterations = 1000
+  )
+  run3D <- generate(
+    ernest_sampler(
+      log_lik = gaussian_3D$log_lik,
+      prior = gaussian_3D$prior,
+      seed = 42
+    ),
+    max_iterations = 1000
+  )
+  expect_error(
+    c(as_ernest_rcrd(run2D), as_ernest_rcrd(run3D)),
+    "`variables` attribute must match."
+  )
 })

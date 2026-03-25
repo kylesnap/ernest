@@ -33,15 +33,16 @@ new_ernest_rcrd <- function(
 
 #' @export
 #' @noRd
-vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ...) {
-  if (!all.equal(attr(x, "variables"), attr(y, "variables"))) {
+vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ..., call = caller_env()) {
+  if (!isTRUE(all.equal(attr(x, "variables"), attr(y, "variables")))) {
     vctrs::stop_incompatible_type(
       x,
       y,
       x_arg = caller_arg(x),
       y_arg = caller_arg(y),
       action = "combine",
-      details = "`variables` attribute must match."
+      details = "`variables` attribute must match.",
+      call = call
     )
   }
   new_ernest_rcrd(unit = vctrs::vec_ptype(field(x, "unit")))

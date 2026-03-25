@@ -53,7 +53,7 @@ cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   Eigen::VectorXd next_draw = as_Matrix(original);
   Eigen::VectorXd inner = next_draw;
 
-  size_t draw = 0;
+  size_t draw = 1;
   for (; draw < max_loop; draw++) {
     rect.UniformSample(next_draw);
     double log_lik = unit_log_fn(as_doubles(next_draw));

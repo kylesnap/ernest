@@ -50,17 +50,7 @@ test_that("ernest_run radial coordinates", {
   )
 })
 
-test_that("ernest_run to exported draws formats", {
-  data(example_run)
-
-  expect_s3_class(as_draws(example_run), c("draws_matrix", "draws", "matrix"))
-  expect_s3_class(
-    as_draws_rvars(example_run),
-    c("draws_rvars", "draws", "list")
-  )
-})
-
-test_that("ernest_run to non-exported draws formats", {
+test_that("ernest_run to desired draws formats", {
   data(example_run)
 
   expect_s3_class(as_draws(example_run), c("draws_matrix", "draws", "matrix"))

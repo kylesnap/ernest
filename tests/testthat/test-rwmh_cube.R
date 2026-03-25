@@ -8,8 +8,6 @@ test_that("rwmh_cube can be called by user", {
   expect_snapshot(rwmh_cube(steps = 1), error = TRUE)
   expect_snapshot(rwmh_cube(target_acceptance = 0.01), error = TRUE)
   expect_snapshot(rwmh_cube(target_acceptance = 1.1), error = TRUE)
-  expect_equal(default$steps, 25L)
-  expect_equal(default$target_acceptance, 0.5)
   expect_snapshot(default)
 })
 

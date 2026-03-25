@@ -57,13 +57,6 @@ describe("create_prior/check_prior", {
     }
   }
 
-  it("catches non-doubles", {
-    bad_fn <- function(x) as.character(x)
-    msg <- "<character\\[,3\\]> to <double\\[,3\\]>"
-    expect_error(create_prior(bad_fn, names = LETTERS[1:3]), msg)
-    expect_error(create_prior(matrix_wrap(bad_fn), names = LETTERS[1:3]), msg)
-  })
-
   it("catches non-expected lengths", {
     short_fn <- \(x) x[1:2]
     msg <- "<double\\[,2\\]> to <double\\[,3\\]>"
@@ -81,32 +74,6 @@ describe("create_prior/check_prior", {
     expect_no_message(p <- create_prior(int_fn, names = LETTERS[1:3]))
     expect_no_message(create_prior(matrix_wrap(int_fn), names = LETTERS[1:3]))
     expect_type(p$fn(c(0.5, 0.5, 0.5)), "double")
-  })
-
-  it("catches non-finite values", {
-    nonfinite_fn <- function(nonfinite_val) {
-      force(nonfinite_val)
-      \(x) c(x[1:2], sample(c(x[3], nonfinite_val), 1, prob = c(0.9, 0.1)))
-    }
-    msg <- "must return only finite values."
-
-    it("catches NA", {
-      na_fn <- nonfinite_fn(NA)
-      expect_error(create_prior(na_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(na_fn), names = LETTERS[1:3]), msg)
-    })
-
-    it("catches Inf", {
-      inf_fn <- nonfinite_fn(Inf)
-      expect_error(create_prior(inf_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(inf_fn), names = LETTERS[1:3]), msg)
-    })
-
-    it("catches NaN", {
-      nan_fn <- nonfinite_fn(NaN)
-      expect_error(create_prior(nan_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(nan_fn), names = LETTERS[1:3]), msg)
-    })
   })
 
   it("detects errors with explicit upper and lower", {

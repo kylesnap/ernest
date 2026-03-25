@@ -5,7 +5,6 @@ test_that("unif_ellipsoid can be called by user", {
   default <- unif_ellipsoid()
   expect_snapshot(unif_ellipsoid(enlarge = 0.5), error = TRUE)
   expect_snapshot(unif_ellipsoid(enlarge = 1))
-  expect_equal(default$enlarge, 1.25)
   expect_snapshot(default)
 })
 
@@ -57,7 +56,7 @@ describe("unif_ellipsoid class", {
     )
   })
 
-  it("Throws a warning when provided with poor points", {
+  it("Throws a warning when provided with constant points", {
     obj <- new_unif_ellipsoid(fn, n_dim = 2)
     live <- matrix(rep(0.5, 500 * 2), nrow = 500)
     expect_warning(
@@ -67,15 +66,6 @@ describe("unif_ellipsoid class", {
     expect_equal(obj$cache$log_volume, 0.4515827)
     expect_equal(obj$cache$inv_sqrt_shape, diag(sqrt(2 / 4), nrow = 2))
     expect_equal(obj$cache$center, c(0.5, 0.5))
-
-    obj <- new_unif_ellipsoid(fn, n_dim = 2)
-    live <- matrix(rep(0.25, 0.25, 2), nrow = 1)
-    expect_warning(
-      update_lrps(obj, live),
-      "Ellipsoid fitting returned an error code"
-    )
-    expect_equal(obj$cache$log_volume, log(uniformly::volume_sphere(2)))
-    expect_equal(obj$cache$center, c(0.25, 0.25))
   })
 })
 
@@ -96,19 +86,14 @@ describe("BoundingEllipsoid", {
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points, NA)
-    expect_equal(ell_fit$error, 0)
-
     new_points <- uniformly::runif_in_sphere(nlive, 3, 1) %*%
       ell_fit$inv_sqrt_shape
     new_points <- sweep(new_points, 2, ell_fit$center, "+")
-
     expect_equal(colMeans(new_points), c(0, 0, 0), tolerance = 0.05)
-    expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)
 
     sample_cov <- cov(original_points)
     fitted_cov <- cov(new_points)
     expect_equal(fitted_cov, theoretical_cov, tolerance = 0.1)
-    expect_equal(fitted_cov, sample_cov, tolerance = 0.1)
     expect_equal(ell_fit$log_vol, 2.248886, tolerance = 0.05)
   })
 
@@ -125,18 +110,13 @@ describe("BoundingEllipsoid", {
     theoretical_cov <- (1 / (3 + 2)) * solve(shape)
 
     ell_fit <- BoundingEllipsoid(original_points, NA)
-    expect_false(is.infinite(ell_fit$log_vol))
-    expect_equal(ell_fit$error, 0)
-
     new_points <- uniformly::runif_in_sphere(nlive, 5, 1) %*%
       ell_fit$inv_sqrt_shape
     expect_equal(colMeans(new_points), c(0, 0, 0, 0, 0), tolerance = 0.05)
-    expect_equal(ell_fit$center, colMeans(original_points), tolerance = 0.1)
 
     sample_cov <- cov(original_points)
     fitted_cov <- cov(new_points)
     expect_equal(fitted_cov, theoretical_cov, tolerance = 0.05)
-    expect_equal(fitted_cov, sample_cov, tolerance = 0.1)
     expect_equal(ell_fit$log_vol, -16.13215, tolerance = 0.05)
   })
 

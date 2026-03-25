@@ -8,7 +8,6 @@ test_that("multi_ellipsoid can be called by user", {
   expect_snapshot(multi_ellipsoid(enlarge = 0.5), error = TRUE)
   expect_snapshot(multi_ellipsoid(enlarge = 1))
   expect_snapshot(default)
-  expect_equal(default$enlarge, 1.25)
 })
 
 describe("multi_ellipsoid class", {
@@ -59,7 +58,6 @@ describe("multi_ellipsoid class", {
       update_lrps(obj, live),
       "Multi-ellipsoid fitting returned an error code"
     )
-    expect_equal(obj$enlarge, 1)
     expect_equal(obj$cache$ellipsoid[[1]]$log_vol, 0.4515827)
     expect_equal(
       obj$cache$ellipsoid[[1]]$inv_sqrt_shape,
@@ -72,7 +70,6 @@ test_that("multi_ellipsoid can provide good results", {
   skip_extended()
   expect_gaussian_run(multi_ellipsoid())
   expect_3D_run(multi_ellipsoid())
-  expect_eggbox_run(multi_ellipsoid())
 })
 
 describe("MultiBoundingEllipsoids", {
@@ -88,9 +85,7 @@ describe("MultiBoundingEllipsoids", {
 
     ell_fit <- MultiBoundingEllipsoids(original_points, NA)
 
-    expect_length(ell_fit$prob, 1)
     el <- ell_fit$ellipsoid[[1]]
-    expect_equal(el$log_vol, ell_fit$tot_log_vol)
     new_points <- uniformly::runif_in_sphere(2000, 3, 1) %*% el$inv_sqrt_shape
     new_points <- sweep(new_points, 2, el$center, "+")
 

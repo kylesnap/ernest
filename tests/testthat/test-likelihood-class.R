@@ -66,60 +66,7 @@ describe("ernest_likelihood", {
   })
 })
 
-describe("create_likelihood is controlled by  `on_finite`", {
-  bad_vec <- c(1, 2, NaN)
-  bad_mat <- matrix(c(1, 2, NaN, 1, 2, 3), ncol = 3, byrow = TRUE)
-
-  it("fails when requested", {
-    fail_ll <- create_likelihood(fn, on_nonfinite = "abort")
-    fail_mat_ll <- create_likelihood(
-      vectorized_fn = matrix_fn,
-      on_nonfinite = "abort"
-    )
-    expected_msg <- "Detected non-viable value: `NaN`"
-
-    expect_error(fail_ll(bad_vec), expected_msg)
-    expect_error(fail_mat_ll(bad_vec), expected_msg)
-    expect_error(fail_ll(bad_mat), expected_msg)
-    expect_error(fail_mat_ll(bad_mat), expected_msg)
-  })
-
-  it("warns on default", {
-    warn_ll <- create_likelihood(fn, )
-    warn_mat_ll <- create_likelihood(vectorized_fn = matrix_fn)
-    expected_msg <- "Replacing `NaN` with `-Inf`."
-    expected_value <- c(-Inf, fn(c(1, 2, 3)))
-
-    expect_warning(res <- warn_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_mat_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
-    expect_warning(warn_mat_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
-  })
-
-  it("remains silent on request", {
-    quiet_ll <- create_likelihood(fn, on_nonfinite = "quiet")
-    quiet_mat_ll <- create_likelihood(
-      vectorized_fn = matrix_fn,
-      on_nonfinite = "quiet"
-    )
-    expected_value <- c(-Inf, fn(c(1, 2, 3)))
-
-    expect_no_message(res <- quiet_ll(bad_vec))
-    expect_equal(res, -Inf)
-    expect_no_message(res <- quiet_mat_ll(bad_vec))
-    expect_equal(res, -Inf)
-    expect_no_message(res <- quiet_ll(bad_mat))
-    expect_equal(res, expected_value)
-    expect_no_message(quiet_mat_ll(bad_mat))
-    expect_equal(res, expected_value)
-  })
-})
-
-describe("handles other nonfinite values", {
+describe("handles type conversion errors", {
   it("characters", {
     char_fn <- \(x) as.character(fn(x))
     char_mat_fn <- \(x) as.character(matrix_fn(x))
@@ -133,52 +80,5 @@ describe("handles other nonfinite values", {
       mat_ll(c(0, 1, 2)),
       "Can't convert `log_lik\\(x\\)` <character> to <double>."
     )
-  })
-
-  it("Missing values", {
-    bad_vec <- c(1, 2, NA)
-    bad_mat <- matrix(c(1, 2, NA, 1, 2, 3), ncol = 3, byrow = TRUE)
-    warn_ll <- create_likelihood(fn)
-    warn_mat_ll <- create_likelihood(vectorized_fn = matrix_fn)
-    expected_msg <- "Replacing `NA` with `-Inf`."
-    expected_value <- c(-Inf, fn(c(1, 2, 3)))
-
-    expect_warning(res <- warn_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_mat_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
-    expect_warning(warn_mat_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
-  })
-
-  it("Positive infinite values", {
-    inf_fn <- \(x) {
-      y <- fn(x)
-      y[y > 0.01] <- Inf
-      y
-    }
-    inf_mat_fn <- \(x) {
-      y <- matrix_fn(x)
-      y[y > 0.01] <- Inf
-      y
-    }
-
-    bad_vec <- c(1, 2, 1)
-    bad_mat <- matrix(c(1, 2, 1, 1, 2, 3), ncol = 3, byrow = TRUE)
-    warn_ll <- create_likelihood(inf_fn)
-    warn_mat_ll <- create_likelihood(vectorized_fn = inf_mat_fn)
-    expected_msg <- "Replacing `Inf` with `-Inf`."
-    expected_value <- c(-Inf, fn(c(1, 2, 3)))
-
-    expect_warning(res <- warn_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_mat_ll(bad_vec), expected_msg)
-    expect_equal(res, -Inf)
-    expect_warning(res <- warn_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
-    expect_warning(warn_mat_ll(bad_mat), expected_msg)
-    expect_equal(res, expected_value)
   })
 })

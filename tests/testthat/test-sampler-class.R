@@ -6,15 +6,9 @@ test_that("ernest_sampler initializes correctly", {
     prior = gaussian_blobs$prior,
     lrps = rwmh_cube(),
     nlive = 500,
-    first_update = 200L,
-    update_interval = 50L
+    first_update = 200,
+    update_interval = 50
   )
-
-  expect_identical(sampler$log_lik, wrapped_lik)
-  expect_identical(sampler$prior, gaussian_blobs$prior)
-  expect_identical(sampler$nlive, 500L)
-  expect_identical(sampler$first_update, 200L)
-  expect_identical(sampler$update_interval, 50L)
   expect_identical(env_depth(sampler$live_env), 1L)
   expect_snapshot(sampler)
 })

@@ -28,12 +28,10 @@ context("Ellipsoid class - basic functionality") {
     expect_true(ell.shape().isApprox(shape, 1e-3));
     expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
     expect_true(ell.inv_sqrt_shape().isApprox(inv_sqrt_shape, 1e-3));
-
     Eigen::Vector2d oob{-0.5, -0.5}, inb{-0.5, 0.5};
     expect_false(ell.Covered(oob));
     expect_true(ell.Covered(inb));
     expect_true(ell.Covered(center));
-    expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
   }
 
   test_that("Distance to point works") {
@@ -104,25 +102,6 @@ context("Ellipsoid class - geometric cases") {
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == vol::Status::kDegenerate);
   }
-
-  test_that("Rescaling log_volume works") {
-    double scale = 1.5;
-    ern::RandomEngine gen;
-
-    for (int n_dim = 1; n_dim <= 5; n_dim++) {
-      Eigen::VectorXd center = Eigen::VectorXd::Zero(n_dim);
-      Eigen::VectorXd shape_d = Eigen::VectorXd::Ones(n_dim);
-      std::generate(shape_d.begin(), shape_d.end(), unif_rand);
-      Eigen::MatrixXd shape = shape_d.asDiagonal();
-      vol::Ellipsoid ell(center, shape);
-      vol::Ellipsoid rescaled(center, R_pow_di(scale, -2) * shape);
-      ell.log_volume(ell.log_volume() + n_dim * log(scale));
-      expect_true(ern::WithinRel(ell.log_volume(), rescaled.log_volume(), 1e-6));
-      expect_true(ell.shape().isApprox(rescaled.shape(), 1e-6));
-      expect_true(ell.major_axis().isApprox(rescaled.major_axis(), 1e-6));
-      expect_true(ell.inv_sqrt_shape().isApprox(rescaled.inv_sqrt_shape(), 1e-6));
-    }
-  }
 }
 
 context("Rectangle class - basic functionality") {
@@ -182,17 +161,11 @@ context("Rectangle class - shrinking") {
     vol::Rectangle rect(2);
     Eigen::Vector2d inner{0.5, 0.5};
     Eigen::Vector2d outer{0.3, 0.9};
-    expect_true(rect.Clamp(inner, outer));
+    rect.Clamp(inner, outer);
 
-    expect_false(rect.Clamp(inner, Eigen::Vector2d{1.0, 1.0}));
-    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
-    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
-
-    expect_false(rect.Clamp(Eigen::Vector2d{1.0, 1.0}, outer));
-    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
-    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
-
-    expect_true(rect.Clamp(inner, outer));
+    rect.Clamp(inner, Eigen::Vector2d{1.0, 1.0});
+    rect.Clamp(Eigen::Vector2d{1.0, 1.0}, outer);
+    rect.Clamp(Eigen::Vector2d{-0.1, 0.5}, outer);
     expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
     expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
   };

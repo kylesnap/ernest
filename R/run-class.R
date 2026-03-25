@@ -13,22 +13,14 @@ new_ernest_run <- function(x, results) {
 #' @export
 #' @noRd
 new_ernest_run.ernest_sampler <- function(x, results) {
-  parsed <- parse_results(results, x$live_env)
-  new_ernest_run_(x, parsed)
+  new_ernest_run_(x, results)
 }
 
 #' @export
 #' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
-  prev_run <- butcher_run(x, keep_live = FALSE)
-  parsed <- parse_results(results, x$live_env)
-
-  parsed$dead <- vctrs::vec_rbind(
-    vctrs::data_frame(!!!prev_run),
-    vctrs::data_frame(!!!parsed$dead)
-  )
-  parsed$niter <- x$niter + parsed$niter
-  new_ernest_run_(x, parsed)
+  prev_run <- as_ernest_rcrd(x, keep_live = FALSE)
+  new_ernest_run_(x, vctrs::vec_c(prev_run, results))
 }
 
 #' Form the new_ernest_run from samples from the current and previous runs
@@ -42,36 +34,36 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  all_samples <- bind_dead_live(parsed, x$nlive)
-  samples_unit <- all_samples$unit
-  colnames(samples_unit) <- x$prior$names
-  samples <- t(apply(samples_unit, 1, x$prior$fn)) # TODO: Try vectorized?
-  colnames(samples) <- x$prior$names
-
+  all_samples <- c(parsed, extract_live_points(x$live_env))
+  niter <- sum(field(all_samples, "evals") != 0L)
   integration <- compute_integral(
-    all_samples$log_lik,
-    get_log_vol(x$nlive, niter = parsed$niter)
+    field(all_samples, "log_lik"),
+    get_log_vol(x$nlive, niter = niter)
   )
+  unit <- as.list(all_samples)[["unit"]]
+  colnames(unit) <- x$prior$names
+  original <- t(apply(unit, 1, x$prior$fn))
+  colnames(original) <- x$prior$names
 
-  result_elem <- list2(
-    "niter" = parsed$niter,
-    "neval" = sum(all_samples$evals),
+  result_elem <- list(
+    "niter" = niter,
+    "neval" = sum(field(all_samples, "evals")),
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
     "information" = tail(integration$information, 1L),
     "samples" = list(
-      "original" = samples,
-      "unit_cube" = samples_unit
+      "original" = original,
+      "unit_cube" = unit
     ),
     "weights" = vctrs::df_list(
-      "id" = as.integer(all_samples$id),
-      "evaluations" = as.integer(all_samples$evals),
-      "log_lik" = all_samples$log_lik,
+      "id" = field(all_samples, "id"),
+      "evaluations" = as.integer(field(all_samples, "evals")),
+      "log_lik" = integration$log_lik,
       "log_weight" = integration$log_w,
       "imp_weight" = exp(
         integration$log_w - tail(integration$log_evidence, 1L)
       ),
-      "birth_lik" = all_samples$birth_lik
+      "birth_lik" = field(all_samples, "birth_lik")
     )
   )
 
@@ -116,103 +108,6 @@ print.ernest_run <- function(x, ...) {
     "* Information: {h}"
   ))
   invisible(x)
-}
-
-# HELPERS FOR ERNEST_RUN-----
-
-#' Parse the results from nested_sampling_impl into a list
-#'
-#' Converts the output from `nested_sampling_impl` into a structured list of
-#' vectors.
-#'
-#' @param results Output from `nested_sampling_impl`.
-#' @param live_env The live environment from the run, used to extract live
-#' points.
-#'
-#' @return A named list of vectors summarizing information from the dead
-#' and live points.
-#' @noRd
-parse_results <- function(results, live_env) {
-  dead <- vctrs::df_list(
-    "unit" = results$dead_unit,
-    "log_lik" = results$dead_log_lik,
-    "id" = results$dead_id,
-    "evals" = results$dead_evals,
-    "birth_lik" = results$dead_birth
-  )
-  live_order <- order(live_env$log_lik)
-  live <- vctrs::df_list(
-    "unit" = live_env$unit[live_order, , drop = FALSE],
-    "log_lik" = live_env$log_lik[live_order],
-    "id" = seq_len(nrow(live_env$unit))[live_order],
-    "evals" = 0L,
-    "birth_lik" = live_env$birth_lik[live_order]
-  )
-  list("dead" = dead, "live" = live, "niter" = length(dead$log_lik))
-}
-
-#' Simplify nested sampling results into a basic list for merging.
-#'
-#' @param x An ernest_run object.
-#' @param keep_live Whether to include the live set in the output.
-#'
-#' @returns A list containing a subset of the elements from `x`.
-#' @noRd
-butcher_run <- function(x, keep_live = TRUE) {
-  run <- vctrs::df_list(
-    "unit" = x$samples$unit_cube,
-    "log_lik" = x$weights$log_lik,
-    "id" = x$weights$id,
-    "evals" = x$weights$evaluations,
-    "birth_lik" = x$weights$birth_lik
-  )
-  if (keep_live) {
-    return(run)
-  }
-  dead <- vctrs::vec_as_location(run$evals != 0L, length(run$evals))
-  vctrs::df_list(
-    "unit" = run$unit[dead, , drop = FALSE],
-    "log_lik" = run$log_lik[dead],
-    "id" = run$id[dead],
-    "evals" = run$evals[dead],
-    "birth_lik" = run$birth_lik[dead],
-  )
-}
-
-#' Merge dead and live samples together
-#'
-#' Combines dead and live sample information into a single data frame list.
-#'
-#' @param dead The list object from `parse_results`.
-#' @param live The log-likelihood, id, and birth_lik vectors from the
-#' current live set.
-#'
-#' @return A data frame list of vectors, all of length `nlive + niter`.
-#' @noRd
-bind_dead_live <- function(parsed, nlive, call = caller_env()) {
-  all_samples <- vctrs::df_list(
-    !!!vctrs::vec_rbind(
-      vctrs::data_frame(!!!parsed$dead),
-      vctrs::data_frame(!!!parsed$live)
-    )
-  )
-  if (!vctrs::list_all_size(all_samples, size = nlive + parsed$niter)) {
-    cli::cli_abort(
-      "Sampler contains an unexpected number of samples.",
-      "!" = "Expected {nlive + parsed$niter}",
-      "!" = "Observed: {nrow(all_samples)}",
-      "i" = "This likely indicates a problem internal to {.pkg ernest}.",
-      call = call
-    )
-  }
-  if (is.unsorted(all_samples$log_lik)) {
-    cli::cli_warn(
-      "`log_lik` values in the sampler are not in ascending order.",
-      "i" = "This likely indicates a problem internal to {.pkg ernest}.",
-      call = call
-    )
-  }
-  all_samples
 }
 
 #' Summarize a nested sampling run

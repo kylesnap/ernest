@@ -13,7 +13,7 @@ specifications.}
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-[\link{ernest_run}] containing merged dead points and live points.
+[\link{ernest_run}] A run containing the merged results from \code{x} and \code{y}.
 }
 \description{
 Combines two nested sampling runs into a single run by re-ordering their

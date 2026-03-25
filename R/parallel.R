@@ -25,8 +25,8 @@ p_generate <- function(
     vctrs::vec_cast(allow_par, integer(), call = call)
   }
   nlive_threaded <- thread_nlive(nlive, workers, hint, call)
-  print(nlive_threaded)
   thread_envs <- split_live(x$live_env, nlive_threaded, sampler_info, call)
+
   m <- mirai::mirai_map(
     thread_envs,
     \(thread) {
@@ -39,22 +39,21 @@ p_generate <- function(
         show_progress = FALSE
       )
       list(
-        "live" = rlang::env_get_list(
-          live_env,
-          c("unit", "log_lik", "birth_lik")
-        ),
+        "live" = extract(live_env, .id = thread$split),
         "dead" = res
       )
     },
     fn = nested_sampling_impl,
     l = x$lrps,
-    rc = run_control
+    rc = run_control,
+    extract = extract_live_points
   )
-  results <- mirai::collect_mirai(
+
+  m_out <- mirai::collect_mirai(
     m,
     options = c(".stop", if (show_progress) ".progress" else NULL)
   )
-  result <- collect_results(results, thread_envs)
+  result <- collect_results(m_out) |> merge_results()
   env_bind(x$live_env, !!!result$live)
   new_ernest_run(x, result$dead)
 }
@@ -146,21 +145,12 @@ split_info <- function(spl, info) {
   )
 }
 
-collect_results <- function(results, threads) {
-  runs <- .mapply(
-    \(r, t) {
-      parsed <- parse_results(r$dead, r$live)
-      df <- vctrs::vec_rbind(
-        vctrs::data_frame(!!!parsed$dead),
-        vctrs::data_frame(!!!parsed$live)
-      )
-      df$id <- t$split[df$id]
-      df
-    },
-    list(r = results, t = threads),
-    MoreArgs = NULL
+collect_results <- function(results) {
+  runs <- lapply(
+    results,
+    \(r) {
+      vctrs::vec_c(r$dead, r$live)
+    }
   )
-  all_runs <- vctrs::vec_rbind(!!!runs)
-  merged <- merge_results(all_runs)
-  merged
+  vctrs::vec_c(!!!runs)
 }

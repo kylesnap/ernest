@@ -45,7 +45,7 @@ the \link{.Random.seed} set within R is preserved and restored after a run.}
 \value{
 \verb{[ernest_sampler]}\cr
 A named list, containing a specification for a nested sampling run. Contains
-the arguments passed to this function as well as an environment \code{run_env},
+the arguments passed to this function as well as an environment \code{live_env},
 which is used to store the live set during sampling.
 }
 \description{

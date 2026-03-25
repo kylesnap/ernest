@@ -47,64 +47,58 @@
 merge.ernest_run <- function(x, y, ...) {
   check_class(y, "ernest_run")
   z <- merge_sampler(x, y)
-  # Merge results
-  list_x <- butcher_run(x, keep_live = TRUE)
-  list_y <- butcher_run(y, keep_live = TRUE)
-  merge_df <- merge_ids(list_x, list_y)
-  results <- merge_results(merge_df)
+  xy <- reindex_runs(x, y)
+  results <- merge_results(xy)
   # Reform sampler
   env_bind(z$live_env, !!!results$live)
   z <- refresh_ernest_sampler(z)
   new_ernest_run(z, results$dead)
 }
 
-#' Correct the IDs of two merged runs.
+#' Reindex runs so they have continuous IDs from 1 to 'nlive'
 #'
+#' @param ... ernest_run objects.
+#'
+#' @return A merged ernest_rcrd vector.
 #' @noRd
-merge_ids <- function(...) {
+reindex_runs <- function(...) {
   runs <- list2(...)
-  # Correct the IDS
-  nlives <- vapply(runs, \(x) length(unique(x$id)), integer(1))
+  nlives <- vapply(runs, \(x) vctrs::vec_unique_count(x$weights$id), integer(1))
   runs <- .mapply(
     \(x, start) {
-      x$id <- vctrs::vec_group_id(x$id) + start
-      vctrs::data_frame(!!!x)
+      y <- as_ernest_rcrd(x)
+      vctrs::field(y, "id") <- as.integer(
+        vctrs::vec_group_id(field(y, "id")) + start
+      )
+      y
     },
     dots = list(runs, c(0, cumsum(nlives)[-length(nlives)])),
     MoreArgs = NULL
   )
-  vctrs::vec_rbind(!!!runs)
+  vctrs::vec_c(!!!runs)
 }
 
 #' Merge the dead points from multiple nested sampling runs.
 #'
-#' @param all_runs A dataframe of nested sampling results, merged together from
-#' lists of butcher_run objects.
+#' @param all_runs An ernest_rcrd of nested sampling results, merged together
+#' from different runs. These should have unique IDs.
 #'
 #' @returns Two lists of "dead" and "live" run information.
 #' @noRd
 merge_results <- function(all_runs) {
-  all_runs <- all_runs[order(all_runs$log_lik), ]
+  all_runs <- sort(all_runs)
   # Get live points
-  first_live <- match(TRUE, all_runs$evals == 0L)
-  min_live <- all_runs$log_lik[[first_live]]
-  live <- vctrs::vec_rbind(
+  first_live <- match(TRUE, field(all_runs, "evals") == 0L)
+  min_live <- field(all_runs, "log_lik")[[first_live]]
+  live <- vctrs::vec_c(
     !!!lapply(
-      vctrs::vec_split(all_runs, all_runs$id)$val,
-      \(df) df[match(TRUE, df$log_lik >= min_live), ]
+      vctrs::vec_split(all_runs, field(all_runs, "id"))$val,
+      \(id_rows) id_rows[match(TRUE, field(id_rows, "log_lik") >= min_live)]
     )
-  ) |>
-    vctrs::df_list()
-  live <- live[c("unit", "log_lik", "birth_lik")]
-  # Get dead points
-  dead <- vctrs::df_list(vctrs::vec_slice(all_runs, seq_len(first_live - 1L)))
-  dead <- vctrs::df_list(
-    "dead_unit" = dead$unit,
-    "dead_log_lik" = dead$log_lik,
-    "dead_id" = dead$id,
-    "dead_evals" = dead$evals,
-    "dead_birth" = dead$birth_lik
   )
+  live <- as.list(live)[c("unit", "log_lik", "birth_lik")]
+  # Get dead points
+  dead <- vctrs::vec_slice(all_runs, seq_len(first_live - 1L))
   list("live" = live, "dead" = dead)
 }
 

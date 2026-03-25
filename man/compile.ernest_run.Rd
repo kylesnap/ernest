@@ -57,7 +57,7 @@ sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 
 # Compile the sampler to add a live set
 compile(sampler)
-head(sampler$run_env$unit)
+head(sampler$live_env$unit)
 
 # Continue a previous run
 # run <- data(example_run)

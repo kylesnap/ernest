@@ -142,11 +142,11 @@ nested_sampling_impl <- function(
     cur_eval <- cur_eval + new_unit$neval
   }
 
-  list(
-    "dead_unit" = do.call(rbind, dead_unit),
-    "dead_log_lik" = list_c(dead_log_lik),
-    "dead_id" = list_c(dead_id),
-    "dead_evals" = list_c(dead_evals),
-    "dead_birth" = list_c(dead_birth)
+  new_ernest_rcrd(
+    unit = do.call(rbind, dead_unit),
+    log_lik = list_c(dead_log_lik),
+    id = list_c(dead_id),
+    evals = list_c(dead_evals),
+    birth_lik = list_c(dead_birth)
   )
 }

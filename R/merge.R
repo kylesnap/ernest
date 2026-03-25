@@ -50,8 +50,8 @@ merge.ernest_run <- function(x, y, ...) {
   # Merge results
   list_x <- butcher_run(x, keep_live = TRUE)
   list_y <- butcher_run(y, keep_live = TRUE)
-  lists_xy <- merge_ids(list_x, list_y)
-  results <- merge_results(lists_xy)
+  merge_df <- merge_ids(list_x, list_y)
+  results <- merge_results(merge_df)
   # Reform sampler
   env_bind(z$live_env, !!!results$live)
   z <- refresh_ernest_sampler(z)
@@ -65,25 +65,25 @@ merge_ids <- function(...) {
   runs <- list2(...)
   # Correct the IDS
   nlives <- vapply(runs, \(x) length(unique(x$id)), integer(1))
-  .mapply(
+  runs <- .mapply(
     \(x, start) {
       x$id <- vctrs::vec_group_id(x$id) + start
-      x
+      vctrs::data_frame(!!!x)
     },
     dots = list(runs, c(0, cumsum(nlives)[-length(nlives)])),
     MoreArgs = NULL
   )
+  vctrs::vec_rbind(!!!runs)
 }
 
 #' Merge the dead points from multiple nested sampling runs.
 #'
-#' @param runs A list of nested sampling results from bucher_run. These
-#' should have unique IDs.
+#' @param all_runs A dataframe of nested sampling results, merged together from
+#' lists of butcher_run objects.
 #'
 #' @returns Two lists of "dead" and "live" run information.
 #' @noRd
-merge_results <- function(runs) {
-  all_runs <- vctrs::vec_rbind(!!!lapply(runs, \(x) vctrs::data_frame(!!!x)))
+merge_results <- function(all_runs) {
   all_runs <- all_runs[order(all_runs$log_lik), ]
   # Get live points
   first_live <- match(TRUE, all_runs$evals == 0L)

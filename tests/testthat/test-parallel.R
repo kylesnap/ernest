@@ -19,21 +19,19 @@ test_that("thread_nlive correctly handles parallel workers", {
   result <- thread_nlive(nlive = 100, workers = workers, hint = mock_hint)
   expect_identical(result, c(65L, 20L, 15L))
 })
-skip("Under construction")
 
 mirai::daemons(n = 2)
 test_that("Parallel generate on an ernest_run", {
-  sampler <- ernest_sampler(
-    log_lik = gaussian_blobs$log_lik,
-    prior = gaussian_blobs$prior,
-    seed = 42
+  res <- expect_gaussian_run(
+    sampler = multi_ellipsoid(),
+    nlive = 500,
+    .generate = list(allow_par = TRUE)
   )
-  res <- generate(sampler, max_iterations = 500, allow_par = TRUE)
-  print(res)
 })
 
 test_that("Parallel generate on an ernest_run", {
-  print(example_run)
-  print(generate(example_run, min_logz = 0.01, allow_par = TRUE))
+  res <- generate(example_run, min_logz = 0.01, allow_par = TRUE)
+  expect_gt(res$niter, example_run$niter)
 })
 mirai::daemons(0)
+Sys.sleep(1)

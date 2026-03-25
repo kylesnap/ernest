@@ -25,31 +25,38 @@ p_generate <- function(
     vctrs::vec_cast(allow_par, integer(), call = call)
   }
   nlive_threaded <- thread_nlive(nlive, workers, hint, call)
-  thread_envs <- split_live(x$run_env, nlive_threaded, sampler_info, call)
-
+  print(nlive_threaded)
+  thread_envs <- split_live(x$live_env, nlive_threaded, sampler_info, call)
   m <- mirai::mirai_map(
     thread_envs,
     \(thread) {
-      fn(
-        thread$env,
+      live_env <- list2env(thread$env, parent = emptyenv())
+      res <- fn(
+        live_env,
         lrps = l,
         thread$info,
         control = rc,
         show_progress = FALSE
+      )
+      list(
+        "live" = rlang::env_get_list(
+          live_env,
+          c("unit", "log_lik", "birth_lik")
+        ),
+        "dead" = res
       )
     },
     fn = nested_sampling_impl,
     l = x$lrps,
     rc = run_control
   )
-
   results <- mirai::collect_mirai(
     m,
     options = c(".stop", if (show_progress) ".progress" else NULL)
   )
-  result <- collect_results(results, thread_envs$split)
-  collect_live(x$live_env, thread_envs$live, thread_envs$split)
-  new_ernest_run(x, result)
+  result <- collect_results(results, thread_envs)
+  env_bind(x$live_env, !!!result$live)
+  new_ernest_run(x, result$dead)
 }
 
 #' Get the nlive for each worker.
@@ -117,18 +124,15 @@ split_live <- function(live_env, workers, info, call = caller_env()) {
 
   lapply(splits, \(spl) {
     list(
-      "env" = new_environment(
-        data = list(
-          "unit" = env_get(live_env, "unit")[spl, , drop = FALSE],
-          "log_lik" = env_get(live_env, "log_lik")[spl],
-          "birth_lik" = env_get(live_env, "birth_lik")[spl]
-        )
+      "env" = list(
+        "unit" = env_get(live_env, "unit")[spl, , drop = FALSE],
+        "log_lik" = env_get(live_env, "log_lik")[spl],
+        "birth_lik" = env_get(live_env, "birth_lik")[spl]
       ),
       "info" = split_info(spl, info),
       "split" = spl
     )
   })
-  # TODO: Run check_live_set here?
 }
 
 split_info <- function(spl, info) {
@@ -143,36 +147,20 @@ split_info <- function(spl, info) {
 }
 
 collect_results <- function(results, threads) {
-  results <- .mapply(
-    \(res, thread) {
-      res$dead_id <- (thread$split)[list_c(res$dead_id)]
-      dead <- parse_results(res)
-      live_order <- order(thread$env$log_lik)
-      list(
-        "dead_log_lik" = vctrs::list_of(
-          vctrs::vec_c(dead$log_lik, thread$env$log_lik[live_order]),
-          .ptype = double()
-        ),
-        "dead_id" = vctrs::list_of(
-          vctrs::vec_c(dead$id, thread$split[live_order]), #TODO: Preserve IDS during run
-          .ptype = integer()
-        ),
-        "dead_evals" = vctrs::list_of(
-          vctrs::vec_c(dead$evals, rep(0L, length(live_order))),
-          .ptype = integer()
-        ),
-        "dead_birth" = vctrs::list_of(
-          vctrs::vec_c(dead$birth_lik, thread$env$birth_lik[live_order]),
-          .ptype = double()
-        ),
-        "dead_unit" = asplit(
-          rbind(dead$unit, thread$env$unit[live_order, , drop = FALSE]),
-          1
-        )
+  runs <- .mapply(
+    \(r, t) {
+      parsed <- parse_results(r$dead, r$live)
+      df <- vctrs::vec_rbind(
+        vctrs::data_frame(!!!parsed$dead),
+        vctrs::data_frame(!!!parsed$live)
       )
+      df$id <- t$split[df$id]
+      df
     },
-    dots = list(res = results, thread = threads),
+    list(r = results, t = threads),
     MoreArgs = NULL
   )
-  merge_results(!!!results)
+  all_runs <- vctrs::vec_rbind(!!!runs)
+  merged <- merge_results(all_runs)
+  merged
 }

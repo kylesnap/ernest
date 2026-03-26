@@ -72,6 +72,7 @@ visualize.ernest_run <- function(
   draws <- as_draws_rvars(x, units = .units, radial = .radial)
 
   expr <- if (dots_n(...) == 0) {
+    # nocov starts
     if (length(x$prior$names) > 10) {
       cli::cli_abort(c(
         "Cannot automatically plot {length(x$prior$names)} variables.",
@@ -87,7 +88,7 @@ visualize.ernest_run <- function(
       cli::cli_warn("Plots with more than 10 variables may be cluttered.")
     }
     expr(c(...))
-  }
+  } # nocov end
 
   if (.which == "density") {
     check_installed("ggdist", "to create density plots.")
@@ -102,6 +103,8 @@ visualize.ernest_run <- function(
     visualize_trace(draws_df, pos, log_vol, stats::weights(draws))
   }
 }
+
+# nocov start
 
 #' Creates a faceted plot of the marginal posterior distributions for each
 #' selected variable from a nested sampling run, using `ggdist::stat_halfeye()`
@@ -167,3 +170,5 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     scale_y_continuous("Value") +
     theme_minimal()
 }
+
+# nocov end

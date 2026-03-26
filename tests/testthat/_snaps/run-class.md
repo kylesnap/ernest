@@ -13,6 +13,32 @@
       * Log-evidence: -#.# (± #.#)
       * Information: #.#
 
+# summary.ernest_run returns expected structure and values / has the correct meta-info
+
+    Code
+      smry
+    Message
+      Summary of nested sampling run:
+      -- Run Information -------------------------------------------------------------
+      * No. points: #
+      * Iterations: #
+      * Likelihood evals.: #
+      * Log-evidence: -#.# (± #.#)
+      * Information: #.#
+      * RNG seed: #
+      -- Posterior Summary -----------------------------------------------------------
+    Output
+      # A tibble: # x #
+        variable      mean    sd    median   q#   q#
+        <chr>        <dbl> <dbl>     <dbl> <dbl> <dbl>
+      # x        -#.#    #.#  #.#   -#.#  #.#
+      # y        -#.#   #.#  #.# -#.#  #.#
+      # z         #.#  #.# -#.#   -#.#  #.#
+    Message
+      -- Maximum Likelihood Estimate (MLE) -------------------------------------------
+      * Log-likelihood: -#.#
+      * Original parameters: #.#, #.#, and #.#
+
 # summary.ernest_run returns expected structure and values / has the expected posterior
 
     {

@@ -124,6 +124,8 @@ check_plot_which <- function(which, call = caller_env()) {
 
 # AUTOPLOT METHODS -----
 
+# nocov starts
+
 #' Generates a ggplot object for an `ernest_estimate` object containing
 #' uncertainty simulations.
 #'
@@ -447,3 +449,5 @@ interval_df <- function(x, y, nbands, type = c("point", "curve")) {
     !!!interval_fun(y, .width = ggdist::interval_widths(nbands))
   )
 }
+
+# nocov end

@@ -42,6 +42,7 @@ describe("summary.ernest_run returns expected structure and values", {
     expect_equal(smry$log_evidence_err, example_run$log_evidence_err)
     expect_equal(smry$information, example_run$information)
     expect_equal(smry$seed, attr(example_run, "seed"))
+    expect_snapshot(smry, transform = \(x) gsub("\\d+", "#", x))
   })
 
   it("has the expected MLE", {

@@ -210,7 +210,7 @@ get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
   log_weight <- log_dvol + log_lik
 
   log_evidence <- if (cum_z) {
-    get_cum_log_z(log_weight)
+    logspace_cumsum_mat(log_weight)
   } else {
     matrixStats::rowLogSumExps(log_weight)
   }
@@ -219,23 +219,6 @@ get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
     "log_weight" = log_weight,
     "log_evidence" = log_evidence
   )
-}
-
-#' Compute cumulative log-evidence from log weights
-#'
-#' Calculates the cumulative log-evidence from log weights.
-#'
-#' @param log_weight A matrix or vector of log-weights.
-#'
-#' @return A matrix of cumulative log-evidences, with the dimensions of
-#' `log_weight`.
-#' @noRd
-get_cum_log_z <- function(log_weight) {
-  if (is.matrix(log_weight)) {
-    logspace_cumsum_mat(log_weight)
-  } else {
-    logspace_cumsum(log_weight)
-  }
 }
 
 #' Compute information (KL divergence) for nested sampling

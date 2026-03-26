@@ -42,10 +42,8 @@ test_that("plot.ernest_run validates input arguments", {
   )
 })
 
+skip_plot_snapshot()
 describe("plotting an ernest_estimate object", {
-  skip_extended()
-  skip_on_cran()
-  skip_on_ci()
   set.seed(42)
   calc_100 <- calculate(example_run, ndraws = 100)
 
@@ -89,9 +87,6 @@ describe("plotting an ernest_estimate object", {
 })
 
 describe("plotting an ernest_run object", {
-  skip_extended()
-  skip_on_cran()
-  skip_on_ci()
   data(example_run)
   it("plots evidence", {
     vdiffr::expect_doppelganger(
@@ -128,9 +123,6 @@ describe("plotting an ernest_run object", {
 })
 
 test_that("ernest_run can be plotted after simulation", {
-  skip_extended()
-  skip_on_cran()
-  skip_on_ci()
   data(example_run)
   set.seed(42)
 

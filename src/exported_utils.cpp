@@ -8,21 +8,6 @@ double logspace_add_c(const double x, const double y) {
 }
 
 [[cpp11::register]]
-cpp11::doubles logspace_cumsum(cpp11::doubles x) {
-  cpp11::writable::doubles result(x.size());
-  if (x.empty()) {
-    return result;
-  }
-  double cumsum = x[0];
-  result[0] = cumsum;
-  for (size_t i = 1; i < x.size(); ++i) {
-    cumsum = Rf_logspace_add(cumsum, x[i]);
-    result[i] = cumsum;
-  }
-  return result;
-}
-
-[[cpp11::register]]
 cpp11::doubles_matrix<cpp11::by_row> logspace_cumsum_mat(
     cpp11::doubles_matrix<cpp11::by_row> x) {
   cpp11::writable::doubles_matrix<cpp11::by_row> result(x.nrow(), x.ncol());

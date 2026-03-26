@@ -4,10 +4,6 @@ logspace_add_c <- function(x, y) {
   .Call(`_ernest_logspace_add_c`, x, y)
 }
 
-logspace_cumsum <- function(x) {
-  .Call(`_ernest_logspace_cumsum`, x)
-}
-
 logspace_cumsum_mat <- function(x) {
   .Call(`_ernest_logspace_cumsum_mat`, x)
 }

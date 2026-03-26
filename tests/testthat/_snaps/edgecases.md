@@ -6,7 +6,7 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! `unit` must have 500 rows, not 0.
+      ! `live$unit` must have size 500, not size 0.
 
 # Zero-length prior fails
 

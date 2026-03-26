@@ -54,21 +54,8 @@
 #' @export
 compile.ernest_sampler <- function(object, ...) {
   preserve_seed(attr(object, "seed"))
-  check_dots_empty()
-  object <- refresh_ernest_sampler(object)
-
-  # Fill live set
-  live <- create_live(object$lrps, object$nlive)
-  env_poke(object$live_env, "unit", live$unit, create = TRUE)
-  env_poke(object$live_env, "log_lik", live$log_lik, create = TRUE)
-  env_poke(
-    object$live_env,
-    "birth_lik",
-    rep(-Inf, object$nlive),
-    create = TRUE
-  )
-
-  check_live_set(object)
+  live <- new_live_set(object$lrps, object$nlive)
+  write_live_set(live, object)
   object
 }
 
@@ -97,33 +84,14 @@ compile.ernest_run <- function(
       seed = attr(object, "seed")
     )
     object <- do.call(new_ernest_sampler, elem)
-    return(compile(object, ...))
+    return(NextMethod())
   }
   preserve_seed(attr(object, "seed"))
 
   # Fill live set
-  live_positions <- vctrs::vec_as_location(
-    seq(object$niter),
-    vctrs::vec_size(object$weights$log_lik)
-  )
-  env_bind(
-    object$live_env,
-    unit = object$samples$unit_cube[-live_positions, ],
-    log_lik = object$weights$log_lik[-live_positions],
-    birth_lik = object$weights$birth_lik[-live_positions]
-  )
-  try_fetch(
-    check_live_set(object),
-    error = function(cnd) {
-      cli::cli_abort(
-        c(
-          "Can't create live set from the previous run.",
-          "i" = "Do you need to set `clear`?"
-        ),
-        parent = cnd
-      )
-    }
-  )
+  prev <- as_ernest_rcrd(object)
+  live <- vctrs::vec_slice(prev, field(prev, "evals") == 0L)
+  write_live_set(as.list(live), object)
   object
 }
 
@@ -135,12 +103,17 @@ compile.ernest_run <- function(
 #'
 #' @return A list containing `unit` and `log_lik` matrices or vectors.
 #' @noRd
-create_live <- function(lrps, nlive, call = caller_env()) {
+new_live_set <- function(lrps, nlive, call = caller_env()) {
   try_fetch(
     {
       unit <- matrix(stats::runif(nlive * lrps$n_dim), ncol = lrps$n_dim)
       log_lik <- lrps$unit_log_fn(unit)
-      live <- list("unit" = unit, "log_lik" = log_lik)
+      order_logl <- order(log_lik)
+      vctrs::df_list(
+        "unit" = unit[order_logl, , drop = FALSE],
+        "log_lik" = log_lik[order_logl],
+        "birth_lik" = -Inf
+      )
     },
     error = function(cnd) {
       cli::cli_abort(
@@ -150,42 +123,45 @@ create_live <- function(lrps, nlive, call = caller_env()) {
       )
     }
   )
-  order_logl <- order(live$log_lik)
-  list(
-    "log_lik" = live$log_lik[order_logl],
-    "unit" = live$unit[order_logl, , drop = FALSE]
-  )
 }
 
 #' Validate a live set for correctness
 #'
-#' @param sampler The `ernest_sampler` object undergoing validation.
+#' @param live A list containing the `unit`, `log_lik`, and `birth_lik`
+#' components of the live set.
+#' @param object The `ernest_sampler` object undergoing validation.
 #' @param call The calling environment for error handling.
 #'
-#' @return Returns NULL invisibly if validation passes, otherwise throws an
-#' error or warning.
+#' @return Returns the live_env bound to object, with the list entrants bound
+#' for nested sampling.
 #' @noRd
-check_live_set <- function(sampler, call = caller_env()) {
-  nlive <- sampler$nlive
-  n_dim <- attr(sampler$prior, "n_dim")
+write_live_set <- function(live, object, call = caller_env()) {
+  nlive <- object$nlive
+  n_dim <- object$lrps$n_dim
 
-  # Live Point Check
-  unit <- env_get(sampler$live_env, "unit")
-  check_matrix(
-    unit,
-    nrow = nlive,
-    ncol = n_dim,
-    lower = 0,
-    upper = 1,
-    arg = "unit",
+  # Prototype Checks
+  unit <- vctrs::vec_cast(
+    live$unit,
+    to = matrix(double(), ncol = n_dim),
+    to_arg = "matrix(ncol = object$lrps$n_dim)",
+    call = call
+  )
+  log_lik <- vctrs::vec_cast(live$log_lik, to = double(), call = call)
+  birth_lik <- vctrs::vec_cast(live$birth_lik, to = double(), call = call)
+
+  # Size Checks
+  vctrs::list_check_all_size(
+    list("unit" = unit, "log_lik" = log_lik, "birth_lik" = birth_lik),
+    size = nlive,
+    allow_null = FALSE,
+    arg = "live",
     call = call
   )
 
-  # Log Lik Checks
-  log_lik <- env_get(sampler$live_env, "log_lik")
-  if (!is_bare_double(log_lik, n = nlive)) {
+  # Bounds Checking
+  if (any(!is.finite(unit)) || min(unit) < 0 || max(unit) > 1) {
     cli::cli_abort(
-      "`log_lik` must be a double vector with length {nlive}.",
+      "`unit` must contain only finite values between 0 and 1.",
       call = call
     )
   }
@@ -195,7 +171,14 @@ check_live_set <- function(sampler, call = caller_env()) {
       call = call
     )
   }
+  if (any(is.na(birth_lik) | is.nan(birth_lik) | log_lik == Inf)) {
+    cli::cli_abort(
+      "`birth_lik` must contain only finite values or `-Inf`.",
+      call = call
+    )
+  }
 
+  # Plateau Checks
   n_unique <- vctrs::vec_unique_count(log_lik)
   if (n_unique == 1L) {
     cli::cli_abort(
@@ -205,8 +188,7 @@ check_live_set <- function(sampler, call = caller_env()) {
       ),
       call = call
     )
-  }
-  if (n_unique < (nlive * 0.75)) {
+  } else if (n_unique < (nlive * 0.75)) {
     cli::cli_warn(
       c(
         "`log_lik` may contain a likelihood plateau; proceed with caution.",
@@ -216,12 +198,11 @@ check_live_set <- function(sampler, call = caller_env()) {
     )
   }
 
-  # Birth vector
-  birth_lik <- env_get(sampler$live_env, "birth_lik")
-  if (!is_double(birth_lik)) {
-    stop_input_type(birth_lik, "a double vector")
-  }
-  vctrs::vec_check_size(birth_lik, size = nlive, call = call)
-
-  invisible(NULL)
+  env_bind(
+    object$live_env,
+    "unit" = unit,
+    "log_lik" = log_lik,
+    "birth_lik" = birth_lik
+  )
+  object$live_env
 }

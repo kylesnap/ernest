@@ -1,4 +1,4 @@
-# compile / initializes the live set
+# compile initializes the live set
 
     Code
       sampler

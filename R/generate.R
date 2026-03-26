@@ -108,8 +108,7 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-  control <- get_run_control(
-    x,
+  control <- new_generate_control(
     max_iterations,
     max_evaluations,
     min_logz
@@ -157,20 +156,15 @@ generate.ernest_run <- function(
   check_bool(show_progress)
   x <- compile(x, ...)
   if (inherits_only(x, "ernest_sampler")) {
-    return(generate(
-      x,
-      max_iterations = max_iterations,
-      max_evaluations = max_evaluations,
-      min_logz = min_logz,
-      show_progress = show_progress
-    ))
+    return(NextMethod())
   }
 
-  control <- get_run_control(
-    x,
+  x_rcrd <- as_ernest_rcrd(x)
+  control <- new_generate_control(
     max_iterations,
     max_evaluations,
-    min_logz
+    min_logz,
+    prev_run = x_rcrd
   )
   info <- get_sampler_info(x)
 
@@ -190,29 +184,32 @@ generate.ernest_run <- function(
 
 #' Generate and validate stopping criteria.
 #'
-#' @param x Object used for nested sampling.
 #' @param max_iterations Maximum number of iterations to perform.
 #' @param max_evaluations Maximum number of likelihood function evals.
 #' @param min_logz Minimum log-ratio between current estimated evidence and
 #' remaining evidence.
+#' @param prev_run The points from a previous run; NULL if no points yet
+#' exist.
 #' @param call Environment for error reporting.
 #'
 #' @return A named list containing `max_iterations`, `max_evaluations`,
 #' `min_logz`, `last_criterion`, `log_z`, `log_vol`, `cur_iter`, and `cur_eval`.
 #' @noRd
-get_run_control <- function(
-  x,
+new_generate_control <- function(
   max_iterations,
   max_evaluations,
   min_logz,
+  prev_run = NULL,
   call = caller_env()
 ) {
   check_number_whole(max_iterations, min = 1, allow_null = TRUE, call = call)
   check_number_whole(max_evaluations, min = 1, allow_null = TRUE, call = call)
   check_number_decimal(min_logz, min = 0, call = call)
-  no_stopping <- identical(min_logz, 0) &&
-    is.null(max_iterations) &&
+  no_stopping <- all(
+    identical(min_logz, 0),
+    is.null(max_iterations),
     is.null(max_evaluations)
+  )
   if (no_stopping) {
     cli::cli_abort(
       c(
@@ -226,7 +223,7 @@ get_run_control <- function(
   max_iterations <- max_iterations %||% .Machine$integer.max
   max_evaluations <- max_evaluations %||% .Machine$integer.max
 
-  if (inherits_only(x, "ernest_sampler")) {
+  if (is.null(prev_run)) {
     return(list(
       max_iterations = as.integer(max_iterations),
       max_evaluations = as.integer(max_evaluations),
@@ -239,32 +236,34 @@ get_run_control <- function(
     ))
   }
 
-  cur_iter <- x$niter
-  cur_eval <- x$neval
+  nlive <- vctrs::vec_unique_count(field(prev_run, "id"))
+  niter <- match(0L, field(prev_run, "evals")) - 1L
+  neval <- sum(field(prev_run, "evals"))
   prev_integration <- compute_integral(
-    x$weights$log_lik,
-    get_log_vol(x$nlive, niter = cur_iter)
+    field(prev_run, "log_lik"),
+    get_log_vol(nlive, niter = niter)
   )
-  last_criterion <- prev_integration$log_lik[cur_iter]
-  log_z <- prev_integration$log_evidence[cur_iter]
-  log_vol <- prev_integration$log_vol[cur_iter]
-  max_lik <- max(env_get(x$live_env, "log_lik"))
+
+  last_criterion <- prev_integration$log_lik[[niter]]
+  log_z <- prev_integration$log_evidence[[niter]]
+  log_vol <- prev_integration$log_vol[[niter]]
+  max_lik <- max(field(prev_run, "log_lik")[(niter + 1):length(prev_run)])
   d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
 
-  if (cur_iter >= max_iterations) {
+  if (niter >= max_iterations) {
     cli::cli_abort(
       c(
-        "`max_iterations` must be strictly larger than {cur_iter}.",
+        "`max_iterations` must be strictly larger than {niter}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
       ),
       call = call
     )
   }
-  if (cur_eval >= max_evaluations) {
+  if (neval >= max_evaluations) {
     cli::cli_abort(
       c(
-        "`max_evaluations` must be strictly larger than {cur_eval}.",
+        "`max_evaluations` must be strictly larger than {neval}.",
         "x" = "`x` already contains previously-generated samples.",
         "i" = "Should you use `clear` to erase previous samples from `x`?"
       ),
@@ -286,11 +285,11 @@ get_run_control <- function(
     max_iterations = as.integer(max_iterations),
     max_evaluations = as.integer(max_evaluations),
     min_logz = as.double(min_logz),
-    last_criterion = last_criterion,
-    log_vol = log_vol,
-    log_z = log_z,
-    cur_iter = as.integer(cur_iter),
-    cur_eval = as.integer(cur_eval)
+    last_criterion = as.double(last_criterion),
+    log_vol = as.double(log_vol),
+    log_z = as.double(log_z),
+    cur_iter = as.integer(niter),
+    cur_eval = as.integer(neval)
   )
 }
 

@@ -11,8 +11,8 @@
 #'
 #' @details
 #' The two runs must use the same prior variable names and LRPS method.
-#' If `first_update` or `update_interval` differ between runs, a warning is
-#' thrown and defaults are re-computed from the merged `nlive`.
+#' If `first_update` or `update_interval` differ between runs, the defaults
+#' from [[ernest_sampler]] are used instead.
 #'
 #' The merged run contains all dead points from both runs, ordered by
 #' log-likelihood, and the live set is reconstructed from the remaining points.
@@ -102,8 +102,7 @@ merge_results <- function(all_runs) {
   list("live" = live, "dead" = dead)
 }
 
-#' Combine two `ernest_sampler` objects together, warning the user if they are
-#' not consistent.
+#' Combine two `ernest_sampler` objects together.
 #'
 #' @param x,y `ernest_sampler` objects.
 #' @param call Information about the calling environment for error messages.
@@ -135,25 +134,11 @@ merge_sampler <- function(
   }
   nlive <- x$nlive + y$nlive
   first_update <- if (x$first_update != y$first_update) {
-    cli::cli_warn(
-      c(
-        "`first_update` values differ between `{x_arg}` and `{y_arg}`",
-        "!" = "Using default `nlive * 2.5`"
-      ),
-      call = call
-    )
     as.integer(nlive * 2.5)
   } else {
     x$first_update
   }
   update_interval <- if (x$update_interval != y$update_interval) {
-    cli::cli_warn(
-      c(
-        "`update_interval` values differ `{x_arg}` and `{y_arg}`",
-        "!" = "Using default `nlive * 1.5`"
-      ),
-      call = call
-    )
     as.integer(nlive * 1.5)
   } else {
     x$update_interval

@@ -44,7 +44,7 @@ describe("merge_sampler", {
     expect_identical(z$update_interval, 750L)
   })
 
-  it("warns and uses default update values when they differ", {
+  it("uses default update values when they differ", {
     x <- ernest_sampler(
       log_lik = gaussian_blobs$log_lik,
       prior = gaussian_blobs$prior,
@@ -60,7 +60,7 @@ describe("merge_sampler", {
       seed = 42
     )
 
-    expect_snapshot(z <- merge_sampler(x, y))
+    z <- merge_sampler(x, y)
     expect_identical(z$first_update, 2500L)
     expect_identical(z$update_interval, 1500L)
     expect_identical(attr(z, "seed"), NA_integer_)
@@ -85,7 +85,7 @@ test_that("merging two runs", {
     ),
     max_iterations = 100
   )
-  expect_warning(expect_warning(run3 <- merge(run1, run2)))
+  run3 <- merge(run1, run2)
   expect_s3_class(run3, c("ernest_run", "ernest_sampler"))
   expect_identical(run3$nlive, 800L)
   expect_identical(sort(unique(run3$weights$id)), seq(800L))

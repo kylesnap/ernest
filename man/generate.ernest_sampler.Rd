@@ -45,9 +45,10 @@ if set to zero, this criterion is ignored.}
 and iteration counter during sampling. Optional; if \code{NULL} the global option
 \code{rlib_message_verbosity} is used to determine whether to show progress.}
 
-\item{allow_par}{\verb{[logical(1)]}\cr If \code{TRUE}, run the nested sampling loop
-in parallel by breaking \code{nlive} into multiple samplers. Requires the
-[\link{mirai}] package.}
+\item{allow_par}{\verb{[logical(1)]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} If
+\code{TRUE}, run the nested sampling loop in parallel by breaking \code{nlive} into
+multiple samplers. Use \code{\link[mirai:daemons]{mirai::daemons()}} to control how many samplers \code{x} is
+split into.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}

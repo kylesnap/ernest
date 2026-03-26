@@ -18,9 +18,10 @@
 #' @param show_progress `[logical(1)]`\cr If `TRUE`, displays a progress spinner
 #' and iteration counter during sampling. Optional; if `NULL` the global option
 #' `rlib_message_verbosity` is used to determine whether to show progress.
-#' @param allow_par `[logical(1)]`\cr If `TRUE`, run the nested sampling loop
-#' in parallel by breaking `nlive` into multiple samplers. Requires the
-#' [[mirai]] package.
+#' @param allow_par `[logical(1)]`\cr `r lifecycle::badge("experimental")` If
+#' `TRUE`, run the nested sampling loop in parallel by breaking `nlive` into
+#' multiple samplers. Use [mirai::daemons()] to control how many samplers `x` is
+#' split into.
 #'
 #' @returns `[ernest_run]`
 #'

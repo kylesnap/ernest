@@ -53,7 +53,7 @@ nested_sampling_impl <- function(
   d_log_vol <- log((sampler_info$nlive + 1) / sampler_info$nlive)
   initial_update <- FALSE
 
-  dead_unit <- vctrs::list_of(.ptype = double(sampler_info$nlive))
+  dead_unit <- vctrs::list_of(.ptype = double(lrps$n_dim))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_evals <- vctrs::list_of(.ptype = integer())
@@ -144,9 +144,9 @@ nested_sampling_impl <- function(
 
   new_ernest_rcrd(
     unit = do.call(rbind, dead_unit),
-    log_lik = list_c(dead_log_lik),
-    id = list_c(dead_id),
-    evals = list_c(dead_evals),
-    birth_lik = list_c(dead_birth)
+    log_lik = vctrs::vec_c(!!!dead_log_lik, .ptype = double()),
+    id = vctrs::vec_c(!!!dead_id, .ptype = double()),
+    evals = vctrs::vec_c(!!!dead_evals, .ptype = double()),
+    birth_lik = vctrs::vec_c(!!!dead_birth, .ptype = double())
   )
 }

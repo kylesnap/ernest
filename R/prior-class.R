@@ -203,7 +203,6 @@ new_ernest_prior <- function(
 #' validated before the NS algorithm is invoked.
 #'
 #' @returns The test matrix if all checks pass.
-#' @importFrom cli cli_warn
 #' @noRd
 check_prior <- function(
   fn,
@@ -213,26 +212,49 @@ check_prior <- function(
   arg = caller_arg(fn),
   call = caller_env()
 ) {
+  # Vector input sanity check (single point)
   test_vector <- rep(0.5, n_dim)
   output_test <- fn(test_vector)
   output_test <- vctrs::vec_cast(
     output_test,
-    matrix(double(), ncol = n_dim),
+    to = matrix(double(), ncol = n_dim),
     x_arg = arg,
     call = call
   )
 
+  # 2) Matrix input sanity check (batched points)
   test_matrix <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
   output_test_mat <- fn(test_matrix)
-  check_matrix(
+  output_test_mat <- vctrs::vec_cast(
     output_test_mat,
-    nrow = 1000,
-    ncol = n_dim,
-    lower = lower,
-    upper = upper,
-    arg = arg,
+    to = matrix(double(), ncol = n_dim),
+    x_arg = arg,
     call = call
   )
+  vctrs::vec_check_size(output_test_mat, size = 1000, arg = arg, call = call)
+  if (any(!is.finite(output_test_mat))) {
+    cli::cli_abort("`{arg}` must return only finite values.", call = call)
+  }
+
+  if (identical(lower, -Inf) && identical(upper, Inf)) {
+    return(output_test_mat)
+  }
+
+  # Bounds checks (inclusive, matching prior check_matrix behavior)
+  bounds <- vctrs::vec_recycle_common(
+    lower = lower,
+    upper = upper,
+    .size = n_dim,
+    .call = call
+  )
+  mins <- matrixStats::colMins(output_test_mat)
+  maxes <- matrixStats::colMaxs(output_test_mat)
+  if (any(mins < bounds$lower)) {
+    cli::cli_abort("`{arg}` must respect the lower bounds.", call = call)
+  }
+  if (any(maxes > bounds$upper)) {
+    cli::cli_abort("`{arg}` must respect the upper bounds.", call = call)
+  }
   output_test_mat
 }
 

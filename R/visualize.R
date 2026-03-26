@@ -115,7 +115,7 @@ visualize.ernest_run <- function(
 #' @importFrom ggplot2 facet_grid vars
 #' @noRd
 visualize_density <- function(selected) {
-  tibble(".variable" = names(selected), ".dist" = list_c(selected)) |>
+  tibble(".variable" = names(selected), ".dist" = vctrs::vec_c(!!!selected)) |>
     ggplot() +
     ggdist::stat_halfeye(
       mapping = ggplot2::aes(xdist = .data[[".dist"]]),

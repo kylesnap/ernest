@@ -1,37 +1,51 @@
-test_that("thread_nlive correctly handles parallel workers", {
-  mock_hint <- "MOCK MESSAGE"
-  expect_error(
-    thread_nlive(nlive = 100, workers = integer(0), hint = mock_hint),
-    "At least one worker must be specified"
-  )
-
-  workers <- c(NA, NA, NA)
-  result <- thread_nlive(nlive = 100, workers = workers, hint = mock_hint)
-  expect_identical(result, c(34L, 33L, 33L))
-
-  workers <- c(10, 0, 15)
-  expect_error(
-    thread_nlive(nlive = 100, workers = workers, hint = mock_hint),
-    "parallel runs must each contain at least one live point"
-  )
-
-  workers <- c(10, 20, 15)
-  result <- thread_nlive(nlive = 100, workers = workers, hint = mock_hint)
-  expect_identical(result, c(65L, 20L, 15L))
+test_that("thread_nlive correctly specifies parallel workers", {
+  result <- thread_nlive(example_run, nworkers = 3)
+  expect_length(result, 3)
+  expect_length(result[[1]], 334)
+  expect_length(result[[2]], 333)
+  expect_length(result[[3]], 333)
 })
 
-mirai::daemons(n = 2)
-test_that("Parallel generate on an ernest_run", {
-  res <- expect_gaussian_run(
-    sampler = multi_ellipsoid(),
-    nlive = 500,
-    .generate = list(allow_par = TRUE)
+test_that("Parallel generate fails when no daemons are set", {
+  expect_error(
+    generate(example_run, min_logz = 0.01, allow_par = TRUE),
+    "No daemons set."
   )
 })
 
+mirai::daemons(1, dispatcher = FALSE)
+
+test_that("Parallel generate on an ernest_sampler", {
+  res <- expect_gaussian_run(rwmh_cube(), .generate = list(allow_par = TRUE))
+
+  expect_s3_class(res, c("ernest_run", "ernest_sampler"))
+  expect_equal(res$nlive, 100L)
+  expect_identical(sort(unique(res$weights$id)), seq(100))
+  expect_equal(nrow(res$samples$unit_cube), res$niter + 100)
+  expect_equal(sum(res$weights$evaluations == 0L), 100)
+})
+
 test_that("Parallel generate on an ernest_run", {
+  data(example_run)
+  prev_dead <- example_run$niter - example_run$nlive
   res <- generate(example_run, min_logz = 0.01, allow_par = TRUE)
+
+  expect_equal(res$nlive, 1000L)
+  expect_identical(sort(unique(res$weights$id)), seq(1000))
+  expect_equal(nrow(res$samples$unit_cube), res$niter + 1000)
+  expect_equal(sum(res$weights$evaluations == 0L), 1000)
+
   expect_gt(res$niter, example_run$niter)
+  expect_gte(res$neval, example_run$neval)
+  expect_identical(
+    example_run$samples$unit_cube[1:prev_dead, ],
+    res$samples$unit_cube[1:prev_dead, ]
+  )
+  expect_identical(
+    example_run$weights$log_lik[1:prev_dead],
+    res$weights$log_lik[1:prev_dead]
+  )
 })
+
 mirai::daemons(0)
 Sys.sleep(1)

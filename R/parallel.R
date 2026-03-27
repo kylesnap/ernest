@@ -8,149 +8,120 @@
 #' @noRd
 p_generate <- function(
   x,
-  sampler_info,
-  run_control,
+  parent_info,
+  parent_control,
   show_progress,
-  allow_par,
   call = caller_env()
 ) {
-  check_installed("mirai", "allow_par", call = call)
+  check_installed("mirai", "for parallel nested sampling.", call = call)
   mirai::require_daemons(call = call)
-  nlive <- x$nlive
-  workers <- if (isTRUE(allow_par)) {
-    hint <- "Have you changed the number of daemons set by {.pkg mirai}?"
-    rep(na_int, mirai::info()[["connections"]])
-  } else {
-    hint <- "Have you changed how the run is parallelized with `allow_par`?"
-    vctrs::vec_cast(allow_par, integer(), call = call)
-  }
-  nlive_threaded <- thread_nlive(nlive, workers, hint, call)
-  thread_envs <- split_live(x$live_env, nlive_threaded, sampler_info, call)
+  nworkers <- mirai::info()[["connections"]]
+  split_id <- thread_nlive(x, nworkers, call)
+  split_x <- split_run(x, split_id, parent_control, parent_info)
 
   m <- mirai::mirai_map(
-    thread_envs,
-    \(thread) {
-      live_env <- list2env(thread$env, parent = emptyenv())
-      res <- fn(
+    split_x,
+    \(sx) {
+      library(ernest)
+      live_env <- list2env(sx[c("unit", "log_lik", "birth_lik")])
+      dead <- impl(
         live_env,
-        lrps = l,
-        thread$info,
-        control = rc,
+        lrps,
+        sx$info,
+        sx$control,
         show_progress = FALSE
       )
-      list(
-        "live" = extract(live_env, .id = thread$split),
-        "dead" = res
-      )
+      list("dead" = dead, "live" = as.list(live_env))
     },
-    fn = nested_sampling_impl,
-    l = x$lrps,
-    rc = run_control,
-    extract = extract_live_points
+    impl = nested_sampling_impl,
+    lrps = x$lrps
   )
 
   m_out <- mirai::collect_mirai(
     m,
     options = c(".stop", if (show_progress) ".progress" else NULL)
   )
-  result <- collect_results(m_out) |> merge_results()
-  env_bind(x$live_env, !!!result$live)
+  result <- reindex_threads(m_out, split_id)
+  env_bind(
+    x$live_env,
+    !!!as.list(result$live)[c("unit", "log_lik", "birth_lik")]
+  )
   new_ernest_run(x, result$dead)
 }
 
 #' Get the nlive for each worker.
 #'
 #' @param nlive The total nlive of the sampler.
-#' @param workers An integer vector containing nlive per worker or NA.
-#' @param hint A string printed when an error is thrown.
-#' @param call Calling environment for errors.
+#' @param workers An integer vector or NULL. The length of the vector is the
+#' number of workers, the element is the nlive of each sub-sampler.
+#' @param call Error info.
 #'
 #' @returns A validated integer vector, whose length is the number of
 #' runs and each element is that run's nlive.
 #' @noRd
-thread_nlive <- function(nlive, workers, hint, call = caller_env()) {
-  if (vctrs::vec_is_empty(workers)) {
-    cli::cli_abort(
-      c("At least one worker must be specified.", "i" = hint),
-      call = call
-    )
-  }
-  workers <- if (all(is.na(workers))) {
-    rep(nlive %/% length(workers), length(workers))
-  } else if (any(!is.finite(workers)) || any(workers < 1L)) {
-    cli::cli_abort(
-      c("parallel runs must each contain at least one live point", "i" = hint),
-      call = call
-    )
-  } else {
-    workers
-  }
-  if (sum(workers) > nlive) {
-    cli::cli_abort(
-      c(
-        "parallel runs must contain a total of {nlive} live points",
-        "i" = hint
-      ),
-      call = call
-    )
-  }
-  workers[[1]] <- workers[[1]] + (nlive - sum(workers))
-  as.integer(workers)
+thread_nlive <- function(x, nworkers, call = caller_env()) {
+  nworkers <- min(x$nlive, nworkers)
+  workers <- as.integer(pmax(1L, rep(x$nlive %/% nworkers, nworkers)))
+  nlive_workers <- sum(workers)
+  workers[[1]] <- workers[[1]] + (x$nlive - nlive_workers)
+  preserve_seed(attr(x, "seed"))
+  ids <- sample.int(x$nlive, size = x$nlive)
+  vctrs::vec_chop(ids, sizes = workers)
 }
 
 #' Split the live set into a series of threads.
 #'
-#' @param live_env The original live set, already validated.
-#' @param workers Integer vector describing how points are to be
-#' allocated
-#' @param info Sampler info, which is broken up into per-thread control lists.
-#' @param call Error info.
+#' @param x The sampler.
+#' @param slices How the sampler is to be split.
 #'
 #' @returns Named list of IDs by worker and environments.
 #' @noRd
-split_live <- function(live_env, workers, info, call = caller_env()) {
-  withr::local_preserve_seed()
-  nwork <- length(workers)
-  idx_split <- sample.int(info$nlive, info$nlive, replace = FALSE)
-  splits <- .mapply(
-    \(s, e) vctrs::vec_as_location(sort(idx_split[s:e]), n = info$nlive),
-    dots = list(
-      s = c(1, cumsum(workers)[-nwork] + 1),
-      e = cumsum(workers)
-    ),
-    MoreArgs = NULL
-  )
+split_run <- function(x, slices, parent_control, parent_info) {
+  x_rcrd <- if (inherits_only(x, "ernest_sampler")) {
+    NULL
+  } else {
+    as_ernest_rcrd(x)
+  }
 
-  lapply(splits, \(spl) {
+  lapply(slices, \(slice) {
     list(
-      "env" = list(
-        "unit" = env_get(live_env, "unit")[spl, , drop = FALSE],
-        "log_lik" = env_get(live_env, "log_lik")[spl],
-        "birth_lik" = env_get(live_env, "birth_lik")[spl]
-      ),
-      "info" = split_info(spl, info),
-      "split" = spl
+      "unit" = env_get(x$live_env, "unit")[slice, , drop = FALSE],
+      "log_lik" = env_get(x$live_env, "log_lik")[slice],
+      "birth_lik" = env_get(x$live_env, "birth_lik")[slice],
+      "info" = split_info(length(slice), parent_info),
+      "control" = new_generate_control(
+        parent_control$max_iterations,
+        parent_control$max_evaluations,
+        parent_control$min_logz,
+        prev_run = if (!is.null(x_rcrd)) {
+          vctrs::vec_slice(x_rcrd, field(x_rcrd, "id") %in% slice)
+        },
+        call = call
+      )
     )
   })
 }
 
-split_info <- function(spl, info) {
-  thread_nlive <- length(spl)
-  frac_nlive <- thread_nlive / info$nlive
+split_info <- function(split_nlive, parent_info) {
+  frac_nlive <- split_nlive / parent_info$nlive
   list(
-    seed = info$seed,
-    nlive = thread_nlive,
-    first_update = as.integer(info$first_update * frac_nlive),
-    update_interval = as.integer(info$update_interval * frac_nlive)
+    seed = parent_info$seed,
+    nlive = split_nlive,
+    first_update = as.integer(parent_info$first_update * frac_nlive),
+    update_interval = as.integer(parent_info$update_interval * frac_nlive)
   )
 }
 
-collect_results <- function(results) {
-  runs <- lapply(
-    results,
-    \(r) {
-      vctrs::vec_c(r$dead, r$live)
-    }
+reindex_threads <- function(results, splits) {
+  result <- mapply(
+    \(res, split) {
+      live <- extract_live_points(res$live, .id = split)
+      vctrs::field(res$dead, "id") <- split[field(res$dead, "id")]
+      vctrs::field(res$dead, "id") <- split[field(res$dead, "id")]
+      vctrs::vec_c(res$dead, live)
+    },
+    res = results,
+    split = splits
   )
-  vctrs::vec_c(!!!runs)
+  merge_results(vctrs::vec_c(!!!result))
 }

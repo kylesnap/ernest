@@ -13,3 +13,7 @@ generics::generate
 #' @importFrom generics visualize
 #' @export
 generics::visualize
+
+#' @importFrom generics learn
+#' @export
+generics::learn

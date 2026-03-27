@@ -1,96 +1,99 @@
-describe("merge_sampler", {
-  x <- ernest_sampler(
+run1 <- generate(
+  ernest_sampler(
     log_lik = gaussian_blobs$log_lik,
-    prior = gaussian_blobs$prior
+    prior = gaussian_blobs$prior,
+    seed = 24
+  ),
+  max_iterations = 100
+)
+run2 <- generate(
+  ernest_sampler(
+    log_lik = gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    nlive = 300,
+    seed = 42
+  ),
+  max_iterations = 100
+)
+
+test_that("reindex_runs remaps IDs and preserves record fields", {
+  x1 <- as_ernest_rcrd(run1)
+  x2 <- as_ernest_rcrd(run2)
+  out <- reindex_runs(x1, x2)
+
+  n1 <- length(x1)
+  n2 <- length(x2)
+  nlive1 <- vctrs::vec_unique_count(vctrs::field(x1, "id"))
+  nlive2 <- vctrs::vec_unique_count(vctrs::field(x2, "id"))
+
+  expect_length(out, 2)
+  expect_identical(sort(unique(vctrs::field(out[[1]], "id"))), seq(nlive1))
+  expect_identical(
+    sort(unique(vctrs::field(out[[2]], "id"))),
+    seq(nlive1 + 1, nlive1 + nlive2)
   )
 
-  it("catches errors", {
-    expect_error(
-      merge_sampler(x, list()),
-      "must be an object with class ernest_sampler"
-    )
-    expect_error(
-      merge_sampler(1, x),
-      "must be an object with class ernest_sampler"
-    )
-    sampler_3d <- ernest_sampler(
-      log_lik = gaussian_3D$log_lik,
-      prior = gaussian_3D$prior
-    )
-    expect_error(
-      merge_sampler(x, sampler_3d),
-      "must have the same prior variable names"
-    )
-    sampler_alt <- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      sampler = unif_cube()
-    )
-    expect_error(
-      merge_sampler(x, sampler_alt),
-      "must have the same LRPS method"
-    )
-  })
+  expect_identical(
+    vctrs::field(out[[1]], "log_lik"),
+    vctrs::field(x1, "log_lik")
+  )
+  expect_identical(
+    vctrs::field(out[[2]], "log_lik"),
+    vctrs::field(x2, "log_lik")
+  )
+})
 
-  it("combines compatible samplers", {
-    y <- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior
-    )
+test_that("merge_results errors when IDs are duplicated across runs", {
+  x1 <- as_ernest_rcrd(run1)
+  x2 <- as_ernest_rcrd(run2)
 
-    z <- merge_sampler(x, y)
-    expect_identical(z$nlive, 1000L)
-    expect_identical(z$first_update, 1250L)
-    expect_identical(z$update_interval, 750L)
-  })
+  expect_error(
+    merge_results(x1, x2),
+    "must contain unique IDs"
+  )
+})
 
-  it("uses default update values when they differ", {
-    x <- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      first_update = 100,
-      update_interval = 50,
-      seed = 24
-    )
-    y <- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      first_update = 150,
-      update_interval = 75,
-      seed = 42
-    )
+test_that("merge_results returns expected dead/live partition", {
+  x1 <- as_ernest_rcrd(run1)
+  x2 <- as_ernest_rcrd(run2)
+  indexed <- reindex_runs(x1, x2)
+  res <- merge_results(indexed[[1]], indexed[[2]])
+  expect_named(res, c("live", "dead", "ndrop"))
 
-    z <- merge_sampler(x, y)
-    expect_identical(z$first_update, 2500L)
-    expect_identical(z$update_interval, 1500L)
-    expect_identical(attr(z, "seed"), NA_integer_)
-  })
+  nlive_total <- 800L
+  expect_equal(nrow(field(res$live, "unit")), nlive_total)
+  expect_equal(
+    length(res$dead) + length(res$live) + res$ndrop,
+    length(x1) + length(x2)
+  )
+  expect_equal(
+    min(field(res$live, "log_lik")),
+    min(
+      run1$weights$log_lik[run1$weights$evaluations == 0],
+      run2$weights$log_lik[run2$weights$evaluations == 0]
+    )
+  )
+  expect_all_equal(vctrs::field(res$live, "evals"), 0)
+  expect_all_true(vctrs::field(res$dead, "evals") > 0L)
+  expect_identical(vctrs::field(res$live, "id"), seq(nlive_total))
+  expect_false(is.unsorted(vctrs::field(res$dead, "log_lik")))
 })
 
 test_that("merging two runs", {
-  run1 <- generate(
-    ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      seed = 24
-    ),
-    max_iterations = 100
-  )
-  run2 <- generate(
-    ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      nlive = 300,
-      seed = 42
-    ),
-    max_iterations = 100
-  )
   run3 <- merge(run1, run2)
-  expect_s3_class(run3, c("ernest_run", "ernest_sampler"))
   expect_identical(run3$nlive, 800L)
-  expect_identical(sort(unique(run3$weights$id)), seq(800L))
+  expect_lte(run3$niter, 200L)
+  expect_identical(sort(unique(run3$weights$id)), seq(run3$nlive))
+  expect_length(run3$weights$id, run3$niter + 800)
+  expect_equal(run3$first_update, 800 * 2.5)
+  expect_equal(run3$update_interval, 800 * 1.5)
+  expect_identical(attr(run3, "seed"), NA_integer_)
 
   run4 <- generate(run3, max_iterations = run3$niter + 100L, min_logz = 0)
-  expect_gt(run4$niter, run3$niter)
-  expect_s3_class(run4, c("ernest_run", "ernest_sampler"))
+  expect_equal(run4$niter, run3$niter + 100L)
+  expect_gt(run4$neval, run3$neval)
+  expect_identical(
+    run3$weights$log_lik[1:run3$niter],
+    run4$weights$log_lik[1:run3$niter]
+  )
 })

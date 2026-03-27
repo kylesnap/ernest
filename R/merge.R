@@ -45,48 +45,66 @@
 #' summary(merged)
 #' @export
 merge.ernest_run <- function(x, y, ...) {
-  check_class(y, "ernest_run")
+  xy <- reindex_runs(as_ernest_rcrd(x), as_ernest_rcrd(y))
+  results <- merge_results(!!!xy)
   z <- merge_sampler(x, y)
-  xy <- reindex_runs(x, y)
-  results <- merge_results(xy)
   # Reform sampler
-  env_bind(z$live_env, !!!results$live)
+  env_bind(
+    z$live_env,
+    !!!as.list(results$live)[c("unit", "log_lik", "birth_lik")]
+  )
   z <- refresh_ernest_sampler(z)
-  new_ernest_run(z, results$dead)
+  new_ernest_run_(z, results$dead)
 }
 
 #' Reindex runs so they have continuous IDs from 1 to 'nlive'
 #'
-#' @param ... ernest_run objects.
+#' @param ... ernest_rcrd objects.
 #'
-#' @return A merged ernest_rcrd vector.
+#' @return A list of ernest_rcrd objects with reindexed IDs, same length as
+#' the dots.
 #' @noRd
 reindex_runs <- function(...) {
   runs <- list2(...)
-  nlives <- vapply(runs, \(x) vctrs::vec_unique_count(x$weights$id), integer(1))
-  runs <- .mapply(
+  nlives <- vapply(
+    runs,
+    \(x) vctrs::vec_unique_count(field(x, "id")),
+    integer(1)
+  )
+  .mapply(
     \(x, start) {
-      y <- as_ernest_rcrd(x)
-      vctrs::field(y, "id") <- as.integer(
-        vctrs::vec_group_id(field(y, "id")) + start
+      vctrs::field(x, "id") <- as.integer(
+        vctrs::vec_group_id(field(x, "id")) + start
       )
-      y
+      x
     },
     dots = list(runs, c(0, cumsum(nlives)[-length(nlives)])),
     MoreArgs = NULL
   )
-  vctrs::vec_c(!!!runs)
 }
 
 #' Merge the dead points from multiple nested sampling runs.
 #'
-#' @param all_runs An ernest_rcrd of nested sampling results, merged together
-#' from different runs. These should have unique IDs.
+#' @param ... A set of ernest_rcrd. Each rcrd should have unique
+#' IDs, else an error is thrown.
 #'
+#' @importFrom vctrs `field<-`
 #' @returns Two lists of "dead" and "live" run information.
 #' @noRd
-merge_results <- function(all_runs) {
-  all_runs <- sort(all_runs)
+merge_results <- function(..., .call = caller_env()) {
+  runs <- list2(...)
+  ids <- vctrs::vec_c(
+    !!!lapply(
+      runs,
+      \(x) vctrs::vec_unique(field(x, "id"))
+    ),
+    .error_call = call
+  )
+  if (vctrs::vec_duplicate_any(ids)) {
+    cli::cli_abort("All runs in `...` must contain unique IDs.", call = .call)
+  }
+  all_runs <- sort(vctrs::vec_c(!!!runs))
+
   # Get live points
   first_live <- match(TRUE, field(all_runs, "evals") == 0L)
   min_live <- field(all_runs, "log_lik")[[first_live]]
@@ -94,44 +112,30 @@ merge_results <- function(all_runs) {
     !!!lapply(
       vctrs::vec_split(all_runs, field(all_runs, "id"))$val,
       \(id_rows) id_rows[match(TRUE, field(id_rows, "log_lik") >= min_live)]
-    )
+    ),
+    .error_call = call
   )
-  live <- as.list(live)[c("unit", "log_lik", "birth_lik")]
+  field(live, "evals") <- rep(0L, length(live))
   # Get dead points
-  dead <- vctrs::vec_slice(all_runs, seq_len(first_live - 1L))
-  list("live" = live, "dead" = dead)
+  dead <- vctrs::vec_slice(
+    all_runs,
+    i = seq_len(first_live - 1L),
+    error_call = .call
+  )
+  list(
+    "live" = live[order(field(live, "id"))],
+    "dead" = dead,
+    "ndrop" = length(all_runs) - (length(live) + length(dead))
+  )
 }
 
 #' Combine two `ernest_sampler` objects together.
 #'
 #' @param x,y `ernest_sampler` objects.
-#' @param call Information about the calling environment for error messages.
-#' @param ... Ignored.
 #'
 #' @returns A single `ernest_sampler` object.
 #' @noRd
-merge_sampler <- function(
-  x,
-  y,
-  call = caller_env(),
-  ...
-) {
-  check_class(x, "ernest_sampler", call = call)
-  check_class(y, "ernest_sampler", call = call)
-  x_arg <- caller_arg(x)
-  y_arg <- caller_arg(y)
-  if (!identical(x$prior$names, y$prior$names)) {
-    cli::cli_abort(
-      "`{x_arg}` and `{y_arg}` must have the same prior variable names.",
-      call = call
-    )
-  }
-  if (!identical(class(x$lrps), class(y$lrps))) {
-    cli::cli_abort(
-      "`{x_arg}` and `{y_arg}` must have the same LRPS method.",
-      call = call
-    )
-  }
+merge_sampler <- function(x, y) {
   nlive <- x$nlive + y$nlive
   first_update <- if (x$first_update != y$first_update) {
     as.integer(nlive * 2.5)

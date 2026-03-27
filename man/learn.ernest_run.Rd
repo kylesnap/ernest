@@ -4,7 +4,13 @@
 \alias{learn.ernest_run}
 \title{Bootstrap Resampling for Nested Sampling Uncertainty}
 \usage{
-\method{learn}{ernest_run}(x, times = 100, include_weights = FALSE, ...)
+\method{learn}{ernest_run}(
+  x,
+  times = 100,
+  include_weights = FALSE,
+  units = c("original", "unit_cube"),
+  ...
+)
 }
 \arguments{
 \item{x}{[\link{ernest_run}]\cr An object containing the results of a nested
@@ -16,7 +22,13 @@ Must be larger than zero.}
 \item{include_weights}{\verb{[[logical(1)]]}\cr If \code{TRUE}, include a list-column
 of resampled weights for each resampled run in the output.}
 
-\item{...}{Reserved for future extensions; must be empty.}
+\item{units}{\verb{[character(1)]}\cr The scale of the sampled points:
+\itemize{
+\item \code{"original"}: Points are on the scale of the prior space.
+\item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
+}}
+
+\item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
 A special class of [\link{tibble}] with one row per resample, containing:
@@ -24,14 +36,9 @@ A special class of [\link{tibble}] with one row per resample, containing:
 \item \code{niter}: Number of iterations in the resample.
 \item \code{log_evidence}: Estimated log-evidence for the resample.
 \item One column per parameter: weighted posterior mean for each parameter.
-\item One column per parameter: If \code{second_moment = TRUE}, the weighted posterior
-second moment (named \verb{pow2_<param>}).
 \item If \code{include_weights = TRUE}, a list-column \code{weights} with the resampled
 weights and iteration indices for each resampled run.
 }
-
-Also contains an attribute \code{original} as a single tibble row, with
-statistics taken from the original run.
 }
 \description{
 Computes bootstrap resamples of a nested sampling run to empirically

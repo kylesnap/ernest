@@ -9,7 +9,8 @@
 #' Must be larger than zero.
 #' @param include_weights `[[logical(1)]]`\cr If `TRUE`, include a list-column
 #' of resampled weights for each resampled run in the output.
-#' @param ... Reserved for future extensions; must be empty.
+#' @inheritParams as_draws.ernest_run
+#' @inheritParams rlang::args_dots_empty
 #'
 #' @return A special class of [[tibble]] with one row per resample, containing:
 #' * `niter`: Number of iterations in the resample.
@@ -20,7 +21,7 @@
 #'
 #' @details
 #' Higson et al. (2019) describes a bootstrap resampling procedure for nested
-#' sampling. This involves spliting a run into `nlive` runs of one live point,
+#' sampling. This involves splitting a run into `nlive` runs of one live point,
 #' then merging runs together by sampling from these runs with replacement.
 #' This provides an empirical estimate of the uncertainty due to the
 #' stochastic nature of selecting likelihood shells from the parameter space.
@@ -48,17 +49,33 @@ learn.ernest_run <- function(
   x,
   times = 100,
   include_weights = FALSE,
+  units = c("original", "unit_cube"),
   ...
 ) {
+  check_dots_empty()
   check_number_whole(times, min = 1)
   check_bool(include_weights)
-  threads <- get_threads(x)
-  vctrs::vec_rbind(
-    !!!replicate(
-      times,
-      run_resample(x$nlive, threads, include_weights),
-      simplify = FALSE
-    )
+  units <- arg_match(units)
+  est_volume <- get_log_vol(x$nlive, niter = x$niter)
+  log_vol_rng <- range(est_volume)
+  dead_log_vol <- est_volume[x$niter]
+
+  x_rcrd <- as_ernest_rcrd(x)
+  col_names <- attr(x_rcrd, "variables")
+  if (units == "original") {
+    field(x_rcrd, "unit") <- x$samples$original
+  }
+  threads <- get_threads(x_rcrd)
+  res <- replicate(
+    times,
+    run_resample(x$nlive, threads, col_names, include_weights),
+    simplify = FALSE
+  )
+  tibble::new_tibble(
+    vctrs::vec_rbind(!!!res),
+    log_vol_rng = log_vol_rng,
+    dead_log_vol = dead_log_vol,
+    class = "ernest_resample"
   )
 }
 
@@ -67,7 +84,7 @@ learn.ernest_run <- function(
 #' @export
 #' @noRd
 tbl_sum.ernest_resample <- function(x, ...) {
-  c("Nested sampling estimates" = sprintf("%d replications", attr(x, "times")))
+  c("Nested sampling estimates" = sprintf("%d replications", nrow(x)))
 }
 
 #' Split run into live point threads
@@ -80,8 +97,7 @@ tbl_sum.ernest_resample <- function(x, ...) {
 #' * `max_log_lik`: A numeric vector of the maximum log-likelihood for each
 #' thread, used to determine when threads are active during resampling.
 #' @noRd
-get_threads <- function(x) {
-  x_rcrd <- as_ernest_rcrd(x)
+get_threads <- function(x_rcrd) {
   threads <- vctrs::vec_split(x_rcrd, field(x_rcrd, "id"))
   threads$max_lik <- vapply(
     threads$val,
@@ -96,30 +112,39 @@ get_threads <- function(x) {
 #'
 #' @param nlive The number of live points in the sampler
 #' @param threads The split thread object.
+#' @param col_names
 #' @param include_weights
 #'
 #' @return A list of the results: log_evidence, and means for each variable.
 #' @noRd
-run_resample <- function(nlive, threads, include_weights = FALSE) {
+run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
   resample <- sample.int(nlive, replace = TRUE)
   min_max_lik <- min(threads$max_lik[resample])
-  sim <- vctrs::vec_c(
-    !!!lapply(
-      threads$val[resample],
-      \(x) {
-        x[seq(match(TRUE, field(x, "log_lik") >= min_max_lik))]
-      }
-    )
-  ) |>
-    sort()
-  integral <- compute_integral(
-    field(sim, "log_lik"),
-    get_log_vol(nlive, length(sim) - nlive)
+  rel_n <- vapply(
+    threads$val[resample],
+    \(x) match(TRUE, field(x, "log_lik") >= min_max_lik),
+    integer(1)
   )
-  weight <- exp(integral$log_weight - integral$log_evidence[length(sim)])
+  sim <- .mapply(
+    \(x, i) x[seq_len(i)],
+    dots = list(x = threads$val[resample], i = rel_n),
+    MoreArgs = NULL
+  )
+  log_lik <- vctrs::vec_c(!!!lapply(sim, \(x) field(x, "log_lik")))
+  lik_order <- order(log_lik)
+  log_lik <- log_lik[lik_order]
+  unit <- vctrs::vec_c(!!!lapply(sim, \(x) field(x, "unit")))
+  unit <- unit[lik_order, , drop = FALSE]
+  integral <- compute_integral(
+    log_lik,
+    get_log_vol(nlive, length(log_lik) - nlive)
+  )
+  weight <- exp(integral$log_weight - integral$log_evidence[length(log_lik)])
+  means <- matrixStats::colWeightedMeans(unit, w = weight)
+  names(means) <- col_names
   tibble::tibble_row(
-    "log_evidence" = integral$log_evidence[length(sim)],
-    !!!matrixStats::colWeightedMeans(as.list(sim)[["unit"]], w = weight),
-    "weight" = if (include_weights) list(weight)
+    log_evidence = integral$log_evidence[length(log_lik)],
+    !!!means,
+    weight = if (include_weights) list(weight)
   )
 }

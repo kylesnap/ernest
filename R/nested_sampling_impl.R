@@ -117,7 +117,7 @@ nested_sampling_impl <- function(
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
     }
 
-    # 4. Replace the worst points in live with new points
+    # 5. Replace the worst points in live with new points
     available_idx <- setdiff(seq_len(sampler_info$nlive), worst_idx)
     copy <- sample(available_idx, length(worst_idx), replace = FALSE)
     new_unit <- if (cur_eval <= sampler_info$first_update) {
@@ -137,7 +137,7 @@ nested_sampling_impl <- function(
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
-    live_env$birth_lik[worst_idx] <- copy
+    live_env$birth_lik[worst_idx] <- live_env$log_lik[worst_idx]
     dead_evals[[i]] <- new_unit$neval
     cur_eval <- cur_eval + new_unit$neval
   }

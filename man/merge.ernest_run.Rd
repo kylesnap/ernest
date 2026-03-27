@@ -21,8 +21,8 @@ samples by log-likelihood and reconstructing the live set.
 }
 \details{
 The two runs must use the same prior variable names and LRPS method.
-If \code{first_update} or \code{update_interval} differ between runs, a warning is
-thrown and defaults are re-computed from the merged \code{nlive}.
+If \code{first_update} or \code{update_interval} differ between runs, the defaults
+from [\link{ernest_sampler}] are used instead.
 
 The merged run contains all dead points from both runs, ordered by
 log-likelihood, and the live set is reconstructed from the remaining points.

@@ -24,6 +24,9 @@ describe("ernest_run", {
       example_run$weights,
       c("id", "evaluations", "log_lik", "log_weight", "imp_weight", "birth_lik")
     )
+    expect_all_true(
+      example_run$weights$log_lik >= example_run$weights$birth_lik
+    )
     expect_equal(sum(example_run$weights$imp_weight), 1)
   })
   expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))

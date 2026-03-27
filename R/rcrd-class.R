@@ -95,12 +95,14 @@ vec_proxy_order.ernest_rcrd <- function(x, ...) {
 #' @returns A vctrs record class object containing the live points.
 #' @noRd
 extract_live_points <- function(live_env, .id = NULL) {
+  .id <- if (is.null(.id)) vctrs::vec_seq_along(live_env$unit) else .id
+  order_lik <- order(live_env$log_lik)
   new_ernest_rcrd(
-    unit = live_env$unit,
-    log_lik = live_env$log_lik,
-    id = if (is.null(.id)) vctrs::vec_seq_along(live_env$unit) else .id,
+    unit = live_env$unit[order_lik, , drop = FALSE],
+    log_lik = live_env$log_lik[order_lik],
+    id = .id[order_lik],
     evals = rep(0L, vctrs::vec_size(live_env$unit)),
-    birth_lik = live_env$birth_lik
+    birth_lik = live_env$birth_lik[order_lik]
   )
 }
 

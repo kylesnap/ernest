@@ -36,10 +36,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 new_ernest_run_ <- function(x, parsed) {
   all_samples <- c(parsed, extract_live_points(x$live_env))
   niter <- sum(field(all_samples, "evals") != 0L)
-  integration <- compute_integral(
-    field(all_samples, "log_lik"),
-    get_log_vol(x$nlive, niter = niter)
-  )
+  integration <- compute_integral(field(all_samples, "log_lik"), x$nlive)
   unit <- as.list(all_samples)[["unit"]]
   colnames(unit) <- x$prior$names
   original <- t(apply(unit, 1, x$prior$fn))

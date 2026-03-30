@@ -48,12 +48,12 @@
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, min = 0)
-  est_volume <- get_log_vol(x$nlive, niter = x$niter)
+  est_volume <- get_log_vol(x$weights$log_lik, x$nlive)
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
   log_lik <- x$weights$log_lik
-  log_volume <- get_log_vol(x$nlive, x$niter, ndraws = ndraws)
+  log_volume <- get_log_vol(x$weights$log_lik, x$nlive, ndraws = ndraws)
   log_weight <- get_log_w(log_lik, log_volume)
 
   result <- if (ndraws == 0) {
@@ -110,12 +110,13 @@ tbl_sum.ernest_estimate <- function(x, ...) {
 #' log-likelihoods and log-volumes.
 #'
 #' @param log_lik Numeric vector of log-likelihoods in descending order.
-#' @param log_volume Numeric vector of log-volumes in ascending order.
+#' @param nlive The number of live points in the nested sampling run.
 #'
 #' @return A list containing log-likelihoods, log-volumes, log-weights,
 #' log-evidence, log-evidence variance, and information.
 #' @noRd
-compute_integral <- function(log_lik, log_volume) {
+compute_integral <- function(log_lik, nlive) {
+  log_volume <- get_log_vol(log_lik, nlive)
   if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
     return(list(
       log_lik = double(0),
@@ -145,14 +146,14 @@ compute_integral <- function(log_lik, log_volume) {
 
 #' Simulate log-volumes for nested sampling
 #'
+#' @param log_lik The log-likelihood sequence (used to detect plateau)
 #' @param nlive The number of points in the prior space.
-#' @param niter The number of iterations in the nested sampling run.
 #' @param ndraws The number of draws to simulate for each volume.
 #'
 #' @return A matrix of simulated log-volumes.
 #' @noRd
-get_log_vol <- function(nlive, niter, ndraws = 0) {
-  points <- vctrs::vec_c(rep(nlive, niter), seq(nlive, 1, -1))
+get_log_vol <- function(log_lik, nlive, ndraws = 0) {
+  points <- get_points(log_lik, nlive)
 
   if (ndraws == 0) {
     vol <- cumsum(-1 * (points^-1))

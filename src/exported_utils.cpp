@@ -7,6 +7,28 @@ double logspace_add_c(const double x, const double y) {
   return Rf_logspace_add(x, y);
 }
 
+// Plateau detection in log-likelihoods to correct log-volume estimation
+// based on Fowlie et. al (2021) https://doi.org/10.1093/mnras/stab590
+[[cpp11::register]]
+cpp11::doubles get_points(cpp11::doubles log_lik, int nlive) {
+  cpp11::writable::doubles result(log_lik.size());
+  auto col = result.begin();
+  auto cur_lik = log_lik.begin();
+  auto next_lik = log_lik.begin();
+  auto last_dead = result.begin();
+  std::advance(last_dead, log_lik.size() - nlive);
+  int plateau = 0;
+  for (std::advance(next_lik, 1); col != last_dead; ++col, ++cur_lik, ++next_lik) {
+    *col = nlive - plateau;
+    plateau = (*cur_lik == *next_lik) ? plateau + 1 : 0;
+  }
+  int nlive_remaining = nlive;
+  for (; col != result.end(); ++col, --nlive_remaining) {
+    *col = nlive_remaining;
+  }
+  return result;
+}
+
 [[cpp11::register]]
 cpp11::doubles_matrix<cpp11::by_row> logspace_cumsum_mat(
     cpp11::doubles_matrix<cpp11::by_row> x) {

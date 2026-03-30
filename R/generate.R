@@ -239,10 +239,7 @@ new_generate_control <- function(
   nlive <- vctrs::vec_unique_count(field(prev_run, "id"))
   niter <- match(0L, field(prev_run, "evals")) - 1L
   neval <- sum(field(prev_run, "evals"))
-  prev_integration <- compute_integral(
-    field(prev_run, "log_lik"),
-    get_log_vol(nlive, niter = niter)
-  )
+  prev_integration <- compute_integral(field(prev_run, "log_lik"), nlive)
 
   last_criterion <- prev_integration$log_lik[[niter]]
   log_z <- prev_integration$log_evidence[[niter]]

@@ -13,6 +13,13 @@ extern "C" SEXP _ernest_logspace_add_c(SEXP x, SEXP y) {
   END_CPP11
 }
 // exported_utils.cpp
+cpp11::doubles get_points(cpp11::doubles log_lik, int nlive);
+extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP nlive) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(get_points(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(log_lik), cpp11::as_cpp<cpp11::decay_t<int>>(nlive)));
+  END_CPP11
+}
+// exported_utils.cpp
 cpp11::doubles_matrix<cpp11::by_row> logspace_cumsum_mat(cpp11::doubles_matrix<cpp11::by_row> x);
 extern "C" SEXP _ernest_logspace_cumsum_mat(SEXP x) {
   BEGIN_CPP11
@@ -57,6 +64,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
+    {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              2},
     {"_ernest_logspace_add_c",          (DL_FUNC) &_ernest_logspace_add_c,          2},
     {"_ernest_logspace_cumsum_mat",     (DL_FUNC) &_ernest_logspace_cumsum_mat,     1},
     {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,              1},

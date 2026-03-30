@@ -59,8 +59,8 @@ amount of volume within that point's likelihood contour. See ernest's
 vignettes for more information.
 }
 \note{
-This package requires the {tidyselect} package to be installed. If
-\code{which = "trace"} is selected, the {ggdist} package is also required.
+This function requires \CRANpkg{tidyselect}. If \code{which = "trace"} is
+selected, \CRANpkg{ggdist} is also required.
 }
 \examples{
 # Load example run

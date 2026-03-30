@@ -46,7 +46,7 @@ estimate uncertainty in evidence and posterior summaries.
 }
 \details{
 Higson et al. (2019) describes a bootstrap resampling procedure for nested
-sampling. This involves spliting a run into \code{nlive} runs of one live point,
+sampling. This involves splitting a run into \code{nlive} runs of one live point,
 then merging runs together by sampling from these runs with replacement.
 This provides an empirical estimate of the uncertainty due to the
 stochastic nature of selecting likelihood shells from the parameter space.

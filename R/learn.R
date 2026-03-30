@@ -116,8 +116,8 @@ get_threads <- function(x_rcrd) {
 #'
 #' @param nlive The number of live points in the sampler
 #' @param threads The split thread object.
-#' @param col_names
-#' @param include_weights
+#' @param col_names Variable names within the sampler
+#' @param include_weights Whether or not to append a list-column of weights
 #'
 #' @return A list of the results: log_evidence, and means for each variable.
 #' @noRd

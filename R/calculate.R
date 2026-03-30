@@ -94,13 +94,13 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 #' @noRd
 tbl_sum.ernest_estimate <- function(x, ...) {
   desc <- if (attr(x, "ndraws") == 0) {
-    "Expected values"
+    "Expected log-vol."
   } else {
-    sprintf("Simulated (`ndraws` = %d)", attr(x, "ndraws"))
+    sprintf("Simulated log-vol., %d draws", attr(x, "ndraws"))
   }
   c(
     "<ernest_estimate>" = sprintf("%d niter.", nrow(x)),
-    "Log-volumes" = desc
+    "Log-evidence" = sprintf("%s (%s)", format(tail(x$log_evidence, 1)), desc)
   )
 }
 

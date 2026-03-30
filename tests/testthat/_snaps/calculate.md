@@ -4,7 +4,7 @@
       calc
     Output
       # <ernest_estimate>: 10348 niter.
-      # Log-volumes:       Expected values
+      # Log-evidence:      -9.01059 (Expected log-vol.)
          log_lik log_volume log_weight log_evidence log_evidence_err
            <dbl>      <dbl>      <dbl>        <dbl>            <dbl>
        1   -137.     -0.001      -143.        -143.         1.30e-30
@@ -25,7 +25,7 @@
       calc
     Output
       # <ernest_estimate>: 10348 niter.
-      # Log-volumes:       Simulated (`ndraws` = 1)
+      # Log-evidence:      -9 ± NA (Simulated log-vol., 1 draws)
          log_lik     log_volume log_weight log_evidence
            <dbl>     <rvar[1d]> <rvar[1d]>   <rvar[1d]>
        1   -137.  -0.00028 ± NA  -144 ± NA    -144 ± NA
@@ -46,7 +46,7 @@
       calc
     Output
       # <ernest_estimate>: 10348 niter.
-      # Log-volumes:       Simulated (`ndraws` = 1000)
+      # Log-evidence:      -9 ± 0.071 (Simulated log-vol., 1000 draws)
          log_lik          log_volume   log_weight log_evidence
            <dbl>          <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
        1   -137.  -0.00094 ± 0.00095  -144 ± 0.84  -144 ± 0.84

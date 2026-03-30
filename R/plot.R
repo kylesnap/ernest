@@ -44,8 +44,8 @@
 #' (`point_interval()` and `curve_interval()`) over interpolated curves.
 #'
 #' @note
-#' Plotting multiple diagnostics with `which` requires the {patchwork} package.
-#' Plotting `evidence` or `weight` diagnostics requires the {ggdist} package.
+#' Plotting multiple diagnostics with `which` requires \CRANpkg{patchwork}.
+#' Plotting `evidence` or `weight` diagnostics requires \CRANpkg{ggdist}.
 #'
 #' @srrstats {BS6.1} Default plot for return object.
 #'
@@ -296,7 +296,12 @@ autoplot_evidence <- function(
       nrow(log_volume),
       length(xout),
       \(i) {
-        approx(log_volume[i, ], exp(log_evidence[i, ]), rule = 2, xout = xout)$y
+        stats::approx(
+          log_volume[i, ],
+          exp(log_evidence[i, ]),
+          rule = 2,
+          xout = xout
+        )$y
       }
     )
     interval_df(xout, posterior::rvar(yout), nbands, type = "point")
@@ -350,7 +355,7 @@ autoplot_weight <- function(
         weights = weight[i, ],
         bounds = c(NA, 0)
       )
-      approx(dens$x, dens$y, xout = xout, rule = 2)$y
+      stats::approx(dens$x, dens$y, xout = xout, rule = 2)$y
     }
   )
   w_df <- if (nrow(yout) == 1) {

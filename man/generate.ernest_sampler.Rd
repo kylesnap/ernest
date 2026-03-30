@@ -47,8 +47,7 @@ and iteration counter during sampling. Optional; if \code{NULL} the global optio
 
 \item{allow_par}{\verb{[logical(1)]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} If
 \code{TRUE}, run the nested sampling loop in parallel by breaking \code{nlive} into
-multiple samplers. Use \code{\link[mirai:daemons]{mirai::daemons()}} to control how many samplers \code{x} is
-split into.}
+multiple samplers.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}

@@ -64,8 +64,8 @@ are based on simulated log-volume trajectories. In this case,
 (\code{point_interval()} and \code{curve_interval()}) over interpolated curves.
 }
 \note{
-Plotting multiple diagnostics with \code{which} requires the {patchwork} package.
-Plotting \code{evidence} or \code{weight} diagnostics requires the {ggdist} package.
+Plotting multiple diagnostics with \code{which} requires \CRANpkg{patchwork}.
+Plotting \code{evidence} or \code{weight} diagnostics requires \CRANpkg{ggdist}.
 }
 \examples{
 # Plot results from a run.

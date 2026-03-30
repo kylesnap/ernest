@@ -24,17 +24,17 @@ p_generate <- function(
     \(sx) {
       library(ernest)
       live_env <- list2env(sx[c("unit", "log_lik", "birth_lik")])
-      dead <- impl(
+      dead <- impl_(
         live_env,
-        lrps,
+        lrps_,
         sx$info,
         sx$control,
         show_progress = FALSE
       )
       list("dead" = dead, "live" = as.list(live_env))
     },
-    impl = nested_sampling_impl,
-    lrps = x$lrps
+    impl_ = nested_sampling_impl,
+    lrps_ = x$lrps
   )
 
   m_out <- mirai::collect_mirai(

@@ -32,8 +32,8 @@
 #' vignettes for more information.
 #'
 #' @note
-#' This package requires the {tidyselect} package to be installed. If
-#' `which = "trace"` is selected, the {ggdist} package is also required.
+#' This function requires \CRANpkg{tidyselect}. If `which = "trace"` is
+#' selected, \CRANpkg{ggdist} is also required.
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure informative error
 #' messages for invalid `which` values.

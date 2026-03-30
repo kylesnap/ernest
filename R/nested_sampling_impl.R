@@ -48,9 +48,10 @@ nested_sampling_impl <- function(
   log_vol <- control$log_vol
   log_z <- control$log_z
   last_criterion <- control$last_criterion
+  nlive <- sampler_info$nlive
+  plateau <- 0L
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
-  d_log_vol <- log((sampler_info$nlive + 1) / sampler_info$nlive)
   initial_update <- FALSE
 
   dead_unit <- vctrs::list_of(.ptype = double(lrps$n_dim))
@@ -98,6 +99,8 @@ nested_sampling_impl <- function(
     dead_id[[i]] <- worst_idx
 
     # 3. Update the integration
+    plateau <- if (new_criterion == last_criterion) plateau + 1L else 0L
+    d_log_vol <- log((nlive + 1 - plateau) / (nlive - plateau))
     log_vol <- log_vol - d_log_vol
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
     log_wt <- matrixStats::logSumExp(c(new_criterion, last_criterion)) +

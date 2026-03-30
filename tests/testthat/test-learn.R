@@ -1,7 +1,6 @@
 withr::local_seed(42)
 data("example_run")
 
-
 test_that("learn rejects bad parameters", {
   expect_error(
     learn(example_run, times = 0),

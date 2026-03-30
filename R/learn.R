@@ -99,9 +99,13 @@ tbl_sum.ernest_resample <- function(x, ...) {
 #' @noRd
 get_threads <- function(x_rcrd) {
   threads <- vctrs::vec_split(x_rcrd, field(x_rcrd, "id"))
+  threads$val <- lapply(
+    threads$val,
+    \(x) as.list(x)[c("log_lik", "unit")]
+  )
   threads$max_lik <- vapply(
     threads$val,
-    \(x) max(field(x, "log_lik")),
+    \(x) max(x$log_lik),
     double(1)
   )
   threads
@@ -122,18 +126,25 @@ run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
   min_max_lik <- min(threads$max_lik[resample])
   rel_n <- vapply(
     threads$val[resample],
-    \(x) match(TRUE, field(x, "log_lik") >= min_max_lik),
+    \(x) match(TRUE, x$log_lik >= min_max_lik),
     integer(1)
   )
-  sim <- .mapply(
-    \(x, i) x[seq_len(i)],
-    dots = list(x = threads$val[resample], i = rel_n),
-    MoreArgs = NULL
+  log_lik <- vctrs::vec_c(
+    !!!.mapply(
+      \(x, i) x$log_lik[seq_len(i)],
+      dots = list(x = threads$val[resample], i = rel_n),
+      MoreArgs = NULL
+    )
   )
-  log_lik <- vctrs::vec_c(!!!lapply(sim, \(x) field(x, "log_lik")))
+  unit <- vctrs::vec_c(
+    !!!.mapply(
+      \(x, i) x$unit[seq_len(i), , drop = FALSE],
+      dots = list(x = threads$val[resample], i = rel_n),
+      MoreArgs = NULL
+    )
+  )
   lik_order <- order(log_lik)
   log_lik <- log_lik[lik_order]
-  unit <- vctrs::vec_c(!!!lapply(sim, \(x) field(x, "unit")))
   unit <- unit[lik_order, , drop = FALSE]
   integral <- compute_integral(
     log_lik,

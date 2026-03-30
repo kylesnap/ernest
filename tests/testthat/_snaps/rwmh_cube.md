@@ -27,7 +27,7 @@
     Code
       default
     Message
-      25-step random walk sampling (acceptance target = 50.0%):
+      25-step random walk sampling (acceptance target = 50%):
       # Dimensions: Uninitialized
       # Calls since last update: 0
       

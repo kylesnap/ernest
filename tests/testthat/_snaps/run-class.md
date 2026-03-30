@@ -5,7 +5,7 @@
     Message
       Nested sampling run:
       * No. points: #
-      * Sampling method: #-step random walk sampling (acceptance target = #.#%)
+      * Sampling method: #-step random walk sampling (acceptance target = #%)
       * Prior: uniform prior distribution with # dimensions (x, y, and z)
       -- Results ---------------------------------------------------------------------
       * Iterations: #

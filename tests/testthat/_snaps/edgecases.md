@@ -98,7 +98,7 @@
     Message
       Nested sampling run specification:
       * No. points: 500
-      * Sampling method: 25-step random walk sampling (acceptance target = #.#%)
+      * Sampling method: 25-step random walk sampling (acceptance target = 50%)
       * Prior: uniform prior distribution with 2 dimensions (A and B)
 
 # Ernest fails when ll is flat to begin with

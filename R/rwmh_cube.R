@@ -78,7 +78,7 @@ rwmh_cube <- function(
 #' @noRd
 #' @export
 format.rwmh_cube <- function(x, ...) {
-  acc_per <- pretty_round(100 * x$target_acceptance, 1)
+  acc_per <- round(100 * x$target_acceptance, 1)
   cli::format_inline(
     "{x$steps}-step random walk sampling (acceptance target = {acc_per}%)"
   )

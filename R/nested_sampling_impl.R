@@ -34,7 +34,6 @@
 #' likelihood calls is reached, or when the log-likelihood plateau is detected.
 #'
 #' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol
-#' @importFrom prettyunits pretty_signif
 #' @noRd
 nested_sampling_impl <- function(
   live_env,
@@ -65,7 +64,7 @@ nested_sampling_impl <- function(
     cli::cli_progress_bar(
       format = paste0(
         "{pb_spin} Generating samples | {pb_current} iter. | {cur_eval} ",
-        "log-lik. calls | {pretty_signif(d_log_z)} log-evid. remaining"
+        "log-lik. calls | {signif(d_log_z)} log-evid. remaining"
       ),
       type = "custom"
     )

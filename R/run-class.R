@@ -84,7 +84,6 @@ new_ernest_run_ <- function(x, parsed) {
 }
 
 #' @srrstats {BS6.0} Default print for return object.
-#' @importFrom prettyunits pretty_round
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
@@ -95,9 +94,9 @@ print.ernest_run <- function(x, ...) {
     "* Prior: {format(x$prior, ...)}"
   ))
   cli::cli_rule(left = "Results")
-  log_z <- pretty_round(x$log_evidence, 4)
-  log_z_sd <- pretty_round(x$log_evidence_err, 4)
-  h <- prettyunits::pretty_signif(x$information, 4)
+  log_z <- round(x$log_evidence, 4)
+  log_z_sd <- round(x$log_evidence_err, 4)
+  h <- signif(x$information, 4)
   cli::cli_bullets(c(
     "* Iterations: {x$niter}",
     "* Likelihood evals.: {x$neval}",
@@ -210,14 +209,14 @@ summary.ernest_run <- function(object, ...) {
 print.summary.ernest_run <- function(x, ...) {
   cli::cli_text("Summary of nested sampling run:")
   cli::cli_rule(left = "Run Information")
-  log_z <- pretty_round(x$log_evidence, 4)
-  log_z_sd <- pretty_round(x$log_evidence_err, 4)
+  log_z <- round(x$log_evidence, 4)
+  log_z_sd <- round(x$log_evidence_err, 4)
   cli::cli_bullets(c(
     "* No. points: {x$nlive}",
     "* Iterations: {x$niter}",
     "* Likelihood evals.: {x$neval}",
     "* Log-evidence: {log_z} (\U00B1 {log_z_sd})",
-    "* Information: {prettyunits::pretty_signif(x$information, 4)}"
+    "* Information: {signif(x$information, 4)}"
   ))
   if (!is.na(x$seed)) {
     cli::cli_bullets(c("* RNG seed: {x$seed}"))
@@ -233,8 +232,8 @@ print.summary.ernest_run <- function(x, ...) {
 
   cli::cli_rule(left = "Maximum Likelihood Estimate (MLE)")
   cli::cli_bullets(c(
-    "* Log-likelihood: {pretty_round(x$mle$log_lik, 4)}",
-    "* Original parameters: {pretty_round(x$mle$original, 4)}"
+    "* Log-likelihood: {round(x$mle$log_lik, 4)}",
+    "* Original parameters: {round(x$mle$original, 4)}"
   ))
   invisible(x)
 }

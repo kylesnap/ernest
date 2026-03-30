@@ -120,8 +120,10 @@ nested_sampling_impl <- function(
     }
 
     # 5. Replace the worst points in live with new points
-    available_idx <- setdiff(seq_len(sampler_info$nlive), worst_idx)
-    copy <- sample(available_idx, length(worst_idx), replace = FALSE)
+    copy <- sample.int(nlive, 1)
+    if (copy == worst_idx && nlive > 1) {
+      copy <- sample.int(nlive, 1)
+    }
     new_unit <- if (cur_eval <= sampler_info$first_update) {
       propose(lrps, criterion = live_env$log_lik[worst_idx])
     } else {

@@ -45,9 +45,9 @@ if set to zero, this criterion is ignored.}
 and iteration counter during sampling. Optional; if \code{NULL} the global option
 \code{rlib_message_verbosity} is used to determine whether to show progress.}
 
-\item{allow_par}{\verb{[logical(1)]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} If
-\code{TRUE}, run the nested sampling loop in parallel by breaking \code{nlive} into
-multiple samplers.}
+\item{allow_par}{\verb{[logical(1)]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Use
+\CRANpkg{mirai} to generate nested samples in parallel.
+See \link{parallelization} for more.}
 
 \item{...}{
   Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}

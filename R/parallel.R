@@ -1,3 +1,107 @@
+#' Generate nested sampling runs in parallel.
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' The cost of a nested sampling run depends on the distance between the prior
+#' and posterior distributions and on the number of live points. With
+#' `allow_par = TRUE`, [generate()] uses \CRANpkg{mirai} to split the live set
+#' across workers, run sampling in parallel, then merge results before
+#' estimating model evidence.
+#'
+#' To run in parallel, daemons must be set with [mirai::daemons()]. Otherwise,
+#' [mirai::require_daemons()] throws an error when `allow_par = TRUE`.
+#'
+#' User-supplied [ernest_likelihood] and [ernest_prior] functions must be
+#' self-contained and must not depend on objects in the global environment.
+#' This keeps serialization predictable and avoids sending large, accidental
+#' dependencies to workers.
+#'
+#' @section Creating self-contained functions:
+#'
+#' Self-contained likelihood and prior functions should follow these
+#' guidelines:
+#'
+#' 1. Call package functions with explicit `::` namespaces, e.g.
+#' `extraDistr::qtnorm()`. Alternatively, call `library()` inside the function
+#' if you need to attach a package.
+#'
+#' 2. Declare all data dependencies explicitly, similar to the pattern used in
+#' [create_likelihood].
+#'
+#' 3. Any helper functions (closures) called within a self-contained function
+#' must itself be self-contained.
+#'
+#' @section Setting daemons:
+#'
+#' How and where parallelisation occurs is determined by [mirai::daemons()].
+#' Daemons are persistent background processes that execute parallel
+#' computations locally or across a network.
+#'
+#' Daemons must be set before parallel execution. Otherwise, calling
+#' `generate(..., allow_par = TRUE)` throws an error.
+#'
+#' Usually, daemons are set once per session and can be left running while idle
+#' because they use minimal resources. The following sets up 6 local daemons:
+#'
+#' ```r
+#' mirai::daemons(6)
+#' ```
+#'
+#' Function arguments:
+#'
+#' * `n`: the number of daemons to launch on your local machine, e.g.
+#'   `mirai::daemons(6)`. As a rule of thumb, for maximum efficiency this should
+#'   be (at most) one less than the number of cores on your machine, leaving one
+#'   core for the main R process.
+#' * `url` and `remote`: used to set up and launch daemons for distributed
+#'   computing over the network. See [mirai::daemons()] for more details.
+#'
+#' Daemons persist for the duration of your session. To reset and shut them
+#' down:
+#'
+#' ```r
+#' mirai::daemons(0)
+#' ```
+#'
+#' All daemons automatically terminate when your session ends. You do not need
+#' to explicitly terminate daemons in this instance, although it is still good
+#' practice to do so.
+#'
+#' @references
+#' ernest's parallelisation is powered by \CRANpkg{mirai}. See the
+#' [mirai website](https://mirai.r-lib.org/) for more details.
+#'
+#' \CRANpkg{crate} provides a simple method for creating self-contained
+#' functions. Consult that package for more details.
+#'
+#' This documentation is based on the
+#' [in_parallel](https://purrr.tidyverse.org/reference/in_parallel.html)
+#' function from the \pkg{purrr} package.
+#'
+#' @seealso [generate()] for performing nested sampling runs.
+#'
+#' @examples
+#' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
+#' ll_fn <- function(x) -sum(x^2)
+#' sampler <- ernest_sampler(ll_fn, prior, nlive = 300)
+#' sampler
+#'
+#' # Initialise daemons
+#' mirai::daemons(1, dispatcher = FALSE)
+#'
+#' # Automatically partition a run based on the number of daemons
+#' generate(sampler, max_iterations = 100, allow_par = TRUE)
+#'
+#' # Stop daemons
+#' mirai::daemons(0)
+#' Sys.sleep(1)
+#' @name ernest-parallel
+#' @aliases parallelization
+NULL
+
+#' Parallel generate
+#'
 #' @param x The ernest_sampler or ernest_run object.
 #' @param sampler_info A list containing information about the sampler.
 #' @param control parameters for the nested sampling run, generated from
@@ -19,28 +123,36 @@ p_generate <- function(
   split_id <- thread_nlive(x, nworkers, call)
   split_x <- split_run(x, split_id, parent_control, parent_info)
 
+  # Load ernest namespace persistently on all worker daemons
+  mirai::everywhere(library(ernest))
+  load_check <- mirai::mirai("package:ernest" %in% search())
+  if (!load_check[]) {
+    cli::cli_abort(
+      "{.pkg ernest} couldn't be loaded on some daemons.",
+      "i" = "Is the latest version of {.pkg ernest} installed?",
+      call = call
+    )
+  }
+
   m <- mirai::mirai_map(
     split_x,
     \(sx) {
-      library(ernest)
-      live_env <- list2env(sx[c("unit", "log_lik", "birth_lik")])
+      cur_env <- list2env(sx[c("unit", "log_lik", "birth_lik")])
       dead <- impl_(
-        live_env,
-        lrps_,
-        sx$info,
-        sx$control,
+        live_env = cur_env,
+        lrps = lrps_,
+        sampler_info = sx$info,
+        control = sx$control,
         show_progress = FALSE
       )
-      list("dead" = dead, "live" = as.list(live_env))
+      list("dead" = dead, "live" = as.list(cur_env))
     },
     impl_ = nested_sampling_impl,
     lrps_ = x$lrps
   )
 
-  m_out <- mirai::collect_mirai(
-    m,
-    options = c(".stop", if (show_progress) ".progress" else NULL)
-  )
+  opts <- c(".stop", if (show_progress) ".progress" else NULL)
+  m_out <- mirai::collect_mirai(m, options = opts)
   result <- reindex_threads(m_out, split_id)
   env_bind(
     x$live_env,
@@ -102,6 +214,16 @@ split_run <- function(x, slices, parent_control, parent_info) {
   })
 }
 
+#' Scale sampler control parameters for parallel sub-samplers.
+#'
+#' @param split_nlive The number of live points for this worker's sub-sampler.
+#' @param parent_info A list containing parent sampler information.
+#'
+#' @returns A list containing scaled sampler info for the worker. Both
+#' `first_update` and `update_interval` are scaled by the ratio of the
+#' worker's `split_nlive` to the parent's total `nlive`.
+#'
+#' @noRd
 split_info <- function(split_nlive, parent_info) {
   frac_nlive <- split_nlive / parent_info$nlive
   list(
@@ -112,6 +234,16 @@ split_info <- function(split_nlive, parent_info) {
   )
 }
 
+#' Reindex parallel sampling results and merge across workers.
+#'
+#' @param results A list of results from `mirai_map()`, each containing
+#'   `$dead` (ernest records) and `$live` (list of live point data).
+#' @param splits A list of index mappings, where each element is a vector
+#'   of global indices corresponding to that worker's local indices.
+#'
+#' @returns A properly indexed and merged result ernest_rcrd combining all
+#' workers' dead and live points, with global IDs correctly assigned.
+#' @noRd
 reindex_threads <- function(results, splits) {
   result <- mapply(
     \(res, split) {

@@ -154,6 +154,11 @@ run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
   tibble::tibble_row(
     log_evidence = integral$log_evidence[length(log_lik)],
     !!!means,
-    weight = if (include_weights) list(weight)
+    weights = if (include_weights) {
+      list(vctrs::df_list(
+        "log_volume" = integral$log_volume,
+        "weight" = weight
+      ))
+    }
   )
 }

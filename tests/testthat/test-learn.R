@@ -38,6 +38,6 @@ test_that("learn is reproducible with a fixed seed", {
 test_that("learn returns include_weights", {
   res <- learn(example_run, times = 4, include_weights = TRUE)
   expect_equal(nrow(res), 4)
-  expect_type(res$weight, "list")
-  expect_all_equal(vapply(res$weight, \(x) sum(x), double(1)), 1)
+  expect_type(res$weights, "list")
+  expect_all_equal(vapply(res$weights, \(x) sum(x$weight), double(1)), 1)
 })

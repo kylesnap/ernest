@@ -1,4 +1,4 @@
-# ernest_run / Stores weights as list
+# ernest_run / Stores run record and valid weights
 
     Code
       example_run
@@ -29,15 +29,15 @@
       -- Posterior Summary -----------------------------------------------------------
     Output
       # A tibble: # x #
-        variable      mean    sd    median   q#   q#
-        <chr>        <dbl> <dbl>     <dbl> <dbl> <dbl>
-      # x        -#.#    #.#  #.#   -#.#  #.#
-      # y        -#.#   #.#  #.# -#.#  #.#
-      # z         #.#  #.# -#.#   -#.#  #.#
+        variable     mean    sd   median   q#   q#
+        <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+      # x        -#.#   #.#  #.# -#.#  #.#
+      # y        -#.#  #.# -#.# -#.#  #.#
+      # z         #.#   #.#  #.# -#.#  #.#
     Message
       -- Maximum Likelihood Estimate (MLE) -------------------------------------------
       * Log-likelihood: -#.#
-      * Original parameters: #.#, #.#, and #.#
+      * Original parameters: #.#, -#.#, and -#.#
 
 # summary.ernest_run returns expected structure and values / has the expected posterior
 

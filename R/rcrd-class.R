@@ -20,15 +20,6 @@ new_ernest_rcrd <- function(
   .call = caller_env(0)
 ) {
   n_dim <- ncol(unit)
-  vctrs::vec_size_common(
-    unit = unit,
-    log_lik = log_lik,
-    id = id,
-    nlive = nlive,
-    evals = evals,
-    birth_lik = birth_lik,
-    .call = .call
-  )
   vctrs::new_rcrd(
     list(
       unit = vec_cast(unit, to = matrix(double(), ncol = n_dim), call = .call),
@@ -38,7 +29,7 @@ new_ernest_rcrd <- function(
       evals = vec_cast(evals, to = integer(), call = .call),
       birth_lik = vec_cast(birth_lik, to = double(), call = .call)
     ),
-    variables = as.character(colnames(unit)),
+    nvariables = as.integer(n_dim),
     class = "ernest_rcrd"
   )
 }
@@ -66,7 +57,7 @@ format.ernest_rcrd <- function(x, ...) {
 #' @export
 #' @noRd
 vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ..., call = caller_env()) {
-  if (!isTRUE(all.equal(attr(x, "variables"), attr(y, "variables")))) {
+  if (!isTRUE(all.equal(attr(x, "nvariables"), attr(y, "nvariables")))) {
     vctrs::stop_incompatible_type(
       x,
       y,
@@ -148,14 +139,7 @@ extract_live_points <- function(live_env, .id = NULL) {
 #' @importFrom vctrs field
 #' @noRd
 as_ernest_rcrd <- function(x, keep_live = TRUE) {
-  run <- new_ernest_rcrd(
-    unit = x$samples$unit_cube,
-    log_lik = x$weights$log_lik,
-    id = x$weights$id,
-    nlive = do.call(get_points, list(x$weights$log_lik, x$nlive, TRUE)),
-    evals = x$weights$evaluations,
-    birth_lik = x$weights$birth_lik
-  )
+  run <- x$rcrd
   if (keep_live) {
     return(run)
   }

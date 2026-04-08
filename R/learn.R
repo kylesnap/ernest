@@ -61,7 +61,7 @@ learn.ernest_run <- function(
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
-  col_names <- attr(x_rcrd, "variables")
+  col_names <- x$prior$names
   if (units == "original") {
     field(x_rcrd, "unit") <- x$samples$original
   }

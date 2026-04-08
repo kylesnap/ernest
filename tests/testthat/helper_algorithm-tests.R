@@ -107,7 +107,7 @@ expect_run <- function(..., .expected_log_z, .generate = NULL, .seed = 42L) {
       sprintf("Run Estimate: %.3f (ERR: %.3f)", log_z, log_z_err)
     ))
   }
-  tot_weight <- sum(run$weights$imp_weight)
+  tot_weight <- sum(run$samples$imp_weight)
   if (abs(tot_weight - 1) > sqrt(.Machine$double.eps)) {
     fail(sprintf(
       "Log-weights should sum to one, not %.3f.",

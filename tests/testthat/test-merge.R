@@ -69,8 +69,12 @@ test_that("merge_results returns expected dead/live partition", {
   expect_equal(
     min(field(res$live, "log_lik")),
     min(
-      run1$weights$log_lik[run1$weights$evaluations == 0],
-      run2$weights$log_lik[run2$weights$evaluations == 0]
+      vctrs::field(as_ernest_rcrd(run1), "log_lik")[
+        vctrs::field(as_ernest_rcrd(run1), "evals") == 0
+      ],
+      vctrs::field(as_ernest_rcrd(run2), "log_lik")[
+        vctrs::field(as_ernest_rcrd(run2), "evals") == 0
+      ]
     )
   )
   expect_all_equal(vctrs::field(res$live, "evals"), 0)
@@ -81,19 +85,21 @@ test_that("merge_results returns expected dead/live partition", {
 
 test_that("merging two runs", {
   run3 <- merge(run1, run2)
+  run3_rcrd <- as_ernest_rcrd(run3)
   expect_identical(run3$nlive, 800L)
   expect_lte(run3$niter, 200L)
-  expect_identical(sort(unique(run3$weights$id)), seq(run3$nlive))
-  expect_length(run3$weights$id, run3$niter + 800)
+  expect_identical(sort(unique(vctrs::field(run3_rcrd, "id"))), seq(run3$nlive))
+  expect_length(vctrs::field(run3_rcrd, "id"), run3$niter + 800)
   expect_equal(run3$first_update, 800 * 2.5)
   expect_equal(run3$update_interval, 800 * 1.5)
   expect_identical(attr(run3, "seed"), NA_integer_)
 
   run4 <- generate(run3, max_iterations = run3$niter + 100L, min_logz = 0)
+  run4_rcrd <- as_ernest_rcrd(run4)
   expect_equal(run4$niter, run3$niter + 100L)
   expect_gt(run4$neval, run3$neval)
   expect_identical(
-    run3$weights$log_lik[1:run3$niter],
-    run4$weights$log_lik[1:run3$niter]
+    vctrs::field(run3_rcrd, "log_lik")[1:run3$niter],
+    vctrs::field(run4_rcrd, "log_lik")[1:run3$niter]
   )
 })

@@ -30,7 +30,10 @@ test_that("Reproducing a ernest_sampler saved to disk", {
   f_sampler <- readRDS("sampler.rds")
   f_run1 <- generate(f_sampler, max_iterations = 100)
   expect_identical(run1$log_volume, f_run1$log_volume)
-  expect_identical(run1$weights$log_lik, f_run1$weights$log_lik)
+  expect_identical(
+    vctrs::field(as_ernest_rcrd(run1), "log_lik"),
+    vctrs::field(as_ernest_rcrd(f_run1), "log_lik")
+  )
   expect_identical(run1$samples$unit_cube, f_run1$samples$unit_cube)
 })
 

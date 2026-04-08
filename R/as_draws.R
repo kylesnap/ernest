@@ -108,7 +108,7 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
     radial_col <- sqrt(rowSums(points^2))
     points <- cbind(points, ".radial" = radial_col)
   }
-  weights <- x$weights$imp_weight
+  weights <- x$samples$imp_weight
 
   posterior::weight_draws(
     posterior::as_draws_matrix(points),

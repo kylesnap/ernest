@@ -13,21 +13,36 @@ test_that("example_run has the correct columns", {
 
 describe("ernest_run", {
   total_length <- example_run$niter + example_run$nlive
+  rcrd <- as_ernest_rcrd(example_run)
+  log_weight <- example_run$samples$log_weight
+  if (is.null(log_weight)) {
+    log_weight <- example_run$weights$log_weight
+  }
+  imp_weight <- example_run$samples$imp_weight
+  if (is.null(imp_weight)) {
+    imp_weight <- example_run$weights$imp_weight
+  }
   it("Stores samples", {
-    expect_named(example_run$samples, c("original", "unit_cube"))
+    if (is.null(example_run$samples$log_weight)) {
+      expect_named(example_run$samples, c("original", "unit_cube"))
+    } else {
+      expect_named(
+        example_run$samples,
+        c("original", "unit_cube", "log_weight", "imp_weight")
+      )
+    }
     expect_identical(dim(example_run$samples$original), c(total_length, 3L))
+    expect_length(log_weight, total_length)
+    expect_length(imp_weight, total_length)
   })
 
   niter <- example_run$niter
-  it("Stores weights as list", {
-    expect_named(
-      example_run$weights,
-      c("id", "evaluations", "log_lik", "log_weight", "imp_weight", "birth_lik")
-    )
+  it("Stores run record and valid weights", {
+    expect_s3_class(rcrd, "ernest_rcrd")
     expect_all_true(
-      example_run$weights$log_lik >= example_run$weights$birth_lik
+      vctrs::field(rcrd, "log_lik") >= vctrs::field(rcrd, "birth_lik")
     )
-    expect_equal(sum(example_run$weights$imp_weight), 1)
+    expect_equal(sum(imp_weight), 1)
   })
   expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })
@@ -49,8 +64,8 @@ describe("summary.ernest_run returns expected structure and values", {
   })
 
   it("has the expected MLE", {
-    max_idx <- which.max(example_run$weights$log_lik)
-    max_loglik <- example_run$weights$log_lik[max_idx]
+    max_idx <- which.max(vctrs::field(as_ernest_rcrd(example_run), "log_lik"))
+    max_loglik <- vctrs::field(as_ernest_rcrd(example_run), "log_lik")[max_idx]
     expect_named(smry$mle, c("log_lik", "original", "unit_cube"))
     expect_equal(smry$mle$log_lik, max_loglik)
   })

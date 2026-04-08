@@ -266,7 +266,7 @@ $$
 where $\Delta V_i = V_i - V_{i-1}$ and $f(L_i) = (L_{i-1} + L_i)/2$. Summing these unnormalized log-weights gives the model evidence estimate, which we can view by accessing them within the `run_1k` object:
 
 ```{r}
-run_1k$weights$log_weight |> summary()
+run_1k$samples$log_weight |> summary()
 ```
 
 ## Properties of Nested Sampling Runs

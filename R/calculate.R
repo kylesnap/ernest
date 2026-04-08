@@ -53,7 +53,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
-  log_lik <- x$weights$log_lik
+  log_lik <- field(x_rcrd, "log_lik")
   log_volume <- get_log_vol(x_rcrd, ndraws = ndraws)
   log_weight <- get_log_w(log_lik, log_volume)
 

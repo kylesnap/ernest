@@ -34,7 +34,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  all_samples <- c(parsed, extract_live_points(x$live_env))
+  all_samples <- vctrs::vec_c(parsed, extract_live_points(x$live_env))
   niter <- sum(field(all_samples, "evals") != 0L)
   integration <- compute_integral(all_samples)
   unit <- as.list(all_samples)[["unit"]]
@@ -48,19 +48,14 @@ new_ernest_run_ <- function(x, parsed) {
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
     "information" = tail(integration$information, 1L),
+    "rcrd" = all_samples,
     "samples" = list(
       "original" = original,
-      "unit_cube" = unit
-    ),
-    "weights" = vctrs::df_list(
-      "id" = field(all_samples, "id"),
-      "evaluations" = as.integer(field(all_samples, "evals")),
-      "log_lik" = integration$log_lik,
-      "log_weight" = integration$log_w,
+      "unit_cube" = unit,
+      "log_weight" = integration$log_weight,
       "imp_weight" = exp(
-        integration$log_w - tail(integration$log_evidence, 1L)
-      ),
-      "birth_lik" = field(all_samples, "birth_lik")
+        integration$log_weight - tail(integration$log_evidence, 1L)
+      )
     )
   )
 
@@ -158,7 +153,7 @@ summary.ernest_run <- function(object, ...) {
 
   # Posterior samples and weights
   draws <- as_draws(object)
-  weights <- object$weights$imp_weight
+  weights <- object$samples$imp_weight
   norm_weights <- exp(weights - max(weights))
   norm_weights <- norm_weights / sum(norm_weights)
 
@@ -166,9 +161,14 @@ summary.ernest_run <- function(object, ...) {
   reweighted_samples <- posterior::resample_draws(draws)
 
   # MLE
-  idx_mle <- which.max(object$weights$log_lik)
+  log_lik <- if (!is.null(object$rcrd)) {
+    field(object$rcrd, "log_lik")
+  } else {
+    object$weights$log_lik
+  }
+  idx_mle <- which.max(log_lik)
   mle <- list(
-    log_lik = object$weights$log_lik[idx_mle],
+    log_lik = log_lik[idx_mle],
     "original" = object$samples$original[idx_mle, ],
     "unit_cube" = object$samples$unit_cube[idx_mle, ]
   )

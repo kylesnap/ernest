@@ -56,11 +56,11 @@ learn.ernest_run <- function(
   check_number_whole(times, min = 1)
   check_bool(include_weights)
   units <- arg_match(units)
-  est_volume <- get_log_vol(x$weights$log_lik, x$nlive)
+  x_rcrd <- as_ernest_rcrd(x)
+  est_volume <- get_log_vol(x_rcrd)
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
-  x_rcrd <- as_ernest_rcrd(x)
   col_names <- attr(x_rcrd, "variables")
   if (units == "original") {
     field(x_rcrd, "unit") <- x$samples$original
@@ -146,7 +146,15 @@ run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
   lik_order <- order(log_lik)
   log_lik <- log_lik[lik_order]
   unit <- unit[lik_order, , drop = FALSE]
-  integral <- compute_integral(log_lik, nlive)
+  points <- do.call(get_points, list(log_lik, nlive, TRUE))
+  x_rcrd <- vctrs::new_rcrd(
+    list(
+      log_lik = log_lik,
+      nlive = points
+    ),
+    class = "ernest_rcrd"
+  )
+  integral <- compute_integral(x_rcrd)
 
   weight <- exp(integral$log_weight - integral$log_evidence[length(log_lik)])
   means <- matrixStats::colWeightedMeans(unit, w = weight)

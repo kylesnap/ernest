@@ -150,6 +150,11 @@ nested_sampling_impl <- function(
     unit = do.call(rbind, dead_unit),
     log_lik = vctrs::vec_c(!!!dead_log_lik, .ptype = double()),
     id = vctrs::vec_c(!!!dead_id, .ptype = double()),
+    nlive = get_points(
+      vctrs::vec_c(!!!dead_log_lik, .ptype = double()),
+      nlive,
+      FALSE
+    ),
     evals = vctrs::vec_c(!!!dead_evals, .ptype = double()),
     birth_lik = vctrs::vec_c(!!!dead_birth, .ptype = double())
   )

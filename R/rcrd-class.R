@@ -2,6 +2,7 @@
 #'
 #' @param unit The parameter values in the unit cube.
 #' @param log_lik The log-likelihood values for each sample.
+#' @param nlive The number of live points at the time each sample was taken.
 #' @param id A unique identifier for each sample.
 #' @param evals The number of likelihood evaluations for each sample.
 #' @param birth_lik The log-likelihood value at which each sample was born.
@@ -13,22 +14,53 @@ new_ernest_rcrd <- function(
   unit = matrix(double(0)),
   log_lik = double(0),
   id = integer(0),
+  nlive = integer(0),
   evals = integer(0),
   birth_lik = double(0),
   .call = caller_env(0)
 ) {
   n_dim <- ncol(unit)
+  vctrs::vec_size_common(
+    unit = unit,
+    log_lik = log_lik,
+    id = id,
+    nlive = nlive,
+    evals = evals,
+    birth_lik = birth_lik,
+    .call = .call
+  )
   vctrs::new_rcrd(
     list(
       unit = vec_cast(unit, to = matrix(double(), ncol = n_dim), call = .call),
       log_lik = vec_cast(log_lik, to = double(), call = .call),
       id = vec_cast(id, to = integer(), call = .call),
+      nlive = vec_cast(nlive, to = integer(), call = .call),
       evals = vec_cast(evals, to = integer(), call = .call),
       birth_lik = vec_cast(birth_lik, to = double(), call = .call)
     ),
     variables = as.character(colnames(unit)),
     class = "ernest_rcrd"
   )
+}
+
+#' @importFrom vctrs vec_ptype_full vec_ptype_abbr
+#' @export
+#' @noRd
+vec_ptype_full.ernest_rcrd <- function(x, ...) "nested sampling record"
+
+#' @export
+#' @noRd
+vec_ptype_abbr.ernest_rcrd <- function(x, ...) "ernest_rcrd"
+
+#' @export
+#' @noRd
+format.ernest_rcrd <- function(x, ...) {
+  log_lik <- vctrs::field(x, "log_lik")
+  birth_lik <- vctrs::field(x, "birth_lik")
+
+  out <- sprintf("%3g \U2192 %3g", birth_lik, log_lik)
+  out[is.na(log_lik) | is.na(birth_lik)] <- NA_character_
+  out
 }
 
 #' @export
@@ -101,6 +133,7 @@ extract_live_points <- function(live_env, .id = NULL) {
     unit = live_env$unit[order_lik, , drop = FALSE],
     log_lik = live_env$log_lik[order_lik],
     id = .id[order_lik],
+    nlive = rev(seq_along(live_env$log_lik)),
     evals = rep(0L, vctrs::vec_size(live_env$unit)),
     birth_lik = live_env$birth_lik[order_lik]
   )
@@ -119,6 +152,7 @@ as_ernest_rcrd <- function(x, keep_live = TRUE) {
     unit = x$samples$unit_cube,
     log_lik = x$weights$log_lik,
     id = x$weights$id,
+    nlive = do.call(get_points, list(x$weights$log_lik, x$nlive, TRUE)),
     evals = x$weights$evaluations,
     birth_lik = x$weights$birth_lik
   )

@@ -50,7 +50,7 @@ describe("new_generate_control", {
   })
 
   it("sets the continuation state for an existing run", {
-    integration <- compute_integral(field(x_rcrd, "log_lik"), example_run$nlive)
+    integration <- compute_integral(as_ernest_rcrd(example_run))
     niter <- example_run$niter
 
     expect_mapequal(

@@ -3,26 +3,46 @@ withr::local_seed(42)
 #' Testing calculate against values produced by `nestcheck` when provided
 #' a sample run from PolyChord.
 gold <- readRDS(test_path("calculate-gold.rds"))
+rcrd <- new_ernest_rcrd(
+  unit = matrix(0, nrow = length(gold$log_lik), ncol = 2),
+  log_lik = gold$log_lik,
+  id = c(
+    rep(seq(250), length.out = length(gold$log_lik) - 250),
+    rev(seq(250))
+  ),
+  nlive = get_points(gold$log_lik, 250, TRUE),
+  evals = c(
+    rep(1, length.out = length(gold$log_lik) - 250),
+    rep(0, 250)
+  ),
+  birth_lik = rep(-Inf, length.out = length(gold$log_lik))
+)
 
 test_that("Helpers produce as expected", {
   expect_equal(
-    get_points(c(10, 9, 8, 7, 6, 5, 4), 3),
+    get_points(c(10, 9, 8, 7, 6, 5, 4), 3, TRUE),
     c(3, 3, 3, 3, 3, 2, 1)
   )
   expect_equal(
-    get_points(c(10, 10, 9, 8, 7, 7, 7), 3),
+    get_points(c(10, 10, 9, 8, 7, 7, 6), 3, TRUE),
     c(3, 2, 3, 3, 3, 2, 1)
   )
+  expect_equal(
+    get_points(c(10, 10, 9, 8, 7, 7, 6), 3, FALSE),
+    c(3, 2, 3, 3, 3, 2, 3)
+  )
 
-  expect_equal(drop(get_log_vol(gold$log_lik, nlive = 250)), gold$log_volume)
+  expect_equal(drop(get_log_vol(rcrd)), gold$log_volume)
   calc <- get_log_w(gold$log_lik, gold$log_volume)
   expect_equal(drop(calc$log_weight), gold$log_weight)
   expect_equal(drop(calc$log_evidence), gold$log_evidence)
+
+  expect_warning(get_log_vol(rev(rcrd)), "'log_lik')` is not a sorted vector.")
 })
 
 test_that("Simulated log vols do not diverge from mean estimates", {
   set.seed(42)
-  log_vol <- get_log_vol(gold$log_lik, 250, ndraws = 4000)
+  log_vol <- get_log_vol(rcrd, ndraws = 4000)
 
   expect_equal(
     abs(colMeans(log_vol) - gold$log_volume) < matrixStats::colSds(log_vol),

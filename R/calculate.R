@@ -48,12 +48,13 @@
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, min = 0)
-  est_volume <- get_log_vol(x$weights$log_lik, x$nlive)
+  x_rcrd <- as_ernest_rcrd(x)
+  est_volume <- get_log_vol(x_rcrd)
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
   log_lik <- x$weights$log_lik
-  log_volume <- get_log_vol(x$weights$log_lik, x$nlive, ndraws = ndraws)
+  log_volume <- get_log_vol(x_rcrd, ndraws = ndraws)
   log_weight <- get_log_w(log_lik, log_volume)
 
   result <- if (ndraws == 0) {
@@ -107,16 +108,16 @@ tbl_sum.ernest_estimate <- function(x, ...) {
 #' Compute the nested sampling integral and statistics
 #'
 #' Calculates the nested sampling integral and related statistics from
-#' log-likelihoods and log-volumes.
+#' an `ernest_rcrd` object.
 #'
-#' @param log_lik Numeric vector of log-likelihoods in descending order.
-#' @param nlive The number of live points in the nested sampling run.
+#' @param x_rcrd Nested sampling samples as an `ernest_rcrd` object.
 #'
 #' @return A list containing log-likelihoods, log-volumes, log-weights,
 #' log-evidence, log-evidence variance, and information.
 #' @noRd
-compute_integral <- function(log_lik, nlive) {
-  log_volume <- get_log_vol(log_lik, nlive)
+compute_integral <- function(x_rcrd) {
+  log_lik <- vctrs::field(x_rcrd, "log_lik")
+  log_volume <- get_log_vol(x_rcrd)
   if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
     return(list(
       log_lik = double(0),
@@ -146,14 +147,18 @@ compute_integral <- function(log_lik, nlive) {
 
 #' Simulate log-volumes for nested sampling
 #'
-#' @param log_lik The log-likelihood sequence (used to detect plateau)
-#' @param nlive The number of points in the prior space.
+#' @param x_rcrd The nested sampling record.
 #' @param ndraws The number of draws to simulate for each volume.
 #'
 #' @return A matrix of simulated log-volumes.
 #' @noRd
-get_log_vol <- function(log_lik, nlive, ndraws = 0) {
-  points <- get_points(log_lik, nlive)
+get_log_vol <- function(x_rcrd, ndraws = 0) {
+  if (is.unsorted(field(x_rcrd, "log_lik"))) {
+    cli::cli_warn(
+      "`field({caller_arg(x_rcrd)}, 'log_lik')` is not a sorted vector."
+    )
+  }
+  points <- vctrs::field(x_rcrd, "nlive")
 
   if (ndraws == 0) {
     vol <- cumsum(-1 * (points^-1))

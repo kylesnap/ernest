@@ -4,8 +4,8 @@ logspace_add_c <- function(x, y) {
   .Call(`_ernest_logspace_add_c`, x, y)
 }
 
-get_points <- function(log_lik, nlive) {
-  .Call(`_ernest_get_points`, log_lik, nlive)
+get_points <- function(log_lik, nlive, add_live) {
+  .Call(`_ernest_get_points`, log_lik, nlive, add_live)
 }
 
 logspace_cumsum_mat <- function(x) {

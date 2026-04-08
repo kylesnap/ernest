@@ -28,7 +28,7 @@ describe("new_generate_control", {
     )
   })
 
-  x_rcrd <- as_ernest_rcrd(example_run)
+  x_rcrd <- example_run$rcrd
   it("fails to set an invalid continuation state", {
     niter <- example_run$niter
     neval <- example_run$neval
@@ -50,7 +50,7 @@ describe("new_generate_control", {
   })
 
   it("sets the continuation state for an existing run", {
-    integration <- compute_integral(as_ernest_rcrd(example_run))
+    integration <- compute_integral(example_run$rcrd)
     niter <- example_run$niter
 
     expect_mapequal(
@@ -72,8 +72,5 @@ describe("new_generate_control", {
 test_that("generate can continue generating over previous results", {
   continued <- generate(example_run, min_logz = 0.025)
   prev_dead <- example_run$niter - example_run$nlive
-  expect_identical(
-    example_run$samples$unit_cube[1:prev_dead, ],
-    continued$samples$unit_cube[1:prev_dead, ]
-  )
+  expect_identical(example_run$rcrd[1:prev_dead], continued$rcrd[1:prev_dead])
 })

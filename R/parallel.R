@@ -192,7 +192,7 @@ split_run <- function(x, slices, parent_control, parent_info) {
   x_rcrd <- if (inherits_only(x, "ernest_sampler")) {
     NULL
   } else {
-    as_ernest_rcrd(x)
+    x$rcrd
   }
 
   lapply(slices, \(slice) {

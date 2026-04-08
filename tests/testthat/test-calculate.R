@@ -55,7 +55,7 @@ test_that("calculate works when ndraws = 0", {
   calc <- calculate(example_run, ndraws = 0)
   expect_equal(
     calc$log_lik,
-    vctrs::field(as_ernest_rcrd(example_run), "log_lik")
+    vctrs::field(example_run$rcrd, "log_lik")
   )
   expect_equal(
     calc$log_weight,
@@ -76,7 +76,7 @@ test_that("calculate works when ndraws = 1", {
   calc <- calculate(example_run, ndraws = 1)
   expect_equal(
     calc$log_lik,
-    vctrs::field(as_ernest_rcrd(example_run), "log_lik")
+    vctrs::field(example_run$rcrd, "log_lik")
   )
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
@@ -93,7 +93,7 @@ test_that("calculate works when ndraws = 1000 (default)", {
   calc <- calculate(example_run)
   expect_equal(
     calc$log_lik,
-    vctrs::field(as_ernest_rcrd(example_run), "log_lik")
+    vctrs::field(example_run$rcrd, "log_lik")
   )
   expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
   expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))

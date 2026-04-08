@@ -45,7 +45,7 @@
 #' summary(merged)
 #' @export
 merge.ernest_run <- function(x, y, ...) {
-  xy <- reindex_runs(as_ernest_rcrd(x), as_ernest_rcrd(y))
+  xy <- reindex_runs(x$rcrd, y$rcrd)
   results <- merge_results(!!!xy)
   z <- merge_sampler(x, y)
   # Reform sampler

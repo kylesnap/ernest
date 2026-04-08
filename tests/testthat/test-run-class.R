@@ -13,7 +13,7 @@ test_that("example_run has the correct columns", {
 
 describe("ernest_run", {
   total_length <- example_run$niter + example_run$nlive
-  rcrd <- as_ernest_rcrd(example_run)
+  rcrd <- example_run$rcrd
   log_weight <- example_run$samples$log_weight
   if (is.null(log_weight)) {
     log_weight <- example_run$weights$log_weight
@@ -31,7 +31,7 @@ describe("ernest_run", {
         c("original", "unit_cube", "log_weight", "imp_weight")
       )
     }
-    expect_identical(dim(example_run$samples$original), c(total_length, 3L))
+    expect_identical(attr(example_run$rcrd, "nvariables"), 3L)
     expect_length(log_weight, total_length)
     expect_length(imp_weight, total_length)
   })
@@ -64,8 +64,8 @@ describe("summary.ernest_run returns expected structure and values", {
   })
 
   it("has the expected MLE", {
-    max_idx <- which.max(vctrs::field(as_ernest_rcrd(example_run), "log_lik"))
-    max_loglik <- vctrs::field(as_ernest_rcrd(example_run), "log_lik")[max_idx]
+    max_idx <- which.max(vctrs::field(example_run$rcrd, "log_lik"))
+    max_loglik <- vctrs::field(example_run$rcrd, "log_lik")[max_idx]
     expect_named(smry$mle, c("log_lik", "original", "unit_cube"))
     expect_equal(smry$mle$log_lik, max_loglik)
   })

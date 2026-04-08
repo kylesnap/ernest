@@ -19,7 +19,10 @@ new_ernest_run.ernest_sampler <- function(x, results) {
 #' @export
 #' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
-  prev_run <- as_ernest_rcrd(x, keep_live = FALSE)
+  prev_run <- x$rcrd[vctrs::vec_as_location(
+    field(x$rcrd, "evals") != 0L,
+    length(x$rcrd)
+  )]
   new_ernest_run_(x, vctrs::vec_c(prev_run, results))
 }
 
@@ -169,8 +172,8 @@ summary.ernest_run <- function(object, ...) {
   idx_mle <- which.max(log_lik)
   mle <- list(
     log_lik = log_lik[idx_mle],
-    "original" = object$samples$original[idx_mle, ],
-    "unit_cube" = object$samples$unit_cube[idx_mle, ]
+    "original" = object$prior$fn(field(object$rcrd[[idx_mle]], "unit")),
+    "unit_cube" = field(object$rcrd[[idx_mle]], "unit")
   )
 
   # Posterior summary statistics

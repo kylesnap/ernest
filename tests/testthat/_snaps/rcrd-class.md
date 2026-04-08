@@ -1,4 +1,4 @@
-# as_ernest_rcrd works
+# ernest_rcrd stores the expected information
 
     Code
       x

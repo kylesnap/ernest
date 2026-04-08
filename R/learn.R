@@ -56,19 +56,20 @@ learn.ernest_run <- function(
   check_number_whole(times, min = 1)
   check_bool(include_weights)
   units <- arg_match(units)
-  x_rcrd <- as_ernest_rcrd(x)
+  x_rcrd <- x$rcrd
   est_volume <- get_log_vol(x_rcrd)
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
-  col_names <- x$prior$names
-  if (units == "original") {
-    field(x_rcrd, "unit") <- x$samples$original
-  }
+  vctrs::field(x_rcrd, "unit") <- as_draws_matrix_(
+    x,
+    units = units,
+    radial = FALSE
+  )$points
   threads <- get_threads(x_rcrd)
   res <- replicate(
     times,
-    run_resample(x$nlive, threads, col_names, include_weights),
+    run_resample(x$nlive, threads, x$prior$names, include_weights),
     simplify = FALSE
   )
   tibble::new_tibble(

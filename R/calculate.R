@@ -48,7 +48,7 @@
 calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, min = 0)
-  x_rcrd <- as_ernest_rcrd(x)
+  x_rcrd <- x$rcrd
   est_volume <- get_log_vol(x_rcrd)
   log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]

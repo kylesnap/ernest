@@ -31,10 +31,10 @@ test_that("Reproducing a ernest_sampler saved to disk", {
   f_run1 <- generate(f_sampler, max_iterations = 100)
   expect_identical(run1$log_volume, f_run1$log_volume)
   expect_identical(
-    vctrs::field(as_ernest_rcrd(run1), "log_lik"),
-    vctrs::field(as_ernest_rcrd(f_run1), "log_lik")
+    vctrs::field(run1$rcrd, "log_lik"),
+    vctrs::field(f_run1$rcrd, "log_lik")
   )
-  expect_identical(run1$samples$unit_cube, f_run1$samples$unit_cube)
+  expect_identical(run1$rcrd, f_run1$rcrd)
 })
 
 test_that("`seed` is preserved across runs when set to NA", {

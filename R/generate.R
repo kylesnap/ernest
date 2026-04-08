@@ -164,7 +164,7 @@ generate.ernest_run <- function(
     return(NextMethod())
   }
 
-  x_rcrd <- as_ernest_rcrd(x)
+  x_rcrd <- x$rcrd
   control <- new_generate_control(
     max_iterations,
     max_evaluations,

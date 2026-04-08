@@ -17,8 +17,8 @@ run2 <- generate(
 )
 
 test_that("reindex_runs remaps IDs and preserves record fields", {
-  x1 <- as_ernest_rcrd(run1)
-  x2 <- as_ernest_rcrd(run2)
+  x1 <- run1$rcrd
+  x2 <- run2$rcrd
   out <- reindex_runs(x1, x2)
 
   n1 <- length(x1)
@@ -44,8 +44,8 @@ test_that("reindex_runs remaps IDs and preserves record fields", {
 })
 
 test_that("merge_results errors when IDs are duplicated across runs", {
-  x1 <- as_ernest_rcrd(run1)
-  x2 <- as_ernest_rcrd(run2)
+  x1 <- run1$rcrd
+  x2 <- run2$rcrd
 
   expect_error(
     merge_results(x1, x2),
@@ -54,8 +54,8 @@ test_that("merge_results errors when IDs are duplicated across runs", {
 })
 
 test_that("merge_results returns expected dead/live partition", {
-  x1 <- as_ernest_rcrd(run1)
-  x2 <- as_ernest_rcrd(run2)
+  x1 <- run1$rcrd
+  x2 <- run2$rcrd
   indexed <- reindex_runs(x1, x2)
   res <- merge_results(indexed[[1]], indexed[[2]])
   expect_named(res, c("live", "dead", "ndrop"))
@@ -69,11 +69,11 @@ test_that("merge_results returns expected dead/live partition", {
   expect_equal(
     min(field(res$live, "log_lik")),
     min(
-      vctrs::field(as_ernest_rcrd(run1), "log_lik")[
-        vctrs::field(as_ernest_rcrd(run1), "evals") == 0
+      vctrs::field(run1$rcrd, "log_lik")[
+        vctrs::field(run1$rcrd, "evals") == 0
       ],
-      vctrs::field(as_ernest_rcrd(run2), "log_lik")[
-        vctrs::field(as_ernest_rcrd(run2), "evals") == 0
+      vctrs::field(run2$rcrd, "log_lik")[
+        vctrs::field(run2$rcrd, "evals") == 0
       ]
     )
   )
@@ -85,7 +85,7 @@ test_that("merge_results returns expected dead/live partition", {
 
 test_that("merging two runs", {
   run3 <- merge(run1, run2)
-  run3_rcrd <- as_ernest_rcrd(run3)
+  run3_rcrd <- run3$rcrd
   expect_identical(run3$nlive, 800L)
   expect_lte(run3$niter, 200L)
   expect_identical(sort(unique(vctrs::field(run3_rcrd, "id"))), seq(run3$nlive))
@@ -95,7 +95,7 @@ test_that("merging two runs", {
   expect_identical(attr(run3, "seed"), NA_integer_)
 
   run4 <- generate(run3, max_iterations = run3$niter + 100L, min_logz = 0)
-  run4_rcrd <- as_ernest_rcrd(run4)
+  run4_rcrd <- run4$rcrd
   expect_equal(run4$niter, run3$niter + 100L)
   expect_gt(run4$neval, run3$neval)
   expect_identical(

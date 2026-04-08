@@ -129,20 +129,3 @@ extract_live_points <- function(live_env, .id = NULL) {
     birth_lik = live_env$birth_lik[order_lik]
   )
 }
-
-#' Extract iterations from an ernest_run object.
-#'
-#' @param x An ernest_run object.
-#' @param keep_live Whether to include the live set in the output.
-#'
-#' @returns A list containing a subset of the elements from `x`.
-#' @importFrom vctrs field
-#' @noRd
-as_ernest_rcrd <- function(x, keep_live = TRUE) {
-  run <- x$rcrd
-  if (keep_live) {
-    return(run)
-  }
-  dead <- vctrs::vec_as_location(field(run, "evals") != 0L, length(run))
-  run[dead]
-}

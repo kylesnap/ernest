@@ -89,7 +89,7 @@ compile.ernest_run <- function(
   preserve_seed(attr(object, "seed"))
 
   # Fill live set
-  prev <- as_ernest_rcrd(object)
+  prev <- object$rcrd
   live <- vctrs::vec_slice(prev, field(prev, "evals") == 0L)
   write_live_set(as.list(live), object)
   object

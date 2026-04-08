@@ -66,7 +66,13 @@ as_draws_matrix.ernest_run <- function(
   radial = FALSE,
   ...
 ) {
-  as_draws_matrix_(x, ..., units = units, radial = radial)
+  c(points, weights) %<-%
+    as_draws_matrix_(x, ..., units = units, radial = radial)
+  posterior::weight_draws(
+    posterior::as_draws_matrix(points),
+    weights,
+    log = FALSE
+  )
 }
 
 #' @rdname as_draws.ernest_run
@@ -92,7 +98,8 @@ as_draws_rvars.ernest_run <- function(
 #'   Euclidean norm for each sample.
 #' @param call Environment to use for error reporting.
 #'
-#' @return A draws_matrix object with importance weights attached.
+#' @return A list with objects "points" and "weights", which are
+#' guaranteed to be the same size.
 #' @noRd
 as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   check_dots_empty(call = call)
@@ -103,16 +110,18 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   )
   check_bool(radial, call = call)
 
-  points <- x$samples[[units]]
+  points <- field(x$rcrd, "unit")
+  if (units == "original") {
+    points <- x$prior$fn(points)
+  }
+  colnames(points) <- x$prior$names
   if (radial) {
     radial_col <- sqrt(rowSums(points^2))
     points <- cbind(points, ".radial" = radial_col)
   }
-  weights <- x$samples$imp_weight
-
-  posterior::weight_draws(
-    posterior::as_draws_matrix(points),
-    weights,
-    log = FALSE
+  vctrs::df_list(
+    "points" = points,
+    "weights" = x$samples$imp_weight,
+    .error_call = call
   )
 }

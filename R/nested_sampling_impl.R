@@ -133,16 +133,19 @@ nested_sampling_impl <- function(
         criterion = live_env$log_lik[worst_idx]
       )
     }
+    dead_evals[[i]] <- new_unit$neval
     if (is.null(new_unit$unit)) {
       cli::cli_warn(
-        "LRPS failed to generate a point in {lrps$max_loop} attempts."
+        c(
+          "LRPS failed to generate a point in {lrps$max_loop} attempts.",
+          "i" = "Have you tried adjusting the `ernest.max_loop` option?"
+        )
       )
       break
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
     live_env$birth_lik[worst_idx] <- live_env$log_lik[worst_idx]
-    dead_evals[[i]] <- new_unit$neval
     cur_eval <- cur_eval + new_unit$neval
   }
 

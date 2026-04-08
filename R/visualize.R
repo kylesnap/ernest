@@ -94,6 +94,7 @@ visualize.ernest_run <- function(
     check_installed("ggdist", "to create density plots.")
     draws <- posterior::resample_draws(draws)
     pos <- tidyselect::eval_select(expr, data = draws)
+    # nocov start
     selected <- draws[pos]
     visualize_density(selected)
   } else {
@@ -103,8 +104,6 @@ visualize.ernest_run <- function(
     visualize_trace(draws_df, pos, log_vol, stats::weights(draws))
   }
 }
-
-# nocov start
 
 #' Creates a faceted plot of the marginal posterior distributions for each
 #' selected variable from a nested sampling run, using `ggdist::stat_halfeye()`

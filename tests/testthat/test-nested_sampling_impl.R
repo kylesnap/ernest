@@ -52,3 +52,16 @@ test_that("Parameter recovery for a normal distribution", {
   expect_lte(-1.644854, smry[2, 2])
   expect_gte(1.644854, smry[2, 3])
 })
+
+test_that("Region-based samplers warn when max_loop is exceeded", {
+  withr::local_options(ernest.max_loop = 3L)
+  sampler <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    sampler = unif_ellipsoid(),
+    nlive = 100,
+    seed = 42
+  )
+
+  expect_warning(generate(sampler), "failed to generate a point in 3 attempts")
+})

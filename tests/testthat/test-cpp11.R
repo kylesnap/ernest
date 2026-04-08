@@ -1,4 +1,5 @@
 run_cpp_tests("ernest")
+withr::local_seed(42)
 
 describe("BoundingEllipsoid", {
   nlive <- 5000
@@ -52,6 +53,12 @@ describe("BoundingEllipsoid", {
     ell_fit <- BoundingEllipsoid(xy, NA)
     expect_equal(ell_fit$error, 2L)
     expect_equal(ell_fit$center, c(0.5, 1), tolerance = 0.1)
+  })
+
+  it("Recovers from fitting with a single live point", {
+    x <- matrix(c(0.25, 0.75), nrow = 1)
+    ell_fit <- BoundingEllipsoid(x, NA)
+    expect_equal(ell_fit$center, c(0.25, 0.75))
   })
 })
 

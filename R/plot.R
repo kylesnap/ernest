@@ -75,7 +75,7 @@ plot.ernest_estimate <- function(
 ) {
   check_dots_empty()
   which <- check_plot_which(which)
-  print(autoplot(x, which, ...))
+  print(autoplot(x, which, ...)) # nocov
 }
 
 #' @inheritParams calculate.ernest_run
@@ -92,7 +92,7 @@ plot.ernest_run <- function(
   if (!is.null(ndraws)) {
     x <- calculate(x, ndraws = ndraws)
   }
-  print(autoplot(x, which, ...))
+  print(autoplot(x, which, ...)) # nocov
 }
 
 

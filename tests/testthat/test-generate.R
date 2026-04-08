@@ -73,6 +73,18 @@ test_that("generate can continue generating from previous results", {
   continued <- generate(example_run, min_logz = 0.025)
   prev_dead <- example_run$niter - example_run$nlive
   expect_identical(example_run$rcrd[1:prev_dead], continued$rcrd[1:prev_dead])
+
+  continued <- generate(
+    example_run,
+    max_evaluations = round(example_run$neval * 1.1),
+    min_logz = 0
+  )
+  expect_identical(example_run$rcrd[1:prev_dead], continued$rcrd[1:prev_dead])
+})
+
+test_that("generate can start a run with a fresh sampler", {
+  continued <- generate(example_run, max_iterations = 1000, clear = TRUE)
+  expect_identical(example_run$rcrd[1:1000], continued$rcrd[1:1000])
 })
 
 #' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are

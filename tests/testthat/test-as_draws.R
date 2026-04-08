@@ -19,10 +19,10 @@ test_that("ernest_run as_draws_matrix", {
 
   expect_equal(
     weights(mat, log = TRUE),
-    if (is.null(example_run$samples$log_weight)) {
-      example_run$weights$log_weight - example_run$log_evidence
+    if (is.null(example_run$log_weight)) {
+      example_run$log_weight - example_run$log_evidence
     } else {
-      example_run$samples$log_weight - example_run$log_evidence
+      example_run$log_weight - example_run$log_evidence
     }
   )
 })

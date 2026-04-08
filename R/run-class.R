@@ -50,16 +50,9 @@ new_ernest_run_ <- function(x, parsed) {
     "neval" = sum(field(all_samples, "evals")),
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
+    "log_weight" = as.double(integration$log_weight),
     "information" = tail(integration$information, 1L),
-    "rcrd" = all_samples,
-    "samples" = list(
-      "original" = original,
-      "unit_cube" = unit,
-      "log_weight" = integration$log_weight,
-      "imp_weight" = exp(
-        integration$log_weight - tail(integration$log_evidence, 1L)
-      )
-    )
+    "rcrd" = all_samples
   )
 
   sampler_elem <- list(
@@ -156,7 +149,7 @@ summary.ernest_run <- function(object, ...) {
 
   # Posterior samples and weights
   draws <- as_draws(object)
-  weights <- object$samples$imp_weight
+  weights <- weights(object)
   norm_weights <- exp(weights - max(weights))
   norm_weights <- norm_weights / sum(norm_weights)
 

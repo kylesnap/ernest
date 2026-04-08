@@ -58,36 +58,21 @@ set.}
   }}
 }
 \value{
-\verb{[ernest_run]}
+An \verb{[ernest_run]} object with the nested sampling results.
 
-A named list containing the results of the nested sampling run, which
-contains \code{nsample = nlive + niter} samples from the prior distribution.
-This list inherits from \link{ernest_sampler}, and additionally contains:
+This inherits from \link{ernest_sampler} and adds:
 \itemize{
 \item \code{niter}: \verb{[integer(1)]} Number of iterations performed.
 \item \code{neval}: \verb{[integer(1)]} Total number of likelihood function evaluations.
-Note that it is possible for a single call to a likelihood function to
-evaluate the likelihoods of multiple parameter samples.
 \item \code{log_evidence}: \verb{[double(1)]} The log-evidence estimate.
 \item \code{log_evidence_err}: \verb{[double(1)]} The standard error of the log-evidence
-estimate, estimated from \code{information}.
+estimate, derived using \code{information}.
 \item \code{information}: \verb{[double(1)]} The estimated Kullback-Leibler divergence.
-\item \code{samples}: \verb{[list]} The posterior samples ordered by their log-likelihood
-values:
-\itemize{
-\item \code{original}: \verb{[matrix(double(), nsample, ndim)]} The samples
-transformed to the parameter space.
-\item \code{unit_cube}: \verb{[matrix(double(), nsample, ndim)]} The samples in
-the unit hypercube.
-\item \code{log_weight}: \verb{[double(nsample)]} The log-weight of each sample.
-\item \code{imp_weight}: \verb{[double(nsample)]} The normalized importance weight
-for each sample. This is given by normalizing \code{log_weight} with
-\code{log_evidence}, then applying \code{exp} to the result so the weights sum to
-one.
-}
+\item \code{log_weight}: \verb{[double(nsample)]} Each sample's contribution to the
+log-evidence estimate, computed from its log-likelihood and prior volume.
 \item \code{rcrd}: \verb{[ernest_rcrd]} A subclass of \link[vctrs:new_rcrd]{vctrs::new_rcrd} that stores
-sample-wise information on the run. This includes the following information
-which can be accessed with [\link[vctrs:fields]{vctrs::field}]:
+sample-level metadata for the run. Its fields can be accessed with
+[\link[vctrs:fields]{vctrs::field}]:
 \itemize{
 \item \code{unit}: \verb{[double(ndim)]} The location of the sample within the unit
 hypercube.

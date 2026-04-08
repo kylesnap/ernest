@@ -22,33 +22,20 @@
 #' \CRANpkg{mirai} to generate nested samples in parallel.
 #' See [parallelization] for more.
 #'
-#' @returns `[ernest_run]`
+#' @returns An `[ernest_run]` object with the nested sampling results.
 #'
-#' A named list containing the results of the nested sampling run, which
-#' contains `nsample = nlive + niter` samples from the prior distribution.
-#' This list inherits from [ernest_sampler], and additionally contains:
+#' This inherits from [ernest_sampler] and adds:
 #' * `niter`: `[integer(1)]` Number of iterations performed.
 #' * `neval`: `[integer(1)]` Total number of likelihood function evaluations.
-#' Note that it is possible for a single call to a likelihood function to
-#' evaluate the likelihoods of multiple parameter samples.
 #' * `log_evidence`: `[double(1)]` The log-evidence estimate.
 #' * `log_evidence_err`: `[double(1)]` The standard error of the log-evidence
-#' estimate, estimated from `information`.
+#' estimate, derived using `information`.
 #' * `information`: `[double(1)]` The estimated Kullback-Leibler divergence.
-#' * `samples`: `[list]` The posterior samples ordered by their log-likelihood
-#' values:
-#'   * `original`: `[matrix(double(), nsample, ndim)]` The samples
-#'   transformed to the parameter space.
-#'   * `unit_cube`: `[matrix(double(), nsample, ndim)]` The samples in
-#'   the unit hypercube.
-#'   * `log_weight`: `[double(nsample)]` The log-weight of each sample.
-#'   * `imp_weight`: `[double(nsample)]` The normalized importance weight
-#'   for each sample. This is given by normalizing `log_weight` with
-#'   `log_evidence`, then applying `exp` to the result so the weights sum to
-#'   one.
+#' * `log_weight`: `[double(nsample)]` Each sample's contribution to the
+#' log-evidence estimate, computed from its log-likelihood and prior volume.
 #' * `rcrd`: `[ernest_rcrd]` A subclass of [vctrs::new_rcrd] that stores
-#' sample-wise information on the run. This includes the following information
-#' which can be accessed with [[vctrs::field]]:
+#' sample-level metadata for the run. Its fields can be accessed with
+#' [[vctrs::field]]:
 #'   * `unit`: `[double(ndim)]` The location of the sample within the unit
 #'   hypercube.
 #'   * `id`: `[integer(nsample)]` The index of each sample within the live set.

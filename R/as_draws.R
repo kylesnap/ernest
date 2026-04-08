@@ -121,7 +121,49 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   }
   vctrs::df_list(
     "points" = points,
-    "weights" = x$samples$imp_weight,
+    "weights" = weights(x),
     .error_call = call
   )
+}
+
+#' Extract the posterior importance weights from a nested sampling run
+#'
+#' Return the normalised importance weights for the dead points in a nested
+#' sampling run. On the log scale, these are `log_weight - log_evidence`; on
+#' the probability scale, they are exponentiated so they sum to one.
+#'
+#' @param x [[ernest_run]]\cr A nested sampling run.
+#' @param log `[logical(1)]`\cr Whether the weights should be returned on the
+#' log scale.
+#' @inheritParams rlang::args_dots_empty
+#'
+#' @returns `[double()]` A numeric vector of normalised importance weights.
+#'
+#' @details
+#' The log-weights in a nested sampling run are the individual contributions
+#' of each sample to the log-evidence estimate. They are calculated from the
+#' sample's log-likelihood and the amount of prior volume inside its likelihood
+#' contour.
+#'
+#' The posterior importance weights are obtained by normalising the log-weights
+#' with the final log-evidence estimate. They can be used to reweight the
+#' posterior samples from the run so they approximate the posterior
+#' distribution.
+#'
+#' @seealso [as_draws.ernest_run] to extract the posterior samples from a nested
+#' sampling run, bound to their corresponding importance weights.
+#'
+#' @examples
+#' data(example_run)
+#' weights(example_run) |> head()
+#' weights(example_run, log = TRUE) |> head()
+#' @export
+weights.ernest_run <- function(x, log = FALSE, ...) {
+  check_dots_empty()
+  weights <- x$log_weight - x$log_evidence
+  if (log) {
+    weights
+  } else {
+    exp(weights)
+  }
 }

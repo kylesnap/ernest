@@ -59,10 +59,10 @@ test_that("calculate works when ndraws = 0", {
   )
   expect_equal(
     calc$log_weight,
-    if (is.null(example_run$samples$log_weight)) {
-      example_run$weights$log_weight
+    if (is.null(example_run$log_weight)) {
+      example_run$log_weight
     } else {
-      example_run$samples$log_weight
+      example_run$log_weight
     }
   )
   expect_equal(tail(calc$log_evidence, 1), example_run$log_evidence)

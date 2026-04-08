@@ -14,26 +14,12 @@ test_that("example_run has the correct columns", {
 describe("ernest_run", {
   total_length <- example_run$niter + example_run$nlive
   rcrd <- example_run$rcrd
-  log_weight <- example_run$samples$log_weight
-  if (is.null(log_weight)) {
-    log_weight <- example_run$weights$log_weight
-  }
-  imp_weight <- example_run$samples$imp_weight
-  if (is.null(imp_weight)) {
-    imp_weight <- example_run$weights$imp_weight
-  }
-  it("Stores samples", {
-    if (is.null(example_run$samples$log_weight)) {
-      expect_named(example_run$samples, c("original", "unit_cube"))
-    } else {
-      expect_named(
-        example_run$samples,
-        c("original", "unit_cube", "log_weight", "imp_weight")
-      )
-    }
-    expect_identical(attr(example_run$rcrd, "nvariables"), 3L)
+  log_weight <- example_run$log_weight
+  imp_weight <- weights(example_run)
+  it("Stores weights", {
     expect_length(log_weight, total_length)
     expect_length(imp_weight, total_length)
+    expect_equal(sum(imp_weight), 1)
   })
 
   niter <- example_run$niter
@@ -42,7 +28,7 @@ describe("ernest_run", {
     expect_all_true(
       vctrs::field(rcrd, "log_lik") >= vctrs::field(rcrd, "birth_lik")
     )
-    expect_equal(sum(imp_weight), 1)
+    expect_identical(attr(example_run$rcrd, "nvariables"), 3L)
   })
   expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })

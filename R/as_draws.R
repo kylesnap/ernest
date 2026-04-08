@@ -71,7 +71,7 @@ as_draws_matrix.ernest_run <- function(
   posterior::weight_draws(
     posterior::as_draws_matrix(points),
     weights,
-    log = FALSE
+    log = TRUE
   )
 }
 
@@ -121,7 +121,7 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   }
   vctrs::df_list(
     "points" = points,
-    "weights" = weights(x),
+    "weights" = weights(x, log = TRUE),
     .error_call = call
   )
 }
@@ -153,11 +153,11 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
 #' @seealso [as_draws.ernest_run] to extract the posterior samples from a nested
 #' sampling run, bound to their corresponding importance weights.
 #'
+#' @exportS3Method stats::weights
 #' @examples
 #' data(example_run)
 #' weights(example_run) |> head()
 #' weights(example_run, log = TRUE) |> head()
-#' @export
 weights.ernest_run <- function(x, log = FALSE, ...) {
   check_dots_empty()
   weights <- x$log_weight - x$log_evidence

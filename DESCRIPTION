@@ -46,7 +46,7 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: algorithm, plot, *_ellipsoid
+Config/testthat/start-first: nested_sampling_impl, plot
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",

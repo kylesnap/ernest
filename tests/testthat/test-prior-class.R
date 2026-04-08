@@ -29,6 +29,7 @@ describe("ernest_prior", {
     expect_equal(attr(pr, "interface"), "point_fn")
     expect_equal(pr$fn(c(0.0, 0.2, 0.4)), expected_points[1, , drop = FALSE])
     expect_equal(pr$fn(test_matrix), expected_points)
+    expect_error(pr$fn(c("0", "0.2", "0.4")), "must be a numeric vector")
     expect_snapshot(pr)
   })
 
@@ -149,4 +150,26 @@ describe("+.ernest_prior", {
       "`y` must be an object with class ernest_prior, not a function."
     )
   })
+})
+
+#' Zero-Length Data
+#'
+#' @srrstats {G5.8a} Tests for when likelihood and prior presented by user
+#' return zero-lengths.
+test_that("Zero-length prior fails", {
+  prior_fn <- \(theta) double(0)
+  expect_snapshot(create_prior(prior_fn, names = character()), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1]), error = TRUE)
+})
+
+#' Missing type
+#'
+#' @srrstats {G5.8c} ernest fails when NA are produced by a prior function.
+test_that("Missing values in the prior", {
+  set.seed(42)
+  prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
+  expect_error(
+    create_prior(prior_fn, names = LETTERS[1:2]),
+    "must return only finite values."
+  )
 })

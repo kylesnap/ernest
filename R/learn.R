@@ -38,6 +38,9 @@
 #' Estimating Bayesian Posteriors and Evidences. Monthly Notices of the Royal
 #' Astronomical Society, 493, 3132–3158. \doi{10.1093/mnras/staa278}
 #'
+#' @srrstats {BS4.2} Allows for validating posterior estimates through
+#' bootstrapping the importance weights.
+#'
 #' @examples
 #' data(example_run)
 #' # Generate 100 bootstrap resamples

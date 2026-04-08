@@ -118,16 +118,6 @@ tbl_sum.ernest_estimate <- function(x, ...) {
 compute_integral <- function(x_rcrd) {
   log_lik <- vctrs::field(x_rcrd, "log_lik")
   log_volume <- get_log_vol(x_rcrd)
-  if (vctrs::vec_size_common(log_lik, log_volume) == 0L) {
-    return(list(
-      log_lik = double(0),
-      log_volume = double(0),
-      log_weight = double(0),
-      log_evidence = double(0),
-      log_evidence_var = double(0),
-      information = double(0)
-    ))
-  }
   log_weight <- get_log_w(log_lik, log_volume)
   information <- get_information(log_lik, log_volume, log_weight$log_evidence)
   log_evidence_var <- get_log_zvar(information, log_volume)

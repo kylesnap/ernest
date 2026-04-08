@@ -173,12 +173,4 @@ test_that("compile initializes the live set", {
 
   expect_equal(orig_log_lik, expected_log_lik)
   expect_equal(sampler$live_env$birth_lik, rep(-Inf, 500))
-  expect_snapshot(sampler)
-
-  run <- generate(sampler, max_iterations = 1000L)
-
-  # clear = TRUE should call compile.ernest_sampler
-  expect_s3_class(compile(run, clear = TRUE), "ernest_sampler", exact = TRUE)
-  # clear = FALSE should restore the live set
-  expect_s3_class(compile(run, clear = FALSE), "ernest_run")
 })

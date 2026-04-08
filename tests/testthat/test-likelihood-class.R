@@ -44,6 +44,7 @@ describe("ernest_likelihood", {
     expect_s3_class(ll, c("ernest_likelihood", "function"))
     expect_equal(attr(ll, "interface"), "scalar_fn")
     expect_equal(ll(c(0.0, 0.2, 0.4)), expected_ll[1])
+    expect_error(ll(c("0", "0.2", "0.4")), "must be a numeric vector")
     expect_equal(ll(test_matrix), drop(expected_ll))
     expect_snapshot(ll)
   })
@@ -81,4 +82,51 @@ describe("handles type conversion errors", {
       "Can't convert `log_lik\\(x\\)` <character> to <double>."
     )
   })
+})
+
+#' Missing value catching
+#'
+#' @srrstats {BS2.14} Tests whether warnings are surpressed upon request.
+#' @srrstats {G5.3} Ernest results do not contain NA even when log-lik produces
+#' NA values.
+NULL
+
+test_that("Missing values in the log-likelihood", {
+  set.seed(42)
+  ll_fn_missing <- \(theta) {
+    if (all(theta >= 0)) {
+      return(NA)
+    }
+    gaussian_blobs$log_lik(theta)
+  }
+
+  expect_snapshot(
+    ernest_sampler(
+      log_lik = create_likelihood(ll_fn_missing, on_nonfinite = "abort"),
+      prior = gaussian_blobs$prior,
+      seed = 42
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    error = TRUE
+  )
+
+  expect_no_message(
+    quiet_na_sampler <- ernest_sampler(
+      create_likelihood(ll_fn_missing, on_nonfinite = "quiet"),
+      gaussian_blobs$prior,
+      seed = 42
+    )
+  )
+
+  expect_snapshot(
+    ernest_sampler(
+      create_likelihood(ll_fn_missing, on_nonfinite = "warn"),
+      gaussian_blobs$prior,
+      seed = 42
+    ),
+    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x)
+  )
+
+  run <- generate(quiet_na_sampler, max_iterations = 100L)
+  expect_false(anyNA(vctrs::field(run$rcrd, "log_lik")))
 })

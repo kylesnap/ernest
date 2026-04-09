@@ -19,7 +19,7 @@ cpp11::doubles get_points(cpp11::doubles log_lik, int nlive, bool add_live) {
   std::advance(last_dead, add_live ? log_lik.size() - nlive : log_lik.size());
   int plateau = 0;
   for (std::advance(next_lik, 1); col != last_dead; ++col, ++cur_lik, ++next_lik) {
-    *col = nlive - plateau;
+    *col = std::max(nlive - plateau, 1);  // Protect against zero nlive
     plateau = (*cur_lik == *next_lik) ? plateau + 1 : 0;
   }
   int nlive_remaining = nlive;

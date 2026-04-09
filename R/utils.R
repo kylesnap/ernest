@@ -113,3 +113,14 @@ vectorize_function <- function(fn) {
     }
   }
 }
+
+#' Log-space subtraction
+#'
+#' @param a,b Numeric vectors of equal length.
+#'
+#' @return `log(exp(a) - exp(b))`, computed in log-space to avoid numerical
+#' underflow. A warning is issued and `NaN` is returned when `b > a`.
+#' @noRd
+logspace_sub <- function(a, b) {
+  a + log1p(-exp(b - a))
+}

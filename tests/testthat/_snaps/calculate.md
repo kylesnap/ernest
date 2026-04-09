@@ -1,63 +1,42 @@
-# calculate works when ndraws = 0
+# calculate / works when ndraws = 0
 
     Code
       calc
     Output
-      # <ernest_estimate>: 10359 niter.
-      # Log-evidence:      -9.023975 (Expected log-vol.)
-         log_lik log_volume log_weight log_evidence log_evidence_err
-           <dbl>      <dbl>      <dbl>        <dbl>            <dbl>
-       1   -137.     -0.001      -143.        -143.         1.31e-30
-       2   -132.     -0.002      -139.        -139.         1.64e-29
-       3   -130.     -0.003      -137.        -137.         4.23e-29
-       4   -130.     -0.004      -137.        -136.         7.15e-29
-       5   -129.     -0.005      -136.        -136.         1.02e-28
-       6   -127.     -0.006      -134.        -134.         2.13e-28
-       7   -124.     -0.007      -131.        -131.         7.01e-28
-       8   -123.     -0.008      -130.        -130.         1.54e-27
-       9   -123.     -0.009      -130.        -129.         2.47e-27
-      10   -122.     -0.01       -129.        -129.         3.37e-27
+      # <ernest_estimate>:  10359 niter.
+      # Uncertainty source: Normally-Approximated Analytical Estimates (1000 draws)
+         log_lik  log_volume log_weight log_evidence
+           <dbl>  <rvar[1d]> <rvar[1d]>   <rvar[1d]>
+       1   -137.  -5.2 ± 3.1  -143 ± NA     -143 ± 0
+       2   -132.  -5.2 ± 3.1  -139 ± NA     -139 ± 0
+       3   -130.  -5.2 ± 3.1  -137 ± NA     -137 ± 0
+       4   -130.  -5.2 ± 3.1  -137 ± NA     -136 ± 0
+       5   -129.  -5.2 ± 3.1  -136 ± NA     -136 ± 0
+       6   -127.  -5.2 ± 3.1  -134 ± NA     -134 ± 0
+       7   -124.  -5.2 ± 3.1  -131 ± NA     -131 ± 0
+       8   -123.  -5.2 ± 3.1  -130 ± NA     -130 ± 0
+       9   -123.  -5.2 ± 3.1  -130 ± NA     -129 ± 0
+      10   -122.  -5.2 ± 3.1  -129 ± NA     -129 ± 0
       # i 10,349 more rows
 
-# calculate works when ndraws = 1
+# calculate / works when ndraws = 1000 (default)
 
     Code
       calc
     Output
-      # <ernest_estimate>: 10359 niter.
-      # Log-evidence:      -9 ± NA (Simulated log-vol., 1 draws)
-         log_lik     log_volume log_weight log_evidence
-           <dbl>     <rvar[1d]> <rvar[1d]>   <rvar[1d]>
-       1   -137.  -0.00028 ± NA  -144 ± NA    -144 ± NA
-       2   -132.  -0.00104 ± NA  -139 ± NA    -139 ± NA
-       3   -130.  -0.00249 ± NA  -137 ± NA    -137 ± NA
-       4   -130.  -0.00416 ± NA  -136 ± NA    -136 ± NA
-       5   -129.  -0.00556 ± NA  -136 ± NA    -135 ± NA
-       6   -127.  -0.00660 ± NA  -134 ± NA    -134 ± NA
-       7   -124.  -0.00705 ± NA  -133 ± NA    -132 ± NA
-       8   -123.  -0.00718 ± NA  -130 ± NA    -130 ± NA
-       9   -123.  -0.00869 ± NA  -130 ± NA    -129 ± NA
-      10   -122.  -0.00915 ± NA  -130 ± NA    -129 ± NA
-      # i 10,349 more rows
-
-# calculate works when ndraws = 1000 (default)
-
-    Code
-      calc
-    Output
-      # <ernest_estimate>: 10359 niter.
-      # Log-evidence:      -9 ± 0.07 (Simulated log-vol., 1000 draws)
-         log_lik          log_volume   log_weight log_evidence
-           <dbl>          <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
-       1   -137.  -0.00095 ± 0.00095  -144 ± 0.84  -144 ± 0.84
-       2   -132.  -0.00196 ± 0.00141  -139 ± 0.79  -139 ± 0.78
-       3   -130.  -0.00293 ± 0.00171  -137 ± 0.77  -137 ± 0.67
-       4   -130.  -0.00394 ± 0.00199  -137 ± 0.79  -136 ± 0.59
-       5   -129.  -0.00492 ± 0.00221  -137 ± 0.79  -136 ± 0.54
-       6   -127.  -0.00597 ± 0.00247  -134 ± 0.81  -134 ± 0.66
-       7   -124.  -0.00695 ± 0.00265  -132 ± 0.78  -131 ± 0.71
-       8   -123.  -0.00796 ± 0.00281  -130 ± 0.83  -130 ± 0.69
-       9   -123.  -0.00902 ± 0.00300  -130 ± 0.79  -129 ± 0.60
-      10   -122.  -0.01004 ± 0.00315  -130 ± 0.79  -129 ± 0.52
+      # <ernest_estimate>:  10359 niter.
+      # Uncertainty source: Simulated Log-Volumes (1000 draws)
+         log_lik         log_volume   log_weight log_evidence
+           <dbl>         <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
+       1   -137.  -0.0010 ± 0.00098  -144 ± 0.78  -144 ± 0.78
+       2   -132.  -0.0021 ± 0.00146  -139 ± 0.80  -139 ± 0.79
+       3   -130.  -0.0032 ± 0.00184  -137 ± 0.80  -137 ± 0.69
+       4   -130.  -0.0042 ± 0.00208  -137 ± 0.77  -136 ± 0.57
+       5   -129.  -0.0051 ± 0.00222  -137 ± 0.77  -136 ± 0.49
+       6   -127.  -0.0061 ± 0.00241  -134 ± 0.76  -134 ± 0.62
+       7   -124.  -0.0071 ± 0.00262  -132 ± 0.78  -131 ± 0.71
+       8   -123.  -0.0081 ± 0.00285  -130 ± 0.80  -130 ± 0.67
+       9   -123.  -0.0091 ± 0.00295  -130 ± 0.80  -129 ± 0.58
+      10   -122.  -0.0101 ± 0.00310  -130 ± 0.82  -129 ± 0.54
       # i 10,349 more rows
 

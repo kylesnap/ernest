@@ -6,9 +6,9 @@
 #'
 #' @param x [[ernest_run]]\cr Results from a nested sampling run.
 #' @param ndraws `[integer(1)]`\cr The number of log-volume sequences to
-#' simulate.
-#' If equal to zero, no simulations will be made, and a one draw vector of
-#' log-volumes are produced from the estimates contained in `x`.
+#' simulate. If equal to zero, log-volume simulation is skipped and error in
+#' the log-evidence estimates is approximated with analytical error
+#' estimates.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns [[tibble::tibble()]] with class `ernest_estimate`.
@@ -16,17 +16,19 @@
 #' The iterative estimates from the nested sampling run. Contains the following
 #' columns:
 #' * `log_lik`: `[[double()]]` The log-likelihood of the model.
-#' * `log_volume`: `[[double() or rvar]]` The log-volume of the prior space.
-#' * `log_weight`: `[[double() or rvar]]` The log weights of the points in the
+#' * `log_volume`: `[[posterior::rvar()]]` The log-volume of the prior space.
+#' * `log_weight`: `[[posterior::rvar()]]` The log weights of the points in the
 #' live set.
-#' * `log_evidence`: `[[double() or rvar]]` The log-evidence of the model.
+#' * `log_evidence`: `[[posterior::rvar()]]` The log-evidence of the model.
 #'
-#' If `ndraws = 0`, columns are retunred as doubles. Else, they are returned
-#' as [[posterior::rvar()]] objects, with `ndraws` rows and the same number of
-#' columns as the original `log_volume` and `log_weight` matrices.
+#' If `ndraws > 0`, `log_volume`, `log_weight`, and `log_evidence` each contain
+#' `ndraws` simulated draws per iteration.
 #'
-#' If `ndraws = 0`,  an additional column is included:
-#' * `log_evidence_err`: `[[double()]]` The standard error of the log-evidence.
+#' If `ndraws = 0`, `log_volume` and `log_weight` contain a single
+#' deterministic draw per iteration, and `log_evidence` contains draws
+#' from a normal approximation based on analytical variance estimates (see
+#' the package vignetttes for more information). The  number of draws is
+#' controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
 #'
 #' @references Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 #' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
@@ -57,33 +59,29 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   log_volume <- get_log_vol(x_rcrd, ndraws = ndraws)
   log_weight <- get_log_w(log_lik, log_volume)
 
-  result <- if (ndraws == 0) {
-    list(
-      "log_lik" = log_lik,
-      "log_volume" = drop(log_volume),
-      "log_weight" = drop(log_weight$log_weight),
-      "log_evidence" = drop(log_weight$log_evidence),
-      "log_evidence_err" = {
-        information <- get_information(
-          log_lik,
-          log_volume,
-          drop(log_weight$log_evidence)
-        )
-        sqrt(get_log_zvar(information, log_volume))
-      }
+  log_z <- if (ndraws == 0) {
+    information <- get_information(log_lik, log_volume, log_weight$log_evidence)
+    log_evidence_var <- get_log_zvar(information, log_volume)
+    posterior::rvar_rng(
+      stats::rnorm,
+      n = vctrs::vec_size(drop(log_weight$log_evidence)),
+      mean = drop(log_weight$log_evidence),
+      sd = sqrt(log_evidence_var),
+      ndraws = getOption("posterior.rvar_ndraws", 1000L)
     )
   } else {
-    list(
-      "log_lik" = log_lik,
-      "log_volume" = posterior::rvar(log_volume),
-      "log_weight" = posterior::rvar(log_weight$log_weight),
-      "log_evidence" = posterior::rvar(log_weight$log_evidence)
-    )
+    log_z <- posterior::rvar(log_weight$log_evidence)
   }
+  result <- list(
+    "log_lik" = log_lik,
+    "log_volume" = posterior::rvar(log_volume),
+    "log_weight" = posterior::rvar(log_weight$log_weight),
+    "log_evidence" = log_z
+  )
 
   tibble::new_tibble(
     tibble::as_tibble(result),
-    ndraws = ndraws,
+    ndraws = as.integer(ndraws),
     log_vol_rng = log_vol_rng,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
@@ -95,13 +93,13 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 #' @noRd
 tbl_sum.ernest_estimate <- function(x, ...) {
   desc <- if (attr(x, "ndraws") == 0) {
-    "Expected log-vol."
+    "Normally-Approximated Analytical Estimates (1000 draws)"
   } else {
-    sprintf("Simulated log-vol., %d draws", attr(x, "ndraws"))
+    sprintf("Simulated Log-Volumes (%d draws)", attr(x, "ndraws"))
   }
   c(
     "<ernest_estimate>" = sprintf("%d niter.", nrow(x)),
-    "Log-evidence" = sprintf("%s (%s)", format(tail(x$log_evidence, 1)), desc)
+    "Uncertainty source" = desc
   )
 }
 
@@ -139,13 +137,18 @@ compute_integral <- function(x_rcrd) {
 #'
 #' @param x_rcrd The nested sampling record.
 #' @param ndraws The number of draws to simulate for each volume.
+#' @param call Error information.
 #'
 #' @return A matrix of simulated log-volumes.
 #' @noRd
-get_log_vol <- function(x_rcrd, ndraws = 0) {
+get_log_vol <- function(x_rcrd, ndraws = 0, call = caller_env()) {
   if (is.unsorted(field(x_rcrd, "log_lik"))) {
     cli::cli_warn(
-      "`field({caller_arg(x_rcrd)}, 'log_lik')` is not a sorted vector."
+      c(
+        "Log-weight estimates are unreliable.",
+        "!" = "`log_lik` values are not sorted in increasing order."
+      ),
+      call = call
     )
   }
   points <- vctrs::field(x_rcrd, "nlive")
@@ -254,15 +257,4 @@ get_information <- function(log_lik, log_volume, log_evidence) {
 get_log_zvar <- function(information, log_volume) {
   dh <- c(information[1], diff(information))
   abs(cumsum(dh * -diff(c(0, log_volume))))
-}
-
-#' Log-space subtraction for nested sampling
-#'
-#' @param a,b Numeric vectors of equal length.
-#'
-#' @return `log(exp(a) - exp(b))`, computed in log-space to avoid numerical
-#' underflow. A warning is issued and `NaN` is returned when `b > a`.
-#' @noRd
-logspace_sub <- function(a, b) {
-  a + log1p(-exp(b - a))
 }

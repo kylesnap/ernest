@@ -19,9 +19,9 @@ or more of \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.}
 \item{...}{These dots are for future extensions and must be empty.}
 
 \item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
-simulate.
-If equal to zero, no simulations will be made, and a one draw vector of
-log-volumes are produced from the estimates contained in \code{x}.}
+simulate. If equal to zero, log-volume simulation is skipped and error in
+the log-evidence estimates is approximated with analytical error
+estimates.}
 }
 \value{
 \verb{[invisible(x)]}. A \code{ggplot2::ggplot()} object is printed as a

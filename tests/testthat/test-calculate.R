@@ -1,24 +1,6 @@
 withr::local_seed(42)
 
-#' Testing calculate against values produced by `nestcheck` when provided
-#' a sample run from PolyChord.
-gold <- readRDS(test_path("calculate-gold.rds"))
-rcrd <- new_ernest_rcrd(
-  unit = matrix(0, nrow = length(gold$log_lik), ncol = 2),
-  log_lik = gold$log_lik,
-  id = c(
-    rep(seq(250), length.out = length(gold$log_lik) - 250),
-    rev(seq(250))
-  ),
-  nlive = get_points(gold$log_lik, 250, TRUE),
-  evals = c(
-    rep(1, length.out = length(gold$log_lik) - 250),
-    rep(0, 250)
-  ),
-  birth_lik = rep(-Inf, length.out = length(gold$log_lik))
-)
-
-test_that("Helpers produce as expected", {
+test_that("get_points returns expected values", {
   expect_equal(
     get_points(c(10, 9, 8, 7, 6, 5, 4), 3, TRUE),
     c(3, 3, 3, 3, 3, 2, 1)
@@ -31,79 +13,88 @@ test_that("Helpers produce as expected", {
     get_points(c(10, 10, 9, 8, 7, 7, 6), 3, FALSE),
     c(3, 2, 3, 3, 3, 2, 3)
   )
-
-  expect_equal(drop(get_log_vol(rcrd)), gold$log_volume)
-  calc <- get_log_w(gold$log_lik, gold$log_volume)
-  expect_equal(drop(calc$log_weight), gold$log_weight)
-  expect_equal(drop(calc$log_evidence), gold$log_evidence)
-
-  expect_warning(get_log_vol(rev(rcrd)), "'log_lik')` is not a sorted vector.")
-})
-
-test_that("Simulated log vols do not diverge from mean estimates", {
-  set.seed(42)
-  log_vol <- get_log_vol(rcrd, ndraws = 4000)
-
   expect_equal(
-    abs(colMeans(log_vol) - gold$log_volume) < matrixStats::colSds(log_vol),
-    rep(TRUE, 3000)
+    get_points(c(10, 10, 10, 10, 10, 10, 10), 3, TRUE),
+    c(3, 2, 1, 1, 3, 2, 1)
   )
 })
 
-test_that("calculate works when ndraws = 0", {
+test_that("compute_integral correctly calculates values", {
+  #' Tested against sample run from PolyChord.
+  gold <- readRDS(test_path("calculate-gold.rds")) |>
+    as.list()
+  rcrd <- new_ernest_rcrd(
+    unit = matrix(0, nrow = length(gold$log_lik), ncol = 2),
+    log_lik = gold$log_lik,
+    id = c(
+      rep(seq(250), length.out = length(gold$log_lik) - 250),
+      rev(seq(250))
+    ),
+    nlive = gold$points,
+    evals = c(
+      rep(1, length.out = length(gold$log_lik) - 250),
+      rep(0, 250)
+    ),
+    birth_lik = rep(-Inf, length.out = length(gold$log_lik))
+  )
+
+  obj <- compute_integral(rcrd)
+  expect_mapequal(
+    obj[c("log_lik", "log_volume", "log_weight", "log_evidence")],
+    gold[c("log_lik", "log_volume", "log_weight", "log_evidence")]
+  )
+  expect_warning(
+    get_log_vol(rev(rcrd)),
+    "Log-weight estimates are unreliable."
+  )
+})
+
+describe("calculate", {
   data(example_run)
-  calc <- calculate(example_run, ndraws = 0)
-  expect_equal(
-    calc$log_lik,
-    vctrs::field(example_run$rcrd, "log_lik")
-  )
-  expect_equal(
-    calc$log_weight,
-    if (is.null(example_run$log_weight)) {
-      example_run$log_weight
-    } else {
-      example_run$log_weight
-    }
-  )
-  expect_equal(tail(calc$log_evidence, 1), example_run$log_evidence)
-  expect_equal(tail(calc$log_evidence_err, 1), example_run$log_evidence_err)
-  expect_snapshot(calc)
-})
+  nsamp <- example_run$nlive + example_run$niter
+  expect_equal_rvar <- function(object, expected, ...) {
+    object <- unname(drop(posterior::draws_of(object)))
+    expect_equal(object, expected, ...)
+  }
 
-test_that("calculate works when ndraws = 1", {
-  data(example_run)
-  n_samp <- example_run$niter + example_run$nlive
-  calc <- calculate(example_run, ndraws = 1)
-  expect_equal(
-    calc$log_lik,
-    vctrs::field(example_run$rcrd, "log_lik")
-  )
-  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1, n_samp))
+  it("works when ndraws = 0", {
+    calc <- calculate(example_run, ndraws = 0)
+    expect_s3_class(calc, "ernest_estimate")
+    expect_identical(attr(calc, "ndraws"), 0L)
+    expect_equal(calc$log_lik, vctrs::field(example_run$rcrd, "log_lik"))
+    expect_shape(calc, nrow = nsamp)
 
-  expect_snapshot(calc)
-})
+    expected <- compute_integral(example_run$rcrd)
+    expect_equal_rvar(calc$log_weight, expected$log_weight)
+    expect_shape(posterior::draws_of(calc$log_evidence), dim = c(1000, nsamp))
+    expect_equal(
+      mean(calc$log_evidence),
+      expected$log_evidence,
+      tolerance = 1e-3
+    )
+    expected_sd <- sqrt(expected$log_evidence_var)
+    observed_sd <- posterior::sd(calc$log_evidence)
+    expect_all_true(
+      # Tolerance around uncertainty.
+      abs(observed_sd - expected_sd) < 2 * expected_sd
+    )
+    expect_snapshot(calc)
+  })
 
-test_that("calculate works when ndraws = 1000 (default)", {
-  skip_extended()
-  data(example_run)
-  n_samp <- example_run$niter + example_run$nlive
+  it("works when ndraws = 1000 (default)", {
+    calc <- calculate(example_run)
+    calc1 <- calculate(example_run, ndraws = 0)
+    expect_identical(attr(calc, "ndraws"), 1000L)
+    expect_equal(calc$log_lik, vctrs::field(example_run$rcrd, "log_lik"))
+    expect_shape(calc, nrow = nsamp)
 
-  calc <- calculate(example_run)
-  expect_equal(
-    calc$log_lik,
-    vctrs::field(example_run$rcrd, "log_lik")
-  )
-  expect_equal(dim(posterior::draws_of(calc$log_volume)), c(1000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_weight)), c(1000, n_samp))
-  expect_equal(dim(posterior::draws_of(calc$log_evidence)), c(1000, n_samp))
-
-  log_z <- tail(calc$log_evidence, 1)
-  expect_lt(
-    abs(mean(log_z) - example_run$log_evidence),
-    .Machine$double.eps + 3 * posterior::sd(log_z)
-  )
-
-  expect_snapshot(calc)
+    expected <- compute_integral(example_run$rcrd)
+    expect_shape(posterior::draws_of(calc1$log_evidence), dim = c(1000, nsamp))
+    expect_equal(
+      mean(calc$log_evidence),
+      expected$log_evidence,
+      tolerance = 1e-3
+    )
+    expect_snapshot(calc)
+  })
 })

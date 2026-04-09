@@ -11,9 +11,9 @@
 \item{x}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
 \item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
-simulate.
-If equal to zero, no simulations will be made, and a one draw vector of
-log-volumes are produced from the estimates contained in \code{x}.}
+simulate. If equal to zero, log-volume simulation is skipped and error in
+the log-evidence estimates is approximated with analytical error
+estimates.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
@@ -24,20 +24,20 @@ The iterative estimates from the nested sampling run. Contains the following
 columns:
 \itemize{
 \item \code{log_lik}: \verb{[[double()]]} The log-likelihood of the model.
-\item \code{log_volume}: \verb{[[double() or rvar]]} The log-volume of the prior space.
-\item \code{log_weight}: \verb{[[double() or rvar]]} The log weights of the points in the
+\item \code{log_volume}: \verb{[[posterior::rvar()]]} The log-volume of the prior space.
+\item \code{log_weight}: \verb{[[posterior::rvar()]]} The log weights of the points in the
 live set.
-\item \code{log_evidence}: \verb{[[double() or rvar]]} The log-evidence of the model.
+\item \code{log_evidence}: \verb{[[posterior::rvar()]]} The log-evidence of the model.
 }
 
-If \code{ndraws = 0}, columns are retunred as doubles. Else, they are returned
-as [\code{\link[posterior:rvar]{posterior::rvar()}}] objects, with \code{ndraws} rows and the same number of
-columns as the original \code{log_volume} and \code{log_weight} matrices.
+If \code{ndraws > 0}, \code{log_volume}, \code{log_weight}, and \code{log_evidence} each contain
+\code{ndraws} simulated draws per iteration.
 
-If \code{ndraws = 0},  an additional column is included:
-\itemize{
-\item \code{log_evidence_err}: \verb{[[double()]]} The standard error of the log-evidence.
-}
+If \code{ndraws = 0}, \code{log_volume} and \code{log_weight} contain a single
+deterministic draw per iteration, and \code{log_evidence} contains draws
+from a normal approximation based on analytical variance estimates (see
+the package vignetttes for more information). The  number of draws is
+controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
 }
 \description{
 Computes evidence and related quantities from a nested

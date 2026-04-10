@@ -59,30 +59,33 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   log_volume <- get_log_vol(x_rcrd, ndraws = ndraws)
   log_weight <- get_log_w(log_lik, log_volume)
 
-  log_z <- if (ndraws == 0) {
+  if (ndraws == 0) {
     information <- get_information(log_lik, log_volume, log_weight$log_evidence)
     log_evidence_var <- get_log_zvar(information, log_volume)
-    posterior::rvar_rng(
+    log_z <- posterior::rvar_rng(
       stats::rnorm,
       n = vctrs::vec_size(drop(log_weight$log_evidence)),
       mean = drop(log_weight$log_evidence),
       sd = sqrt(log_evidence_var),
       ndraws = getOption("posterior.rvar_ndraws", 1000L)
     )
+    log_volume <- posterior::as_rvar(drop(log_volume))
+    log_weight <- posterior::as_rvar(drop(log_weight$log_weight))
   } else {
     log_z <- posterior::rvar(log_weight$log_evidence)
+    log_volume <- posterior::rvar(log_volume)
+    log_weight <- posterior::rvar(log_weight$log_weight)
   }
   result <- list(
     "log_lik" = log_lik,
-    "log_volume" = posterior::rvar(log_volume),
-    "log_weight" = posterior::rvar(log_weight$log_weight),
+    "log_volume" = log_volume,
+    "log_weight" = log_weight,
     "log_evidence" = log_z
   )
 
   tibble::new_tibble(
     tibble::as_tibble(result),
     ndraws = as.integer(ndraws),
-    log_vol_rng = log_vol_rng,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
   )

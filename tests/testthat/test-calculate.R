@@ -52,21 +52,26 @@ test_that("compute_integral correctly calculates values", {
 describe("calculate", {
   data(example_run)
   nsamp <- example_run$nlive + example_run$niter
-  expect_equal_rvar <- function(object, expected, ...) {
-    object <- unname(drop(posterior::draws_of(object)))
-    expect_equal(object, expected, ...)
+  expect_shape_rvar <- function(object, ndraws, dim, ...) {
+    object <- posterior::draws_of(object)
+    expect_shape(object, dim = c(ndraws, dim))
   }
 
   it("works when ndraws = 0", {
     calc <- calculate(example_run, ndraws = 0)
     expect_s3_class(calc, "ernest_estimate")
     expect_identical(attr(calc, "ndraws"), 0L)
+
     expect_equal(calc$log_lik, vctrs::field(example_run$rcrd, "log_lik"))
-    expect_shape(calc, nrow = nsamp)
+    expect_shape_rvar(calc$log_volume, 1, nsamp)
+    expect_shape_rvar(calc$log_weight, 1, nsamp)
+    expect_shape_rvar(calc$log_evidence, 1000, nsamp)
 
     expected <- compute_integral(example_run$rcrd)
-    expect_equal_rvar(calc$log_weight, expected$log_weight)
-    expect_shape(posterior::draws_of(calc$log_evidence), dim = c(1000, nsamp))
+    expect_equal(
+      unname(drop(posterior::draws_of(calc$log_weight))),
+      expected$log_weight
+    )
     expect_equal(
       mean(calc$log_evidence),
       expected$log_evidence,
@@ -81,15 +86,26 @@ describe("calculate", {
     expect_snapshot(calc)
   })
 
+  it("works when ndraws = 1 (default)", {
+    calc <- calculate(example_run, ndraws = 1)
+    expect_identical(attr(calc, "ndraws"), 1L)
+
+    expect_shape_rvar(calc$log_volume, 1, nsamp)
+    expect_shape_rvar(calc$log_weight, 1, nsamp)
+    expect_shape_rvar(calc$log_evidence, 1, nsamp)
+    expect_snapshot(calc)
+  })
+
   it("works when ndraws = 1000 (default)", {
     calc <- calculate(example_run)
-    calc1 <- calculate(example_run, ndraws = 0)
     expect_identical(attr(calc, "ndraws"), 1000L)
-    expect_equal(calc$log_lik, vctrs::field(example_run$rcrd, "log_lik"))
-    expect_shape(calc, nrow = nsamp)
+
+    expect_shape_rvar(calc$log_volume, 1000, nsamp)
+    expect_shape_rvar(calc$log_weight, 1000, nsamp)
+    expect_shape_rvar(calc$log_evidence, 1000, nsamp)
 
     expected <- compute_integral(example_run$rcrd)
-    expect_shape(posterior::draws_of(calc1$log_evidence), dim = c(1000, nsamp))
+    expect_shape(posterior::draws_of(calc$log_evidence), dim = c(1000, nsamp))
     expect_equal(
       mean(calc$log_evidence),
       expected$log_evidence,

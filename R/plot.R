@@ -78,23 +78,120 @@ plot.ernest_estimate <- function(
   print(autoplot(x, which, ...)) # nocov
 }
 
-#' @inheritParams calculate.ernest_run
-#'
-#' @rdname plot.ernest_run
+#' @rdname plot.ernest_estimate
 #' @export
 plot.ernest_run <- function(
   x,
   which = c("evidence", "weight", "likelihood"),
-  ndraws = NULL,
   ...
 ) {
   which <- check_plot_which(which)
-  if (!is.null(ndraws)) {
-    x <- calculate(x, ndraws = ndraws)
-  }
-  print(autoplot(x, which, ...)) # nocov
+  withr::with_preserve_seed(
+    obj <- calculate(x, ndraws = 0)
+  )
+  print(autoplot(obj, which, ...))
 }
 
+#' @rdname plot.ernest
+#' @export
+summary.ernest_estimate <- function(
+  object,
+  which = c("evidence", "weight", "likelihood"),
+  n = 512,
+  ...
+) {
+  check_dots_empty()
+  which <- arg_match(which, multiple = TRUE)
+  check_number_whole(n, min = 2)
+
+  if (any(c("evidence", "weight") %in% which)) {
+    check_installed("ggdist", "to summarize evidence and weight diagnostics")
+  }
+
+  log_volume <- posterior::draws_of(object$log_volume)
+  log_evidence <- posterior::draws_of(object$log_evidence)
+  log_weight <- posterior::draws_of(object$log_weight)
+  weight <- if (nrow(log_weight) == 1) {
+    log_z <- matrixStats::logSumExp(drop(log_weight))
+    exp(log_weight - log_z)
+  } else {
+    exp(sweep(
+      log_weight,
+      1,
+      log_evidence[, ncol(log_evidence)],
+      FUN = "-"
+    ))
+  }
+
+  lik <- exp(object$log_lik - max(object$log_lik))
+  vol_rng <- ggdist::density_bounded(
+    log_volume,
+    bounds = c(NA, 0),
+    range_only = TRUE
+  )$x
+  knots <- seq(vol_rng[1], vol_rng[2], length.out = n)
+  print(length(knots))
+
+  safe_curve <- \(x, y) {
+    if (!is.matrix(drop(y))) {
+      vctrs::data_frame(
+        "x" = x,
+        ".value" = y
+      )
+    } else {
+      ggdist::curve_interval(
+        vctrs::data_frame(
+          "x" = x,
+          ".value" = posterior::rvar(t(y))
+        ),
+        .along = x,
+        .width = ggdist::interval_widths(3)
+      )
+    }
+  }
+
+  list(
+    "evidence" = if ("evidence" %in% which) {
+      yout <- vapply(
+        seq_len(nrow(log_evidence)),
+        \(i) {
+          stats::approx(
+            log_volume[min(i, nrow(log_volume)), ],
+            exp(log_evidence[i, ]),
+            xout = knots,
+            rule = 2
+          )$y
+        },
+        double(n)
+      )
+      safe_curve(knots, yout)
+    },
+    "weight" = if ("weight" %in% which) {
+      yout <- vapply(
+        seq_len(nrow(weight)),
+        \(i) {
+          dens <- ggdist::density_bounded(
+            x = log_volume[i, ],
+            weights = weight[i, ],
+            bounds = c(NA, 0)
+          )
+          stats::approx(dens$x, dens$y, xout = knots, rule = 2)$y
+        },
+        double(n)
+      )
+      safe_curve(knots, yout)
+    },
+    "likelihood" = if ("likelihood" %in% which) {
+      lik_app <- approx(
+        colMeans(log_volume),
+        lik,
+        xout = knots,
+        rule = 2
+      )
+      vctrs::data_frame("x" = lik_app$x, ".value" = lik_app$y)
+    }
+  )
+}
 
 #' Validate Plot Type Argument
 #'
@@ -124,8 +221,6 @@ check_plot_which <- function(which, call = caller_env()) {
 
 # AUTOPLOT METHODS -----
 
-# nocov starts
-
 #' Generates a ggplot object for an `ernest_estimate` object containing
 #' uncertainty simulations.
 #'
@@ -139,320 +234,76 @@ check_plot_which <- function(which, call = caller_env()) {
 #' @importFrom ggplot2 autoplot
 #' @importFrom posterior draws_of
 #' @export
-autoplot.ernest_estimate <- function(object, which, call = caller_env(), ...) {
-  check_dots_empty(call = call)
-  if (attr(object, "ndraws") < 1L) {
-    cli::cli_abort(
-      "`{caller_arg(object)}` must have `ndraws` greater than 1.",
-      call = call
-    )
-  }
-  log_volume <- posterior::draws_of(object$log_volume)
-  log_evidence <- posterior::draws_of(object$log_evidence)
-  log_weight <- posterior::draws_of(object$log_weight)
-  weight <- exp(sweep(
-    log_weight,
-    1,
-    log_evidence[, ncol(log_evidence)],
-    FUN = "-"
-  ))
-  lik <- exp(object$log_lik - max(object$log_lik))
-  xout <- seq(min(attr(object, "log_vol_rng")), 0, length.out = 512)
+autoplot.ernest_estimate <- function(object, which, ...) {
+  diagnostic_data <- summary(object, which = which)
   xint <- attr(object, "dead_log_vol")
   plots <- lapply(which, \(x) {
     switch(
       x,
-      "evidence" = autoplot_evidence(
-        log_volume,
-        log_evidence,
-        xout,
-        xintercept = xint,
-        call = call
+      "evidence" = autoplot_(
+        diagnostic_data[["evidence"]],
+        "Evidence",
+        xintercept = xint
       ),
-      "weight" = autoplot_weight(
-        log_volume,
-        weight,
-        xout,
-        xintercept = xint,
-        call = call
+      "weight" = autoplot_(
+        diagnostic_data[["weight"]],
+        "Importance Weight",
+        xintercept = xint
       ),
-      "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
-    )
-  })
-
-  if (length(plots) > 1) {
-    patchwork::wrap_plots(plots) +
-      patchwork::plot_layout(ncol = 1, axes = "collect")
-  } else {
-    plots[[1]]
-  }
-}
-
-#' Generates a ggplot object for an `ernest_run` object containing a nested
-#' sampling run.
-#'
-#' @param object Results from a nested sampling run.
-#' @param which Which plots to display.
-#' @param call The calling environment for error handling.
-#' @param ... Additional arguments passed to the method.
-#'
-#' @return A ggplot object.
-#' @noRd
-#' @export
-autoplot.ernest_run <- function(object, which, call = caller_env(), ...) {
-  check_dots_empty(call = call)
-  integral <- calculate(object, ndraws = 0)
-  log_volume <- matrix(integral$log_volume, nrow = 1)
-  log_evidence <- matrix(integral$log_evidence, nrow = 1)
-  weight <- matrix(
-    exp(integral$log_weight - log_evidence[ncol(log_evidence)]),
-    nrow = 1
-  )
-  lik <- exp(integral$log_lik - max(integral$log_lik))
-  xint <- attr(integral, "dead_log_vol")
-  xout <- seq(min(attr(integral, "log_vol_rng")), 0, length.out = 512)
-  plots <- lapply(which, \(x) {
-    switch(
-      x,
-      "evidence" = autoplot_evidence(
-        log_volume,
-        log_evidence,
-        xout,
-        log_evidence_err = object$log_evidence_err,
-        xintercept = xint,
-        call = call
-      ),
-      "weight" = autoplot_weight(
-        log_volume,
-        weight,
-        xout,
-        xintercept = xint,
-        call = call
-      ),
-      "likelihood" = autoplot_likelihood(log_volume, lik, xintercept = xint)
-    )
-  })
-
-  if (length(plots) > 1) {
-    patchwork::wrap_plots(plots) +
-      patchwork::plot_layout(ncol = 1, axes = "collect")
-  } else {
-    plots[[1]]
-  }
-}
-
-#' Plot Evidence Diagnostic Curve
-#'
-#' Internal helper used by [autoplot.ernest_run()] and
-#' [autoplot.ernest_estimate()] to visualize the contribution to evidence over
-#' log-prior volume.
-#'
-#' @param log_volume Numeric matrix of simulated or deterministic
-#' log-prior-volume trajectories. Rows correspond to draws.
-#' @param log_evidence Numeric matrix of cumulative log-evidence trajectories
-#' matching `log_volume`.
-#' @param xout Numeric vector of x-values used for interpolation when
-#' summarizing draw-wise trajectories.
-#' @param nbands Number of interval bands shown in the lineribbon.
-#' @param log_evidence_err Optional scalar standard error on the log-evidence
-#' scale for deterministic run output.
-#' @param xintercept Optional numeric vector of vertical reference lines,
-#' typically dead-point log-volumes.
-#'
-#' @return A `ggplot2::ggplot()` object.
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_vline
-#' @importFrom ggplot2 scale_fill_brewer scale_x_continuous scale_y_continuous
-#' @importFrom ggplot2 theme_minimal
-#' @noRd
-autoplot_evidence <- function(
-  log_volume,
-  log_evidence,
-  xout,
-  nbands = 3,
-  log_evidence_err = NULL,
-  xintercept = NULL,
-  call = caller_env()
-) {
-  check_installed("ggdist", "to plot evidence diagnostics", call = call)
-  z_df <- if (!is.null(log_evidence_err)) {
-    fill_name <- "\U00B1 \U03C3"
-    df <- tibble::tibble(
-      x = rep(log_volume, nbands),
-      .value = rep(log_evidence, nbands),
-      .width = rep(
-        ggdist::interval_widths(nbands),
-        each = length(log_volume)
-      ),
-      .lower = stats::qnorm(.data$.width),
-      .upper = stats::qnorm(.data$.width)
-    )
-    df$.lower <- exp(df$.value - (df$.lower * log_evidence_err))
-    df$.upper <- exp(df$.value + (df$.upper * log_evidence_err))
-    df$.value <- exp(df$.value)
-    df
-  } else {
-    fill_name <- "MHD"
-    yout <- interpolate_draw_curves(
-      nrow(log_volume),
-      length(xout),
-      \(i) {
-        stats::approx(
-          log_volume[i, ],
-          exp(log_evidence[i, ]),
-          rule = 2,
-          xout = xout
-        )$y
-      }
-    )
-    interval_df(xout, posterior::rvar(yout), nbands, type = "point")
-  }
-
-  ggplot(z_df, aes(.data[["x"]], y = .data[[".value"]])) +
-    ggdist::geom_lineribbon(aes(
-      ymin = .data[[".lower"]],
-      ymax = .data[[".upper"]]
-    )) +
-    geom_vline(xintercept = xintercept, linetype = 2) +
-    scale_fill_brewer(
-      fill_name,
-      breaks = ggdist::interval_widths(nbands),
-      labels = ggdist::pretty_widths(nbands),
-      palette = "Reds"
-    ) +
-    scale_x_continuous("Log-volume") +
-    scale_y_continuous("Evidence") +
-    theme_minimal()
-}
-
-#' Plot Importance-Weight Diagnostic Curve
-#'
-#' @param log_volume Numeric matrix of simulated or deterministic
-#' log-prior-volume trajectories. Rows correspond to draws.
-#' @param weight Numeric matrix of normalized importance weights corresponding
-#' to `log_volume`.
-#' @param xout Numeric vector of x-values used for interpolation.
-#' @param nbands Number of interval bands shown in the lineribbon.
-#' @param xintercept Optional numeric vector of vertical reference lines,
-#' typically dead-point log-volumes.
-#'
-#' @return A `ggplot2::ggplot()` object.
-#' @noRd
-autoplot_weight <- function(
-  log_volume,
-  weight,
-  xout,
-  nbands = 3,
-  xintercept = NULL,
-  call = caller_env()
-) {
-  check_installed("ggdist", "to plot importance weights", call = call)
-  yout <- interpolate_draw_curves(
-    nrow(log_volume),
-    length(xout),
-    \(i) {
-      dens <- ggdist::density_bounded(
-        x = log_volume[i, ],
-        weights = weight[i, ],
-        bounds = c(NA, 0)
+      "likelihood" = autoplot_(
+        diagnostic_data[["likelihood"]],
+        "Normalized Likelihood",
+        xintercept = xint
       )
-      stats::approx(dens$x, dens$y, xout = xout, rule = 2)$y
-    }
-  )
-  w_df <- if (nrow(yout) == 1) {
-    geom <- ggplot2::geom_line()
-    tibble::tibble(
-      x = xout,
-      .value = drop(yout),
-      .width = na_dbl,
-      .lower = na_dbl,
-      .upper = na_dbl
     )
+  })
+
+  if (length(plots) > 1) {
+    patchwork::wrap_plots(plots) +
+      patchwork::plot_layout(ncol = 1, axes = "collect")
   } else {
-    geom <- ggdist::geom_lineribbon()
-    interval_df(xout, posterior::rvar(yout), nbands, type = "curve")
+    plots[[1]]
   }
-  ggplot(
-    w_df,
-    aes(
-      .data[["x"]],
-      y = .data[[".value"]],
-      ymin = .data[[".lower"]],
-      ymax = .data[[".upper"]]
-    )
-  ) +
-    geom +
-    geom_vline(xintercept = xintercept, linetype = 2) +
-    scale_fill_brewer(
-      "MHD",
-      breaks = ggdist::interval_widths(nbands),
-      labels = ggdist::pretty_widths(nbands),
-      palette = "Reds"
-    ) +
-    scale_x_continuous("Log-volume") +
-    scale_y_continuous("Importance Weight") +
-    theme_minimal()
 }
 
-#' Plot Normalized-Likelihood Diagnostic Curve
+#' Plot Diagnostic Curve
 #'
-#' @param log_volume Numeric matrix of log-prior-volume trajectories.
-#' @param log_lik Numeric vector of normalized likelihood values.
+#' Internal helper used by autoplot to visualize a relationship between
+#' a variable and log-volume.
+#'
+#' @param z_df Data frame of summarized evidence diagnostics.
 #' @param xintercept Optional numeric vector of vertical reference lines,
 #' typically dead-point log-volumes.
 #'
 #' @return A `ggplot2::ggplot()` object.
+#' @importFrom ggplot2 ggplot aes geom_vline geom_line theme_minimal
+#' @importFrom ggplot2 scale_x_continuous scale_y_continuous scale_fill_brewer
 #' @noRd
-autoplot_likelihood <- function(
-  log_volume,
-  log_lik,
+autoplot_ <- function(
+  df,
+  ylab,
   xintercept = NULL
 ) {
-  l_df <- tibble::tibble(
-    x = colMeans(log_volume),
-    .value = log_lik
-  )
-
-  ggplot(l_df, aes(.data[["x"]], y = .data[[".value"]])) +
-    geom_line() +
-    geom_vline(xintercept = xintercept, linetype = 2) +
+  p <- ggplot(df, aes(.data$x, y = .data$.value)) +
     scale_x_continuous("Log-volume") +
-    scale_y_continuous("Normalized likelihood") +
+    scale_y_continuous(ylab) +
     theme_minimal()
+  xint <- geom_vline(xintercept = xintercept, linetype = 2)
+  if (".width" %in% names(df)) {
+    p +
+      ggdist::geom_lineribbon(aes(
+        y = .data$.value,
+        ymin = .data$.lower,
+        ymax = .data$.upper
+      )) +
+      scale_fill_brewer(
+        "MHD",
+        breaks = ggdist::interval_widths(3),
+        labels = ggdist::pretty_widths(3),
+        palette = "Reds"
+      ) +
+      xint
+  } else {
+    p + geom_line(data = df, aes(y = .data$.value)) + xint
+  }
 }
-
-#' Interpolate Draw-wise Curves on a Common Grid
-#'
-#' @param ndraws Number of draws (rows) to evaluate.
-#' @param nout Number of output points per draw.
-#' @param fn Function of one integer argument (draw index) returning a numeric
-#' vector of length `nout`.
-#'
-#' @return Numeric matrix with one row per draw and `nout` columns.
-#' @noRd
-interpolate_draw_curves <- function(ndraws, nout, fn) {
-  t(vapply(seq_len(ndraws), fn, double(nout)))
-}
-
-#' Build Interval Summary Data Frame for Diagnostic Plots
-#'
-#' @param x Numeric vector of x-values for the interpolation grid.
-#' @param y A `posterior::rvar` object containing draw-wise values to summarize.
-#' @param nbands Number of interval bands to compute.
-#' @param type Interval summary type: either `"point"` for
-#' [ggdist::point_interval()] or `"curve"` for [ggdist::curve_interval()].
-#'
-#' @return A tibble ready for use in diagnostic plotting.
-#' @noRd
-interval_df <- function(x, y, nbands, type = c("point", "curve")) {
-  interval_fun <- switch(
-    type,
-    point = ggdist::point_interval,
-    curve = ggdist::curve_interval
-  )
-  tibble::tibble(
-    x = rep(x, nbands),
-    !!!interval_fun(y, .width = ggdist::interval_widths(nbands))
-  )
-}
-
-# nocov end

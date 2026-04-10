@@ -2,12 +2,9 @@
 % Please edit documentation in R/plot.R
 \name{plot.ernest_estimate}
 \alias{plot.ernest_estimate}
-\alias{plot.ernest_run}
 \title{Plot diagnostics from nested sampling results}
 \usage{
 \method{plot}{ernest_estimate}(x, which = c("evidence", "weight", "likelihood"), ...)
-
-\method{plot}{ernest_run}(x, which = c("evidence", "weight", "likelihood"), ndraws = NULL, ...)
 }
 \arguments{
 \item{x}{[\link{ernest_run}] or [\link{ernest_estimate}]\cr An object containing
@@ -17,11 +14,6 @@ results from nested sampling.}
 or more of \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.}
 
 \item{...}{These dots are for future extensions and must be empty.}
-
-\item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
-simulate. If equal to zero, log-volume simulation is skipped and error in
-the log-evidence estimates is approximated with analytical error
-estimates.}
 }
 \value{
 \verb{[invisible(x)]}. A \code{ggplot2::ggplot()} object is printed as a

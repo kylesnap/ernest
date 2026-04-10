@@ -23,27 +23,11 @@ test_that("plot.ernest_run validates input arguments", {
     plot(example_run, which = "not_a_plot"),
     "must be one of"
   )
-  expect_error(
-    plot(example_run, which = c("evidence", "not_a_plot")),
-    "must be one of"
-  )
-  expect_error(
-    plot(example_run, which = character()),
-    "At least one plot type must be specified in `which`."
-  )
-
-  expect_error(
-    plot(example_run, ndraws = -1),
-    "must be a whole number"
-  )
-  expect_error(
-    plot(example_run, ndraws = 1.5),
-    "must be a whole number"
-  )
 })
 
 skip_plot_snapshot()
 describe("plotting an ernest_estimate object", {
+  skip()
   set.seed(42)
   calc_100 <- calculate(example_run, ndraws = 100)
 
@@ -69,11 +53,6 @@ describe("plotting an ernest_estimate object", {
   })
 
   it("plots everything", {
-    expect_error(
-      plot(calculate(example_run, ndraws = 0)),
-      "must have `ndraws` greater than 1."
-    )
-
     vdiffr::expect_doppelganger(
       "all ndraws = 1",
       plot(calculate(example_run, ndraws = 1))

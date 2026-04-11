@@ -152,19 +152,49 @@ summary.ernest_estimate <- function(
 
   list(
     "evidence" = if ("evidence" %in% which) {
-      yout <- vapply(
-        seq_len(nrow(log_evidence)),
-        \(i) {
-          stats::approx(
-            log_volume[min(i, nrow(log_volume)), ],
-            exp(log_evidence[i, ]),
-            xout = knots,
-            rule = 2
-          )$y
-        },
-        double(n)
-      )
-      safe_curve(knots, yout)
+      if (nrow(log_volume) == 1) {
+        z_app <- approx(
+          log_volume[1, ],
+          colMeans(log_evidence),
+          xout = knots,
+          rule = 2
+        )
+        zsd_app <- approx(
+          log_volume[1, ],
+          sqrt(attr(object, "log_z_var")),
+          xout = knots,
+          rule = 2
+        )
+        tmp <- vctrs::vec_expand_grid(
+          "log_z" = vctrs::data_frame(
+            "x" = z_app$x,
+            "m" = z_app$y,
+            "sd" = zsd_app$y
+          ),
+          ".width" = ggdist::interval_widths(3)
+        )
+        vctrs::data_frame(
+          "x" = tmp$log_z$x,
+          ".value" = exp(tmp$log_z$m),
+          ".width" = tmp$.width,
+          ".lower" = exp(tmp$log_z$m - tmp$log_z$sd * tmp$.width),
+          ".upper" = exp(tmp$log_z$m + tmp$log_z$sd * tmp$.width)
+        )
+      } else {
+        yout <- vapply(
+          seq_len(nrow(log_evidence)),
+          \(i) {
+            stats::approx(
+              log_volume[i, ],
+              exp(log_evidence[i, ]),
+              xout = knots,
+              rule = 2
+            )$y
+          },
+          double(n)
+        )
+        safe_curve(knots, yout)
+      }
     },
     "weight" = if ("weight" %in% which) {
       yout <- vapply(

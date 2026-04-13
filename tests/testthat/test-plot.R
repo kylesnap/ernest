@@ -36,7 +36,16 @@ test_that("summary.ernest_estimate works when ndraws = 100", {
   expect_named(out$likelihood, base)
 })
 
+test_that("plot throws errors", {
+  expect_error(plot(example_run, n = 1), "larger than or equal to 2")
+  expect_error(
+    plot(example_run, which = "bad"),
+    'must be one of "evidence", "weight", or "likelihood"'
+  )
+})
+
 test_that("plot an ernest_estimate object", {
+  skip_plot_snapshot()
   set.seed(42)
   calc <- calculate(example_run, 500)
 
@@ -58,6 +67,7 @@ test_that("plot an ernest_estimate object", {
 })
 
 test_that("plot an ernest_run object", {
+  skip_plot_snapshot()
   vdiffr::expect_doppelganger(
     "example_run",
     plot(example_run)

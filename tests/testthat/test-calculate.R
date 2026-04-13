@@ -58,10 +58,7 @@ describe("calculate", {
   }
 
   it("works when ndraws = 0", {
-    t0 <- Sys.time()
     calc <- calculate(example_run, ndraws = 0)
-    t1 <- Sys.time()
-    print(t1 - t0)
     expect_s3_class(calc, "ernest_estimate")
     expect_identical(attr(calc, "ndraws"), 0L)
     expect_s3_class(attr(calc, "log_z_dist"), c("distribution"))

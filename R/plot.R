@@ -73,7 +73,6 @@ plot.ernest_estimate <- function(
   which = c("evidence", "weight", "likelihood"),
   ...
 ) {
-  check_dots_empty()
   which <- check_plot_which(which)
   print(autoplot(x, which, ...)) # nocov
 }
@@ -98,12 +97,14 @@ summary.ernest_estimate <- function(
   object,
   which = c("evidence", "weight", "likelihood"),
   n = 512,
+  width = 0.5,
   ...
 ) {
   check_dots_empty()
   which <- arg_match(which, multiple = TRUE)
+  width <- vctrs::vec_cast(width, to = double())
+  nwidth <- length(width)
   check_number_whole(n, min = 2)
-
   if (any(c("evidence", "weight") %in% which)) {
     check_installed("ggdist", "to summarize evidence and weight diagnostics")
   }
@@ -124,14 +125,9 @@ summary.ernest_estimate <- function(
   }
 
   lik <- exp(object$log_lik - max(object$log_lik))
-  vol_rng <- ggdist::density_bounded(
-    log_volume,
-    bounds = c(NA, 0),
-    range_only = TRUE
-  )$x
-  knots <- seq(vol_rng[1], vol_rng[2], length.out = n)
-  print(length(knots))
+  knots <- seq(mean(log_volume[, ncol(log_volume)]), 0, length.out = n)
 
+  # Safely summarize curves with or without uncertainty intervals.
   safe_curve <- \(x, y) {
     if (!is.matrix(drop(y))) {
       vctrs::data_frame(
@@ -145,81 +141,85 @@ summary.ernest_estimate <- function(
           ".value" = posterior::rvar(t(y))
         ),
         .along = x,
-        .width = ggdist::interval_widths(3)
+        .width = width
       )
     }
   }
 
-  list(
-    "evidence" = if ("evidence" %in% which) {
-      if (nrow(log_volume) == 1) {
-        z_app <- approx(
-          log_volume[1, ],
-          colMeans(log_evidence),
-          xout = knots,
-          rule = 2
-        )
-        zsd_app <- approx(
-          log_volume[1, ],
-          sqrt(attr(object, "log_z_var")),
-          xout = knots,
-          rule = 2
-        )
-        tmp <- vctrs::vec_expand_grid(
-          "log_z" = vctrs::data_frame(
-            "x" = z_app$x,
-            "m" = z_app$y,
-            "sd" = zsd_app$y
-          ),
-          ".width" = ggdist::interval_widths(3)
-        )
-        vctrs::data_frame(
-          "x" = tmp$log_z$x,
-          ".value" = exp(tmp$log_z$m),
-          ".width" = tmp$.width,
-          ".lower" = exp(tmp$log_z$m - tmp$log_z$sd * tmp$.width),
-          ".upper" = exp(tmp$log_z$m + tmp$log_z$sd * tmp$.width)
-        )
-      } else {
-        yout <- vapply(
-          seq_len(nrow(log_evidence)),
-          \(i) {
-            stats::approx(
-              log_volume[i, ],
-              exp(log_evidence[i, ]),
-              xout = knots,
-              rule = 2
-            )$y
-          },
-          double(n)
-        )
-        safe_curve(knots, yout)
-      }
-    },
-    "weight" = if ("weight" %in% which) {
-      yout <- vapply(
-        seq_len(nrow(weight)),
-        \(i) {
-          dens <- ggdist::density_bounded(
-            x = log_volume[i, ],
-            weights = weight[i, ],
-            bounds = c(NA, 0)
-          )
-          stats::approx(dens$x, dens$y, xout = knots, rule = 2)$y
-        },
-        double(n)
+  # Summarize evidence diagnostics, with or without uncertainty intervals.
+  summarize_evidence <- \() {
+    if (attr(object, "ndraws") == 0) {
+      df <- vctrs::data_frame(
+        "x" = log_volume[1, ],
+        "dist" = attr(object, "log_z_dist")
       )
-      safe_curve(knots, yout)
-    },
-    "likelihood" = if ("likelihood" %in% which) {
-      lik_app <- approx(
-        colMeans(log_volume),
-        lik,
-        xout = knots,
-        rule = 2
+      df <- df[as.integer(seq(1, to = nrow(df), length.out = n)), ]
+      df <- vctrs::data_frame(
+        "x" = rep(df$x, nwidth),
+        !!!ggdist::point_interval(
+          df$dist,
+          .width = width
+        )
       )
-      vctrs::data_frame("x" = lik_app$x, ".value" = lik_app$y)
+      df[c(".value", ".lower", ".upper")] <- exp(df[c(
+        ".value",
+        ".lower",
+        ".upper"
+      )])
+      return(df)
     }
+
+    yout <- vapply(
+      seq_len(nrow(log_evidence)),
+      \(i) {
+        stats::approx(
+          log_volume[i, ],
+          exp(log_evidence[i, ]),
+          xout = knots,
+          rule = 2
+        )$y
+      },
+      double(n)
+    )
+    safe_curve(knots, yout)
+  }
+
+  # Summarize weight diagnostics, with or without uncertainty intervals.
+  summarize_weight <- \() {
+    yout <- vapply(
+      seq_len(nrow(weight)),
+      \(i) {
+        dens <- ggdist::density_bounded(
+          x = log_volume[i, ],
+          weights = weight[i, ],
+          bounds = c(NA, 0)
+        )
+        stats::approx(dens$x, dens$y, xout = knots, rule = 2)$y
+      },
+      double(n)
+    )
+    safe_curve(knots, yout)
+  }
+
+  # Summarize likelihood diagnostics, which are always point estimates.
+  summarize_likelihood <- \() {
+    lik_app <- approx(
+      colMeans(log_volume),
+      lik,
+      xout = knots,
+      rule = 2
+    )
+    vctrs::data_frame("x" = lik_app$x, ".value" = lik_app$y)
+  }
+
+  evidence <- if ("evidence" %in% which) summarize_evidence()
+  weight_df <- if ("weight" %in% which) summarize_weight()
+  likelihood <- if ("likelihood" %in% which) summarize_likelihood()
+
+  list(
+    "evidence" = evidence,
+    "weight" = weight_df,
+    "likelihood" = likelihood
   )
 }
 
@@ -265,7 +265,12 @@ check_plot_which <- function(which, call = caller_env()) {
 #' @importFrom posterior draws_of
 #' @export
 autoplot.ernest_estimate <- function(object, which, ...) {
-  diagnostic_data <- summary(object, which = which)
+  check_dots_empty()
+  diagnostic_data <- summary(
+    object,
+    which = which,
+    width = c(0.5218917, 0.8440126, 0.9666667)
+  )
   xint <- attr(object, "dead_log_vol")
   plots <- lapply(which, \(x) {
     switch(
@@ -273,6 +278,7 @@ autoplot.ernest_estimate <- function(object, which, ...) {
       "evidence" = autoplot_(
         diagnostic_data[["evidence"]],
         "Evidence",
+        filllab = if (attr(object, "ndraws") == 0) "Quantile" else "MHD",
         xintercept = xint
       ),
       "weight" = autoplot_(
@@ -312,6 +318,8 @@ autoplot.ernest_estimate <- function(object, which, ...) {
 autoplot_ <- function(
   df,
   ylab,
+  filllab = "MHD",
+  filllabs = NULL,
   xintercept = NULL
 ) {
   p <- ggplot(df, aes(.data$x, y = .data$.value)) +
@@ -327,9 +335,9 @@ autoplot_ <- function(
         ymax = .data$.upper
       )) +
       scale_fill_brewer(
-        "MHD",
-        breaks = ggdist::interval_widths(3),
-        labels = ggdist::pretty_widths(3),
+        filllab,
+        breaks = c(0.5218917, 0.8440126, 0.9666667),
+        labels = c(0.50, 0.80, 0.95),
         palette = "Reds"
       ) +
       xint

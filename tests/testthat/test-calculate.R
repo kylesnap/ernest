@@ -58,9 +58,13 @@ describe("calculate", {
   }
 
   it("works when ndraws = 0", {
+    t0 <- Sys.time()
     calc <- calculate(example_run, ndraws = 0)
+    t1 <- Sys.time()
+    print(t1 - t0)
     expect_s3_class(calc, "ernest_estimate")
     expect_identical(attr(calc, "ndraws"), 0L)
+    expect_s3_class(attr(calc, "log_z_dist"), c("distribution"))
 
     expect_equal(calc$log_lik, vctrs::field(example_run$rcrd, "log_lik"))
     expect_shape_rvar(calc$log_volume, 1, nsamp)
@@ -89,6 +93,7 @@ describe("calculate", {
   it("works when ndraws = 1 (default)", {
     calc <- calculate(example_run, ndraws = 1)
     expect_identical(attr(calc, "ndraws"), 1L)
+    expect_null(attr(calc, "log_z_dist"))
 
     expect_shape_rvar(calc$log_volume, 1, nsamp)
     expect_shape_rvar(calc$log_weight, 1, nsamp)
@@ -99,6 +104,7 @@ describe("calculate", {
   it("works when ndraws = 1000 (default)", {
     calc <- calculate(example_run)
     expect_identical(attr(calc, "ndraws"), 1000L)
+    expect_null(attr(calc, "log_z_dist"))
 
     expect_shape_rvar(calc$log_volume, 1000, nsamp)
     expect_shape_rvar(calc$log_weight, 1000, nsamp)

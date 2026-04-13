@@ -60,19 +60,20 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   log_weight <- get_log_w(log_lik, log_volume)
 
   if (ndraws == 0) {
+    withr::local_preserve_seed()
     information <- get_information(log_lik, log_volume, log_weight$log_evidence)
-    log_z_var <- get_log_zvar(information, log_volume)
-    log_z <- posterior::rvar_rng(
-      stats::rnorm,
-      n = vctrs::vec_size(drop(log_weight$log_evidence)),
-      mean = drop(log_weight$log_evidence),
-      sd = sqrt(log_z_var),
-      ndraws = getOption("posterior.rvar_ndraws", 1000L)
+    log_z_dist <- distributional::dist_normal(
+      mu = log_weight$log_evidence[1, ],
+      sd = sqrt(get_log_zvar(information, log_volume))
     )
+    log_z <- posterior::rvar(t(do.call(
+      rbind,
+      generate(log_z_dist, times = getOption("posterior.rvar_ndraws", 1000))
+    )))
     log_volume <- posterior::as_rvar(drop(log_volume))
     log_weight <- posterior::as_rvar(drop(log_weight$log_weight))
   } else {
-    log_z_var <- NULL
+    log_z_dist <- NULL
     log_z <- posterior::rvar(log_weight$log_evidence)
     log_volume <- posterior::rvar(log_volume)
     log_weight <- posterior::rvar(log_weight$log_weight)
@@ -87,7 +88,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   tibble::new_tibble(
     tibble::as_tibble(result),
     ndraws = as.integer(ndraws),
-    log_z_var = log_z_var,
+    log_z_dist = log_z_dist,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
   )

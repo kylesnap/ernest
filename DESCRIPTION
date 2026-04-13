@@ -14,6 +14,7 @@ Depends:
     R (>= 3.5)
 Imports:
     cli,
+    distributional,
     generics,
     ggplot2,
     glue,

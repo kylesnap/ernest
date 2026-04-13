@@ -93,7 +93,7 @@ nested_sampling_impl <- function(
       break
     }
     dead_unit[[i]] <- live_env$unit[worst_idx, ]
-    dead_log_lik[[i]] <- live_env$log_lik[worst_idx]
+    dead_log_lik[[i]] <- new_criterion
     dead_birth[[i]] <- live_env$birth_lik[worst_idx]
     dead_id[[i]] <- worst_idx
 
@@ -125,12 +125,12 @@ nested_sampling_impl <- function(
       copy <- sample.int(nlive, 1)
     }
     new_unit <- if (cur_eval <= sampler_info$first_update) {
-      propose(lrps, criterion = live_env$log_lik[worst_idx])
+      propose(lrps, criterion = last_criterion)
     } else {
       propose(
         lrps,
         original = live_env$unit[copy, ],
-        criterion = live_env$log_lik[worst_idx]
+        criterion = last_criterion
       )
     }
     dead_evals[[i]] <- new_unit$neval
@@ -145,7 +145,7 @@ nested_sampling_impl <- function(
     }
     live_env$log_lik[worst_idx] <- new_unit$log_lik
     live_env$unit[worst_idx, ] <- new_unit$unit
-    live_env$birth_lik[worst_idx] <- live_env$log_lik[worst_idx]
+    live_env$birth_lik[worst_idx] <- last_criterion
     cur_eval <- cur_eval + new_unit$neval
   }
 

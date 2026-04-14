@@ -3,8 +3,7 @@
     Code
       calc
     Output
-      # <ernest_estimate>:  10359 niter.
-      # Uncertainty source: Normally-Approximated Analytical Estimates (1000 draws)
+      # A tibble: 10,359 x 4
          log_lik   log_volume log_weight log_evidence
            <dbl>   <rvar[1d]> <rvar[1d]>   <rvar[1d]>
        1   -137.  -0.001 ± NA  -143 ± NA     -143 ± 0
@@ -24,8 +23,7 @@
     Code
       calc
     Output
-      # <ernest_estimate>:  10359 niter.
-      # Uncertainty source: Simulated Log-Volumes (1 draws)
+      # A tibble: 10,359 x 4
          log_lik      log_volume log_weight log_evidence
            <dbl>      <rvar[1d]> <rvar[1d]>   <rvar[1d]>
        1   -137.  -0.000089 ± NA  -146 ± NA    -146 ± NA
@@ -45,8 +43,7 @@
     Code
       calc
     Output
-      # <ernest_estimate>:  10359 niter.
-      # Uncertainty source: Simulated Log-Volumes (1000 draws)
+      # A tibble: 10,359 x 4
          log_lik         log_volume   log_weight log_evidence
            <dbl>         <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
        1   -137.  -0.00099 ± 0.0010  -144 ± 0.80  -144 ± 0.80

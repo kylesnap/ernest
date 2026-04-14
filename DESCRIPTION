@@ -22,7 +22,6 @@ Imports:
     matrixStats,
     posterior,
     rlang (>= 1.1.0),
-    tibble,
     uniformly,
     vctrs,
     withr

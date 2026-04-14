@@ -31,13 +31,17 @@ of resampled weights for each resampled run in the output.}
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-A special class of [\link{tibble}] with one row per resample, containing:
+An \code{ernest_resample} object, which inherits from \code{tbl_df}, \code{tbl},
+and \code{data.frame}.
+
+Each row corresponds to a bootstrap resample of the nested with one
+row per resample, containing:
 \itemize{
 \item \code{niter}: Number of iterations in the resample.
 \item \code{log_evidence}: Estimated log-evidence for the resample.
 \item One column per parameter: weighted posterior mean for each parameter.
 \item If \code{include_weights = TRUE}, a list-column \code{weights} with the resampled
-weights and iteration indices for each resampled run.
+weights and log-volumes for each resample.
 }
 }
 \description{

@@ -117,7 +117,10 @@ visualize.ernest_run <- function(
 #' @importFrom ggplot2 facet_grid vars
 #' @noRd
 visualize_density <- function(selected) {
-  tibble(".variable" = names(selected), ".dist" = vctrs::vec_c(!!!selected)) |>
+  data_frame0(
+    ".variable" = names(selected),
+    ".dist" = vctrs::vec_c(!!!selected)
+  ) |>
     ggplot() +
     ggdist::stat_halfeye(
       mapping = ggplot2::aes(xdist = .data[[".dist"]]),
@@ -147,7 +150,7 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     rbind,
     lapply(pos, \(p) {
       value <- unlist(draws[p], use.names = FALSE)
-      tibble::tibble(
+      data_frame0(
         ".variable" = names(draws)[p],
         ".value" = as.numeric(value),
         "log_volume" = log_volume,

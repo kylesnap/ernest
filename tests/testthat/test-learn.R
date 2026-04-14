@@ -17,12 +17,13 @@ test_that("learn rejects bad parameters", {
 })
 
 test_that("learn returns expected structure", {
-  res <- learn(example_run, units = "unit_cube")
+  res <- learn(example_run)
 
-  expect_s3_class(res, "data.frame")
+  expect_s3_class(res, c("ernest_resample", "tbl_df"))
   expect_equal(nrow(res), 100)
   expect_type(res$log_evidence, "double")
   expect_named(res, c("log_evidence", "x", "y", "z"))
+  expect_snapshot(res)
 })
 
 test_that("learn is reproducible with a fixed seed", {
@@ -41,7 +42,6 @@ test_that("learn returns include_weights", {
   expect_type(res$weights, "list")
   expect_all_equal(vapply(res$weights, \(x) sum(x$weight), double(1)), 1)
 })
-
 
 #' @srrstats {G5.0, G5.6, G5.6a, BS7.2} Use the NIST dataset `mcmc01` to test
 #' ernest's ability to recover the parameters of a known distribution. Uses the

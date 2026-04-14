@@ -121,8 +121,8 @@ print.ernest_run <- function(x, ...) {
 #'    * `log_lik`: `[double(1)]` The maximum log-likelihood value.
 #'    * `original`, `unit_cube`: `[double(n_dim)]` The parameter values at the
 #'    MLE, expressed in the original parameter space and within the unit cube.
-#' * `posterior`: [[tibble]] with columns for the posterior mean, sd, median,
-#' and the 15th and 85th percentiles for each parameter.
+#' * `posterior`: [[data.frame]] with columns for the posterior mean, sd,
+#' median, and the 15th and 85th percentiles for each parameter.
 #' * `seed`: The RNG seed used.
 #'
 #' @seealso

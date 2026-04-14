@@ -3,10 +3,10 @@
 
 ## usethis namespace: start
 #' @import rlang
+#' @import vctrs
 #' @importFrom generics generate
 #' @importFrom glue glue
 #' @importFrom lifecycle deprecated
-#' @importFrom tibble tibble
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @useDynLib ernest, .registration = TRUE

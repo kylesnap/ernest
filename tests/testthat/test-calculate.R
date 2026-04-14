@@ -59,7 +59,7 @@ describe("calculate", {
 
   it("works when ndraws = 0", {
     calc <- calculate(example_run, ndraws = 0)
-    expect_s3_class(calc, "ernest_estimate")
+    expect_s3_class(calc, c("ernest_estimate", "tbl_df"))
     expect_identical(attr(calc, "ndraws"), 0L)
     expect_s3_class(attr(calc, "log_z_dist"), c("distribution"))
 

@@ -12,12 +12,16 @@
 #' @inheritParams as_draws.ernest_run
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @return A special class of [[tibble]] with one row per resample, containing:
+#' @returns An `ernest_resample` object, which inherits from `tbl_df`, `tbl`,
+#' and `data.frame`.
+#'
+#' Each row corresponds to a bootstrap resample of the nested with one
+#' row per resample, containing:
 #' * `niter`: Number of iterations in the resample.
 #' * `log_evidence`: Estimated log-evidence for the resample.
 #' * One column per parameter: weighted posterior mean for each parameter.
 #' * If `include_weights = TRUE`, a list-column `weights` with the resampled
-#' weights and iteration indices for each resampled run.
+#' weights and log-volumes for each resample.
 #'
 #' @details
 #' Higson et al. (2019) describes a bootstrap resampling procedure for nested
@@ -60,9 +64,7 @@ learn.ernest_run <- function(
   check_bool(include_weights)
   units <- arg_match(units)
   x_rcrd <- x$rcrd
-  est_volume <- get_log_vol(x_rcrd)
-  log_vol_rng <- range(est_volume)
-  dead_log_vol <- est_volume[x$niter]
+  dead_log_vol <- get_log_vol(x_rcrd)[x$niter]
 
   vctrs::field(x_rcrd, "unit") <- as_draws_matrix_(
     x,
@@ -75,20 +77,12 @@ learn.ernest_run <- function(
     run_resample(x$nlive, threads, x$prior$names, include_weights),
     simplify = FALSE
   )
-  tibble::new_tibble(
-    vctrs::vec_rbind(!!!res),
-    log_vol_rng = log_vol_rng,
+
+  new_tibble0(
+    x = vctrs::vec_rbind(!!!res),
     dead_log_vol = dead_log_vol,
     class = "ernest_resample"
   )
-}
-
-#' Custom header for ernest_resample
-#' @importFrom tibble tbl_sum
-#' @export
-#' @noRd
-tbl_sum.ernest_resample <- function(x, ...) {
-  c("Nested sampling estimates" = sprintf("%d replications", nrow(x)))
 }
 
 #' Split run into live point threads
@@ -163,14 +157,19 @@ run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
   weight <- exp(integral$log_weight - integral$log_evidence[length(log_lik)])
   means <- matrixStats::colWeightedMeans(unit, w = weight)
   names(means) <- col_names
-  tibble::tibble_row(
+  res <- vec_c(
     log_evidence = integral$log_evidence[length(log_lik)],
-    !!!means,
-    weights = if (include_weights) {
-      list(vctrs::df_list(
-        "log_volume" = integral$log_volume,
-        "weight" = weight
-      ))
-    }
+    !!!means
   )
+  if (include_weights) {
+    list2(
+      !!!res,
+      "weights" = data_frame0(
+        weight = weight,
+        log_volume = integral$log_volume
+      )
+    )
+  } else {
+    res
+  }
 }

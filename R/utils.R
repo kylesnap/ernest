@@ -124,3 +124,34 @@ vectorize_function <- function(fn) {
 logspace_sub <- function(a, b) {
   a + log1p(-exp(b - a))
 }
+
+#' Fast data frame creation
+#'
+#' @param ... Columns of the data frame.
+#' @param .error_call Call environment for error messages.
+#'
+#' @source Internally used in ggdist.
+#'
+#' @return A data frame created with minimal name repair for speed.
+#' @noRd
+data_frame0 <- function(..., .error_call = current_env()) {
+  vctrs::data_frame(..., .name_repair = "minimal", .error_call = .error_call)
+}
+
+#' Fast tibble creation
+#'
+#' @param x A data frame or list of columns.
+#' @param ... Additional attributes to add to the tibble.
+#' @param class Additional classes to add to the tibble.
+#'
+#' @source Recommended by ROpenSci standards.
+#'
+#' @return A tibble-ish object.
+#' @noRd
+new_tibble0 <- function(x, ..., class = NULL) {
+  vctrs::new_data_frame(
+    x = x,
+    ...,
+    class = c(class, "tbl_df", "tbl")
+  )
+}

@@ -18,7 +18,8 @@ estimates.}
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-[\code{\link[tibble:tibble]{tibble::tibble()}}] with class \code{ernest_estimate}.
+An \code{ernest_estimate} object, which inherits from \code{tbl_df}, \code{tbl},
+and \code{data.frame}.
 
 The iterative estimates from the nested sampling run. Contains the following
 columns:
@@ -48,10 +49,10 @@ likelihood shell.
 # Load an example run
 data(example_run)
 
-# View results as a tibble with `ndraws = 0`.
+# View results and analytical evidence errors.
 calculate(example_run, ndraws = 0)
 
-# Generate 100 simulated log-volume values for each iteration.
+# Simulate 100 log-volume shrinkage sequences across the run.
 calculate(example_run, ndraws = 100)
 
 }

@@ -31,8 +31,8 @@ stored in a list with the elements:
 \item \code{original}, \code{unit_cube}: \verb{[double(n_dim)]} The parameter values at the
 MLE, expressed in the original parameter space and within the unit cube.
 }
-\item \code{posterior}: [\link{tibble}] with columns for the posterior mean, sd, median,
-and the 15th and 85th percentiles for each parameter.
+\item \code{posterior}: [\link{data.frame}] with columns for the posterior mean, sd,
+median, and the 15th and 85th percentiles for each parameter.
 \item \code{seed}: The RNG seed used.
 }
 }

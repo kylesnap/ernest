@@ -11,7 +11,8 @@
 #' estimates.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns [[tibble::tibble()]] with class `ernest_estimate`.
+#' @returns An `ernest_estimate` object, which inherits from `tbl_df`, `tbl`,
+#' and `data.frame`.
 #'
 #' The iterative estimates from the nested sampling run. Contains the following
 #' columns:
@@ -39,10 +40,10 @@
 #' # Load an example run
 #' data(example_run)
 #'
-#' # View results as a tibble with `ndraws = 0`.
+#' # View results and analytical evidence errors.
 #' calculate(example_run, ndraws = 0)
 #'
-#' # Generate 100 simulated log-volume values for each iteration.
+#' # Simulate 100 log-volume shrinkage sequences across the run.
 #' calculate(example_run, ndraws = 100)
 #'
 #' @aliases ernest_estimate
@@ -78,34 +79,19 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
     log_volume <- posterior::rvar(log_volume)
     log_weight <- posterior::rvar(log_weight$log_weight)
   }
-  result <- list(
+  result <- vctrs::df_list(
     "log_lik" = log_lik,
     "log_volume" = log_volume,
     "log_weight" = log_weight,
     "log_evidence" = log_z
   )
 
-  tibble::new_tibble(
-    tibble::as_tibble(result),
+  new_tibble0(
+    x = result,
     ndraws = as.integer(ndraws),
     log_z_dist = log_z_dist,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
-  )
-}
-
-#' @importFrom tibble tbl_sum
-#' @export
-#' @noRd
-tbl_sum.ernest_estimate <- function(x, ...) {
-  desc <- if (attr(x, "ndraws") == 0) {
-    "Normally-Approximated Analytical Estimates (1000 draws)"
-  } else {
-    sprintf("Simulated Log-Volumes (%d draws)", attr(x, "ndraws"))
-  }
-  c(
-    "<ernest_estimate>" = sprintf("%d niter.", nrow(x)),
-    "Uncertainty source" = desc
   )
 }
 

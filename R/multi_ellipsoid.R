@@ -49,6 +49,7 @@
 multi_ellipsoid <- function(
   enlarge = 1.25
 ) {
+  check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
 
   if (enlarge == 1) {

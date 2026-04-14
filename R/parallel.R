@@ -248,12 +248,12 @@ reindex_threads <- function(results, splits) {
   result <- mapply(
     \(res, split) {
       live <- extract_live_points(res$live, .id = split)
-      vctrs::field(res$dead, "id") <- split[field(res$dead, "id")]
-      vctrs::field(res$dead, "id") <- split[field(res$dead, "id")]
-      vctrs::vec_c(res$dead, live)
+      field(res$dead, "id") <- split[field(res$dead, "id")]
+      field(res$dead, "id") <- split[field(res$dead, "id")]
+      vec_c(res$dead, live)
     },
     res = results,
     split = splits
   )
-  merge_results(vctrs::vec_c(!!!result))
+  merge_results(vec_c(!!!result))
 }

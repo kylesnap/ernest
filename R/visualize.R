@@ -119,7 +119,7 @@ visualize.ernest_run <- function(
 visualize_density <- function(selected) {
   data_frame0(
     ".variable" = names(selected),
-    ".dist" = vctrs::vec_c(!!!selected)
+    ".dist" = vec_c(!!!selected)
   ) |>
     ggplot() +
     ggdist::stat_halfeye(

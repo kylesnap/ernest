@@ -148,7 +148,7 @@ new_ernest_prior <- function(
       dim(x) <- c(1, length(x))
     }
     y <- batch_fn(x)
-    y <- vctrs::vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
+    y <- vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
     if (any(y == Inf | is.nan(y) | is.na(y))) {
       cli::cli_abort(
         "`{lab}` must return only finite values.",
@@ -215,7 +215,7 @@ check_prior <- function(
   # Vector input sanity check (single point)
   test_vector <- rep(0.5, n_dim)
   output_test <- fn(test_vector)
-  output_test <- vctrs::vec_cast(
+  output_test <- vec_cast(
     output_test,
     to = matrix(double(), ncol = n_dim),
     x_arg = arg,
@@ -225,7 +225,7 @@ check_prior <- function(
   # 2) Matrix input sanity check (batched points)
   test_matrix <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
   output_test_mat <- fn(test_matrix)
-  output_test_mat <- vctrs::vec_cast(
+  output_test_mat <- vec_cast(
     output_test_mat,
     to = matrix(double(), ncol = n_dim),
     x_arg = arg,
@@ -274,7 +274,7 @@ check_prior <- function(
   fn <- new_function(
     exprs(x = ),
     expr({
-      vctrs::vec_c(
+      vec_c(
         (!!bodies[[1]])(x[1:!!cum_dim[1]]),
         (!!bodies[[2]])(x[!!(cum_dim[1] + 1):!!cum_dim[2]])
       )

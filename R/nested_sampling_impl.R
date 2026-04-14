@@ -33,6 +33,7 @@
 #' achieved, the sampler will stop when the maximum number of iterations or
 #' likelihood calls is reached, or when the log-likelihood plateau is detected.
 #'
+#' @importFrom vctrs vec_c
 #' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol
 #' @noRd
 nested_sampling_impl <- function(
@@ -151,14 +152,14 @@ nested_sampling_impl <- function(
 
   new_ernest_rcrd(
     unit = do.call(rbind, dead_unit),
-    log_lik = vctrs::vec_c(!!!dead_log_lik, .ptype = double()),
-    id = vctrs::vec_c(!!!dead_id, .ptype = double()),
+    log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
+    id = vec_c(!!!dead_id, .ptype = double()),
     nlive = get_points(
-      vctrs::vec_c(!!!dead_log_lik, .ptype = double()),
+      vec_c(!!!dead_log_lik, .ptype = double()),
       nlive,
       FALSE
     ),
-    evals = vctrs::vec_c(!!!dead_evals, .ptype = double()),
-    birth_lik = vctrs::vec_c(!!!dead_birth, .ptype = double())
+    evals = vec_c(!!!dead_evals, .ptype = double()),
+    birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
 }

@@ -66,7 +66,7 @@ learn.ernest_run <- function(
   x_rcrd <- x$rcrd
   dead_log_vol <- get_log_vol(x_rcrd)[x$niter]
 
-  vctrs::field(x_rcrd, "unit") <- as_draws_matrix_(
+  field(x_rcrd, "unit") <- as_draws_matrix_(
     x,
     units = units,
     radial = FALSE
@@ -127,14 +127,14 @@ run_resample <- function(nlive, threads, col_names, include_weights = FALSE) {
     \(x) match(TRUE, x$log_lik >= min_max_lik),
     integer(1)
   )
-  log_lik <- vctrs::vec_c(
+  log_lik <- vec_c(
     !!!.mapply(
       \(x, i) x$log_lik[seq_len(i)],
       dots = list(x = threads$val[resample], i = rel_n),
       MoreArgs = NULL
     )
   )
-  unit <- vctrs::vec_c(
+  unit <- vec_c(
     !!!.mapply(
       \(x, i) x$unit[seq_len(i), , drop = FALSE],
       dots = list(x = threads$val[resample], i = rel_n),

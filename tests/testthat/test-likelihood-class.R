@@ -128,5 +128,5 @@ test_that("Missing values in the log-likelihood", {
   )
 
   run <- generate(quiet_na_sampler, max_iterations = 100L)
-  expect_false(anyNA(vctrs::field(run$rcrd, "log_lik")))
+  expect_false(anyNA(field(run$rcrd, "log_lik")))
 })

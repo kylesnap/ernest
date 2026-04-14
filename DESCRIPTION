@@ -14,19 +14,17 @@ Depends:
     R (>= 3.5)
 Imports:
     cli,
-    distributional,
     generics,
     ggplot2,
-    glue,
     lifecycle,
     matrixStats,
     posterior,
     rlang (>= 1.1.0),
-    uniformly,
     vctrs,
     withr
 Suggests: 
     brms,
+    distributional,
     extraDistr,
     ggdist,
     knitr,
@@ -36,6 +34,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,
+    uniformly,
     vdiffr,
     xml2
 LinkingTo:

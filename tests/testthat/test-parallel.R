@@ -21,9 +21,9 @@ test_that("Parallel generate on an ernest_sampler", {
 
   expect_s3_class(res, c("ernest_run", "ernest_sampler"))
   expect_equal(res$nlive, 100L)
-  expect_identical(sort(unique(vctrs::field(res_rcrd, "id"))), seq(100))
+  expect_identical(sort(unique(field(res_rcrd, "id"))), seq(100))
   expect_equal(length(res$rcrd), res$niter + 100)
-  expect_equal(sum(vctrs::field(res_rcrd, "evals") == 0L), 100)
+  expect_equal(sum(field(res_rcrd, "evals") == 0L), 100)
 })
 
 test_that("Parallel generate on an ernest_run", {
@@ -32,9 +32,9 @@ test_that("Parallel generate on an ernest_run", {
   res <- generate(example_run, min_logz = 0.01, allow_par = TRUE)
 
   expect_equal(res$nlive, 1000L)
-  expect_identical(sort(unique(vctrs::field(res$rcrd, "id"))), seq(1000))
+  expect_identical(sort(unique(field(res$rcrd, "id"))), seq(1000))
   expect_equal(length(res$rcrd), res$niter + 1000)
-  expect_equal(sum(vctrs::field(res$rcrd, "evals") == 0L), 1000)
+  expect_equal(sum(field(res$rcrd, "evals") == 0L), 1000)
 
   expect_gt(res$niter, example_run$niter)
   expect_gte(res$neval, example_run$neval)

@@ -46,8 +46,8 @@ vec_ptype_abbr.ernest_rcrd <- function(x, ...) "ernest_rcrd"
 #' @export
 #' @noRd
 format.ernest_rcrd <- function(x, ...) {
-  log_lik <- vctrs::field(x, "log_lik")
-  birth_lik <- vctrs::field(x, "birth_lik")
+  log_lik <- field(x, "log_lik")
+  birth_lik <- field(x, "birth_lik")
 
   out <- sprintf("%3g \U2192 %3g", birth_lik, log_lik)
   out[is.na(log_lik) | is.na(birth_lik)] <- NA_character_

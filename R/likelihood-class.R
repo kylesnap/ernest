@@ -149,7 +149,7 @@ new_ernest_likelihood <- function(
             stop_input_type(x, "a numeric vector or matrix", call = NULL)
           }
           y <- vectorized_fn(x)
-          y <- vctrs::vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
+          y <- vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
           y_missing <- which(y == Inf | is.nan(y) | is.na(y))
           if (!vctrs::vec_is_empty(y_missing)) {
             !!nonfinite_expr

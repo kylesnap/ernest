@@ -120,8 +120,8 @@ test_that("Reproducing a ernest_sampler saved to disk", {
   f_run1 <- generate(f_sampler, max_iterations = 100)
   expect_identical(run1$log_volume, f_run1$log_volume)
   expect_identical(
-    vctrs::field(run1$rcrd, "log_lik"),
-    vctrs::field(f_run1$rcrd, "log_lik")
+    field(run1$rcrd, "log_lik"),
+    field(f_run1$rcrd, "log_lik")
   )
   expect_identical(run1$rcrd, f_run1$rcrd)
 })
@@ -162,5 +162,5 @@ test_that("Ernest halts and warns when ll becomes flat during a run", {
     ),
     "Stopping run due to a likelihood plateau at 0"
   )
-  expect_all_equal(tail(vctrs::field(run$rcrd, "log_lik"), 100), 0)
+  expect_all_equal(tail(field(run$rcrd, "log_lik"), 100), 0)
 })

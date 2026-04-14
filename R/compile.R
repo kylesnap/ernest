@@ -134,20 +134,21 @@ new_live_set <- function(lrps, nlive, call = caller_env()) {
 #'
 #' @return Returns the live_env bound to object, with the list entrants bound
 #' for nested sampling.
+#' @importFrom vctrs vec_cast
 #' @noRd
 write_live_set <- function(live, object, call = caller_env()) {
   nlive <- object$nlive
   n_dim <- object$lrps$n_dim
 
   # Prototype Checks
-  unit <- vctrs::vec_cast(
+  unit <- vec_cast(
     live$unit,
     to = matrix(double(), ncol = n_dim),
     to_arg = "matrix(ncol = object$lrps$n_dim)",
     call = call
   )
-  log_lik <- vctrs::vec_cast(live$log_lik, to = double(), call = call)
-  birth_lik <- vctrs::vec_cast(live$birth_lik, to = double(), call = call)
+  log_lik <- vec_cast(live$log_lik, to = double(), call = call)
+  birth_lik <- vec_cast(live$birth_lik, to = double(), call = call)
 
   # Size Checks
   vctrs::list_check_all_size(

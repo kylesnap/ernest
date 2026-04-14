@@ -26,7 +26,7 @@ describe("ernest_run", {
   it("Stores run record and valid weights", {
     expect_s3_class(rcrd, "ernest_rcrd")
     expect_all_true(
-      vctrs::field(rcrd, "log_lik") >= vctrs::field(rcrd, "birth_lik")
+      field(rcrd, "log_lik") >= field(rcrd, "birth_lik")
     )
     expect_identical(attr(example_run$rcrd, "nvariables"), 3L)
   })
@@ -50,8 +50,8 @@ describe("summary.ernest_run returns expected structure and values", {
   })
 
   it("has the expected MLE", {
-    max_idx <- which.max(vctrs::field(example_run$rcrd, "log_lik"))
-    max_loglik <- vctrs::field(example_run$rcrd, "log_lik")[max_idx]
+    max_idx <- which.max(field(example_run$rcrd, "log_lik"))
+    max_loglik <- field(example_run$rcrd, "log_lik")[max_idx]
     expect_named(smry$mle, c("log_lik", "original", "unit_cube"))
     expect_equal(smry$mle$log_lik, max_loglik)
   })

@@ -106,7 +106,7 @@ summary.ernest_estimate <- function(
   check_dots_empty()
   which <- arg_match(which, multiple = TRUE)
   width <- width %||% c(0.5218917, 0.8440126, 0.9666667)
-  width <- vctrs::vec_cast(width, to = double())
+  width <- vec_cast(width, to = double())
   nwidth <- length(width)
   check_number_whole(n, min = 2)
   if (any(c("evidence", "weight") %in% which)) {
@@ -134,13 +134,13 @@ summary.ernest_estimate <- function(
   # Safely summarize curves with or without uncertainty intervals.
   safe_curve <- \(x, y) {
     if (!is.matrix(drop(y))) {
-      vctrs::data_frame(
+      data_frame0(
         "x" = x,
         ".value" = y
       )
     } else {
       ggdist::curve_interval(
-        vctrs::data_frame(
+        data_frame0(
           "x" = x,
           ".value" = posterior::rvar(t(y))
         ),
@@ -153,12 +153,12 @@ summary.ernest_estimate <- function(
   # Summarize evidence diagnostics, with or without uncertainty intervals.
   summarize_evidence <- \() {
     if (attr(object, "ndraws") == 0) {
-      df <- vctrs::data_frame(
+      df <- data_frame0(
         "x" = log_volume[1, ],
         "dist" = attr(object, "log_z_dist")
       )
       df <- df[as.integer(seq(1, to = nrow(df), length.out = n)), ]
-      df <- vctrs::data_frame(
+      df <- data_frame0(
         "x" = rep(df$x, nwidth),
         !!!ggdist::point_interval(
           df$dist,
@@ -213,7 +213,7 @@ summary.ernest_estimate <- function(
       xout = knots,
       rule = 2
     )
-    vctrs::data_frame("x" = lik_app$x, ".value" = lik_app$y)
+    data_frame0("x" = lik_app$x, ".value" = lik_app$y)
   }
 
   evidence <- if ("evidence" %in% which) summarize_evidence()

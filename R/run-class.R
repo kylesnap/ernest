@@ -23,7 +23,7 @@ new_ernest_run.ernest_run <- function(x, results) {
     field(x$rcrd, "evals") != 0L,
     length(x$rcrd)
   )]
-  new_ernest_run_(x, vctrs::vec_c(prev_run, results))
+  new_ernest_run_(x, vec_c(prev_run, results))
 }
 
 #' Form the new_ernest_run from samples from the current and previous runs
@@ -37,7 +37,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  all_samples <- vctrs::vec_c(parsed, extract_live_points(x$live_env))
+  all_samples <- vec_c(parsed, extract_live_points(x$live_env))
   niter <- sum(field(all_samples, "evals") != 0L)
   integration <- compute_integral(all_samples)
   unit <- as.list(all_samples)[["unit"]]

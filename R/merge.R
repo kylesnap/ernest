@@ -73,7 +73,7 @@ reindex_runs <- function(...) {
   )
   .mapply(
     \(x, start) {
-      vctrs::field(x, "id") <- as.integer(
+      field(x, "id") <- as.integer(
         vctrs::vec_group_id(field(x, "id")) + start
       )
       x
@@ -93,7 +93,7 @@ reindex_runs <- function(...) {
 #' @noRd
 merge_results <- function(..., .call = caller_env()) {
   runs <- list2(...)
-  ids <- vctrs::vec_c(
+  ids <- vec_c(
     !!!lapply(
       runs,
       \(x) vctrs::vec_unique(field(x, "id"))
@@ -103,12 +103,12 @@ merge_results <- function(..., .call = caller_env()) {
   if (vctrs::vec_duplicate_any(ids)) {
     cli::cli_abort("All runs in `...` must contain unique IDs.", call = .call)
   }
-  all_runs <- sort(vctrs::vec_c(!!!runs))
+  all_runs <- sort(vec_c(!!!runs))
 
   # Get live points
   first_live <- match(TRUE, field(all_runs, "evals") == 0L)
   min_live <- field(all_runs, "log_lik")[[first_live]]
-  live <- vctrs::vec_c(
+  live <- vec_c(
     !!!lapply(
       vctrs::vec_split(all_runs, field(all_runs, "id"))$val,
       \(id_rows) id_rows[match(TRUE, field(id_rows, "log_lik") >= min_live)]

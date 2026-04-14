@@ -53,7 +53,6 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
   check_number_whole(ndraws, min = 0)
   x_rcrd <- x$rcrd
   est_volume <- get_log_vol(x_rcrd)
-  log_vol_rng <- range(est_volume)
   dead_log_vol <- est_volume[x$niter]
 
   log_lik <- field(x_rcrd, "log_lik")
@@ -62,6 +61,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 
   if (ndraws == 0) {
     withr::local_preserve_seed()
+    check_installed("distributional", "for evidence error estimation")
     information <- get_information(log_lik, log_volume, log_weight$log_evidence)
     log_z_dist <- distributional::dist_normal(
       mu = log_weight$log_evidence[1, ],
@@ -106,7 +106,7 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 #' log-evidence, log-evidence variance, and information.
 #' @noRd
 compute_integral <- function(x_rcrd) {
-  log_lik <- vctrs::field(x_rcrd, "log_lik")
+  log_lik <- field(x_rcrd, "log_lik")
   log_volume <- get_log_vol(x_rcrd)
   log_weight <- get_log_w(log_lik, log_volume)
   information <- get_information(log_lik, log_volume, log_weight$log_evidence)
@@ -143,7 +143,7 @@ get_log_vol <- function(x_rcrd, ndraws = 0, call = caller_env()) {
       call = call
     )
   }
-  points <- vctrs::field(x_rcrd, "nlive")
+  points <- field(x_rcrd, "nlive")
 
   if (ndraws == 0) {
     vol <- cumsum(-1 * (points^-1))

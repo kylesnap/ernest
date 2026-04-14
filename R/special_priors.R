@@ -41,8 +41,8 @@ create_normal_prior <- function(
     "universal_quiet"
   )
 ) {
-  mean <- vctrs::vec_cast(mean, double())
-  sd <- vctrs::vec_cast(sd, double())
+  mean <- vec_cast(mean, double())
+  sd <- vec_cast(sd, double())
   if (any(sd <= 0)) {
     cli::cli_abort(
       "All elements of {.arg sd} must be strictly positive and non-missing."

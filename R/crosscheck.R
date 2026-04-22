@@ -83,7 +83,7 @@ crosscheck_tests <- function(
 ) {
   check_class(x, "ernest_run")
   check_installed("dgof", "to perform uniformity tests")
-  y_ecdf <- stats::ecdf(1:x$nlive)
+  y_ecdf <- stats::ecdf(seq(1, x$nlive))
   test_fn <- switch(
     arg_match(type),
     "W2" = \(x) dgof::cvm.test(x = x, y = y_ecdf, type = "W2", ...),
@@ -93,7 +93,7 @@ crosscheck_tests <- function(
 
   splits <- crosscheck_prep(x, size)
   stats <- lapply(
-    splits[-length(splits)],
+    splits,
     \(x) {
       tst <- test_fn(x)
       c("statistic" = tst[["statistic"]], "p.value" = tst[["p.value"]])
@@ -111,34 +111,42 @@ crosscheck_tests <- function(
 crosscheck_prep <- function(x, size, call = caller_env()) {
   check_class(x, "ernest_run", call = call)
   indices <- get_insertion_indices(x$rcrd)
-  observed <- indices$insertion_idx[sort(indices$iter)]
+  indices <- indices[!is.na(indices$iter), ]
+  indices <- indices[order(indices$iter), ]
+  observed <- indices$insertion
 
   size <- size %||% x$nlive
-  check_number_whole(size, min = 1, call = call)
-  if (size > vctrs::vec_size(observed)) {
+  if (is_integerish(size) && size > vctrs::vec_size(observed)) {
     size <- vctrs::vec_size(observed)
   }
+  check_number_whole(size, min = 1, call = call)
+
   times <- vctrs::vec_size(observed) %/% size
   rem <- vctrs::vec_size(observed) %% size
   splits <- vctrs::vec_chop(
     observed,
     sizes = c(rep(size, times), rem)
   )
-  names(splits)[-length(splits)] <- sprintf(
+  splits <- splits[-length(splits)]
+  names(splits) <- sprintf(
     "[%d, %d]",
     seq_len(times) * size - size + 1,
     seq_len(times) * size
   )
-  splits[-length(splits)]
+  splits
 }
 
 #' Get the insertion index of each point into the live set
 #'
 #' @param rcrd An `ernest_rcrd` object.
 #'
-#' @return An integer vector, the same length as `run$rcrd`. Each element is
-#' between 1 and run$nlive, inclusive, and indicates the index of the live set
-#' into which the corresponding point in `run$rcrd` was inserted.
+#' @return A data frame with these columns:
+#' * "iter": The iteration of when this point was inserted into the live set. This is
+#' in [1, `niter`]. This is `NA` for points that existed in the initial live
+#' set.
+#' * "id": The id of the inserted point, in [1, `nlive`].
+#' * "insertion": The rank of the point in the live set at the time of
+#' insertion. Must be in [1, `nlive`].
 #' @noRd
 get_insertion_indices <- function(rcrd) {
   needles <- data_frame0(
@@ -184,15 +192,11 @@ get_insertion_indices <- function(rcrd) {
     integer(1)
   )
 
-  df <- data_frame0(
+  data_frame0(
     iter = idx,
     id = field(rcrd, "id"),
-    birth_lik = field(rcrd, "birth_lik"),
-    insertion_idx = insertions
+    insertion = insertions
   )
-  df <- df[!is.na(df$iter), ]
-  row.names(df) <- vctrs::vec_seq_along(df)
-  df
 }
 
 #' Get the CI for an ECDF assuming a normal distribution

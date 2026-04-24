@@ -1,247 +1,202 @@
-#' Visually examine the sampling behaviour of a nested sampling run
+#' Visually diagnose sampling issues in an `ernest_run`
 #'
-#' @param x [[ernest_run]]\cr An 'ernest_run' object.
-#' @param size `[[integer(1)]]`\cr The number of points to include in each
-#' split. If `NULL`, this defaults to `x$nlive`. If larger than `x$niter`, the
-#' run is not split.
-#' @param conf.level `[[double(1)]]`\cr Confidence level for the plotted
-#' confidence intervals.
-#' @param data_only `[[logical(1)]]`\cr Whether to automatically plot the
-#' results. If `FALSE`, the plotted data is instead returned to the user.
+#' Issues in sampling caused by poor LRPS behaviour or challenging features
+#' in the model's likelihood may confound nested sampling results. To identify
+#' these issues, this plot tracks the insertion indicies of new points as they
+#' are inserted into the live set, calculates a rolling rank sum statistic,
+#' then creates a CUSUM plot highlighting potentially problematic sampling
+#' iterations.
 #'
-#' @rdname crosscheck_ernest
-#' @importFrom ggplot2 geom_step
+#' @param run [[ernest_run]]\cr Results from a nested sampling run.
+#' @param width `[integer(1)]`\cr Width of the rolling window used to compute
+#' the rank-sum process. Defaults to `run$nlive` when left `NULL`.
+#' @param omega `[double(1)]`\cr Reference value used to create the cusum chart.
+#' Larger values make the chart less sensitive to small shifts in the rank sum
+#' of the insertions.
+#' @param h `[double(1)]`\cr Decision interval for out-of-bounds detection.
+#' Iterations are flagged when the upper CUSUM exceeds `h` or the lower CUSUM
+#' drops below `-h`.
+#' @param plot `[logical(1)]`\cr If `TRUE`, returns a CUSUM `ggplot` object. If
+#' `FALSE`, returns the tabular CUSUM values used to make the plot.
+#'
+#' @returns
+#' If `plot = TRUE`, a `ggplot2::ggplot()` object.
+#'
+#' If `plot = FALSE`, a tibble with columns:
+#' * `.iter`: `[integer()]` CUSUM iteration index.
+#' * `x`: `[double()]` Rolling rank-sum statistic.
+#' * `z`: `[double()]` Standardized rank-sum statistic.
+#' * `.lower`: `[double()]` Lower tabular CUSUM sequence.
+#' * `.upper`: `[double()]` Upper tabular CUSUM sequence.
+#' * `OOB`: `[logical()]` Indicator for whether either CUSUM is outside the
+#' decision interval [-h, h].
+#'
+#' @details
+#' The diagnostic follows these steps:
+#' * Compute insertion indices from the run's record of live-point
+#' replacements.
+#' * Build a rolling rank sum of insertion ranks using `width`.
+#' * Standardize this process using the expected mean and standard deviation
+#' under ideal insertion behavior.
+#' * Apply a one-sided tabular CUSUM to detect sustained positive or negative
+#' departures from expectation.
+#'
+#' Out-of-bounds (`OOB`) points indicate iterations where insertion behavior may
+#' be inconsistent with well-mixed sampling in the likelihood-restricted prior.
+#'
+#' @seealso
+#' * [plot()] for evidence, weight, and likelihood diagnostics.
+#' * [visualize()] for posterior density and trace diagnostics.
+#'
+#' @examples
+#' data(example_run)
+#'
+#' # CUSUM diagnostic chart
+#' calculate_cusum(example_run)
+#'
+#' # Retrieve CUSUM values for custom plotting or thresholds
+#' head(calculate_cusum(example_run, plot = FALSE))
 #' @export
-crosscheck_plot <- function(
-  x,
-  size = NULL,
-  conf.level = 0.95, # nolint
-  data_only = FALSE,
-  ...
+calculate_cusum <- function(
+  run,
+  width = NULL,
+  omega = 1.5,
+  h = 4,
+  plot = TRUE
 ) {
-  check_class(x, "ernest_run")
-  check_number_decimal(conf.level)
-  if (conf.level <= 0.5 || conf.level >= 1) {
-    stop_input_type(conf.level, "a single number between 0.5 and 1")
-  }
-  check_bool(data_only)
+  check_class(run, "ernest_run")
+  width <- width %||% run$nlive
+  check_number_whole(width, min = 1)
+  check_number_decimal(omega, min = 0)
+  check_number_decimal(h, min = 0)
 
-  splits <- crosscheck_prep(x, size)
-  null <- calculate_ecdf_ci(length(splits[[1]]), x$nlive, 1 - conf.level)
-  cumsums <- lapply(
-    splits,
-    \(x, nlive) {
-      data_frame0(
-        !!!null,
-        ".y" = c(0, cumsum(tabulate(x, nbins = nlive)))
-      )
-    },
-    nlive = x$nlive
-  )
-  names(cumsums) <- names(splits)
-  cdf <- vctrs::vec_rbind(!!!cumsums, .names_to = "idx")
-  if (data_only) {
-    return(cdf)
+  insertions <- get_insertion_indices(run$rcrd)
+  subinsert <- vctrs::vec_sort(insertions[insertions$iter != 0, ])
+  if (width > nrow(subinsert)) {
+    cli::cli_abort(
+      "`width` must be less than or equal to the number of inserted points."
+    )
   }
-  ggplot(cdf, aes(x = .data$.x)) +
-    geom_step(
-      aes(
-        y = .data$.y / .data$.n - .data$.p,
-        group = factor(.data$idx),
-        colour = factor(.data$idx)
-      )
-    ) +
-    geom_step(
-      aes(y = .data$.lower / .data$.n - .data$.p),
-      colour = "gray60"
-    ) +
-    geom_step(
-      aes(y = .data$.upper / .data$.n - .data$.p),
-      colour = "gray60"
-    ) +
-    ggplot2::annotate("segment", x = 0, y = 0, xend = x$nlive) +
-    ggplot2::labs(
-      x = "Insertion Index",
-      y = bquote(hat(F[n](k)) - F[n](k)),
-      colour = "Iterations"
+  rs <- rank_sum(subinsert$insertion, width = width)
+  # Mean and SD of an nlive-sided die!
+  mean <- (run$nlive + 1) / 2
+  sd <- sqrt((run$nlive^2 - 1) / 12 / width)
+  df <- cusum(rs, mean, sd, omega = omega, h = h)
+  if (!plot) {
+    return(new_tibble0(df))
+  }
+  df |>
+    ggplot(aes(.data$.iter)) +
+    geom_line(aes(y = .data$z, colour = .data$OOB, group = 1)) +
+    scale_x_continuous("Iteration") +
+    scale_y_continuous(expression(z(RS))) +
+    ggplot2::scale_colour_manual(
+      guide = NULL,
+      breaks = c(FALSE, TRUE),
+      values = c("black", "red")
     )
 }
 
-#' @param type `[[character(1)]]`\cr The type of test statistic to use for the
-#' uniformity test. One of "W2" (Cramer-von Mises), "A2" (Anderson-Darling),
-#' "ks" (Kolmogorov-Smirnov). Tests are not performed if `type` is `NA`.
-#' @importFrom stats p.adjust.methods
+#' Calculate a CUSUM plot using the tabular method
 #'
-#' @rdname crosscheck_ernest
-#' @export
-crosscheck_tests <- function(
-  x,
-  size = NULL,
-  type = c("W2", "A2", "ks"),
-  p.adjust = p.adjust.methods,
-  ...
-) {
-  check_class(x, "ernest_run")
-  check_installed("dgof", "to perform uniformity tests")
-  y_ecdf <- stats::ecdf(seq(1, x$nlive))
-  test_fn <- switch(
-    arg_match(type),
-    "W2" = \(x) dgof::cvm.test(x = x, y = y_ecdf, type = "W2", ...),
-    "A2" = \(x) dgof::cvm.test(x = x, y = y_ecdf, type = "A2", ...),
-    "ks" = \(x) dgof::ks.test(x = x, y = y_ecdf, ...),
+#' @param x A numeric vector of values to calculate the CUSUM on.
+#' @param mean,sd The expected mean and standard deviation of the values in
+#' `x` under good sampling.
+#' @param omega Reference value used in the tabular CUSUM recursion. Larger
+#' values make the chart less sensitive to small shifts.
+#' @param h Decision interval for out-of-bounds detection. Iterations are
+#' flagged when the upper CUSUM exceeds `h` or the lower CUSUM drops below `-h`.
+#'
+#' @returns A data frame.
+#' @noRd
+cusum <- function(x, mean, sd, omega = 0.5, h = 5) {
+  z <- (x - mean) / sd
+  upper <- Reduce(
+    \(prev, cur) max(0, prev + cur - omega),
+    x = z,
+    init = 0,
+    accumulate = TRUE
+  )[-1]
+  lower <- Reduce(
+    \(prev, cur) min(0, prev + cur + omega),
+    x = z,
+    init = 0,
+    accumulate = TRUE
+  )[-1]
+  data_frame0(
+    ".iter" = seq_along(x),
+    "x" = x,
+    "z" = z,
+    ".lower" = lower,
+    ".upper" = upper,
+    "OOB" = upper > h | lower < -h
   )
-
-  splits <- crosscheck_prep(x, size)
-  stats <- lapply(
-    splits,
-    \(x) {
-      tst <- test_fn(x)
-      c("statistic" = tst[["statistic"]], "p.value" = tst[["p.value"]])
-    }
-  )
-  stats <- vctrs::vec_rbind(!!!stats, .names_to = "split")
-
-  if (nrow(stats) > 1) {
-    stats$adj.p.value <- stats::p.adjust(stats$p.value, method = p.adjust)
-  }
-  new_tibble0(stats)
 }
 
-#' Get the insertion indicies and slice by `size`
-crosscheck_prep <- function(x, size, call = caller_env()) {
-  check_class(x, "ernest_run", call = call)
-  indices <- get_insertion_indices(x$rcrd)
-  indices <- indices[!is.na(indices$iter), ]
-  indices <- indices[order(indices$iter), ]
-  observed <- indices$insertion
-
-  size <- size %||% x$nlive
-  if (is_integerish(size) && size > vctrs::vec_size(observed)) {
-    size <- vctrs::vec_size(observed)
-  }
-  check_number_whole(size, min = 1, call = call)
-
-  times <- vctrs::vec_size(observed) %/% size
-  rem <- vctrs::vec_size(observed) %% size
-  splits <- vctrs::vec_chop(
-    observed,
-    sizes = c(rep(size, times), rem)
-  )
-  splits <- splits[-length(splits)]
-  names(splits) <- sprintf(
-    "[%d, %d]",
-    seq_len(times) * size - size + 1,
-    seq_len(times) * size
-  )
-  splits
+#' Calculate a rolling rank sum along samples
+#'
+#' @param samples A numeric vector or matrix of samples. If a matrix, the
+#' rank sum is calculated along rows.
+#' @param width The width of the rolling window to calculate the rank sum over.
+#'
+#' @return A numeric vector or matrix with `width` fewer columns than `samples`,
+#' containing the rolling rank sums of the most recent `width` samples at each
+#' position.
+#' @noRd
+rank_sum <- function(samples, width) {
+  dims <- dim(samples) %||% c(1, length(samples))
+  cum_sums <- matrix(0, nrow = dims[[1]], ncol = dims[[2]] + 1)
+  cum_sums[, -1] <- matrixStats::rowCumsums(samples, dim. = dims)
+  lead <- vctrs::num_as_location(seq(width + 1, dims[2] + 1), n = dims[2] + 1)
+  lag <- vctrs::num_as_location(seq(1, dims[2] - width + 1), n = dims[2] + 1)
+  1 / width * (cum_sums[, lead] - cum_sums[, lag])
 }
 
 #' Get the insertion index of each point into the live set
 #'
 #' @param rcrd An `ernest_rcrd` object.
 #'
-#' @return A data frame with these columns:
-#' * "iter": The iteration of when this point was inserted into the live set. This is
-#' in [1, `niter`]. This is `NA` for points that existed in the initial live
-#' set.
-#' * "id": The id of the inserted point, in [1, `nlive`].
+#' @returns A data frame with these columns:
+#' * "iter": The iteration of when this point was inserted into the live set.
+#' * "id": The id of the point.
 #' * "insertion": The rank of the point in the live set at the time of
-#' insertion. Must be in [1, `nlive`].
+#' insertion, based on likelihood values among alive points.
 #' @noRd
 get_insertion_indices <- function(rcrd) {
-  needles <- data_frame0(
-    b = field(rcrd, "birth_lik"),
-    d = field(rcrd, "birth_lik")
-  )
-  haystack <- data_frame0(
-    b = field(rcrd, "birth_lik"),
-    d = field(rcrd, "log_lik")
-  )
+  check_class(rcrd, "ernest_rcrd")
 
-  # Born no later than `needle`, and not yet dead at `needle's` birth
-  alive <- vctrs::vec_locate_matches(
-    needles,
-    haystack,
+  # Iteration: Comes from the iteration of its birth (which is the same as the
+  # death of that ID's previous incarnation).
+  group_locs <- vctrs::vec_group_loc(field(rcrd, "id"))
+  group_idx <- lapply(group_locs$loc, \(x) c(0, x[-length(x)]))
+  iter <- vctrs::list_combine(
+    group_idx,
+    indices = group_locs$loc,
+    size = length(rcrd)
+  )
+  rm(group_locs, group_idx)
+
+  # Find points who were born before needle, and died after needle
+  matches <- vctrs::vec_locate_matches(
+    needles = data_frame0("a" = iter, "b" = iter),
+    haystack = data_frame0("a" = iter, "b" = seq_along(rcrd)),
     condition = c(">=", "<")
   )
-  live_history <- vctrs::vec_split(alive$haystack, alive$needles)
-
-  insertions <- mapply(
-    \(i, idx) {
-      r <- rank(haystack$d[idx], ties.method = "first")
-      m <- match(i, idx)
-      if (is.na(m)) 1L else as.integer(r[m])
-    },
-    i = live_history$key,
-    idx = live_history$val,
-    USE.NAMES = FALSE,
-    SIMPLIFY = TRUE
-  )
-
-  # Get indexes of each birth
-  matches <- vctrs::vec_locate_matches(field(rcrd, "id"), field(rcrd, "id"))
-  idx <- vapply(
-    vctrs::vec_split(matches, by = matches$needles)$val,
+  log_lik <- field(rcrd, "log_lik")
+  insertions <- vapply(
+    vctrs::vec_split(matches, matches$needles)$val,
     \(x) {
-      if (any(x$haystack < x$needles)) {
-        max(x$haystack[x$haystack < x$needles])
-      } else {
-        NA_integer_
-      }
+      r <- rank(log_lik[x$haystack], ties.method = "min")
+      r[match(x$needles[[1]], x$haystack)]
     },
     integer(1)
   )
+  rm(matches, log_lik)
+  gc()
 
   data_frame0(
-    iter = idx,
-    id = field(rcrd, "id"),
-    insertion = insertions
-  )
-}
-
-#' Get the CI for an ECDF assuming a normal distribution
-#'
-#' @param nsamp Number of samples in the ECDF
-#' @param nlive Number of live points in the run
-#' @param alpha Significance level for the confidence interval.
-#'
-#' @return A data frame with columns `.x`, `.p`, `.lower`, `.upper`, and `.n`.
-#' @noRd
-calculate_ecdf_ci <- function(nsamp, nlive, alpha) {
-  check_number_whole(nsamp, min = 1)
-  check_number_whole(nlive, min = 1)
-  check_number_decimal(alpha, min = 0, max = 0.5)
-  ndraws <- getOption("posterior.rvar_ndraws", 4000L)
-  check_number_whole(ndraws, min = 1)
-  # (a) Simulate M draws of N realizations of DisUnif(1, K) and its ECDF
-  ecdf_mat <- vapply(
-    seq_len(ndraws),
-    \(i) {
-      tabulate(sample.int(nlive, size = nsamp, replace = TRUE), nbins = nlive)
-    },
-    numeric(nlive)
-  )
-  ecdf_mat <- matrixStats::colCumsums(ecdf_mat)
-  # (b) For all i in K, Calculate l = Bin(NF(p_i); N, p_i)
-  # u = Bin(NF(p_i) - 1; N, p_i)
-  probs <- seq(nlive) / nlive
-  l <- stats::pbinom(ecdf_mat, size = nsamp, prob = probs)
-  u <- stats::pbinom(
-    ecdf_mat - 1,
-    size = nsamp,
-    prob = probs,
-    lower.tail = FALSE
-  )
-  # (c) Calculate gamma_m = 2 min_k(min(l, 1 - u)) and report gamma as the
-  # (1 - alpha) quantile of gamma_m
-  mins <- pmin(l, u)
-  mins <- 2 * matrixStats::colMins(mins)
-  gamma <- quantile(mins, alpha)
-  data_frame0(
-    .x = seq(0, nlive),
-    .p = seq(0, nlive) / nlive,
-    .lower = c(0, qbinom(gamma / 2, nsamp, seq(nlive) / nlive)),
-    .upper = c(0, qbinom(1 - gamma / 2, nsamp, seq(nlive) / nlive)),
-    .n = nsamp
+    "iter" = iter,
+    "id" = field(rcrd, "id"),
+    "insertion" = insertions
   )
 }

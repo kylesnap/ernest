@@ -2,9 +2,12 @@
 % Please edit documentation in R/run-class.R
 \name{summary.ernest_run}
 \alias{summary.ernest_run}
+\alias{log_evidence}
 \title{Summarize a nested sampling run}
 \usage{
 \method{summary}{ernest_run}(object, ...)
+
+log_evidence(object, ...)
 }
 \arguments{
 \item{object}{[\link{ernest_run}]\cr Results from a nested sampling run.}
@@ -12,7 +15,6 @@
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-\verb{[summary.ernest_run]}
 A named list, containing:
 \itemize{
 \item \code{nlive}: \verb{[integer(1)]} Number of points in the live set.
@@ -35,6 +37,8 @@ MLE, expressed in the original parameter space and within the unit cube.
 median, and the 15th and 85th percentiles for each parameter.
 \item \code{seed}: The RNG seed used.
 }
+
+For \code{log_evidence()}, a single numeric value with the log-evidence estimate.
 }
 \description{
 Returns a concise summary of an \code{ernest_run} object, including key
@@ -43,6 +47,7 @@ statistics and a description of the posterior distribution.
 \examples{
 data(example_run)
 run_sm <- summary(example_run)
+log_evidence(example_run)
 run_sm
 run_sm$posterior
 }

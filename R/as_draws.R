@@ -126,6 +126,34 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
   )
 }
 
+#' Convert an ernest_rcrd into a draws_matrix.
+#'
+#' @param x An ernest_rcrd
+#' @param resample If true, resample the matrix by its log weight.
+#' @param ... Skipped
+#'
+#' @noRd
+#' @export
+as_draws.ernest_rcrd <- function(x, resample = TRUE, ...) {
+  as_draws_matrix.ernest_rcrd(x, resample = resample)
+}
+
+#' @noRd
+#' @export
+as_draws_matrix.ernest_rcrd <- function(x, resample = TRUE, ...) {
+  points <- posterior::weight_draws(
+    posterior::as_draws_matrix(field(x, "unit")),
+    weights = weights(x, log = TRUE),
+    log = TRUE
+  )
+  if (resample) {
+    withr::local_preserve_seed()
+    posterior::resample_draws(points)
+  } else {
+    points
+  }
+}
+
 #' Extract the posterior importance weights from a nested sampling run
 #'
 #' Return the normalised importance weights for the dead points in a nested
@@ -158,9 +186,22 @@ as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
 #' data(example_run)
 #' weights(example_run) |> head()
 #' weights(example_run, log = TRUE) |> head()
+#' @export
 weights.ernest_run <- function(x, log = FALSE, ...) {
   check_dots_empty()
   weights <- x$log_weight - x$log_evidence
+  if (log) {
+    weights
+  } else {
+    exp(weights)
+  }
+}
+
+#' @noRd
+#' @export
+weights.ernest_rcrd <- function(x, log = FALSE, ...) {
+  log_w <- compute_integral(x, truncate = TRUE)
+  weights <- log_w$log_weight - log_w$log_evidence
   if (log) {
     weights
   } else {

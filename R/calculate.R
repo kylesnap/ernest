@@ -101,13 +101,21 @@ calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
 #' an `ernest_rcrd` object.
 #'
 #' @param x_rcrd Nested sampling samples as an `ernest_rcrd` object.
+#' @param truncate Whether or not to add additional columns to the output list
+#' containing the full log-evidence history, log-evidence variance,
+#' and information.
 #'
-#' @return A list containing log-likelihoods, log-volumes, log-weights,
-#' log-evidence, log-evidence variance, and information.
+#' @return A list containing at least the log-weights and the final log-evidence
+#' estimate. If `trunc == FALSE`, this list also contains the log-likelihoods,
+#' log-volumes, log-weights, the entire history of log-evidence estimates,
+#' log-evidence variance, and information.
 #' @noRd
-compute_integral <- function(x_rcrd) {
+compute_integral <- function(x_rcrd, truncate = FALSE) {
   log_lik <- field(x_rcrd, "log_lik")
   log_volume <- get_log_vol(x_rcrd)
+  if (truncate) {
+    return(get_log_w(log_lik, log_volume, cum_z = FALSE))
+  }
   log_weight <- get_log_w(log_lik, log_volume)
   information <- get_information(log_lik, log_volume, log_weight$log_evidence)
   log_evidence_var <- get_log_zvar(information, log_volume)
@@ -203,7 +211,8 @@ get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
   log_evidence <- if (cum_z) {
     logspace_cumsum_mat(log_weight)
   } else {
-    matrixStats::rowLogSumExps(log_weight)
+    # na.rm set to ON to allow for efficient recalculations for learn
+    matrixStats::rowLogSumExps(log_weight, na.rm = TRUE)
   }
 
   list(

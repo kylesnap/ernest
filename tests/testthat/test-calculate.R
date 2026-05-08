@@ -31,7 +31,7 @@ test_that("compute_integral correctly calculates values", {
       rev(seq(250))
     ),
     nlive = gold$points,
-    evals = c(
+    neval = c(
       rep(1, length.out = length(gold$log_lik) - 250),
       rep(0, 250)
     ),

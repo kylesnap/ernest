@@ -8,8 +8,7 @@
   x,
   ...,
   .which = c("density", "trace"),
-  .units = c("original", "unit_cube"),
-  .radial = FALSE
+  .units = c("original", "unit_cube")
 )
 }
 \arguments{
@@ -27,10 +26,6 @@ parameter or \code{"trace"} for the trace of variables along log-volume.}
 \item \code{"original"}: Points are on the scale of the prior space.
 \item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
-
-\item{.radial}{\verb{[logical(1)]}\cr If \code{TRUE}, returns an additional column
-\code{.radial} containing the radial coordinate (i.e., the Euclidean norm) for
-each sampled point.}
 }
 \value{
 A \code{ggplot2::ggplot()} object.
@@ -69,14 +64,6 @@ data(example_run)
 
 # Plot posterior densities for all parameters
 visualize(example_run, .which = "density")
-
-# Plot trace of the radial coordinate in unit-cube scale
-visualize(
-  example_run,
-  .which = "trace",
-  .units = "unit_cube",
-  .radial = TRUE
-)
 }
 \seealso{
 \itemize{

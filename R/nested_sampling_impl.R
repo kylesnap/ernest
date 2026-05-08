@@ -19,7 +19,7 @@
 #' * `dead_unit`: Matrix of unit-space coordinates of removed points.
 #' * `dead_log_lik`: Vector of log-likelihood values for removed points.
 #' * `dead_id`: Vector of indices of removed points.
-#' * `dead_evals`: Vector of likelihood evaluations used for each replacement.
+#' * `dead_neval`: Vector of likelihood evaluations used for each replacement.
 #' * `dead_birth`: Vector of birth log-likelihoods for removed points.
 #'
 #' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
@@ -57,7 +57,7 @@ nested_sampling_impl <- function(
   dead_unit <- vctrs::list_of(.ptype = double(lrps$nvar))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
-  dead_evals <- vctrs::list_of(.ptype = integer())
+  dead_neval <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
 
   i <- 1
@@ -134,7 +134,7 @@ nested_sampling_impl <- function(
         criterion = last_criterion
       )
     }
-    dead_evals[[i]] <- new_unit$neval
+    dead_neval[[i]] <- new_unit$neval
     if (is.null(new_unit$unit)) {
       cli::cli_warn(
         c(
@@ -159,7 +159,7 @@ nested_sampling_impl <- function(
       nlive,
       FALSE
     ),
-    evals = vec_c(!!!dead_evals, .ptype = double()),
+    neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
 }

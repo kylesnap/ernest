@@ -90,7 +90,7 @@ compile.ernest_run <- function(
 
   # Fill live set
   prev <- object$rcrd
-  live <- vctrs::vec_slice(prev, field(prev, "evals") == 0L)
+  live <- vctrs::vec_slice(prev, field(prev, "neval") == 0L)
   write_live_set(as.list(live), object)
   object
 }

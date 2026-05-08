@@ -2,9 +2,7 @@
 
 S3method("+",ernest_prior)
 S3method(as.list,ernest_rcrd)
-S3method(as_draws,ernest_rcrd)
 S3method(as_draws,ernest_run)
-S3method(as_draws_matrix,ernest_rcrd)
 S3method(as_draws_matrix,ernest_run)
 S3method(as_draws_rvars,ernest_run)
 S3method(autoplot,ernest_estimate)

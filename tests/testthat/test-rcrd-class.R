@@ -4,11 +4,11 @@ test_that("ernest_rcrd stores the expected information", {
   ref <- example_run$rcrd
   expect_equal(
     vctrs::fields(x),
-    c("unit", "log_lik", "id", "nlive", "evals", "birth_lik")
+    c("unit", "log_lik", "id", "nlive", "neval", "birth_lik")
   )
   expect_equal(field(x, "log_lik"), field(ref, "log_lik"))
   expect_equal(field(x, "id"), field(ref, "id"))
-  expect_equal(field(x, "evals"), field(ref, "evals"))
+  expect_equal(field(x, "neval"), field(ref, "neval"))
   expect_equal(field(x, "birth_lik"), field(ref, "birth_lik"))
   unit <- field(example_run$rcrd, "unit")
   expect_equal(field(x, "unit"), unit)
@@ -22,7 +22,7 @@ test_that("as.list ernest_rcrd works", {
   list_x <- as.list(x)
   expect_named(
     list_x,
-    c("unit", "log_lik", "id", "nlive", "evals", "birth_lik")
+    c("unit", "log_lik", "id", "nlive", "neval", "birth_lik")
   )
   expect_equal(list_x$log_lik, field(example_run$rcrd, "log_lik"))
 })

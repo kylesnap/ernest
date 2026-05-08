@@ -20,7 +20,7 @@ new_ernest_run.ernest_sampler <- function(x, results) {
 #' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
   prev_run <- x$rcrd[vctrs::vec_as_location(
-    field(x$rcrd, "evals") != 0L,
+    field(x$rcrd, "neval") != 0L,
     length(x$rcrd)
   )]
   new_ernest_run_(x, vec_c(prev_run, results))
@@ -38,7 +38,7 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
   all_samples <- vec_c(parsed, extract_live_points(x$live_env))
-  niter <- sum(field(all_samples, "evals") != 0L)
+  niter <- sum(field(all_samples, "neval") != 0L)
   integration <- compute_integral(all_samples)
   unit <- as.list(all_samples)[["unit"]]
   colnames(unit) <- x$prior$names
@@ -47,7 +47,7 @@ new_ernest_run_ <- function(x, parsed) {
 
   result_elem <- list(
     "niter" = niter,
-    "neval" = sum(field(all_samples, "evals")),
+    "neval" = sum(field(all_samples, "neval")),
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
     "log_weight" = as.double(integration$log_weight),

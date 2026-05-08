@@ -73,7 +73,7 @@ hypercube.
 \item \code{id}: \verb{[integer(nsample)]} The index of each sample within the live set.
 \item \code{nlive}: \verb{[integer(nsample)]} The number of points within the live set
 when this point was replaced.
-\item \code{evals}: \verb{[integer(nsample)]} The number of likelihood evaluations needed
+\item \code{neval}: \verb{[integer(nsample)]} The number of likelihood evaluations needed
 to replace this sample; equal to \code{0} if the sample is a member of the live
 set at the end of the run.
 \item \code{log_lik}: \verb{[double(nsample)]} The sample's log-likelihood.

@@ -7,9 +7,6 @@
 #' @param units `[character(1)]`\cr The scale of the sampled points:
 #' * `"original"`: Points are on the scale of the prior space.
 #' * `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
-#' @param radial `[logical(1)]`\cr If `TRUE`, returns an additional column
-#' `.radial` containing the radial coordinate (i.e., the Euclidean norm) for
-#' each sampled point.
 #' @inheritParams rlang::args_dots_empty
 #'
 #' @returns [posterior::draws_matrix()] or [posterior::draws_rvars()]\cr
@@ -52,27 +49,9 @@
 as_draws.ernest_run <- function(
   x,
   units = c("original", "unit_cube"),
-  radial = FALSE,
   ...
 ) {
-  as_draws_matrix.ernest_run(x, ..., units = units, radial = radial)
-}
-
-#' @rdname as_draws.ernest_run
-#' @export
-as_draws_matrix.ernest_run <- function(
-  x,
-  units = c("original", "unit_cube"),
-  radial = FALSE,
-  ...
-) {
-  c(points, weights) %<-%
-    as_draws_matrix_(x, ..., units = units, radial = radial)
-  posterior::weight_draws(
-    posterior::as_draws_matrix(points),
-    weights,
-    log = TRUE
-  )
+  as_draws_matrix.ernest_run(x, units = units, ...)
 }
 
 #' @rdname as_draws.ernest_run
@@ -80,78 +59,33 @@ as_draws_matrix.ernest_run <- function(
 as_draws_rvars.ernest_run <- function(
   x,
   units = c("original", "unit_cube"),
-  radial = FALSE,
   ...
 ) {
   posterior::as_draws_rvars(
-    as_draws_matrix(x, ..., units = units, radial = radial)
+    as_draws_matrix(x, ..., units = units)
   )
 }
 
-#' Convert an ernest_run to a weighted draws matrix
-#'
-#' @param x An ernest_run object.
-#' @param ... Additional arguments (currently unused).
-#' @param units Character. The scale for the sampled points: "original" or
-#'   "unit_cube".
-#' @param radial Logical. If TRUE, includes a .radial column with the
-#'   Euclidean norm for each sample.
-#' @param call Environment to use for error reporting.
-#'
-#' @return A list with objects "points" and "weights", which are
-#' guaranteed to be the same size.
-#' @noRd
-as_draws_matrix_ <- function(x, ..., units, radial, call = caller_env()) {
-  check_dots_empty(call = call)
-  units <- arg_match0(
-    units,
-    values = c("original", "unit_cube"),
-    error_call = call
-  )
-  check_bool(radial, call = call)
+#' @rdname as_draws.ernest_run
+#' @export
+as_draws_matrix.ernest_run <- function(
+  x,
+  units = c("original", "unit_cube"),
+  ...
+) {
+  check_dots_empty()
+  units <- arg_match(units)
 
   points <- field(x$rcrd, "unit")
   if (units == "original") {
     points <- x$prior$fn(points)
   }
   colnames(points) <- x$prior$names
-  if (radial) {
-    radial_col <- sqrt(rowSums(points^2))
-    points <- cbind(points, ".radial" = radial_col)
-  }
-  vctrs::df_list(
-    "points" = points,
-    "weights" = weights(x, log = TRUE),
-    .error_call = call
-  )
-}
-
-#' Convert an ernest_rcrd into a draws_matrix.
-#'
-#' @param x An ernest_rcrd
-#' @param resample If true, resample the matrix by its log weight.
-#' @param ... Skipped
-#'
-#' @noRd
-#' @export
-as_draws.ernest_rcrd <- function(x, resample = TRUE, ...) {
-  as_draws_matrix.ernest_rcrd(x, resample = resample)
-}
-
-#' @noRd
-#' @export
-as_draws_matrix.ernest_rcrd <- function(x, resample = TRUE, ...) {
-  points <- posterior::weight_draws(
-    posterior::as_draws_matrix(field(x, "unit")),
+  posterior::weight_draws(
+    posterior::as_draws_matrix(points),
     weights = weights(x, log = TRUE),
     log = TRUE
   )
-  if (resample) {
-    withr::local_preserve_seed()
-    posterior::resample_draws(points)
-  } else {
-    points
-  }
 }
 
 #' Extract the posterior importance weights from a nested sampling run

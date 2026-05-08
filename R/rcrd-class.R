@@ -4,7 +4,7 @@
 #' @param log_lik The log-likelihood values for each sample.
 #' @param nlive The number of live points at the time each sample was taken.
 #' @param id A unique identifier for each sample.
-#' @param evals The number of likelihood evaluations for each sample.
+#' @param neval The number of likelihood evaluations for each sample.
 #' @param birth_lik The log-likelihood value at which each sample was born.
 #'
 #' @returns A vctrs record class object containing the sample information.
@@ -15,7 +15,7 @@ new_ernest_rcrd <- function(
   log_lik = double(0),
   id = integer(0),
   nlive = integer(0),
-  evals = integer(0),
+  neval = integer(0),
   birth_lik = double(0),
   .call = caller_env(0)
 ) {
@@ -30,7 +30,7 @@ new_ernest_rcrd <- function(
       log_lik = vec_cast(log_lik, to = double(), call = .call),
       id = vec_cast(id, to = integer(), call = .call),
       nlive = vec_cast(nlive, to = integer(), call = .call),
-      evals = vec_cast(evals, to = integer(), call = .call),
+      neval = vec_cast(neval, to = integer(), call = .call),
       birth_lik = vec_cast(birth_lik, to = double(), call = .call)
     ),
     nvar = as.integer(nvar),
@@ -129,7 +129,7 @@ extract_live_points <- function(live_env, .id = NULL) {
     log_lik = live_env$log_lik[order_lik],
     id = .id[order_lik],
     nlive = rev(seq_along(live_env$log_lik)),
-    evals = rep(0L, vctrs::vec_size(live_env$unit)),
+    neval = rep(0L, vctrs::vec_size(live_env$unit)),
     birth_lik = live_env$birth_lik[order_lik]
   )
 }

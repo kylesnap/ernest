@@ -38,7 +38,7 @@
 #'   * `id`: `[integer(nsample)]` The index of each sample within the live set.
 #'   * `nlive`: `[integer(nsample)]` The number of points within the live set
 #'   when this point was replaced.
-#'   * `evals`: `[integer(nsample)]` The number of likelihood evaluations needed
+#'   * `neval`: `[integer(nsample)]` The number of likelihood evaluations needed
 #'   to replace this sample; equal to `0` if the sample is a member of the live
 #'   set at the end of the run.
 #'   * `log_lik`: `[double(nsample)]` The sample's log-likelihood.
@@ -159,7 +159,7 @@ generate.ernest_run <- function(
 #' Generate and validate stopping criteria.
 #'
 #' @param max_iterations Maximum number of iterations to perform.
-#' @param max_evaluations Maximum number of likelihood function evals.
+#' @param max_evaluations Maximum number of likelihood function neval.
 #' @param min_logz Minimum log-ratio between current estimated evidence and
 #' remaining evidence.
 #' @param prev_run The points from a previous run; NULL if no points yet
@@ -210,8 +210,8 @@ new_generate_control <- function(
     ))
   }
 
-  niter <- match(0L, field(prev_run, "evals")) - 1L
-  neval <- sum(field(prev_run, "evals"))
+  niter <- match(0L, field(prev_run, "neval")) - 1L
+  neval <- sum(field(prev_run, "neval"))
   prev_integration <- compute_integral(prev_run)
 
   last_criterion <- prev_integration$log_lik[[niter]]

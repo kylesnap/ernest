@@ -51,25 +51,16 @@
 #'
 #' # Plot posterior densities for all parameters
 #' visualize(example_run, .which = "density")
-#'
-#' # Plot trace of the radial coordinate in unit-cube scale
-#' visualize(
-#'   example_run,
-#'   .which = "trace",
-#'   .units = "unit_cube",
-#'   .radial = TRUE
-#' )
 #' @export
 visualize.ernest_run <- function(
   x,
   ...,
   .which = c("density", "trace"),
-  .units = c("original", "unit_cube"),
-  .radial = FALSE
+  .units = c("original", "unit_cube")
 ) {
   rlang::check_installed(c("ggdist", "tidyselect"))
   .which <- arg_match(.which)
-  draws <- as_draws_rvars(x, units = .units, radial = .radial)
+  draws <- as_draws_rvars(x, units = .units)
 
   expr <- if (dots_n(...) == 0) {
     # nocov starts
@@ -79,10 +70,7 @@ visualize.ernest_run <- function(
         "i" = "Use {.fn tidyselect::everything()} to override this error."
       ))
     }
-    expr(tidyselect::all_of(c(
-      !!x$prior$names,
-      !!(if (.radial) ".radial" else NULL)
-    )))
+    expr(tidyselect::all_of(!!x$prior$names))
   } else {
     if (dots_n(...) > 10) {
       cli::cli_warn("Plots with more than 10 variables may be cluttered.")

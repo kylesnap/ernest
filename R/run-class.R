@@ -125,8 +125,6 @@ print.ernest_run <- function(x, ...) {
 #' median, and the 15th and 85th percentiles for each parameter.
 #' * `seed`: The RNG seed used.
 #'
-#' For `log_evidence()`, a single numeric value with the log-evidence estimate.
-#'
 #' @seealso
 #' * [generate()] for details on the `ernest_run` object.
 #' * [as_draws()] for details on how posterior samples are extracted.
@@ -136,7 +134,6 @@ print.ernest_run <- function(x, ...) {
 #' @examples
 #' data(example_run)
 #' run_sm <- summary(example_run)
-#' log_evidence(example_run)
 #' run_sm
 #' run_sm$posterior
 #' @export
@@ -235,23 +232,4 @@ print.summary.ernest_run <- function(x, ...) {
     "* Original parameters: {round(x$mle$original, 4)}"
   ))
   invisible(x)
-}
-
-#' @rdname summary.ernest_run
-#' @export
-log_evidence <- function(object, ...) {
-  UseMethod("log_evidence")
-  check_dots_used()
-}
-
-#' @noRd
-#' @export
-log_evidence.ernest_rcrd <- function(object, ...) {
-  compute_integral(object, truncate = TRUE)$log_evidence
-}
-
-#' @noRd
-#' @export
-log_evidence.ernest_run <- function(object, ...) {
-  log_evidence.ernest_rcrd(object$rcrd, ...)
 }

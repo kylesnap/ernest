@@ -19,7 +19,7 @@ bool Rectangle::Clamp(const ConstRef<Vector> inner, const ConstRef<Vector> outer
   }
 
   // Clamp dimensions based on relative position of inner and outer.
-  for (size_t d = 0; d < n_dim_; d++) {
+  for (size_t d = 0; d < nvar_; d++) {
     double dist = outer[d] - inner[d];
     if (ern::isZero(dist)) continue;
     switch (static_cast<int>(sign(dist))) {

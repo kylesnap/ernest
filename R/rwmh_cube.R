@@ -89,7 +89,7 @@ format.rwmh_cube <- function(x, ...) {
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim  Number of dimensions.
+#' @param nvar  Number of dimensions.
 #' @param max_loop  Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
 #' @param steps  Number of steps in the random walk.
@@ -105,7 +105,7 @@ format.rwmh_cube <- function(x, ...) {
 #' @noRd
 new_rwmh_cube <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = 1e6L,
   cache = NULL,
   steps = 25L,
@@ -124,7 +124,7 @@ new_rwmh_cube <- function(
   env_cache(cache, "epsilon", 1.0)
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     cache = cache,
     steps = as.integer(steps),
@@ -169,7 +169,9 @@ update_lrps.rwmh_cube <- function(x, unit = NULL, ...) {
   if (cur_call != 0L) {
     acc_ratio <- cur_accept / cur_call
     new_eps <- cur_eps *
-      exp((acc_ratio - x$target_acceptance) / x$n_dim / x$target_acceptance)
+      exp(
+        (acc_ratio - x$target_acceptance) / x$nvar / x$target_acceptance
+      )
     env_poke(x$cache, "epsilon", new_eps)
   }
   do.call(new_rwmh_cube, as.list(x))

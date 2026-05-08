@@ -23,7 +23,7 @@ describe("new_live_set", {
   it("gives informative errors when unit_log_fn fails", {
     bad_lik <- new_rwmh_cube(
       unit_log_fn = \(x) stop("Bad Likelihood!"),
-      n_dim = 2L
+      nvar = 2L
     )
     expect_error(new_live_set(bad_lik, 10), "Bad Likelihood!")
   })
@@ -59,7 +59,7 @@ describe("write_live_set", {
     expect_equal(length(result$birth_lik), 500)
   })
 
-  it("errors if unit doesn't match n_dim", {
+  it("errors if unit doesn't match nvar", {
     live <- make_live(unit = matrix(runif(1500), nrow = 500, ncol = 3))
     expect_error(
       write_live_set(live, sampler),

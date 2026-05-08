@@ -19,17 +19,21 @@ new_ernest_rcrd <- function(
   birth_lik = double(0),
   .call = caller_env(0)
 ) {
-  n_dim <- ncol(unit)
+  nvar <- ncol(unit)
   vctrs::new_rcrd(
     list(
-      unit = vec_cast(unit, to = matrix(double(), ncol = n_dim), call = .call),
+      unit = vec_cast(
+        unit,
+        to = matrix(double(), ncol = nvar),
+        call = .call
+      ),
       log_lik = vec_cast(log_lik, to = double(), call = .call),
       id = vec_cast(id, to = integer(), call = .call),
       nlive = vec_cast(nlive, to = integer(), call = .call),
       evals = vec_cast(evals, to = integer(), call = .call),
       birth_lik = vec_cast(birth_lik, to = double(), call = .call)
     ),
-    nvariables = as.integer(n_dim),
+    nvar = as.integer(nvar),
     class = "ernest_rcrd"
   )
 }
@@ -57,7 +61,7 @@ format.ernest_rcrd <- function(x, ...) {
 #' @export
 #' @noRd
 vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ..., call = caller_env()) {
-  if (!isTRUE(all.equal(attr(x, "nvariables"), attr(y, "nvariables")))) {
+  if (!isTRUE(all.equal(attr(x, "nvar"), attr(y, "nvar")))) {
     vctrs::stop_incompatible_type(
       x,
       y,

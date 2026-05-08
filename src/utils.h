@@ -91,8 +91,8 @@ inline void UniformOnSphere(Ref<RowVector> vec, const double radius = 1) {
 // Fill `vec` with a point uniformly distributed inside a ball of given
 // `radius`.
 inline void UniformInBall(Ref<RowVector> vec, const double radius = 1) {
-  const int n_dim = vec.size();
-  UniformOnSphere(vec, pow(unif_rand(), 1.0 / n_dim));
+  const int nvar = vec.size();
+  UniformOnSphere(vec, pow(unif_rand(), 1.0 / nvar));
   vec *= radius;
 }
 

@@ -6,7 +6,7 @@
 #' @param unit_log_fn `[function]`\cr Takes a matrix of points in the unit
 #' cube and returns a numeric vector of log-likelihood values. Optional, and
 #' updated when called by `ernest_sampler()`.
-#' @param n_dim `[integer(1)]`\cr Number of dimensions within the prior space.
+#' @param nvar `[integer(1)]`\cr Number of dimensions within the prior space.
 #' Optional, and updated when called by `ernest_sampler()`.
 #' @param max_loop `[integer(1)]`\cr Maximum number of attempts to generate
 #' points. Inferred from the `ernest.max_loop` option.
@@ -37,7 +37,7 @@
 #' @export
 new_ernest_lrps <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = getOption("ernest.max_loop", 1e6L),
   cache = NULL,
   ...,
@@ -45,7 +45,7 @@ new_ernest_lrps <- function(
   .call = caller_env()
 ) {
   check_function(unit_log_fn, allow_null = TRUE, call = .call)
-  check_number_whole(n_dim, min = 1, allow_null = TRUE, call = .call)
+  check_number_whole(nvar, min = 1, allow_null = TRUE, call = .call)
   check_number_whole(
     max_loop,
     min = 1,
@@ -57,7 +57,7 @@ new_ernest_lrps <- function(
 
   elem <- list(
     unit_log_fn = unit_log_fn,
-    n_dim = if (is.null(n_dim)) NULL else as.integer(n_dim),
+    nvar = if (is.null(nvar)) NULL else as.integer(nvar),
     max_loop = as.integer(max_loop),
     cache = cache %||% new_environment()
   )
@@ -81,7 +81,7 @@ print.ernest_lrps <- function(x, ...) {
   cli::cli_text("{format(x)}:")
 
   cli::cli_par()
-  cli::cli_text("# Dimensions: {x$n_dim %||% 'Uninitialized'}")
+  cli::cli_text("# Dimensions: {x$nvar %||% 'Uninitialized'}")
   cli::cli_text("# Calls since last update: {env_get(x$cache, 'neval', 0)}")
   cli::cli_end()
   invisible(x)
@@ -94,7 +94,7 @@ print.ernest_lrps <- function(x, ...) {
 #' from `ernest_lrps`.
 #'
 #' @param x [[ernest_lrps]]\cr A likelihood-restricted prior sampler.
-#' @param original `[double(x$n_dim)]`\cr A parameter vector which can be used
+#' @param original `[double(x$nvar)]`\cr A parameter vector which can be used
 #' to start the proposal process. Optional; if `NULL` proposals are generated
 #' from sampling the unconstrained [unit cube][unif_cube()].
 #' @param criterion `[double(1)]`\cr A log-likelihood value that restricts
@@ -102,7 +102,7 @@ print.ernest_lrps <- function(x, ...) {
 #'
 #' @returns `[list]`, containing at least these named elements:
 #'
-#' * `unit`: `[double(x$n_dim)]` The replacement point, expressed in the
+#' * `unit`: `[double(x$nvar)]` The replacement point, expressed in the
 #' unit-cube.
 #' * `log_lik`: `[double(1)]` The log-likelihood value at `unit`.
 #' * `neval`: `[integer(1)]` The number of evaluations of `unit_log_fn` needed
@@ -127,7 +127,7 @@ propose.ernest_lrps <- function(
     propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      n_dim = x$n_dim,
+      nvar = x$nvar,
       max_loop = x$max_loop
     )
   } else {
@@ -140,7 +140,7 @@ propose.ernest_lrps <- function(
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
-#' @param n_dim Number of dimensions.
+#' @param nvar Number of dimensions.
 #' @param max_loop Maximum number of attempts to generate a point.
 #' @param n_batch Number of points to propose per iteration. Defaults to the
 #' `ernest.n_batch` option, or 1 if unset.
@@ -153,13 +153,13 @@ propose.ernest_lrps <- function(
 propose_cube <- function(
   unit_log_fn,
   criterion,
-  n_dim,
+  nvar,
   max_loop,
   n_batch = getOption("ernest.n_batch", 1L)
 ) {
-  proposal <- matrix(double(), nrow = n_batch, ncol = n_dim)
+  proposal <- matrix(double(), nrow = n_batch, ncol = nvar)
   for (i in seq_len(max_loop)) {
-    proposal[,] <- stats::runif(n_batch * n_dim)
+    proposal[,] <- stats::runif(n_batch * nvar)
     log_lik <- unit_log_fn(proposal)
     accepted <- match(TRUE, log_lik >= criterion)
     if (!is.na(accepted)) {
@@ -181,7 +181,7 @@ propose_cube <- function(
 #' information from a nested sampling run.
 #'
 #' @param x [[ernest_lrps]]\cr A likelihood-restricted prior sampler.
-#' @param unit `[matrix(double(), integer(), x$n_dim)]`\cr The current live set
+#' @param unit `[matrix(double(), integer(), x$nvar)]`\cr The current live set
 #' stored within the run. Optional; if NULL no LRPS updates based on the state
 #' of the live set will be made.
 #' @param log_volume `[double(1)]`\cr The current log-volume of the nested

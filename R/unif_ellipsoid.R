@@ -64,7 +64,7 @@ unif_ellipsoid <- function(enlarge = 1.25) {
   }
   new_unif_ellipsoid(
     unit_log_fn = NULL,
-    n_dim = NULL,
+    nvar = NULL,
     enlarge = enlarge,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
@@ -83,7 +83,7 @@ format.unif_ellipsoid <- function(x, ...) {
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
 #' @param unit_log_fn Function to compute log-likelihood in unit space.
-#' @param n_dim  Number of dimensions.
+#' @param nvar  Number of dimensions.
 #' @param max_loop  Maximum proposal attempts.
 #' @param cache Optional cache environment.
 #'
@@ -92,7 +92,7 @@ format.unif_ellipsoid <- function(x, ...) {
 #' @noRd
 new_unif_ellipsoid <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = 1e6L,
   cache = NULL,
   enlarge = 1.0
@@ -104,8 +104,8 @@ new_unif_ellipsoid <- function(
     cache,
     c("center", "shape", "inv_sqrt_shape", "log_volume")
   ))
-  if (!has_ell && (is_integerish(n_dim) && n_dim > 0)) {
-    ell <- BoundingEllipsoid(matrix(double(), nrow = 0, ncol = n_dim), NA)
+  if (!has_ell && (is_integerish(nvar) && nvar > 0)) {
+    ell <- BoundingEllipsoid(matrix(double(), nrow = 0, ncol = nvar), NA)
     env_bind(
       cache,
       center = ell$center,
@@ -117,7 +117,7 @@ new_unif_ellipsoid <- function(
 
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     cache = cache,
     enlarge = enlarge,
@@ -172,11 +172,11 @@ propose_ellipsoid <- function(
   enlarge,
   max_loop
 ) {
-  n_dim <- length(center)
-  radius <- enlarge^(1 / n_dim)
-  proposal <- double(n_dim)
+  nvar <- length(center)
+  radius <- enlarge^(1 / nvar)
+  proposal <- double(nvar)
   for (i in seq_len(max_loop)) {
-    proposal <- uniformly::runif_in_sphere(1, n_dim, r = radius)
+    proposal <- uniformly::runif_in_sphere(1, nvar, r = radius)
     proposal <- drop(tcrossprod(proposal, inv_sqrt_shape)) + center
     if (any(proposal < 0) || any(proposal > 1)) {
       next

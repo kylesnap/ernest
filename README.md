@@ -101,11 +101,11 @@ prior <- create_uniform_prior(names = c("x", "y", "z"), lower = -10, upper = 10)
 
 # Define a log-likelihood function (multivariate normal)
 log_lik_mvn <- function(theta) {
-  n_dim <- 3
+  nvariables <- 3
   sigma <- diag(0.95, nrow = 3) # Covariance matrix
   det_sigma <- log(det(sigma))
   prec <- solve(sigma) # Precision matrix (Sigma^-1)
-  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+  log_norm <- -0.5 * (log(2 * pi) * nvariables + det_sigma) # Normalization
 
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }
@@ -123,20 +123,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4633
-#> * Likelihood evals.: 101352
-#> * Log-evidence: -8.9259 (± 0.1137)
-#> * Information: 4.732
+#> * Iterations: 4647
+#> * Likelihood evals.: 101554
+#> * Log-evidence: -8.9561 (± 0.1138)
+#> * Information: 4.734
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable      mean    sd   median   q15   q85
-#>   <chr>        <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x        -0.0472    2.80  0.00714 -2.03  1.85
-#> 2 y        -0.000385  2.81 -0.00925 -1.89  1.87
-#> 3 z        -0.111     2.75 -0.0345  -2.01  1.78
+#>   variable     mean    sd   median   q15   q85
+#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0342   2.77 -0.0208  -1.96  1.94
+#> 2 y        -0.00702  2.81  0.00606 -1.95  1.89
+#> 3 z         0.00151  2.76  0.00671 -1.94  1.85
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6811
-#> * Original parameters: -0.0116, -0.0448, and -0.0105
+#> * Log-likelihood: -2.684
+#> * Original parameters: -0.058, 0.0162, and -0.0654
 plot(run, which = "evidence")
 ```
 

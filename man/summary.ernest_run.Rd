@@ -30,7 +30,7 @@ resampled by normalized weights.
 stored in a list with the elements:
 \itemize{
 \item \code{log_lik}: \verb{[double(1)]} The maximum log-likelihood value.
-\item \code{original}, \code{unit_cube}: \verb{[double(n_dim)]} The parameter values at the
+\item \code{original}, \code{unit_cube}: \verb{[double(nvar)]} The parameter values at the
 MLE, expressed in the original parameter space and within the unit cube.
 }
 \item \code{posterior}: [\link{data.frame}] with columns for the posterior mean, sd,

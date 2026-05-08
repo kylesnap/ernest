@@ -31,15 +31,15 @@ gaussian_blobs <- list(
 
 #' 3D Correlated Multivariate Normal
 gaussian_3D <- local({
-  n_dim <- 3
+  nvar <- 3
   rho <- 0.95
   prior_win <- 10
-  mean <- seq(-1, 1, length.out = n_dim)
-  cov <- matrix(rho, n_dim, n_dim)
+  mean <- seq(-1, 1, length.out = nvar)
+  cov <- matrix(rho, nvar, nvar)
   diag(cov) <- 1
   cov_inv <- solve(cov)
-  lnorm <- -0.5 * (log(2 * pi) * n_dim + log(det(cov)))
-  log_z_analytic <- n_dim * (-log(2 * prior_win))
+  lnorm <- -0.5 * (log(2 * pi) * nvar + log(det(cov)))
+  log_z_analytic <- nvar * (-log(2 * prior_win))
 
   list(
     log_lik = function(x) {
@@ -48,7 +48,7 @@ gaussian_3D <- local({
     prior = create_uniform_prior(
       lower = -prior_win,
       upper = prior_win,
-      names = LETTERS[1:n_dim]
+      names = LETTERS[1:nvar]
     ),
     log_z_analytic = log_z_analytic
   )

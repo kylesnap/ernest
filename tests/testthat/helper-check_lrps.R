@@ -31,11 +31,11 @@ expect_proposal <- function(
       sprintf("Actual: %s", paste(sort(names(res)), collapse = ", ")),
       sprintf("Expected: %s", paste(sort(expected_names), collapse = ", "))
     ))
-  } else if (!is.double(res$unit) || length(res$unit) != lrps$n_dim) {
+  } else if (!is.double(res$unit) || length(res$unit) != lrps$nvar) {
     fail(
       "res$unit (%g) is not a double vector of expected size (%g).",
       length(res$unit),
-      lrps$n_dim
+      lrps$nvar
     )
   } else if (criterion != Inf && res$log_lik < criterion) {
     fail(
@@ -59,7 +59,7 @@ expect_proposal <- function(
 #'
 #' @param expr Expression to construct LRPS.
 #' @param unit_log_fn Log-likelihood function.
-#' @param n_dim Number of dimensions.
+#' @param nvar Number of dimensions.
 #' @param max_loop Max attempts.
 #' @param ... Additional arguments.
 #' @param extra_args Extra expected names in result.
@@ -67,17 +67,17 @@ expect_proposal <- function(
 expect_all_proposals <- function(
   expr,
   unit_log_fn,
-  n_dim,
+  nvar,
   max_loop = 1e3L,
   ...,
   extra_args = NULL,
   allow_failure = FALSE
 ) {
-  original <- rep(0.5, n_dim)
+  original <- rep(0.5, nvar)
   lrps <- exec(
     expr,
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     ...
   )
@@ -119,12 +119,12 @@ expect_lrps <- function(object, subclass = NULL, ...) {
   if (!is_function(act$val$unit_log_fn)) {
     fail(sprintf("%s$unit_log_fn is not a function.", act$lab))
   }
-  n_dim <- act$val$n_dim
-  if (!is.null(n_dim) && !(is_scalar_integer(n_dim) && n_dim > 0)) {
+  nvar <- act$val$nvar
+  if (!is.null(nvar) && !(is_scalar_integer(nvar) && nvar > 0)) {
     testthat::fail(sprintf(
-      "(%s): `n_dim` must be a positive integer, not %d",
+      "(%s): `nvar` must be a positive integer, not %d",
       act$lab,
-      n_dim
+      nvar
     ))
   }
   if (!is_scalar_integer(act$val$max_loop) || act$val$max_loop <= 0) {
@@ -178,7 +178,7 @@ expect_idempotent_update <- function(
 #' @param restrict_prior Restrict to prior.
 run_sampler <- function(lrps, points = NULL, restrict_prior = TRUE) {
   points <- points %||%
-    matrix(stats::runif(300 * lrps$n_dim), ncol = lrps$n_dim)
+    matrix(stats::runif(300 * lrps$nvar), ncol = lrps$nvar)
   res <- apply(
     points,
     1,

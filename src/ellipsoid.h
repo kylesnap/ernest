@@ -32,7 +32,7 @@ enum Status {
   kOk = 0,               // Operation completed successfully.
   kNilpotent = 1,        // Input matrix cannot be inverted.
   kDegenerate = 2,       // Eigenvalue of the shape matrix is zero.
-  kUnderdetermined = 3,  // Number of fitted points < n_dim + 1.
+  kUnderdetermined = 3,  // Number of fitted points < nvar + 1.
   kFatal = 99            // Nonspecific numerical error
 };
 
@@ -42,11 +42,11 @@ class Ellipsoid {
   // Build an ellipsoid with the provided center and shape matrix.
   Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape);
 
-  // Build a sphere in `n_dim` dimensions with the circumradius of the corresponding
+  // Build a sphere in `nvar` dimensions with the circumradius of the corresponding
   // hypercube.
-  explicit Ellipsoid(const int n_dim) {
-    center_ = Vector::Constant(n_dim, 0.5);
-    shape_ = Matrix::Identity(n_dim, n_dim) * (4.0 / n_dim);
+  explicit Ellipsoid(const int nvar) {
+    center_ = Vector::Constant(nvar, 0.5);
+    shape_ = Matrix::Identity(nvar, nvar) * (4.0 / nvar);
     *this = Ellipsoid(center_, shape_);
   };
 
@@ -89,14 +89,14 @@ class Ellipsoid {
   inline RowVector center() const { return center_.transpose(); }
   inline Matrix shape() const { return shape_; }
   inline const Matrix& inv_sqrt_shape() const { return inv_sqrt_shape_; }
-  inline int n_dim() const { return n_dim_; }
+  inline int nvar() const { return nvar_; }
   inline Status error() const { return error_; }
   inline double log_volume() const { return log_volume_; }
   Matrix major_axis() const;
 
   // Setters
   inline void log_volume(double log_target) {
-    double log_f = (log_volume_ - log_target) / n_dim_;
+    double log_f = (log_volume_ - log_target) / nvar_;
     double f = exp(log_f);
     shape_ *= f * f;
     SetShape();
@@ -107,7 +107,7 @@ class Ellipsoid {
   Matrix shape_;                  // Shape matrix (i.e., the precision of bound points)
   Vector axial_lengths_;          // Lengths of the ellipsoid's axes.
   Matrix inv_sqrt_shape_;         // Inverse square root of shape matrix.
-  int n_dim_;                     // Number of dimensions.
+  int nvar_;                      // Number of dimensions.
   Status error_ = kOk;            // Status of most recent operation.
   double log_volume_ = R_NegInf;  // Log volume of the ellipsoid.
   Eigen::SelfAdjointEigenSolver<Matrix> work_;  // Eigen solver for internal use.
@@ -124,7 +124,7 @@ class Ellipsoid {
 
   // Compute the constant term in the log volume formula.
   const inline double log_volume_sphere() {
-    return (0.5 * n_dim_ * kLnPi) - lgamma1p(n_dim_ / 2.0);
+    return (0.5 * nvar_ * kLnPi) - lgamma1p(nvar_ / 2.0);
   }
 
   // Recursively splits the data points in `X` into ellipsoids using 2-means clustering.

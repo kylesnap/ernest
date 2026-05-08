@@ -77,11 +77,11 @@ prior <- create_uniform_prior(names = c("x", "y", "z"), lower = -10, upper = 10)
 
 # Define a log-likelihood function (multivariate normal)
 log_lik_mvn <- function(theta) {
-  n_dim <- 3
+  nvariables <- 3
   sigma <- diag(0.95, nrow = 3) # Covariance matrix
   det_sigma <- log(det(sigma))
   prec <- solve(sigma) # Precision matrix (Sigma^-1)
-  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+  log_norm <- -0.5 * (log(2 * pi) * nvariables + det_sigma) # Normalization
 
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }

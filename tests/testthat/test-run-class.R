@@ -28,7 +28,7 @@ describe("ernest_run", {
     expect_all_true(
       field(rcrd, "log_lik") >= field(rcrd, "birth_lik")
     )
-    expect_identical(attr(example_run$rcrd, "nvariables"), 3L)
+    expect_identical(attr(example_run$rcrd, "nvar"), 3L)
   })
   expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })

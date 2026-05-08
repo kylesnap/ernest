@@ -108,9 +108,11 @@ new_ernest_prior <- function(
   .call = caller_env()
 ) {
   check_function(fn, call = .call)
-  n_dim <- length(names)
-  if (n_dim < 1) {
-    cli::cli_abort("`names` must be at least length one, not length {n_dim}.")
+  nvar <- length(names)
+  if (nvar < 1) {
+    cli::cli_abort(
+      "`names` must be at least length one, not length {nvar}."
+    )
   }
   names <- vctrs::vec_as_names(names, repair = .repair, call = .call)
   bounds <- vctrs::vec_recycle_common(
@@ -121,7 +123,7 @@ new_ernest_prior <- function(
       .call = .call
     ),
     ...,
-    .size = n_dim,
+    .size = nvar,
     .call = .call
   )
   if (any(bounds$lower >= bounds$upper)) {
@@ -159,7 +161,7 @@ new_ernest_prior <- function(
   }
   check_prior(
     catching_fn,
-    n_dim,
+    nvar,
     lower = bounds$lower,
     upper = bounds$upper,
     arg = "prior$fn(x)",
@@ -172,7 +174,7 @@ new_ernest_prior <- function(
       "names" = names,
       !!!bounds
     ),
-    n_dim = n_dim,
+    nvar = nvar,
     body = expr(!!fn),
     interface = interface,
     class = c(.class, "ernest_prior")
@@ -187,7 +189,7 @@ new_ernest_prior <- function(
 #' specified bounds, for both vector and matrix inputs.
 #'
 #' @param fn The prior transformation function.
-#' @param n_dim Dimensionality.
+#' @param nvar Dimensionality.
 #' @param lower,upper Numeric vectors. Expected bounds for the
 #' parameter vectors after hypercube transformation.
 #' @param arg Argument name for error reporting.
@@ -206,28 +208,28 @@ new_ernest_prior <- function(
 #' @noRd
 check_prior <- function(
   fn,
-  n_dim,
+  nvar,
   lower = -Inf,
   upper = Inf,
   arg = caller_arg(fn),
   call = caller_env()
 ) {
   # Vector input sanity check (single point)
-  test_vector <- rep(0.5, n_dim)
+  test_vector <- rep(0.5, nvar)
   output_test <- fn(test_vector)
   output_test <- vec_cast(
     output_test,
-    to = matrix(double(), ncol = n_dim),
+    to = matrix(double(), ncol = nvar),
     x_arg = arg,
     call = call
   )
 
   # 2) Matrix input sanity check (batched points)
-  test_matrix <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
+  test_matrix <- matrix(stats::runif(1000 * nvar), nrow = 1000)
   output_test_mat <- fn(test_matrix)
   output_test_mat <- vec_cast(
     output_test_mat,
-    to = matrix(double(), ncol = n_dim),
+    to = matrix(double(), ncol = nvar),
     x_arg = arg,
     call = call
   )
@@ -244,7 +246,7 @@ check_prior <- function(
   bounds <- vctrs::vec_recycle_common(
     lower = lower,
     upper = upper,
-    .size = n_dim,
+    .size = nvar,
     .call = call
   )
   mins <- matrixStats::colMins(output_test_mat)
@@ -267,9 +269,9 @@ check_prior <- function(
   check_class(x, "ernest_prior")
   check_class(y, "ernest_prior")
 
-  n_dim <- c(attr(x, "n_dim"), attr(y, "n_dim"))
+  nvar <- c(attr(x, "nvar"), attr(y, "nvar"))
   bodies <- list(attr(x, "body"), attr(y, "body"))
-  cum_dim <- cumsum(n_dim)
+  cum_dim <- cumsum(nvar)
 
   fn <- new_function(
     exprs(x = ),
@@ -303,7 +305,7 @@ check_prior <- function(
 format.ernest_prior <- function(x, ...) {
   name <- sub("_prior", "", class(x)[[1]])
   cli::format_inline(
-    "{name} prior distribution with {attr(x, 'n_dim')} dimensions ({x$names})"
+    "{name} prior distribution with {attr(x, 'nvar')} dimensions ({x$names})"
   )
 }
 

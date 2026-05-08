@@ -107,15 +107,15 @@ describe("MultiBoundingEllipsoids", {
 
   it("recovers correct number of clusters in grid", {
     skip_extended()
-    ndim <- 4
+    nvar <- 4
     nxcens <- 4
-    ncens <- nxcens^ndim
+    ncens <- nxcens^nvar
     sig <- 0.01
     threshold <- 0.1
 
-    npt <- ncens * 10 * ndim
-    cens <- as.matrix(expand.grid(rep(list(seq_len(nxcens)), ndim)))
-    xs <- matrix(rnorm(npt * ndim, sd = sig), ncol = ndim) +
+    npt <- ncens * 10 * nvar
+    cens <- as.matrix(expand.grid(rep(list(seq_len(nxcens)), nvar)))
+    xs <- matrix(rnorm(npt * nvar, sd = sig), ncol = nvar) +
       cens[(seq_len(npt) - 1) %% nrow(cens) + 1, ]
 
     ell_fit <- MultiBoundingEllipsoids(xs, NA)

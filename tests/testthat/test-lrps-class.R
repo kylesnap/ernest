@@ -10,22 +10,22 @@ describe("new_ernest_lrps", {
       "`unit_log_fn` must be a function or `NULL`"
     )
     expect_error(
-      new_ernest_lrps(fn, n_dim = 0),
-      "`n_dim` must be a whole number larger than or equal to 1 or `NULL`"
+      new_ernest_lrps(fn, nvar = 0),
+      "`nvar` must be a whole number larger than or equal to 1 or `NULL`"
     )
     expect_error(
-      new_ernest_lrps(fn, n_dim = 2, cache = 1),
+      new_ernest_lrps(fn, nvar = 2, cache = 1),
       "`cache` must be an environment"
     )
 
     local_options("ernest.max_loop" = 0L)
     expect_error(
-      new_ernest_lrps(fn, n_dim = 2),
+      new_ernest_lrps(fn, nvar = 2),
       "`getOption\\('ernest.max_loop'\\)` must be a whole number"
     )
     local_options("ernest.max_loop" = Inf)
     expect_error(
-      new_ernest_lrps(fn, n_dim = 2),
+      new_ernest_lrps(fn, nvar = 2),
       "`getOption\\('ernest.max_loop'\\)` must be a whole number"
     )
   })
@@ -46,7 +46,7 @@ test_that("propose.ernest_lrps can be called", {
   initial_ncall <- env_cache(lrps$cache, "neval", 0L)
   res1 <- propose.ernest_lrps(lrps, original = NULL)
   expect_contains(names(res1), c("unit", "log_lik", "neval"))
-  expect_vector(res1$unit, double(), size = lrps$n_dim)
+  expect_vector(res1$unit, double(), size = lrps$nvar)
   expect_equal(res1$log_lik, fn(res1$unit))
   expect_equal(env_get(lrps$cache, "neval"), 0L)
 

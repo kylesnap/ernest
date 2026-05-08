@@ -73,7 +73,7 @@ new_ernest_sampler <- function(
       parent = globalenv()
     )
   )
-  lrps$n_dim <- attr(prior, "n_dim")
+  lrps$nvar <- attr(prior, "nvar")
   if (is_environment(lrps$cache)) {
     env_unbind(lrps$cache, env_names(lrps$cache))
   }

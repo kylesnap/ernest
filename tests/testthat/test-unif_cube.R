@@ -12,14 +12,14 @@ describe("unif_cube class", {
     obj <- expect_all_proposals(
       new_unif_cube,
       unit_log_fn = fn,
-      n_dim = 2,
+      nvar = 2,
       allow_failure = TRUE
     )
     expect_lrps(obj, subclass = "unif_cube")
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_unif_cube(fn, n_dim = 2)
+    obj <- new_unif_cube(fn, nvar = 2)
     samples <- run_sampler(obj)
 
     new_obj <- update_lrps(obj, samples$unit)
@@ -33,7 +33,7 @@ describe("unif_cube class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_unif_cube(fn, n_dim = 2)
+    obj <- new_unif_cube(fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(obj, "unif_cube")
   })

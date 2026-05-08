@@ -119,7 +119,7 @@ print.ernest_run <- function(x, ...) {
 #' * `mle`: `[list]` Maximum likelihood estimate extracted during the run,
 #' stored in a list with the elements:
 #'    * `log_lik`: `[double(1)]` The maximum log-likelihood value.
-#'    * `original`, `unit_cube`: `[double(n_dim)]` The parameter values at the
+#'    * `original`, `unit_cube`: `[double(nvar)]` The parameter values at the
 #'    MLE, expressed in the original parameter space and within the unit cube.
 #' * `posterior`: [[data.frame]] with columns for the posterior mean, sd,
 #' median, and the 15th and 85th percentiles for each parameter.

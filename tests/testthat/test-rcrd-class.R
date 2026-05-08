@@ -12,7 +12,7 @@ test_that("ernest_rcrd stores the expected information", {
   expect_equal(field(x, "birth_lik"), field(ref, "birth_lik"))
   unit <- field(example_run$rcrd, "unit")
   expect_equal(field(x, "unit"), unit)
-  expect_identical(attr(x, "nvariables"), 3L)
+  expect_identical(attr(x, "nvar"), 3L)
   expect_snapshot(x)
 })
 
@@ -39,7 +39,7 @@ test_that("ernest_rcrd orders draws", {
     field(example_run$rcrd, "log_lik")
   )
   expect_equal(field(all, "unit"), field(example_run$rcrd, "unit"))
-  expect_identical(attr(all, "nvariables"), 3L)
+  expect_identical(attr(all, "nvar"), 3L)
 })
 
 test_that("ernest_rcrd reports dimensional mismatch", {

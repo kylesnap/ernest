@@ -17,14 +17,14 @@ using namespace vol;
 //// CONSTRUCTORS
 
 Ellipsoid::Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape) {
-  n_dim_ = center.size();
-  if (!((shape.rows() == shape.cols()) && (shape.rows() == n_dim_))) {
+  nvar_ = center.size();
+  if (!((shape.rows() == shape.cols()) && (shape.rows() == nvar_))) {
     error_ = kFatal;
     return;
   }
   center_ = center;
   shape_ = shape;
-  work_ = Eigen::SelfAdjointEigenSolver<Matrix>(n_dim_);
+  work_ = Eigen::SelfAdjointEigenSolver<Matrix>(nvar_);
   SetShape();
 }
 
@@ -59,7 +59,7 @@ Matrix Ellipsoid::major_axis() const {
   Eigen::Index max_i;
   axial_lengths_.maxCoeff(&max_i);
   Vector axes = inv_sqrt_shape_.col(max_i);
-  Matrix endpoints(2, n_dim_);
+  Matrix endpoints(2, nvar_);
   endpoints.row(0) = center_ + axes;
   endpoints.row(1) = center_ - axes;
   return endpoints;
@@ -70,7 +70,7 @@ Matrix Ellipsoid::major_axis() const {
 void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
   log_volume_ = R_NegInf;
   int n_points = X.rows();
-  if (X.cols() != n_dim_ || n_points < 1) {
+  if (X.cols() != nvar_ || n_points < 1) {
     error_ = kFatal;
     return;
   }
@@ -81,7 +81,7 @@ void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
     if (R_IsNA(point_log_volume)) {
       point_log_volume = 0.0;
     }
-    double radius_ = R_pow_di(exp(point_log_volume - log_volume_sphere()), 1.0 / n_dim_);
+    double radius_ = R_pow_di(exp(point_log_volume - log_volume_sphere()), 1.0 / nvar_);
     shape_.setIdentity();
     shape_ *= radius_;
     error_ = kUnderdetermined;
@@ -93,8 +93,8 @@ void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
   Matrix centered_ = X.rowwise() - center_.transpose();
   shape_ = centered_.adjoint() * centered_ / double(X.rows() - 1);
 
-  // Adjust for O(1/n_dim) bias in sample covariance
-  shape_ *= n_dim_ + 2.0;
+  // Adjust for O(1/nvar) bias in sample covariance
+  shape_ *= nvar_ + 2.0;
 
   // Find the axes of the ellipsoid
   double log_target = R_IsNA(point_log_volume)
@@ -103,7 +103,7 @@ void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
   FindAxes(shape_, log_target);
   if (error_ == kFatal || error_ == kNilpotent) {
     Status prev_error = error_;
-    *this = Ellipsoid(n_dim_);
+    *this = Ellipsoid(nvar_);
     error_ = prev_error;
     return;
   }
@@ -213,7 +213,7 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
   }
 
   // BASE CASE 1: Clusters too small to split
-  if (idx0.size() < 2 * n_dim_ || idx1.size() < 2 * n_dim_) {
+  if (idx0.size() < 2 * nvar_ || idx1.size() < 2 * nvar_) {
     return {*this};
   }
 
@@ -228,7 +228,7 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
 
   // Expected min log volume decrease between two ellipsoids
   // See `bounding_ellipsoids_` in dynesty and Feroz (2008) for mathematical details.
-  double log_volume_decrement = ((n_dim_ * (n_dim_ + 3)) / 2) * log(n_points) / n_points;
+  double log_volume_decrement = ((nvar_ * (nvar_ + 3)) / 2) * log(n_points) / n_points;
   double child_log_vol = logspace_add(left.log_volume(), right.log_volume());
 
   // RECURSIVE STEP: Split children into left and right lists

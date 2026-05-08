@@ -54,7 +54,7 @@ nested_sampling_impl <- function(
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
   initial_update <- FALSE
 
-  dead_unit <- vctrs::list_of(.ptype = double(lrps$n_dim))
+  dead_unit <- vctrs::list_of(.ptype = double(lrps$nvar))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = integer())
   dead_evals <- vctrs::list_of(.ptype = integer())

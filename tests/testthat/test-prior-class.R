@@ -121,7 +121,7 @@ describe("+.ernest_prior", {
 
     expect_type(combo_p, "list")
     expect_s3_class(combo_p, "ernest_prior")
-    expect_equal(attr(combo_p, "n_dim"), 4)
+    expect_equal(attr(combo_p, "nvar"), 4)
     expect_equal(combo_p$lower, c(-10, -10, -Inf, -Inf))
     expect_equal(combo_p$names, c("A...1", "B...2", "A...3", "B...4"))
 

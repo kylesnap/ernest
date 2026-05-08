@@ -83,9 +83,9 @@ obj_type_friendly <- function(x, value = TRUE) {
     return(.rlang_as_friendly_type(typeof(x)))
   }
 
-  n_dim <- length(dim(x))
+  nvar <- length(dim(x))
 
-  if (!n_dim) {
+  if (!nvar) {
     if (!is_list(x) && length(x) == 1) {
       if (is_na(x)) {
         return(switch(
@@ -176,10 +176,10 @@ vec_type_friendly <- function(x, length = FALSE) {
     abort("`x` must be a vector.")
   }
   type <- typeof(x)
-  n_dim <- length(dim(x))
+  nvar <- length(dim(x))
 
   add_length <- function(type) {
-    if (length && !n_dim) {
+    if (length && !nvar) {
       paste0(type, sprintf(" of length %s", length(x)))
     } else {
       type
@@ -187,11 +187,11 @@ vec_type_friendly <- function(x, length = FALSE) {
   }
 
   if (type == "list") {
-    if (n_dim < 2) {
+    if (nvar < 2) {
       return(add_length("a list"))
     } else if (is.data.frame(x)) {
       return("a data frame")
-    } else if (n_dim == 2) {
+    } else if (nvar == 2) {
       return("a list matrix")
     } else {
       return("a list array")
@@ -210,16 +210,16 @@ vec_type_friendly <- function(x, length = FALSE) {
     type = paste0("a ", type, " %s")
   )
 
-  if (n_dim < 2) {
+  if (nvar < 2) {
     kind <- "vector"
-  } else if (n_dim == 2) {
+  } else if (nvar == 2) {
     kind <- "matrix"
   } else {
     kind <- "array"
   }
   out <- sprintf(type, kind)
 
-  if (n_dim >= 2) {
+  if (nvar >= 2) {
     out
   } else {
     add_length(out)

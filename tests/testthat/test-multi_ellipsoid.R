@@ -21,7 +21,7 @@ describe("multi_ellipsoid class", {
     obj <- expect_all_proposals(
       new_multi_ellipsoid,
       unit_log_fn = fn,
-      n_dim = 2,
+      nvar = 2,
       extra_args = "ellipsoid_idx",
       allow_failure = TRUE
     )
@@ -29,7 +29,7 @@ describe("multi_ellipsoid class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_multi_ellipsoid(fn, n_dim = 2)
+    obj <- new_multi_ellipsoid(fn, nvar = 2)
     samples <- run_sampler(obj)
 
     new_obj <- update_lrps(obj, samples$unit)
@@ -42,7 +42,7 @@ describe("multi_ellipsoid class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_multi_ellipsoid(fn, n_dim = 2)
+    obj <- new_multi_ellipsoid(fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,

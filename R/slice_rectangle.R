@@ -69,7 +69,7 @@ format.slice_rectangle <- function(x, ...) {
 #' Internal constructor for the slice sampling LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim  Number of dimensions.
+#' @param nvar  Number of dimensions.
 #' @param max_loop  Maximum number of proposal attempts.
 #' @param enlarge Inflate the hyperrectangle's volume before sampling.
 #' @param cache Optional cache environment.
@@ -82,7 +82,7 @@ format.slice_rectangle <- function(x, ...) {
 #' @noRd
 new_slice_rectangle <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = 1e6L,
   enlarge = 1.25,
   cache = NULL
@@ -90,13 +90,13 @@ new_slice_rectangle <- function(
   check_number_decimal(enlarge, min = 1, allow_na = TRUE)
   cache <- cache %||% new_environment()
   env_poke(cache, "n_accept", 0L)
-  if (!is.null(n_dim) && n_dim >= 1L) {
-    env_cache(cache, "lower", rep(0.0, n_dim))
-    env_cache(cache, "upper", rep(1.0, n_dim))
+  if (!is.null(nvar) && nvar >= 1L) {
+    env_cache(cache, "lower", rep(0.0, nvar))
+    env_cache(cache, "upper", rep(1.0, nvar))
   }
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     cache = cache,
     enlarge = as.double(enlarge),
@@ -118,8 +118,8 @@ propose.slice_rectangle <- function(
       original = original,
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      lower = env_get(x$cache, "lower", rep(0.0, x$n_dim)),
-      upper = env_get(x$cache, "upper", rep(1.0, x$n_dim)),
+      lower = env_get(x$cache, "lower", rep(0.0, x$nvar)),
+      upper = env_get(x$cache, "upper", rep(1.0, x$nvar)),
       max_loop = x$max_loop
     )
     env_poke(x$cache, "neval", x$cache$neval + res$neval)
@@ -138,7 +138,7 @@ update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
   if (x$enlarge > 1) {
     center <- (lower + upper) / 2
     radius <- (upper - lower) / 2
-    new_radius <- radius * x$enlarge^(1 / x$n_dim)
+    new_radius <- radius * x$enlarge^(1 / x$nvar)
     lower <- pmax(center - new_radius, 0.0)
     upper <- pmin(center + new_radius, 1.0)
   }

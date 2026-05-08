@@ -106,7 +106,10 @@ compile.ernest_run <- function(
 new_live_set <- function(lrps, nlive, call = caller_env()) {
   try_fetch(
     {
-      unit <- matrix(stats::runif(nlive * lrps$n_dim), ncol = lrps$n_dim)
+      unit <- matrix(
+        stats::runif(nlive * lrps$nvar),
+        ncol = lrps$nvar
+      )
       log_lik <- lrps$unit_log_fn(unit)
       order_logl <- order(log_lik)
       vctrs::df_list(
@@ -138,13 +141,13 @@ new_live_set <- function(lrps, nlive, call = caller_env()) {
 #' @noRd
 write_live_set <- function(live, object, call = caller_env()) {
   nlive <- object$nlive
-  n_dim <- object$lrps$n_dim
+  nvar <- object$lrps$nvar
 
   # Prototype Checks
   unit <- vec_cast(
     live$unit,
-    to = matrix(double(), ncol = n_dim),
-    to_arg = "matrix(ncol = object$lrps$n_dim)",
+    to = matrix(double(), ncol = nvar),
+    to_arg = "matrix(ncol = object$lrps$nvar)",
     call = call
   )
   log_lik <- vec_cast(live$log_lik, to = double(), call = call)

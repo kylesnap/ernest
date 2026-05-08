@@ -21,7 +21,7 @@ context("Ellipsoid class - basic functionality") {
     Eigen::Matrix2d inv_sqrt_shape{{0.8944272, -0.4472136}, {-0.4472136, 1.3416408}};
     Eigen::RowVector2d center{0, 0};
     vol::Ellipsoid ell(center, shape);
-    expect_true(ell.n_dim() == 2);
+    expect_true(ell.nvar() == 2);
     expect_true(ell.error() == vol::Status::kOk);
 
     expect_true(ell.center().isApproxToConstant(0));
@@ -35,15 +35,15 @@ context("Ellipsoid class - basic functionality") {
   }
 
   test_that("Distance to point works") {
-    int n_dim = 10;
+    int nvar = 10;
     int n_test = 100;  // Reduce number of tests for faster runtime
     double err_dist = 0.0, err_out = 0.0, err_in = 0.0;
     ern::RandomEngine gen;
 
     // Preallocate matrices/vectors to avoid repeated allocations
-    Eigen::VectorXd center(n_dim);
-    Eigen::MatrixXd u(n_dim, n_dim);
-    Eigen::VectorXd p(n_dim);
+    Eigen::VectorXd center(nvar);
+    Eigen::MatrixXd u(nvar, nvar);
+    Eigen::VectorXd p(nvar);
 
     for (int i_test = 0; i_test < n_test; i_test++) {
       // Random ellipsoid center and SPD matrix
@@ -120,11 +120,11 @@ context("Rectangle class - basic functionality") {
   }
 
   test_that("Rectangle uniform sampling produces valid points") {
-    int n_dim = 5;
+    int nvar = 5;
     int n_samples = 100;
-    vol::Rectangle rect(n_dim);
+    vol::Rectangle rect(nvar);
 
-    Eigen::VectorXd sample(n_dim);
+    Eigen::VectorXd sample(nvar);
     int n_oob = 0;
     for (int i = 0; i < n_samples; i++) {
       rect.UniformSample(sample);
@@ -172,8 +172,8 @@ context("Rectangle class - shrinking") {
 
   test_that("Rectangle can be clamped in higher dimensions") {
     typedef Eigen::Matrix<double, 5, 1> Vector5d;
-    int n_dim = 5;
-    vol::Rectangle rect(n_dim);
+    int nvar = 5;
+    vol::Rectangle rect(nvar);
 
     // First clamp
     Vector5d inner = Vector5d::Constant(0.5);

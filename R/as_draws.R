@@ -22,8 +22,7 @@
 #' error message is provided when the user provides an invalid value for
 #' `radial`.
 #'
-#' @seealso
-#' * [posterior::as_draws()] for details on the `draws` object.
+#' @seealso [posterior::as_draws()]
 #'
 #' @examples
 #' library(posterior)

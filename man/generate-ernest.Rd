@@ -31,8 +31,8 @@ specification.}
 \item{max_iterations}{\verb{[integer(1)]}\cr The maximum number of iterations to
 perform. Optional; if \code{NULL} this criterion is ignored.}
 
-\item{max_evaluations}{\verb{[integer(1)]}\cr The maximum number of
-likelihood function evaluations to perform. Optional; if \code{NULL} this
+\item{max_evaluations}{\verb{[integer(1)]}\cr The maximum number of times the run
+can evaluate the likelihood function. Optional; if \code{NULL} this
 criterion is ignored.}
 
 \item{min_logz}{\verb{[double(1)]}\cr The minimum log-ratio between the
@@ -57,30 +57,16 @@ An \verb{[ernest_run]} object with the nested sampling results.
 This inherits from \link{ernest_sampler} and adds:
 \itemize{
 \item \code{niter}: \verb{[integer(1)]} Number of iterations performed.
-\item \code{neval}: \verb{[integer(1)]} Total number of likelihood function evaluations.
+\item \code{neval}: \verb{[integer(1)]} Number of times the likelihood function was
+evaluated.
 \item \code{log_evidence}: \verb{[double(1)]} The log-evidence estimate.
 \item \code{log_evidence_err}: \verb{[double(1)]} The standard error of the log-evidence
 estimate, derived using \code{information}.
 \item \code{information}: \verb{[double(1)]} The estimated Kullback-Leibler divergence.
 \item \code{log_weight}: \verb{[double(nsample)]} Each sample's contribution to the
 log-evidence estimate, computed from its log-likelihood and prior volume.
-\item \code{rcrd}: \verb{[ernest_rcrd]} A subclass of \link[vctrs:new_rcrd]{vctrs::new_rcrd} that stores
-sample-level metadata for the run. Its fields can be accessed with
-[\link[vctrs:fields]{vctrs::field}]:
-\itemize{
-\item \code{unit}: \verb{[double(nvar)]} The location of the sample within the unit
-hypercube.
-\item \code{id}: \verb{[integer(nsample)]} The index of each sample within the live set.
-\item \code{nlive}: \verb{[integer(nsample)]} The number of points within the live set
-when this point was replaced.
-\item \code{neval}: \verb{[integer(nsample)]} The number of likelihood evaluations needed
-to replace this sample; equal to \code{0} if the sample is a member of the live
-set at the end of the run.
-\item \code{log_lik}: \verb{[double(nsample)]} The sample's log-likelihood.
-\item \code{birth_lik}: \verb{[double(nsample)]} The log-likelihood of the point that was
-used to create this sample; equal to \code{-Inf} if the sample was created when
-the sampler was first compiled.
-}
+\item \code{rcrd}: [\link{ernest_rcrd}] An object storing an internal record of each point
+generated during the run.
 }
 }
 \description{
@@ -102,6 +88,10 @@ The \code{min_logz} parameter controls the relative tolerance for the remaining
 evidence in the unexplored parameter space. Sampling stops when the estimated
 remaining evidence is sufficiently small compared to the accumulated
 evidence.
+
+\code{rcrd} will have size \code{niter + nlive}: The first \code{niter} entries correspond
+to the points removed during the run, the last \code{nlive} entries correspond to
+the points within the live set at the end of the run.
 }
 \examples{
 prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
@@ -111,10 +101,6 @@ sampler
 
 # Stop sampling after a set number of iterations or likelihood calls.
 generate(sampler, max_iterations = 100)
-
-# The final number of calls may exceed `max_evaluations`, as `generate`
-# only checks the number of calls when removing a live point.
-generate(sampler, max_evaluations = 2600)
 
 # Use the default stopping criteria
 \dontrun{ generate(sampler) }

@@ -15,12 +15,13 @@
 #' and `data.frame`.
 #'
 #' The iterative estimates from the nested sampling run. Contains the following
-#' columns:
-#' * `log_lik`: `[[double()]]` The log-likelihood of the model.
-#' * `log_volume`: `[[posterior::rvar()]]` The log-volume of the prior space.
-#' * `log_weight`: `[[posterior::rvar()]]` The log weights of the points in the
-#' live set.
-#' * `log_evidence`: `[[posterior::rvar()]]` The log-evidence of the model.
+#' columns for each point:
+#' * `log_lik`: `[[double()]]` The log-likelihood of the point.
+#' * `log_volume`: `[[posterior::rvar()]]` The log-volume of the prior space
+#' associated with the point.
+#' * `log_weight`: `[[posterior::rvar()]]` The estimated contribution of the
+#' point to the log-evidence estimate.
+#' * `log_evidence`: `[[posterior::rvar()]]` The current log-evidence estimate.
 #'
 #' If `ndraws > 0`, `log_volume`, `log_weight`, and `log_evidence` each contain
 #' `ndraws` simulated draws per iteration.
@@ -35,6 +36,8 @@
 #' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
 #' of the Royal Astronomical Society, 483(2), 2044–2056.
 #' \doi{10.1093/mnras/sty3090}
+#'
+#' @seealso [weights.ernest_run()]
 #'
 #' @examples
 #' # Load an example run

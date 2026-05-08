@@ -60,7 +60,5 @@ dm_rad <- as_draws_rvars(
 plot(x = draws_of(dm_rad$.radial))
 }
 \seealso{
-\itemize{
-\item \code{\link[posterior:draws]{posterior::as_draws()}} for details on the \code{draws} object.
-}
+\code{\link[posterior:draws]{posterior::as_draws()}}
 }

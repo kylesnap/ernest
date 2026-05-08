@@ -15,8 +15,9 @@
 A named list, containing:
 \itemize{
 \item \code{nlive}: \verb{[integer(1)]} Number of points in the live set.
-\item \code{niter}: \verb{[integer(1)]} Number of iterations.
-\item \code{neval}: \verb{[integer(1)]} Number of likelihood evaluations.
+\item \code{niter}: \verb{[integer(1)]} Number of iterations performed.
+\item \code{neval}: \verb{[integer(1)]} Number of times the likelihood function was
+evaluated.
 \item \code{log_evidence}: \verb{[numeric(1)]} Log-evidence estimate.
 \item \code{log_evidence_err}: \verb{[numeric(1)]} Standard error of log-evidence.
 \item \code{information}: \verb{[numeric(1)]} Estimated Kullback-Leibler divergence between
@@ -46,8 +47,5 @@ run_sm
 run_sm$posterior
 }
 \seealso{
-\itemize{
-\item \code{\link[=generate]{generate()}} for details on the \code{ernest_run} object.
-\item \code{\link[=as_draws]{as_draws()}} for details on how posterior samples are extracted.
-}
+\code{\link[=generate.ernest_run]{generate.ernest_run()}} \code{\link[=as_draws.ernest_run]{as_draws.ernest_run()}}
 }

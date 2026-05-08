@@ -1,13 +1,60 @@
-#' vctrs::new_rcrd() object representing samples from nested sampling.
+#' Storing nested sampling results
 #'
-#' @param unit The parameter values in the unit cube.
-#' @param log_lik The log-likelihood values for each sample.
-#' @param nlive The number of live points at the time each sample was taken.
-#' @param id A unique identifier for each sample.
-#' @param neval The number of likelihood evaluations for each sample.
-#' @param birth_lik The log-likelihood value at which each sample was born.
+#' `ernest_rcrd` is a [[vctrs::new_rcrd]] class that stores metadata for all
+#' samples drawn from the nested sampling algorithm, tracking the history of
+#' replacements in the live set and each point's contribution to evidence
+#' estimation.
 #'
-#' @returns A vctrs record class object containing the sample information.
+#' @section Fields:
+#' \describe{
+#' \item{`unit`}{`[double(nvar)]` The sample's coordinates within the unit
+#' hypercube (prior to transformation via the prior distribution).}
+#' \item{`id`}{`[integer(1)]` A unique identifier for each sample in the
+#' sequence of live points.}
+#' \item{`nlive`}{`[integer(1)]` The number of effective live points remaining
+#' when the sample was removed from the live set. Generally corresponds to the
+#' `nlive` of the `ernest_run`, but can be lower if the sample found within a
+#' plateau in the log-likelihood function (see References) or if the sample is
+#' still in the live set at termination.}
+#' \item{`neval`}{`[integer(1)]` The number of likelihood evaluations
+#' required by the sampler to generate this replacement point, reflecting the
+#' difficulty of sampling from the likelihood-restricted prior. Equal to `0`
+#' for points remaining in the live set at termination.}
+#' \item{`log_lik`}{`[double(1)]` The log-likelihood at the sample.}
+#' \item{`birth_lik`}{`[double(1)]` The log-likelihood threshold that this
+#' sample exceeded; the minimum likelihood constraint applied when generating
+#' it. Equals `-Inf` for samples in the initial live set.}
+#' }
+#'
+#' @references Fowlie, A., Handley, W., Su, L., Nested Sampling with Plateaus,
+#' Monthly Notices of the Royal Astronomical Society, 503(1), 1199–1205,
+#' \doi{10.1093/mnras/stab590}
+#'
+#' @details
+#' This object is designed to be used internally within the `ernest_run` class
+#' to track the history of samples generated during a nested sampling run.
+#' Generally, users will not interact with `ernest_rcrd` objects directly, and
+#' instead will call methods on `ernest_run` objects which, internally,
+#' manipulate the `ernest_rcrd` object.
+#'
+#' @name ernest_rcrd
+#' @keywords internal
+NULL
+
+#' Create a nested sampling record object
+#'
+#' Constructs an `ernest_rcrd` record from sample metadata generated during a
+#' nested sampling run.
+#'
+#' @param unit A matrix of coordinates in the unit hypercube.
+#' @param log_lik A numeric vector of log-likelihood values.
+#' @param nlive An integer vector specifying the number of live points.
+#' @param id An integer vector of unique identifiers for each sample.
+#' @param neval An integer vector of likelihood evaluation counts.
+#' @param birth_lik A numeric vector of the log-likelihood thresholds at which
+#' each sample was generated
+#'
+#' @returns An `ernest_rcrd` object (a vctrs record class).
 #' @importFrom vctrs vec_cast vec_ptype_full vec_ptype2
 #' @noRd
 new_ernest_rcrd <- function(

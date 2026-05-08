@@ -9,8 +9,8 @@
 #' @inheritDotParams compile.ernest_run -object
 #' @param max_iterations `[integer(1)]`\cr The maximum number of iterations to
 #' perform. Optional; if `NULL` this criterion is ignored.
-#' @param max_evaluations `[integer(1)]`\cr The maximum number of
-#' likelihood function evaluations to perform. Optional; if `NULL` this
+#' @param max_evaluations `[integer(1)]`\cr The maximum number of times the run
+#' can evaluate the likelihood function. Optional; if `NULL` this
 #' criterion is ignored.
 #' @param min_logz `[double(1)]`\cr The minimum log-ratio between the
 #' current estimated evidence and the remaining evidence. Must be non-negative;
@@ -23,28 +23,16 @@
 #'
 #' This inherits from [ernest_sampler] and adds:
 #' * `niter`: `[integer(1)]` Number of iterations performed.
-#' * `neval`: `[integer(1)]` Total number of likelihood function evaluations.
+#' * `neval`: `[integer(1)]` Number of times the likelihood function was
+#' evaluated.
 #' * `log_evidence`: `[double(1)]` The log-evidence estimate.
 #' * `log_evidence_err`: `[double(1)]` The standard error of the log-evidence
 #' estimate, derived using `information`.
 #' * `information`: `[double(1)]` The estimated Kullback-Leibler divergence.
 #' * `log_weight`: `[double(nsample)]` Each sample's contribution to the
 #' log-evidence estimate, computed from its log-likelihood and prior volume.
-#' * `rcrd`: `[ernest_rcrd]` A subclass of [vctrs::new_rcrd] that stores
-#' sample-level metadata for the run. Its fields can be accessed with
-#' [[vctrs::field]]:
-#'   * `unit`: `[double(nvar)]` The location of the sample within the unit
-#'   hypercube.
-#'   * `id`: `[integer(nsample)]` The index of each sample within the live set.
-#'   * `nlive`: `[integer(nsample)]` The number of points within the live set
-#'   when this point was replaced.
-#'   * `neval`: `[integer(nsample)]` The number of likelihood evaluations needed
-#'   to replace this sample; equal to `0` if the sample is a member of the live
-#'   set at the end of the run.
-#'   * `log_lik`: `[double(nsample)]` The sample's log-likelihood.
-#'   * `birth_lik`: `[double(nsample)]` The log-likelihood of the point that was
-#'   used to create this sample; equal to `-Inf` if the sample was created when
-#'   the sampler was first compiled.
+#' * `rcrd`: [[ernest_rcrd]] An object storing an internal record of each point
+#' generated during the run.
 #'
 #' @details
 #' At least one of `max_iterations`, `max_evaluations`, or `min_logz`
@@ -61,6 +49,10 @@
 #' remaining evidence is sufficiently small compared to the accumulated
 #' evidence.
 #'
+#' `rcrd` will have size `niter + nlive`: The first `niter` entries correspond
+#' to the points removed during the run, the last `nlive` entries correspond to
+#' the points within the live set at the end of the run.
+#'
 #' @references Skilling, J. (2006). Nested Sampling for General Bayesian
 #' Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
 #'
@@ -68,22 +60,22 @@
 #' spinner bar is shown during sampling.
 #' @srrstats {BS4.0} References the paper containing the sampling algorithm.
 #'
+#' @seealso [calculate.ernest_run()] [summary.ernest_run()]
+#' [weights.ernest_run()]
+#'
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
 #' ll_fn <- function(x) -sum(x^2)
 #' sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 #' sampler
 #'
-#' # Stop sampling after a set number of iterations or likelihood calls.
+#' # Stop sampling after a set number of iterations or likelihood evaluations.
 #' generate(sampler, max_iterations = 100)
-#'
-#' # The final number of calls may exceed `max_evaluations`, as `generate`
-#' # only checks the number of calls when removing a live point.
-#' generate(sampler, max_evaluations = 2600)
 #'
 #' # Use the default stopping criteria
 #' \dontrun{ generate(sampler) }
 #' @aliases ernest_run
+#' @rdname generate-ernest
 #' @export
 generate.ernest_sampler <- function(
   x,
@@ -118,7 +110,7 @@ generate.ernest_sampler <- function(
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
 #' from the last known live set.
 #'
-#' @rdname generate.ernest_sampler
+#' @rdname generate-ernest
 #' @export
 generate.ernest_run <- function(
   x,

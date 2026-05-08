@@ -31,7 +31,8 @@
 #' defined by the amount of evidence remaining in the unintegrated prior space,
 #' controlled by the `min_logz` parameter. In cases where convergence is not
 #' achieved, the sampler will stop when the maximum number of iterations or
-#' likelihood calls is reached, or when the log-likelihood plateau is detected.
+#' likelihood evaluations is reached, or when the log-likelihood plateau is
+#' detected.
 #'
 #' @importFrom vctrs vec_c
 #' @importFrom cli pb_spin pb_elapsed pb_current col_green symbol

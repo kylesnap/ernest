@@ -108,8 +108,9 @@ print.ernest_run <- function(x, ...) {
 #' @returns
 #' A named list, containing:
 #' * `nlive`: `[integer(1)]` Number of points in the live set.
-#' * `niter`: `[integer(1)]` Number of iterations.
-#' * `neval`: `[integer(1)]` Number of likelihood evaluations.
+#' * `niter`: `[integer(1)]` Number of iterations performed.
+#' * `neval`: `[integer(1)]` Number of times the likelihood function was
+#' evaluated.
 #' * `log_evidence`: `[numeric(1)]` Log-evidence estimate.
 #' * `log_evidence_err`: `[numeric(1)]` Standard error of log-evidence.
 #' * `information`: `[numeric(1)]` Estimated Kullback-Leibler divergence between
@@ -125,9 +126,7 @@ print.ernest_run <- function(x, ...) {
 #' median, and the 15th and 85th percentiles for each parameter.
 #' * `seed`: The RNG seed used.
 #'
-#' @seealso
-#' * [generate()] for details on the `ernest_run` object.
-#' * [as_draws()] for details on how posterior samples are extracted.
+#' @seealso [generate.ernest_run()] [as_draws.ernest_run()]
 #'
 #' @srrstats {BS6.4} Summary method for results object.
 #'

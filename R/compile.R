@@ -30,8 +30,7 @@
 #' * If `object` is an `ernest_run`, the live set is regenerated from previous
 #' results.
 #'
-#' @seealso
-#' * [generate()] for running samplers with compiled live sets.
+#' @seealso [generate.ernest_run()]
 #'
 #' @examples
 #' prior <- create_uniform_prior(lower = c(-1, -1), upper = 1)
@@ -50,7 +49,7 @@
 #' # Make a new sampler from a previous run
 #' sampler_3 <- compile(example_run, clear = TRUE)
 #' sampler_3
-#' @rdname compile.ernest_run
+#' @rdname compile-ernest
 #' @export
 compile.ernest_sampler <- function(object, ...) {
   preserve_seed(attr(object, "seed"))
@@ -59,7 +58,7 @@ compile.ernest_sampler <- function(object, ...) {
   object
 }
 
-#' @rdname compile.ernest_run
+#' @rdname compile-ernest
 #'
 #' @param clear `[logical(1)]`\cr If `TRUE`, clears results from previous runs
 #' before compiling. If `FALSE`, retains previous results and validates the live

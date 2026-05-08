@@ -2,7 +2,7 @@
 #'
 #' Initializes an `ernest_sampler` object containing the components required to
 #' perform nested sampling. This object can then be used to build sequences of
-#' nested samples with [generate()].
+#' nested samples with [generate.ernest_run()].
 #'
 #' @param log_lik `[function]` or [[ernest_likelihood]]\cr
 #' A function which computes the log-likelihood of a given model. If a
@@ -31,7 +31,7 @@
 #' which is used to store the live set during sampling.
 #'
 #' @details
-#' The `ernest_sampler` object is tested with [compile()] before it is
+#' The `ernest_sampler` object is tested with [compile.ernest_run()] before it is
 #' returned. This helps to catch errors with the likelihood and prior
 #' specifications. If this compilation step fails, review your `log_lik_fn` and
 #' `prior` objects for their compliance.

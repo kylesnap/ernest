@@ -148,7 +148,8 @@ propose.ernest_lrps <- function(
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
 #' * `log_lik`: Numeric vector of log-likelihood values for the proposed.
-#' * `neval`: Number of calls made to `unit_log_fn` during the proposal.
+#' * `neval`: Number of likelihood evaluations made to generate the proposed
+#' point.
 #' @noRd
 propose_cube <- function(
   unit_log_fn,

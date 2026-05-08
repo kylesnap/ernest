@@ -66,8 +66,9 @@ data(example_run)
 visualize(example_run, .which = "density")
 }
 \seealso{
-\itemize{
-\item \code{\link[=plot]{plot()}} for diagnostic plots of nested sampling runs.
-\item \code{\link[=as_draws_rvars]{as_draws_rvars()}} for extracting posterior samples.
+\code{\link[=as_draws_rvars]{as_draws_rvars()}}
+
+Other visualization: 
+\code{\link{plot.ernest_estimate}()}
 }
-}
+\concept{visualization}

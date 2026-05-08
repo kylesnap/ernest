@@ -69,7 +69,5 @@ sampler_3 <- compile(example_run, clear = TRUE)
 sampler_3
 }
 \seealso{
-\itemize{
-\item \code{\link[=generate]{generate()}} for running samplers with compiled live sets.
-}
+\code{\link[=generate.ernest_run]{generate.ernest_run()}}
 }

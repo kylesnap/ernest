@@ -40,10 +40,8 @@
 #' @srrstats {BS6.2, BS6.3} Provides plot methods for posterior new points and
 #' sequences of samples.
 #'
-#' @seealso
-#' - [plot()] for diagnostic plots of nested sampling runs.
-#' - [as_draws_rvars()] for extracting posterior samples.
-#'
+#' @seealso [as_draws_rvars()]
+#' @family visualizations
 #' @examples
 #' # Load example run
 #' library(ggdist)

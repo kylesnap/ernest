@@ -22,7 +22,7 @@
 #' The provided transformations are vectorized: they accept a matrix of points
 #' in the unit hypercube and return a matrix of transformed values.
 #'
-#' @seealso [create_prior()] for more on priors within nested sampling.
+#' @seealso [create_prior()]
 #' @family priors
 #' @rdname special_priors
 #' @example ./data-raw/EXAMPLE_PRIOR_CLASS.R

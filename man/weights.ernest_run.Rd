@@ -40,6 +40,5 @@ weights(example_run) |> head()
 weights(example_run, log = TRUE) |> head()
 }
 \seealso{
-\link{as_draws.ernest_run} to extract the posterior samples from a nested
-sampling run, bound to their corresponding importance weights.
+\link{as_draws.ernest_run}
 }

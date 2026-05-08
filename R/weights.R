@@ -23,8 +23,7 @@
 #' with the final log-evidence estimate. They can be used to reweight posterior
 #' samples from the run so they approximate the posterior distribution.
 #'
-#' @seealso [as_draws.ernest_run] to extract the posterior samples from a nested
-#' sampling run, bound to their corresponding importance weights.
+#' @seealso [as_draws.ernest_run]
 #'
 #' @examples
 #' data(example_run)

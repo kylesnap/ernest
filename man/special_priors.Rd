@@ -83,7 +83,7 @@ hist(sample[, 2], main = "sd")
 hist(sample[, 3], main = "x")
 }
 \seealso{
-\code{\link[=create_prior]{create_prior()}} for more on priors within nested sampling.
+\code{\link[=create_prior]{create_prior()}}
 
 Other priors: 
 \code{\link{create_prior}()}

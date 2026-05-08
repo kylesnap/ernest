@@ -18,9 +18,6 @@
 #' @param show_progress `[logical(1)]`\cr If `TRUE`, displays a progress spinner
 #' and iteration counter during sampling. Optional; if `NULL` the global option
 #' `rlib_message_verbosity` is used to determine whether to show progress.
-#' @param allow_par `[logical(1)]`\cr `r lifecycle::badge("experimental")` Use
-#' \CRANpkg{mirai} to generate nested samples in parallel.
-#' See [parallelization] for more.
 #'
 #' @returns An `[ernest_run]` object with the nested sampling results.
 #'
@@ -36,7 +33,7 @@
 #' * `rcrd`: `[ernest_rcrd]` A subclass of [vctrs::new_rcrd] that stores
 #' sample-level metadata for the run. Its fields can be accessed with
 #' [[vctrs::field]]:
-#'   * `unit`: `[double(ndim)]` The location of the sample within the unit
+#'   * `unit`: `[double(nvar)]` The location of the sample within the unit
 #'   hypercube.
 #'   * `id`: `[integer(nsample)]` The index of each sample within the live set.
 #'   * `nlive`: `[integer(nsample)]` The number of points within the live set
@@ -94,7 +91,6 @@ generate.ernest_sampler <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
-  allow_par = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -109,23 +105,14 @@ generate.ernest_sampler <- function(
   x <- compile(x, ...)
   info <- get_sampler_info(x)
 
-  if (!isFALSE(allow_par)) {
-    p_generate(
-      x,
-      parent_info = info,
-      parent_control = control,
-      show_progress = show_progress
-    )
-  } else {
-    results <- nested_sampling_impl(
-      live_env = x$live_env,
-      lrps = x$lrps,
-      sampler_info = info,
-      control = control,
-      show_progress = show_progress
-    )
-    new_ernest_run(x, results)
-  }
+  results <- nested_sampling_impl(
+    live_env = x$live_env,
+    lrps = x$lrps,
+    sampler_info = info,
+    control = control,
+    show_progress = show_progress
+  )
+  new_ernest_run(x, results)
 }
 
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
@@ -139,7 +126,6 @@ generate.ernest_run <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
-  allow_par = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -160,18 +146,14 @@ generate.ernest_run <- function(
   )
   info <- get_sampler_info(x)
 
-  if (!isFALSE(allow_par)) {
-    p_generate(x, parent_info = info, parent_control = control, show_progress)
-  } else {
-    results <- nested_sampling_impl(
-      live_env = x$live_env,
-      lrps = x$lrps,
-      sampler_info = info,
-      control = control,
-      show_progress = show_progress
-    )
-    new_ernest_run(x, results)
-  }
+  results <- nested_sampling_impl(
+    live_env = x$live_env,
+    lrps = x$lrps,
+    sampler_info = info,
+    control = control,
+    show_progress = show_progress
+  )
+  new_ernest_run(x, results)
 }
 
 #' Generate and validate stopping criteria.

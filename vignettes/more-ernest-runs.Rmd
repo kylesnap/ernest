@@ -123,7 +123,7 @@ egg_result <- generate(egg_sampler, show_progress = FALSE)
 summary(egg_result)
 ```
 
-We can further visualise the multimodal structure of each variable:
+We can further visualize the multimodal structure of each variable:
 ```{r}
 visualize(egg_result, .which = "trace")
 ```
@@ -176,7 +176,7 @@ nist_sampler <- ernest_sampler(log_lik, prior, seed = 42L)
 nist_result <- generate(nist_sampler, show_progress = FALSE)
 ```
 
-We rely on the posterior R package to examine the posterior distribution by summarising each variable by its quantiles. To better visualise the correspondence between the expected and actual values, we can plot their respective IQRs.
+We rely on the posterior R package to examine the posterior distribution by summarizing each variable by its quantiles. To better visualize the correspondence between the expected and actual values, we can plot their respective IQRs.
 
 ```{r}
 post <- as_draws(nist_result) |>

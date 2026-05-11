@@ -92,7 +92,7 @@ plot.ernest_run <- function(
 #' any of `"evidence"`, `"weight"`, and `"likelihood"`.
 #' @param width `[double()]`\cr Vector of probabilities to use that determine
 #' the widths of the resulting intervals, as in [[ggdist::curve_interval]].
-#' Defaults to three widths roughly correspoding to +/- 1, 2, and 3 SD.
+#' Defaults to three widths roughly corresponding to +/- 1, 2, and 3 SD.
 #'
 #' @export
 summary.ernest_estimate <- function(

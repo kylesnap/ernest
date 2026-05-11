@@ -37,10 +37,10 @@ You’ll also need a working C++ compiler. To get it:
 
 ## Why use ernest?
 
-Often, statisticians are faced with multiple competing models that
-intend to describe or estimate a given data set. One way to compare
-these models against each other is by evaluating model evidence (also
-called [marginal
+Often, statisticians are faced with multiple competing models designed
+to describe or estimate a given data set. One way to compare these
+models against each other is by evaluating model evidence (also called
+[marginal
 likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found
 by integrating a model’s likelihood function across all possible values
 of its parameters. In Bayesian inference, evidence represents the
@@ -87,7 +87,7 @@ ernest’s implementation of NS offers R users several benefits:
   S3 objects. Start or continue an NS run with `generate()`, review
   results with `summary()`, and simulate estimation error with
   `calculate()`.
-- **Powerful visualizations**: Plot evidence estimates and analyse
+- **Powerful visualizations**: Plot evidence estimates and analyze
   posterior distributions using [ggplot2](https://ggplot2.tidyverse.org)
   and [posterior](https://mc-stan.org/posterior/).
 
@@ -123,20 +123,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4647
-#> * Likelihood evals.: 101554
-#> * Log-evidence: -8.9561 (± 0.1138)
-#> * Information: 4.734
+#> * Iterations: 4725
+#> * Likelihood evals.: 103301
+#> * Log-evidence: -9.109 (± 0.1156)
+#> * Information: 4.895
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable     mean    sd   median   q15   q85
-#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x        -0.0342   2.77 -0.0208  -1.96  1.94
-#> 2 y        -0.00702  2.81  0.00606 -1.95  1.89
-#> 3 z         0.00151  2.76  0.00671 -1.94  1.85
+#>   variable    mean    sd   median   q15   q85
+#>   <chr>      <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x         0.0323  2.83  0.0372  -1.90  2.00
+#> 2 y        -0.0197  2.82 -0.00308 -2.00  1.93
+#> 3 z         0.0182  2.75 -0.00572 -1.91  1.98
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.684
-#> * Original parameters: -0.058, 0.0162, and -0.0654
+#> * Log-likelihood: -2.6813
+#> * Original parameters: 0.0332, 0.0348, and 0.0175
 plot(run, which = "evidence")
 ```
 

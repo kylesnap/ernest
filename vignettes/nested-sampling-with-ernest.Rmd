@@ -155,13 +155,13 @@ epilepsy_log_lik
 epilepsy_log_lik(c(1.94, 0.15, 0.57, -0.20, 0.05))
 ```
 
-`create_likelihood` wraps user provided log-likelihood functions, ensuring that they always returns a finite double value or `-Inf` when they are used within a run. By default, ernest will warn the user about any non-compliant values produced by a log-likelihood function, before replacing them with `-Inf`.
+`create_likelihood` wraps user provided log-likelihood functions, ensuring that they always return a finite double value or `-Inf` when they are used within a run. By default, ernest will warn the user about any non-compliant values produced by a log-likelihood function, before replacing them with `-Inf`.
 
 ```{r}
 epilepsy_log_lik(c(1.94, 0.15, 0.57, -0.20, Inf))
 ```
 
-For improved performance, especially in high dimensions, ernest allows you to provide a vectorized log-likelihood function. This function accepts a matrix of parameter (where each row is a sample) and returns a vector of log-likelihoods. In the future, ernest will take advantage of these functions to improve the efficiency of specific LRPS methods.
+For improved performance, especially in high dimensions, ernest allows you to provide a vectorized log-likelihood function. This function accepts a matrix of parameters (where each row is a sample) and returns a vector of log-likelihoods. In the future, ernest will take advantage of these functions to improve the efficiency of specific LRPS methods.
 
 ```{r}
 poisson_vec_lik <- function(predictors, response, link = "log") {
@@ -297,7 +297,7 @@ We can use naive methods to stop a nested sampling run, such as by setting `max_
     \Delta \hat{\mathbf{Z}_{i}} = L_{max} V_i
 \end{equation}
 
-This estimate assumes the remaining space can be represented as a single shell with likelihood $L_{max}$ and volume $V_i$. As the run continues, this contribution shrinks. Once it is small relative to the current evidence estimate, the run can be considered to have sucessfully traversed the informative region of the parameter space. Numerically, this is represented as a log-ratio [@skilling2006]:
+This estimate assumes the remaining space can be represented as a single shell with likelihood $L_{max}$ and volume $V_i$. As the run continues, this contribution shrinks. Once it is small relative to the current evidence estimate, the run can be considered to have successfully traversed the informative region of the parameter space. Numerically, this is represented as a log-ratio [@skilling2006]:
 
 \begin{equation}
     \Delta \ln{\epsilon_i} = \ln{(\hat{\mathbf{Z}_i} - \Delta \hat{\mathbf{Z}_i})} - \ln{\hat{\mathbf{Z}_i}}
@@ -366,7 +366,7 @@ visualize(run, -Intercept, .which = "density")
 
 ## Conclusion
 
-Nested sampling is a powerful method for estimating model evidence ($Z$) directly from a proposed model, rather than by treating it as a by-product of posterior estimation. This procedure yields several provides features that may be more appealing than MCMC in certain scenarios: Runs can handle complexities with the likelihood surface, can halt at clearly defined criteria, and can produce error estimates without replicating the original sampling process.
+Nested sampling is a powerful method for estimating model evidence ($Z$) directly from a proposed model, rather than by treating it as a by-product of posterior estimation. This procedure yields several features that may be more appealing than MCMC in certain scenarios: Runs can handle complexities with the likelihood surface, can halt at clearly defined criteria, and can produce error estimates without replicating the original sampling process.
 
 ernest provides an R-based implementation of the nested sampling, along with methods for visualizing and processing its results. More information on ernest is available in its documentation.
 

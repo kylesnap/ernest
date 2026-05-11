@@ -49,7 +49,7 @@ You’ll also need a working C++ compiler. To get it:
 
 ## Why use ernest?
 
-Often, statisticians are faced with multiple competing models that intend to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called [marginal likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found by integrating a model's likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using [Bayes factors](https://en.wikipedia.org/wiki/Bayes_factor), plays an important role in Bayesian inference.
+Often, statisticians are faced with multiple competing models designed to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called [marginal likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found by integrating a model's likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using [Bayes factors](https://en.wikipedia.org/wiki/Bayes_factor), plays an important role in Bayesian inference.
 
 Calculating evidence directly is challenging, as it requires evaluating a high-dimensional integral over the parameter space. Nested sampling estimates this integral by dividing the space into a series of small volumes. It starts by drawing points from the prior and ranking them by likelihood. The least likely points are discarded and replaced with new samples from more restricted likelihood regions, gradually compressing the search space. Each round of discarding shrinks the explored volume in a predictable way, helping to approximate the integral.
 
@@ -65,7 +65,7 @@ ernest's implementation of NS offers R users several benefits:
 -   **Native R implementation**: John Skilling's NS algorithm is implemented in R, with no Python or Fortran dependencies. (C++ is used to implement the included likelihood samplers to improve run-time efficiency).
 -   **Type- and size-safety**: ernest helps ensure that the user provides likelihood functions and prior specifications meet the requirements of the NS algorithm.
 -   **Familiar methods**: Sampler specifications and results are stored in S3 objects. Start or continue an NS run with `generate()`, review results with `summary()`, and simulate estimation error with `calculate()`.
--   **Powerful visualizations**: Plot evidence estimates and analyse posterior distributions using [ggplot2](https://ggplot2.tidyverse.org) and [posterior](https://mc-stan.org/posterior/).
+-   **Powerful visualizations**: Plot evidence estimates and analyze posterior distributions using [ggplot2](https://ggplot2.tidyverse.org) and [posterior](https://mc-stan.org/posterior/).
 
 ## Example
 

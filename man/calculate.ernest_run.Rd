@@ -22,13 +22,14 @@ An \code{ernest_estimate} object, which inherits from \code{tbl_df}, \code{tbl},
 and \code{data.frame}.
 
 The iterative estimates from the nested sampling run. Contains the following
-columns:
+columns for each point:
 \itemize{
-\item \code{log_lik}: \verb{[[double()]]} The log-likelihood of the model.
-\item \code{log_volume}: \verb{[[posterior::rvar()]]} The log-volume of the prior space.
-\item \code{log_weight}: \verb{[[posterior::rvar()]]} The log weights of the points in the
-live set.
-\item \code{log_evidence}: \verb{[[posterior::rvar()]]} The log-evidence of the model.
+\item \code{log_lik}: \verb{[[double()]]} The log-likelihood of the point.
+\item \code{log_volume}: \verb{[[posterior::rvar()]]} The log-volume of the prior space
+associated with the point.
+\item \code{log_weight}: \verb{[[posterior::rvar()]]} The estimated contribution of the
+point to the log-evidence estimate.
+\item \code{log_evidence}: \verb{[[posterior::rvar()]]} The current log-evidence estimate.
 }
 
 If \code{ndraws > 0}, \code{log_volume}, \code{log_weight}, and \code{log_evidence} each contain
@@ -61,4 +62,7 @@ Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
 of the Royal Astronomical Society, 483(2), 2044–2056.
 \doi{10.1093/mnras/sty3090}
+}
+\seealso{
+\code{\link[=weights.ernest_run]{weights.ernest_run()}}
 }

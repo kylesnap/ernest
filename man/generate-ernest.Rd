@@ -99,7 +99,7 @@ ll_fn <- function(x) -sum(x^2)
 sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 sampler
 
-# Stop sampling after a set number of iterations or likelihood calls.
+# Stop sampling after a set number of iterations or likelihood evaluations.
 generate(sampler, max_iterations = 100)
 
 # Use the default stopping criteria
@@ -108,4 +108,8 @@ generate(sampler, max_iterations = 100)
 \references{
 Skilling, J. (2006). Nested Sampling for General Bayesian
 Computation. Bayesian Analysis, 1(4), 833–859. \doi{10.1214/06-BA127}
+}
+\seealso{
+\code{\link[=calculate.ernest_run]{calculate.ernest_run()}} \code{\link[=summary.ernest_run]{summary.ernest_run()}}
+\code{\link[=weights.ernest_run]{weights.ernest_run()}}
 }

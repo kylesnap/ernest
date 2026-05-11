@@ -72,7 +72,7 @@ plot(est)
 \seealso{
 \code{\link[=calculate.ernest_run]{calculate.ernest_run()}}
 
-Other visualization: 
+Other visualizations: 
 \code{\link{visualize.ernest_run}()}
 }
-\concept{visualization}
+\concept{visualizations}

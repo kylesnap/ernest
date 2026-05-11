@@ -8,6 +8,8 @@ creating visualisations.
 
 Useful links:
 
+- <https://github.com/kylesnap/ernest>
+
 - <https://kylesnap.github.io/ernest/>
 
 - Report bugs at <https://github.com/kylesnap/ernest/issues/>

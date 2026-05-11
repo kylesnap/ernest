@@ -23,7 +23,7 @@
 unif_cube <- function() {
   new_unif_cube(
     unit_log_fn = NULL,
-    n_dim = NULL,
+    nvar = NULL,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
 }
@@ -39,7 +39,7 @@ format.unif_cube <- function(x, ...) {
 #' Internal constructor for the uniform unit cube LRPS.
 #'
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param n_dim  Number of dimensions.
+#' @param nvar  Number of dimensions.
 #' @param max_loop  Maximum number of proposal attempts.
 #' @param cache Optional cache environment.
 #'
@@ -51,13 +51,13 @@ format.unif_cube <- function(x, ...) {
 #' @noRd
 new_unif_cube <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = 1e6L,
   cache = NULL
 ) {
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     cache = cache,
     .class = "unif_cube"
@@ -77,7 +77,7 @@ propose.unif_cube <- function(
     res <- propose_cube(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
-      n_dim = x$n_dim,
+      nvar = x$nvar,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "neval", x$cache$neval + res$neval)

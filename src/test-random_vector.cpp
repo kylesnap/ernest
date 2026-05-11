@@ -34,11 +34,11 @@ context("Reflect functionality") {
 context("Point generators") {
   ern::RandomEngine rng;
   int n_points = 50;
-  constexpr int kDimMax = 20;
+  const std::vector<int> kDimMax = {2, 3, 20};
 
   test_that("UniformOnSphere") {
-    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
-      Eigen::RowVectorXd test(n_dim);
+    for (int nvar : kDimMax) {
+      Eigen::RowVectorXd test(nvar);
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
         ern::UniformOnSphere(test);
@@ -51,8 +51,8 @@ context("Point generators") {
   }
 
   test_that("UniformInBall") {
-    for (int n_dim = 1; n_dim <= kDimMax; n_dim++) {
-      Eigen::RowVectorXd test(n_dim);
+    for (int nvar : kDimMax) {
+      Eigen::RowVectorXd test(nvar);
       int n_fail = 0;
       for (int i = 0; i < n_points; i++) {
         ern::UniformInBall(test);

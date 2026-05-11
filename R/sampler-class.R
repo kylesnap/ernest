@@ -11,7 +11,7 @@
 #' @param nlive  Number of points in the live set.
 #' @param first_update  Iteration at which to perform the first update.
 #' @param update_interval  Number of iterations between updates.
-#' @param run_env (Optional) An environment for storing the live set. If not
+#' @param live_env (Optional) An environment for storing the live set. If not
 #' provided, a new environment is created.
 #' @param seed  An optional random seed for reproducibility.
 #' @param ... Additional parameters for children of ernest_sampler.
@@ -30,7 +30,7 @@ new_ernest_sampler <- function(
   nlive = NULL,
   first_update = NULL,
   update_interval = NULL,
-  run_env = NULL,
+  live_env = NULL,
   seed = NA_integer_,
   ...,
   .class = NULL,
@@ -60,7 +60,7 @@ new_ernest_sampler <- function(
     allow_infinite = FALSE,
     call = .call
   )
-  check_environment(run_env, allow_null = TRUE, call = .call)
+  check_environment(live_env, allow_null = TRUE, call = .call)
   check_number_whole(seed, min = 1, allow_na = TRUE, call = .call)
 
   unit <- NULL
@@ -73,7 +73,7 @@ new_ernest_sampler <- function(
       parent = globalenv()
     )
   )
-  lrps$n_dim <- attr(prior, "n_dim")
+  lrps$nvar <- attr(prior, "nvar")
   if (is_environment(lrps$cache)) {
     env_unbind(lrps$cache, env_names(lrps$cache))
   }
@@ -86,7 +86,7 @@ new_ernest_sampler <- function(
     nlive = as.integer(nlive),
     first_update = as.integer(first_update),
     update_interval = as.integer(update_interval),
-    run_env = run_env %||% new_environment()
+    live_env = live_env %||% new_environment()
   )
 
   new_elems <- dots_list(..., .homonyms = "error")

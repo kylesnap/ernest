@@ -11,28 +11,36 @@
 \item{x}{[\link{ernest_run}]\cr Results from a nested sampling run.}
 
 \item{ndraws}{\verb{[integer(1)]}\cr The number of log-volume sequences to
-simulate.
-If equal to zero, no simulations will be made, and a one draw vector of
-log-volumes are produced from the estimates contained in \code{x}.}
+simulate. If equal to zero, log-volume simulation is skipped and error in
+the log-evidence estimates is approximated with analytical error
+estimates.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
 \value{
-[\code{\link[tibble:tibble]{tibble::tibble()}}] with class \code{ernest_estimate}.
+An \code{ernest_estimate} object, which inherits from \code{tbl_df}, \code{tbl},
+and \code{data.frame}.
 
 The iterative estimates from the nested sampling run. Contains the following
-columns:
+columns for each point:
 \itemize{
-\item \code{log_lik}: [\link{rvar}] The log-likelihood of the model.
-\item \code{log_volume}: [\link{rvar}] The log-volume of the prior space.
-\item \code{log_weight}: [\link{rvar}] The log weights of the points in the live set.
-\item \code{log_evidence}: [\link{rvar}] The log-evidence of the model.
+\item \code{log_lik}: \verb{[[double()]]} The log-likelihood of the point.
+\item \code{log_volume}: \verb{[[posterior::rvar()]]} The log-volume of the prior space
+associated with the point.
+\item \code{log_weight}: \verb{[[posterior::rvar()]]} The estimated contribution of the
+point to the log-evidence estimate (i.e., the unnormalized posterior
+log-weight).
+\item \code{log_evidence}: \verb{[[posterior::rvar()]]} The current log-evidence estimate.
 }
 
-If \code{ndraws = 0}, an additional column is included:
-\itemize{
-\item \code{log_evidence_err}: [\link{rvar}] The standard error of the log-evidence.
-}
+If \code{ndraws > 0}, \code{log_volume}, \code{log_weight}, and \code{log_evidence} each contain
+\code{ndraws} simulated draws per iteration.
+
+If \code{ndraws = 0}, \code{log_volume} and \code{log_weight} contain a single
+deterministic draw per iteration, and \code{log_evidence} contains draws
+from a normal approximation based on analytical variance estimates (see
+the package vignetttes for more information). The  number of draws is
+controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
 }
 \description{
 Computes evidence and related quantities from a nested
@@ -43,10 +51,10 @@ likelihood shell.
 # Load an example run
 data(example_run)
 
-# View results as a tibble with `ndraws = 0`.
+# View results and analytical evidence errors.
 calculate(example_run, ndraws = 0)
 
-# Generate 100 simulated log-volume values for each iteration.
+# Simulate 100 log-volume shrinkage sequences across the run.
 calculate(example_run, ndraws = 100)
 
 }
@@ -55,4 +63,7 @@ Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices
 of the Royal Astronomical Society, 483(2), 2044–2056.
 \doi{10.1093/mnras/sty3090}
+}
+\seealso{
+\code{\link[=weights.ernest_run]{weights.ernest_run()}}
 }

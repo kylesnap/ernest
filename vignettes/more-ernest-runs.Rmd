@@ -26,6 +26,7 @@ knitr::opts_chunk$set(
 ```{r setup, message = FALSE}
 library(ernest)
 library(posterior)
+library(ggplot2)
 ```
 
 This vignette describes the test problems used by ernest to validate its sampling behaviour. By reading this, you will learn how different models can be expressed within ernest and how to examine the `ernest_run` produced by a sampling run.
@@ -66,7 +67,8 @@ The expected log-evidence, found analytically, is $-6.679$. We may use the summa
 
 ```{r}
 summary(blob_result)
-calculate(blob_result, ndraws = 500)
+calculate(blob_result, ndraws = 500)$log_evidence |>
+  tail(1)
 ```
 
 ```{r include = FALSE}
@@ -123,7 +125,7 @@ egg_result <- generate(egg_sampler, show_progress = FALSE)
 summary(egg_result)
 ```
 
-We can further visualise the multimodal structure of each variable:
+We can further visualize the multimodal structure of each variable:
 ```{r}
 visualize(egg_result, .which = "trace")
 ```
@@ -147,10 +149,11 @@ The certified posterior quantiles for the mean and standard deviation of `y` are
 | sigma     | 0.069871704416342     | 0.103462818336964     | 0.175493354741336    |
 
 ```{r include = FALSE}
-ref <- tibble::tribble(
-  ~variable, ~`2.5%`, ~`50%`, ~`97.5%`,
-  "mu", 100000000.13281908588, 100000000.20000000000, 100000000.26718091412,
-  "sigma", 0.069871704416342, 0.103462818336964, 0.175493354741336
+ref <- vctrs::data_frame(
+  variable = c("mu", "sigma"),
+  `2.5%` = c(100000000.13281908588, 0.069871704416342),
+  `50%` = c(100000000.20000000000, 0.103462818336964),
+  `97.5%` = c(100000000.26718091412, 0.175493354741336)
 )
 ```
 
@@ -176,7 +179,7 @@ nist_sampler <- ernest_sampler(log_lik, prior, seed = 42L)
 nist_result <- generate(nist_sampler, show_progress = FALSE)
 ```
 
-We rely on the posterior R package to examine the posterior distribution by summarising each variable by its quantiles. To better visualise the correspondence between the expected and actual values, we can plot their respective IQRs.
+We rely on the posterior R package to examine the posterior distribution by summarizing each variable by its quantiles. To better visualize the correspondence between the expected and actual values, we can plot their respective IQRs.
 
 ```{r}
 post <- as_draws(nist_result) |>

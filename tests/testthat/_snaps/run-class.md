@@ -1,17 +1,43 @@
-# ernest_run / Stores weights as list
+# ernest_run / Stores run record and valid weights
 
     Code
       example_run
     Message
       Nested sampling run:
       * No. points: #
-      * Sampling method: #-step random walk sampling (acceptance target = #.#%)
+      * Sampling method: #-step random walk sampling (acceptance target = #%)
       * Prior: uniform prior distribution with # dimensions (x, y, and z)
       -- Results ---------------------------------------------------------------------
       * Iterations: #
       * Likelihood evals.: #
       * Log-evidence: -#.# (± #.#)
       * Information: #.#
+
+# summary.ernest_run returns expected structure and values / has the correct meta-info
+
+    Code
+      smry
+    Message
+      Summary of nested sampling run:
+      -- Run Information -------------------------------------------------------------
+      * No. points: #
+      * Iterations: #
+      * Likelihood evals.: #
+      * Log-evidence: -#.# (± #.#)
+      * Information: #.#
+      * RNG seed: #
+      -- Posterior Summary -----------------------------------------------------------
+    Output
+      # A tibble: # x #
+        variable     mean    sd   median   q#   q#
+        <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+      # x        -#.#   #.#  #.# -#.#  #.#
+      # y        -#.#  #.# -#.# -#.#  #.#
+      # z         #.#   #.#  #.# -#.#  #.#
+    Message
+      -- Maximum Likelihood Estimate (MLE) -------------------------------------------
+      * Log-likelihood: -#.#
+      * Original parameters: #.#, -#.#, and -#.#
 
 # summary.ernest_run returns expected structure and values / has the expected posterior
 

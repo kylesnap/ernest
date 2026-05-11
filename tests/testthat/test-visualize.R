@@ -18,10 +18,8 @@ test_that("visualize validates parameters", {
   )
 })
 
+skip_plot_snapshot()
 test_that("Density plot", {
-  skip_extended()
-  skip_on_cran()
-  skip_on_ci()
   data(example_run)
   vdiffr::expect_doppelganger(
     "visualize-basic",
@@ -37,17 +35,9 @@ test_that("Density plot", {
     "visualize-yz",
     visualize(example_run, y, z, .units = "unit_cube")
   )
-
-  vdiffr::expect_doppelganger(
-    "visualize-radial",
-    visualize(example_run, ".radial", .radial = TRUE)
-  )
 })
 
 test_that("Trace plot", {
-  skip_extended()
-  skip_on_cran()
-  skip_on_ci()
   data(example_run)
   vdiffr::expect_doppelganger(
     "trace-basic",
@@ -62,10 +52,5 @@ test_that("Trace plot", {
   vdiffr::expect_doppelganger(
     "trace-yz",
     visualize(example_run, y, z, .which = "trace", .units = "unit_cube")
-  )
-
-  vdiffr::expect_doppelganger(
-    "trace-radial",
-    visualize(example_run, .which = "trace", .radial = TRUE)
   )
 })

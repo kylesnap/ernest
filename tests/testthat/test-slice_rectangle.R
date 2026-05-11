@@ -17,7 +17,7 @@ describe("slice class", {
     obj <- expect_all_proposals(
       new_slice_rectangle,
       unit_log_fn = fn,
-      n_dim = 2,
+      nvar = 2,
       extra_args = "rect"
     )
     expect_lrps(obj, subclass = "slice_rectangle", !!!ptypes)
@@ -25,7 +25,7 @@ describe("slice class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_slice_rectangle(fn, n_dim = 2)
+    obj <- new_slice_rectangle(fn, nvar = 2)
     samples <- run_sampler(obj)
     new_obj <- update_lrps(obj, samples$unit)
     expect_lrps(new_obj, subclass = "slice_rectangle", !!!ptypes)
@@ -39,7 +39,7 @@ describe("slice class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_slice_rectangle(fn, n_dim = 2)
+    obj <- new_slice_rectangle(fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,

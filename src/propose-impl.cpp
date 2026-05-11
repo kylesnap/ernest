@@ -15,11 +15,11 @@
 [[cpp11::register]]
 cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                            double criterion, int steps, double epsilon) {
-  const int n_dim = original.size();
+  const int nvar = original.size();
   ern::RandomEngine rng;
 
   // Setups
-  ern::Vector next_draw(n_dim), rand_vec(n_dim);
+  ern::Vector next_draw(nvar), rand_vec(nvar);
   ern::Vector prev_draw = as_Matrix(original);
   size_t n_accept = 0;
 
@@ -53,7 +53,7 @@ cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
   Eigen::VectorXd next_draw = as_Matrix(original);
   Eigen::VectorXd inner = next_draw;
 
-  size_t draw = 0;
+  size_t draw = 1;
   for (; draw < max_loop; draw++) {
     rect.UniformSample(next_draw);
     double log_lik = unit_log_fn(as_doubles(next_draw));

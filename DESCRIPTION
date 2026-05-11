@@ -1,9 +1,12 @@
 Package: ernest
 Title: A Toolkit for Nested Sampling
 Version: 1.2.0
-Authors@R: 
+Authors@R: c(
     person("Kyle", "Dewsnap", , "kyle.dewsnap@ubc.ca", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0003-2132-8083"))
+           comment = c(ORCID = "0000-0003-2132-8083")),
+    person("TJ", "Mahr", role = "ctb"),
+    person("Robert", "Kubinec", role = "ctb")
+  )
 Description: Bayesian evidence estimation and posterior inference with the
     nested sampling algorithm, along with S3 methods for simulating
     uncertainty and creating visualisations.
@@ -16,19 +19,15 @@ Imports:
     cli,
     generics,
     ggplot2,
-    glue,
     lifecycle,
     matrixStats,
     posterior,
-    prettyunits,
     rlang (>= 1.1.0),
-    tibble,
-    uniformly,
-    utils,
     vctrs,
     withr
 Suggests: 
     brms,
+    distributional,
     extraDistr,
     ggdist,
     knitr,
@@ -37,6 +36,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tidyselect,
+    uniformly,
     vdiffr,
     xml2
 LinkingTo:
@@ -47,9 +47,9 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-Config/testthat/start-first: algorithm, plot, *_ellipsoid
+Config/testthat/start-first: nested_sampling_impl, plot
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",
     "srr::srr_stats_roclet"))
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0

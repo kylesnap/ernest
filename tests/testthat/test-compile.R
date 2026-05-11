@@ -1,19 +1,14 @@
 withr::local_seed(42)
 
-sampler <- NULL
-test_that("Set up sampler", {
-  expect_no_error(
-    sampler <<- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      seed = 42
-    )
+describe("new_live_set", {
+  sampler <- ernest_sampler(
+    log_lik = gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    seed = 42
   )
-})
 
-describe("create_live", {
   it("generates the live set correctly", {
-    result <- create_live(sampler$lrps, 10)
+    result <- new_live_set(sampler$lrps, 10)
     expect_equal(dim(result$unit), c(10, 2))
     expect_equal(
       apply(
@@ -24,183 +19,158 @@ describe("create_live", {
       result$log_lik
     )
   })
-  it("gives informative error when unit_log_fn fails completely", {
+
+  it("gives informative errors when unit_log_fn fails", {
     bad_lik <- new_rwmh_cube(
       unit_log_fn = \(x) stop("Bad Likelihood!"),
-      n_dim = 2L
+      nvar = 2L
     )
-    expect_error(create_live(bad_lik, 10), "Bad Likelihood!")
+    expect_error(new_live_set(bad_lik, 10), "Bad Likelihood!")
   })
 })
 
-#' @srrstats {BS2.1a} check_set_live() ensures that log_lik produces an expected
-#' output given some output from the prior transformation, ensuring the two
-#' are commensurate. It is called by compile and by ernest_sampler.
-describe("check_live_set", {
-  reset_live <- function() {
-    env_bind(
-      sampler$run_env,
-      unit = matrix(runif(1000), nrow = 500, ncol = 2),
-      log_lik = seq(-10, -1, length.out = 500),
-      birth_lik = rep(-Inf, 500)
-    )
+#' @srrstats {BS2.1a} write_live_set() validates live set components and ensures
+#' that log_lik produces expected output given prior transformation, ensuring
+#' commensurate quantities. It is called by compile and by ernest_sampler.
+describe("write_live_set", {
+  sampler <- ernest_sampler(
+    log_lik = gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    seed = 42,
+    nlive = 500
+  )
+
+  make_live <- function(
+    unit = matrix(runif(1000), nrow = 500, ncol = 2),
+    log_lik = seq(-10, -1, length.out = 500),
+    birth_lik = rep(-Inf, 500)
+  ) {
+    list(unit = unit, log_lik = log_lik, birth_lik = birth_lik)
   }
 
-  it("passes with valid live set", {
-    reset_live()
-    expect_silent(check_live_set(sampler))
+  it("accepts valid live set and binds to live_env", {
+    live <- make_live()
+    result <- write_live_set(live, sampler)
+    expect_true(exists("unit", envir = result))
+    expect_true(exists("log_lik", envir = result))
+    expect_true(exists("birth_lik", envir = result))
+    expect_equal(nrow(result$unit), 500)
+    expect_equal(length(result$log_lik), 500)
+    expect_equal(length(result$birth_lik), 500)
   })
 
-  it("errors if unit is not a matrix", {
-    reset_live()
-    env_bind(sampler$run_env, unit = runif(20))
+  it("errors if unit doesn't match nvar", {
+    live <- make_live(unit = matrix(runif(1500), nrow = 500, ncol = 3))
     expect_error(
-      check_live_set(sampler),
-      "`unit` must be a matrix, not a double vector."
-    )
-
-    reset_live()
-    env_bind(
-      sampler$run_env,
-      unit = matrix(runif(1000), nrow = 250, ncol = 4)
-    )
-    expect_error(
-      check_live_set(sampler),
-      "`unit` must have 500 rows, not 250."
+      write_live_set(live, sampler),
+      "Non-recyclable dimensions."
     )
   })
 
-  it("errors if unit matrix contains NaN", {
-    reset_live()
-    trick_mat <- matrix(runif(1000), nrow = 500, ncol = 2)
-    trick_mat[5, 2] <- NaN
-    env_bind(
-      sampler$run_env,
-      unit = trick_mat
+  it("errors if unit contains values outside [0,1]", {
+    live <- make_live(
+      unit = matrix(runif(1000, -0.5, 1.5), nrow = 500, ncol = 2)
     )
     expect_error(
-      check_live_set(sampler),
-      "`unit` must contain no nonfinite values"
+      write_live_set(live, sampler),
+      "`unit` must contain only finite values between 0 and 1"
     )
   })
 
-  it("errors if log_lik is too short or contains missing", {
-    reset_live()
-    too_short <- seq(-10, -1, length.out = 499)
-    env_bind(
-      sampler$run_env,
-      unit = matrix(runif(1000), nrow = 500, ncol = 2),
-      log_lik = too_short
-    )
+  it("errors if unit contains non-finite values", {
+    live <- make_live()
+    live$unit[5, 2] <- NaN
     expect_error(
-      check_live_set(sampler),
-      "`log_lik` must be a double vector with length 500."
+      write_live_set(live, sampler),
+      "`unit` must contain only finite values between 0 and 1"
     )
+  })
 
-    reset_live()
-    nonfinite <- seq(-10, -1, length.out = 500)
-    nonfinite[5] <- NaN
-    env_bind(
-      sampler$run_env,
-      log_lik = nonfinite
-    )
+  it("errors if components have mismatched sizes", {
+    live <- make_live(log_lik = seq(-10, -1, length.out = 499))
     expect_error(
-      check_live_set(sampler),
+      write_live_set(live, sampler),
+      "must have size 500"
+    )
+  })
+
+  it("errors if log_lik contains Inf", {
+    live <- make_live()
+    live$log_lik[5] <- Inf
+    expect_error(
+      write_live_set(live, sampler),
       "`log_lik` must contain only finite values or `-Inf`"
     )
+  })
 
-    reset_live()
-    nonfinite <- seq(-10, -1, length.out = 500)
-    nonfinite[5] <- Inf
-    env_bind(
-      sampler$run_env,
-      log_lik = nonfinite
-    )
+  it("errors if log_lik contains NaN", {
+    live <- make_live()
+    live$log_lik[5] <- NaN
     expect_error(
-      check_live_set(sampler),
-      "`log_lik` must contain only finite values or `-Inf`."
+      write_live_set(live, sampler),
+      "`log_lik` must contain only finite values or `-Inf`"
     )
   })
 
-  it("passes if log_lik contains -Inf", {
-    reset_live()
-    nonfinite <- seq(-10, -1, length.out = 500)
-    nonfinite[5] <- -Inf
-    env_bind(sampler$run_env, log_lik = nonfinite)
-    expect_no_error(check_live_set(sampler))
+  it("allows log_lik to contain -Inf", {
+    live <- make_live()
+    live$log_lik[5] <- -Inf
+    expect_no_error(write_live_set(live, sampler))
   })
 
-  it("errors if log_lik is a plateau (all values identical)", {
-    reset_live()
-    log_lik_plateau <- rep(-10, 500L)
-    env_bind(sampler$run_env, log_lik = log_lik_plateau)
+  it("errors if log_lik is a perfect plateau (all values identical)", {
+    live <- make_live(log_lik = rep(-10, 500L))
     expect_error(
-      check_live_set(sampler),
-      "`log_lik` currently contains one unique value \\(-10\\)."
+      write_live_set(live, sampler),
+      "`log_lik` currently contains one unique value"
     )
   })
 
-  it("warns if log_lik has repeated values but not all identical", {
-    reset_live()
-    log_lik_repeats <- seq(-10, -1, length.out = 500)
-    log_lik_repeats[250:500] <- log_lik_repeats[250]
-    env_bind(sampler$run_env, log_lik = log_lik_repeats)
+  it("warns if log_lik has too many repeated values", {
+    live <- make_live()
+    live$log_lik[250:500] <- live$log_lik[250]
     expect_warning(
-      check_live_set(sampler),
-      "Only 250/500 likelihood values are unique."
+      write_live_set(live, sampler),
+      "Only 250/500 likelihood values are unique"
     )
   })
 
-  it("errors if birth_lik vector is wrong", {
-    sampler <- compile(sampler)
-    env_poke(sampler$run_env, "birth_lik", rep(1, 5))
+  it("errors if birth_lik has wrong size", {
+    live <- make_live(birth_lik = rep(-Inf, 10))
     expect_error(
-      check_live_set(sampler),
-      "`birth_lik` must have size 500, not size 5."
+      write_live_set(live, sampler),
+      "must have size 500"
     )
+  })
 
-    reset_live()
-    env_poke(sampler$run_env, "birth_lik", rep(0L, 10))
+  it("errors if birth_lik contains non-finite values", {
+    live <- make_live()
+    live$birth_lik[5] <- NA
     expect_error(
-      check_live_set(sampler),
-      "`birth_lik` must be a double vector, not an integer vector."
+      write_live_set(live, sampler),
+      "`birth_lik` must contain only finite values or `-Inf`"
     )
   })
 })
 
-describe("compile", {
-  it("initializes the live set", {
-    sampler <- compile(sampler)
-    orig_units <- sampler$run_env$unit
-    orig_log_lik <- sampler$run_env$log_lik
+test_that("compile initializes the live set", {
+  sampler <- ernest_sampler(
+    log_lik = gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    seed = 42,
+    nlive = 500
+  )
+  sampler <- compile(sampler)
+  orig_units <- sampler$live_env$unit
+  orig_log_lik <- sampler$live_env$log_lik
 
-    expect_equal(dim(orig_units), c(500, 2))
-    expected_log_lik <- apply(
-      t(apply(orig_units, 1, gaussian_blobs$prior$fn)),
-      1,
-      gaussian_blobs$log_lik
-    )
+  expect_equal(dim(orig_units), c(500, 2))
+  expected_log_lik <- apply(
+    t(apply(orig_units, 1, gaussian_blobs$prior$fn)),
+    1,
+    gaussian_blobs$log_lik
+  )
 
-    expect_equal(orig_log_lik, expected_log_lik)
-    expect_equal(sampler$run_env$birth_lik, rep(-Inf, 500))
-    expect_snapshot(sampler)
-  })
-
-  it("ernest_run works with clear = TRUE and FALSE", {
-    # Setup a fake ernest_run object
-    sampler <- ernest_sampler(
-      log_lik = gaussian_blobs$log_lik,
-      prior = gaussian_blobs$prior,
-      nlive = 10,
-      seed = 42
-    )
-    sampler <- compile(sampler)
-    run <- generate(sampler, max_iterations = 1000L)
-
-    # clear = TRUE should call compile.ernest_sampler
-    expect_s3_class(compile(run, clear = TRUE), "ernest_sampler", exact = TRUE)
-
-    # clear = FALSE should restore the live set
-    expect_s3_class(compile(run, clear = FALSE), "ernest_run")
-  })
+  expect_equal(orig_log_lik, expected_log_lik)
+  expect_equal(sampler$live_env$birth_lik, rep(-Inf, 500))
 })

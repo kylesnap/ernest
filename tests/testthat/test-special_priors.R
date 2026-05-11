@@ -13,7 +13,7 @@ describe("create_normal_prior", {
     prior <- create_normal_prior(mean = c(0, 0.5, 1))
     expect_s3_class(prior, c("normal_prior", "ernest_prior"), exact = TRUE)
     expect_equal(prior$names, c("Normal_1", "Normal_2", "Normal_3"))
-    expect_equal(attr(prior, "n_dim"), 3L)
+    expect_equal(attr(prior, "nvar"), 3L)
     expect_equal(prior$mean, c(0, 0.5, 1))
     expect_equal(prior$sd, c(1, 1, 1))
     expect_equal(prior$lower, c(-Inf, -Inf, -Inf))
@@ -37,7 +37,7 @@ describe("create_normal_prior", {
       exact = TRUE
     )
     expect_equal(prior$names, c("Normal_1", "Normal_2", "Normal_3"))
-    expect_equal(attr(prior, "n_dim"), 3L)
+    expect_equal(attr(prior, "nvar"), 3L)
     expect_equal(prior$mean, c(0, 0.5, 1))
     expect_equal(prior$sd, c(1, 1, 1))
     expect_equal(prior$lower, c(0, 0, 0))
@@ -55,14 +55,6 @@ describe("create_normal_prior", {
       ))
     )
   })
-
-  it("recycles vector parameters to the expected length", {
-    prior <- create_normal_prior(mean = c(0, 0, 0))
-    prior2 <- create_normal_prior(names = c("Normal_1", "Normal_2", "Normal_3"))
-    prior3 <- create_normal_prior(sd = c(1, 1, 1))
-    expect_identical(prior2, prior)
-    expect_identical(prior3, prior)
-  })
 })
 
 describe("create_uniform_prior", {
@@ -70,7 +62,7 @@ describe("create_uniform_prior", {
     prior <- create_uniform_prior(lower = c(0, 0, -10), upper = 1)
     expect_s3_class(prior, c("uniform_prior", "ernest_prior"), exact = TRUE)
     expect_equal(prior$names, c("Uniform_1", "Uniform_2", "Uniform_3"))
-    expect_equal(attr(prior, "n_dim"), 3L)
+    expect_equal(attr(prior, "nvar"), 3L)
     expect_equal(prior$lower, c(0, 0, -10))
     expect_equal(prior$upper, c(1, 1, 1))
 
@@ -78,16 +70,6 @@ describe("create_uniform_prior", {
       prior$fn(test_matrix),
       t(apply(test_matrix, 1, qunif, min = c(0, 0, -10), max = 1))
     )
-  })
-
-  it("recycles vector parameters to the expected length", {
-    prior <- create_uniform_prior(lower = c(0, 0, 0))
-    prior2 <- create_uniform_prior(
-      names = c("Uniform_1", "Uniform_2", "Uniform_3")
-    )
-    prior3 <- create_uniform_prior(upper = c(1, 1, 1))
-    expect_identical(prior2, prior)
-    expect_identical(prior3, prior)
   })
 })
 

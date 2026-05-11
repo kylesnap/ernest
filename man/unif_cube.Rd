@@ -27,10 +27,10 @@ Royal Astronomical Society, 493, 3132–3158.
 \doi{10.1093/mnras/staa278}
 }
 \seealso{
-Other ernest_lrps: 
-\code{\link{multi_ellipsoid}()},
-\code{\link{rwmh_cube}()},
-\code{\link{slice_rectangle}()},
-\code{\link{unif_ellipsoid}()}
+Other ernest_lrps:
+\code{\link[=multi_ellipsoid]{multi_ellipsoid()}},
+\code{\link[=rwmh_cube]{rwmh_cube()}},
+\code{\link[=slice_rectangle]{slice_rectangle()}},
+\code{\link[=unif_ellipsoid]{unif_ellipsoid()}}
 }
 \concept{ernest_lrps}

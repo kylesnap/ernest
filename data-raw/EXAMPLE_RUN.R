@@ -7,11 +7,11 @@
 #' Log-likelihood of 3D Gaussian
 #' @param theta a vector of parameter values
 log_lik_mvn <- function(theta) {
-  n_dim <- 3
+  nvar <- 3
   sigma <- diag(0.95, nrow = 3) # Covariance matrix
   det_sigma <- log(det(sigma))
   prec <- solve(sigma) # Precision matrix (Sigma^-1)
-  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+  log_norm <- -0.5 * (log(2 * pi) * nvar + det_sigma) # Normalization for MVG
 
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }

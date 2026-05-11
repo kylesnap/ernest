@@ -29,6 +29,7 @@ describe("ernest_prior", {
     expect_equal(attr(pr, "interface"), "point_fn")
     expect_equal(pr$fn(c(0.0, 0.2, 0.4)), expected_points[1, , drop = FALSE])
     expect_equal(pr$fn(test_matrix), expected_points)
+    expect_error(pr$fn(c("0", "0.2", "0.4")), "must be a numeric vector")
     expect_snapshot(pr)
   })
 
@@ -57,13 +58,6 @@ describe("create_prior/check_prior", {
     }
   }
 
-  it("catches non-doubles", {
-    bad_fn <- function(x) as.character(x)
-    msg <- "<character\\[,3\\]> to <double\\[,3\\]>"
-    expect_error(create_prior(bad_fn, names = LETTERS[1:3]), msg)
-    expect_error(create_prior(matrix_wrap(bad_fn), names = LETTERS[1:3]), msg)
-  })
-
   it("catches non-expected lengths", {
     short_fn <- \(x) x[1:2]
     msg <- "<double\\[,2\\]> to <double\\[,3\\]>"
@@ -81,32 +75,6 @@ describe("create_prior/check_prior", {
     expect_no_message(p <- create_prior(int_fn, names = LETTERS[1:3]))
     expect_no_message(create_prior(matrix_wrap(int_fn), names = LETTERS[1:3]))
     expect_type(p$fn(c(0.5, 0.5, 0.5)), "double")
-  })
-
-  it("catches non-finite values", {
-    nonfinite_fn <- function(nonfinite_val) {
-      force(nonfinite_val)
-      \(x) c(x[1:2], sample(c(x[3], nonfinite_val), 1, prob = c(0.9, 0.1)))
-    }
-    msg <- "must return only finite values."
-
-    it("catches NA", {
-      na_fn <- nonfinite_fn(NA)
-      expect_error(create_prior(na_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(na_fn), names = LETTERS[1:3]), msg)
-    })
-
-    it("catches Inf", {
-      inf_fn <- nonfinite_fn(Inf)
-      expect_error(create_prior(inf_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(inf_fn), names = LETTERS[1:3]), msg)
-    })
-
-    it("catches NaN", {
-      nan_fn <- nonfinite_fn(NaN)
-      expect_error(create_prior(nan_fn, names = LETTERS[1:3]), msg)
-      expect_error(create_prior(matrix_wrap(nan_fn), names = LETTERS[1:3]), msg)
-    })
   })
 
   it("detects errors with explicit upper and lower", {
@@ -153,7 +121,7 @@ describe("+.ernest_prior", {
 
     expect_type(combo_p, "list")
     expect_s3_class(combo_p, "ernest_prior")
-    expect_equal(attr(combo_p, "n_dim"), 4)
+    expect_equal(attr(combo_p, "nvar"), 4)
     expect_equal(combo_p$lower, c(-10, -10, -Inf, -Inf))
     expect_equal(combo_p$names, c("A...1", "B...2", "A...3", "B...4"))
 
@@ -182,4 +150,26 @@ describe("+.ernest_prior", {
       "`y` must be an object with class ernest_prior, not a function."
     )
   })
+})
+
+#' Zero-Length Data
+#'
+#' @srrstats {G5.8a} Tests for when likelihood and prior presented by user
+#' return zero-lengths.
+test_that("Zero-length prior fails", {
+  prior_fn <- \(theta) double(0)
+  expect_snapshot(create_prior(prior_fn, names = character()), error = TRUE)
+  expect_snapshot(create_prior(prior_fn, names = LETTERS[1]), error = TRUE)
+})
+
+#' Missing type
+#'
+#' @srrstats {G5.8c} ernest fails when NA are produced by a prior function.
+test_that("Missing values in the prior", {
+  set.seed(42)
+  prior_fn <- function(theta) ifelse(theta < 0.5, NaN, qunif(theta))
+  expect_error(
+    create_prior(prior_fn, names = LETTERS[1:2]),
+    "must return only finite values."
+  )
 })

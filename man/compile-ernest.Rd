@@ -57,7 +57,7 @@ sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 
 # Compile the sampler to add a live set
 compile(sampler)
-head(sampler$run_env$unit)
+head(sampler$live_env$unit)
 
 # Continue a previous run
 # run <- data(example_run)
@@ -69,7 +69,5 @@ sampler_3 <- compile(example_run, clear = TRUE)
 sampler_3
 }
 \seealso{
-\itemize{
-\item \code{\link[=generate]{generate()}} for running samplers with compiled live sets.
-}
+\code{\link[=generate.ernest_run]{generate.ernest_run()}}
 }

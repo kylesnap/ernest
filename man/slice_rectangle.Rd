@@ -53,10 +53,10 @@ Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 \doi{10.48550/ARXIV.PHYSICS/0009028}
 }
 \seealso{
-Other ernest_lrps: 
-\code{\link{multi_ellipsoid}()},
-\code{\link{rwmh_cube}()},
-\code{\link{unif_cube}()},
-\code{\link{unif_ellipsoid}()}
+Other ernest_lrps:
+\code{\link[=multi_ellipsoid]{multi_ellipsoid()}},
+\code{\link[=rwmh_cube]{rwmh_cube()}},
+\code{\link[=unif_cube]{unif_cube()}},
+\code{\link[=unif_ellipsoid]{unif_ellipsoid()}}
 }
 \concept{ernest_lrps}

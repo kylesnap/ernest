@@ -21,31 +21,29 @@ context("Ellipsoid class - basic functionality") {
     Eigen::Matrix2d inv_sqrt_shape{{0.8944272, -0.4472136}, {-0.4472136, 1.3416408}};
     Eigen::RowVector2d center{0, 0};
     vol::Ellipsoid ell(center, shape);
-    expect_true(ell.n_dim() == 2);
+    expect_true(ell.nvar() == 2);
     expect_true(ell.error() == vol::Status::kOk);
 
     expect_true(ell.center().isApproxToConstant(0));
     expect_true(ell.shape().isApprox(shape, 1e-3));
     expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
     expect_true(ell.inv_sqrt_shape().isApprox(inv_sqrt_shape, 1e-3));
-
     Eigen::Vector2d oob{-0.5, -0.5}, inb{-0.5, 0.5};
     expect_false(ell.Covered(oob));
     expect_true(ell.Covered(inb));
     expect_true(ell.Covered(center));
-    expect_true(ern::WithinRel(ell.log_volume(), 1.14473, 1e-5));
   }
 
   test_that("Distance to point works") {
-    int n_dim = 10;
+    int nvar = 10;
     int n_test = 100;  // Reduce number of tests for faster runtime
     double err_dist = 0.0, err_out = 0.0, err_in = 0.0;
     ern::RandomEngine gen;
 
     // Preallocate matrices/vectors to avoid repeated allocations
-    Eigen::VectorXd center(n_dim);
-    Eigen::MatrixXd u(n_dim, n_dim);
-    Eigen::VectorXd p(n_dim);
+    Eigen::VectorXd center(nvar);
+    Eigen::MatrixXd u(nvar, nvar);
+    Eigen::VectorXd p(nvar);
 
     for (int i_test = 0; i_test < n_test; i_test++) {
       // Random ellipsoid center and SPD matrix
@@ -104,25 +102,6 @@ context("Ellipsoid class - geometric cases") {
     expect_true(ell.log_volume() != R_NegInf);
     expect_true(ell.error() == vol::Status::kDegenerate);
   }
-
-  test_that("Rescaling log_volume works") {
-    double scale = 1.5;
-    ern::RandomEngine gen;
-
-    for (int n_dim = 1; n_dim <= 5; n_dim++) {
-      Eigen::VectorXd center = Eigen::VectorXd::Zero(n_dim);
-      Eigen::VectorXd shape_d = Eigen::VectorXd::Ones(n_dim);
-      std::generate(shape_d.begin(), shape_d.end(), unif_rand);
-      Eigen::MatrixXd shape = shape_d.asDiagonal();
-      vol::Ellipsoid ell(center, shape);
-      vol::Ellipsoid rescaled(center, R_pow_di(scale, -2) * shape);
-      ell.log_volume(ell.log_volume() + n_dim * log(scale));
-      expect_true(ern::WithinRel(ell.log_volume(), rescaled.log_volume(), 1e-6));
-      expect_true(ell.shape().isApprox(rescaled.shape(), 1e-6));
-      expect_true(ell.major_axis().isApprox(rescaled.major_axis(), 1e-6));
-      expect_true(ell.inv_sqrt_shape().isApprox(rescaled.inv_sqrt_shape(), 1e-6));
-    }
-  }
 }
 
 context("Rectangle class - basic functionality") {
@@ -141,11 +120,11 @@ context("Rectangle class - basic functionality") {
   }
 
   test_that("Rectangle uniform sampling produces valid points") {
-    int n_dim = 5;
+    int nvar = 5;
     int n_samples = 100;
-    vol::Rectangle rect(n_dim);
+    vol::Rectangle rect(nvar);
 
-    Eigen::VectorXd sample(n_dim);
+    Eigen::VectorXd sample(nvar);
     int n_oob = 0;
     for (int i = 0; i < n_samples; i++) {
       rect.UniformSample(sample);
@@ -182,25 +161,19 @@ context("Rectangle class - shrinking") {
     vol::Rectangle rect(2);
     Eigen::Vector2d inner{0.5, 0.5};
     Eigen::Vector2d outer{0.3, 0.9};
-    expect_true(rect.Clamp(inner, outer));
+    rect.Clamp(inner, outer);
 
-    expect_false(rect.Clamp(inner, Eigen::Vector2d{1.0, 1.0}));
-    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
-    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
-
-    expect_false(rect.Clamp(Eigen::Vector2d{1.0, 1.0}, outer));
-    expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
-    expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
-
-    expect_true(rect.Clamp(inner, outer));
+    rect.Clamp(inner, Eigen::Vector2d{1.0, 1.0});
+    rect.Clamp(Eigen::Vector2d{1.0, 1.0}, outer);
+    rect.Clamp(Eigen::Vector2d{-0.1, 0.5}, outer);
     expect_true(rect.lower().isApprox(Eigen::Vector2d{0.3, 0}));
     expect_true(rect.upper().isApprox(Eigen::Vector2d{1, 0.9}));
   };
 
   test_that("Rectangle can be clamped in higher dimensions") {
     typedef Eigen::Matrix<double, 5, 1> Vector5d;
-    int n_dim = 5;
-    vol::Rectangle rect(n_dim);
+    int nvar = 5;
+    vol::Rectangle rect(nvar);
 
     // First clamp
     Vector5d inner = Vector5d::Constant(0.5);

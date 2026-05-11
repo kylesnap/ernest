@@ -25,7 +25,7 @@ propose(x, original = NULL, criterion = -Inf)
 \arguments{
 \item{x}{[\link{ernest_lrps}]\cr A likelihood-restricted prior sampler.}
 
-\item{original}{\verb{[double(x$n_dim)]}\cr A parameter vector which can be used
+\item{original}{\verb{[double(x$nvar)]}\cr A parameter vector which can be used
 to start the proposal process. Optional; if \code{NULL} proposals are generated
 from sampling the unconstrained \link[=unif_cube]{unit cube}.}
 
@@ -35,7 +35,7 @@ the region of prior space to sample from.}
 \value{
 \verb{[list]}, containing at least these named elements:
 \itemize{
-\item \code{unit}: \verb{[double(x$n_dim)]} The replacement point, expressed in the
+\item \code{unit}: \verb{[double(x$nvar)]} The replacement point, expressed in the
 unit-cube.
 \item \code{log_lik}: \verb{[double(1)]} The log-likelihood value at \code{unit}.
 \item \code{neval}: \verb{[integer(1)]} The number of evaluations of \code{unit_log_fn} needed

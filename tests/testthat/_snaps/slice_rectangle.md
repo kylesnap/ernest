@@ -33,6 +33,6 @@
     Message
       Slice Sampling LRPS (enlarged by 1.25):
       # Dimensions: 2
-      # Calls since last update: 65
+      # Calls since last update: 67
       
 

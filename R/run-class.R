@@ -13,30 +13,17 @@ new_ernest_run <- function(x, results) {
 #' @export
 #' @noRd
 new_ernest_run.ernest_sampler <- function(x, results) {
-  parsed <- parse_results(results)
-  new_ernest_run_(x, parsed)
+  new_ernest_run_(x, results)
 }
 
 #' @export
 #' @noRd
 new_ernest_run.ernest_run <- function(x, results) {
-  prev_iter <- x$niter
-  old_idx <- vctrs::vec_as_location(
-    seq(prev_iter),
-    vctrs::vec_size(x$weights$log_lik)
-  )
-  parsed <- parse_results(results)
-
-  parsed$unit <- rbind(x$samples$unit_cube[old_idx, ], parsed$unit)
-  parsed$log_lik <- vctrs::vec_c(x$weights$log_lik[old_idx], parsed$log_lik)
-  parsed$id <- vctrs::vec_c(x$weights$id[old_idx], parsed$id)
-  parsed$evals <- vctrs::vec_c(x$weights$evaluations[old_idx], parsed$evals)
-  parsed$birth_lik <- vctrs::vec_c(
-    x$weights$birth_lik[old_idx],
-    parsed$birth_lik
-  )
-  parsed$niter <- x$niter + parsed$niter
-  new_ernest_run_(x, parsed)
+  prev_run <- x$rcrd[vctrs::vec_as_location(
+    field(x$rcrd, "neval") != 0L,
+    length(x$rcrd)
+  )]
+  new_ernest_run_(x, vec_c(prev_run, results))
 }
 
 #' Form the new_ernest_run from samples from the current and previous runs
@@ -50,42 +37,22 @@ new_ernest_run.ernest_run <- function(x, results) {
 #' @return The object described by generate.
 #' @noRd
 new_ernest_run_ <- function(x, parsed) {
-  live_order <- order(x$run_env$log_lik)
-  samples_unit <- rbind(parsed$unit, x$run_env$unit[live_order, ])
-  colnames(samples_unit) <- x$prior$names
-  samples <- t(apply(samples_unit, 1, x$prior$fn))
-  colnames(samples) <- x$prior$names
+  all_samples <- vec_c(parsed, extract_live_points(x$live_env))
+  niter <- sum(field(all_samples, "neval") != 0L)
+  integration <- compute_integral(all_samples)
+  unit <- as.list(all_samples)[["unit"]]
+  colnames(unit) <- x$prior$names
+  original <- t(apply(unit, 1, x$prior$fn))
+  colnames(original) <- x$prior$names
 
-  live <- list(
-    "log_lik" = x$run_env$log_lik[live_order],
-    "id" = live_order,
-    "birth_lik" = x$run_env$birth_lik[live_order]
-  )
-  all_samples <- bind_dead_live(parsed, live, x$nlive, parsed$niter)
-
-  log_vol <- drop(get_logvol(x$nlive, niter = parsed$niter))
-  integration <- compute_integral(all_samples$log_lik, log_vol)
-
-  result_elem <- list2(
-    "niter" = parsed$niter,
-    "neval" = sum(all_samples$evals),
+  result_elem <- list(
+    "niter" = niter,
+    "neval" = sum(field(all_samples, "neval")),
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
+    "log_weight" = as.double(integration$log_weight),
     "information" = tail(integration$information, 1L),
-    "samples" = list(
-      "original" = samples,
-      "unit_cube" = samples_unit
-    ),
-    "weights" = vctrs::df_list(
-      "id" = all_samples$id,
-      "evaluations" = all_samples$evals,
-      "log_lik" = all_samples$log_lik,
-      "log_weight" = integration$log_w,
-      "imp_weight" = exp(
-        integration$log_w - tail(integration$log_evidence, 1L)
-      ),
-      "birth_lik" = all_samples$birth_lik
-    )
+    "rcrd" = all_samples
   )
 
   sampler_elem <- list(
@@ -95,7 +62,7 @@ new_ernest_run_ <- function(x, parsed) {
     nlive = x$nlive,
     first_update = x$first_update,
     update_interval = x$update_interval,
-    run_env = x$run_env,
+    live_env = x$live_env,
     seed = attr(x, "seed")
   )
 
@@ -103,12 +70,11 @@ new_ernest_run_ <- function(x, parsed) {
     new_ernest_sampler,
     list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
   )
-  env_unbind(obj$run_env, env_names(obj$run_env))
+  env_unbind(obj$live_env, env_names(obj$live_env))
   obj
 }
 
 #' @srrstats {BS6.0} Default print for return object.
-#' @importFrom prettyunits pretty_round
 #' @noRd
 #' @export
 print.ernest_run <- function(x, ...) {
@@ -119,9 +85,9 @@ print.ernest_run <- function(x, ...) {
     "* Prior: {format(x$prior, ...)}"
   ))
   cli::cli_rule(left = "Results")
-  log_z <- pretty_round(x$log_evidence, 4)
-  log_z_sd <- pretty_round(x$log_evidence_err, 4)
-  h <- prettyunits::pretty_signif(x$information, 4)
+  log_z <- round(x$log_evidence, 4)
+  log_z_sd <- round(x$log_evidence_err, 4)
+  h <- signif(x$information, 4)
   cli::cli_bullets(c(
     "* Iterations: {x$niter}",
     "* Likelihood evals.: {x$neval}",
@@ -139,11 +105,12 @@ print.ernest_run <- function(x, ...) {
 #' @param object [[ernest_run]]\cr Results from a nested sampling run.
 #' @inheritParams rlang::args_dots_empty
 #'
-#' @returns `[summary.ernest_run]`
+#' @returns
 #' A named list, containing:
 #' * `nlive`: `[integer(1)]` Number of points in the live set.
-#' * `niter`: `[integer(1)]` Number of iterations.
-#' * `neval`: `[integer(1)]` Number of likelihood evaluations.
+#' * `niter`: `[integer(1)]` Number of iterations performed.
+#' * `neval`: `[integer(1)]` Number of times the likelihood function was
+#' evaluated.
 #' * `log_evidence`: `[numeric(1)]` Log-evidence estimate.
 #' * `log_evidence_err`: `[numeric(1)]` Standard error of log-evidence.
 #' * `information`: `[numeric(1)]` Estimated Kullback-Leibler divergence between
@@ -153,15 +120,13 @@ print.ernest_run <- function(x, ...) {
 #' * `mle`: `[list]` Maximum likelihood estimate extracted during the run,
 #' stored in a list with the elements:
 #'    * `log_lik`: `[double(1)]` The maximum log-likelihood value.
-#'    * `original`, `unit_cube`: `[double(n_dim)]` The parameter values at the
+#'    * `original`, `unit_cube`: `[double(nvar)]` The parameter values at the
 #'    MLE, expressed in the original parameter space and within the unit cube.
-#' * `posterior`: [[tibble]] with columns for the posterior mean, sd, median,
-#' and the 15th and 85th percentiles for each parameter.
+#' * `posterior`: [[data.frame]] with columns for the posterior mean, sd,
+#' median, and the 15th and 85th percentiles for each parameter.
 #' * `seed`: The RNG seed used.
 #'
-#' @seealso
-#' * [generate()] for details on the `ernest_run` object.
-#' * [as_draws()] for details on how posterior samples are extracted.
+#' @seealso [generate.ernest_run()] [as_draws.ernest_run()]
 #'
 #' @srrstats {BS6.4} Summary method for results object.
 #'
@@ -183,7 +148,7 @@ summary.ernest_run <- function(object, ...) {
 
   # Posterior samples and weights
   draws <- as_draws(object)
-  weights <- object$weights$imp_weight
+  weights <- weights(object)
   norm_weights <- exp(weights - max(weights))
   norm_weights <- norm_weights / sum(norm_weights)
 
@@ -191,11 +156,16 @@ summary.ernest_run <- function(object, ...) {
   reweighted_samples <- posterior::resample_draws(draws)
 
   # MLE
-  idx_mle <- which.max(object$weights$log_lik)
+  log_lik <- if (!is.null(object$rcrd)) {
+    field(object$rcrd, "log_lik")
+  } else {
+    object$weights$log_lik
+  }
+  idx_mle <- which.max(log_lik)
   mle <- list(
-    log_lik = object$weights$log_lik[idx_mle],
-    "original" = object$samples$original[idx_mle, ],
-    "unit_cube" = object$samples$unit_cube[idx_mle, ]
+    log_lik = log_lik[idx_mle],
+    "original" = object$prior$fn(field(object$rcrd[[idx_mle]], "unit")),
+    "unit_cube" = field(object$rcrd[[idx_mle]], "unit")
   )
 
   # Posterior summary statistics
@@ -234,14 +204,14 @@ summary.ernest_run <- function(object, ...) {
 print.summary.ernest_run <- function(x, ...) {
   cli::cli_text("Summary of nested sampling run:")
   cli::cli_rule(left = "Run Information")
-  log_z <- pretty_round(x$log_evidence, 4)
-  log_z_sd <- pretty_round(x$log_evidence_err, 4)
+  log_z <- round(x$log_evidence, 4)
+  log_z_sd <- round(x$log_evidence_err, 4)
   cli::cli_bullets(c(
     "* No. points: {x$nlive}",
     "* Iterations: {x$niter}",
     "* Likelihood evals.: {x$neval}",
     "* Log-evidence: {log_z} (\U00B1 {log_z_sd})",
-    "* Information: {prettyunits::pretty_signif(x$information, 4)}"
+    "* Information: {signif(x$information, 4)}"
   ))
   if (!is.na(x$seed)) {
     cli::cli_bullets(c("* RNG seed: {x$seed}"))
@@ -257,66 +227,8 @@ print.summary.ernest_run <- function(x, ...) {
 
   cli::cli_rule(left = "Maximum Likelihood Estimate (MLE)")
   cli::cli_bullets(c(
-    "* Log-likelihood: {pretty_round(x$mle$log_lik, 4)}",
-    "* Original parameters: {pretty_round(x$mle$original, 4)}"
+    "* Log-likelihood: {round(x$mle$log_lik, 4)}",
+    "* Original parameters: {round(x$mle$original, 4)}"
   ))
   invisible(x)
-}
-
-# HELPERS FOR ERNEST_RUN-----
-
-#' Parse the results from nested_sampling_impl into a list
-#'
-#' Converts the output from `nested_sampling_impl` into a structured list of
-#' vectors.
-#'
-#' @param results Output from `nested_sampling_impl`.
-#'
-#' @return A named list of vectors and the number of iterations.
-#' @noRd
-parse_results <- function(results) {
-  dead_unit <- do.call(rbind, results$dead_unit)
-  dead_log_lik <- list_c(results$dead_log_lik)
-  dead_id <- list_c(results$dead_id)
-  dead_evals <- list_c(results$dead_evals)
-  dead_birth <- list_c(results$dead_birth)
-  niter <- vctrs::vec_size(dead_log_lik)
-  list(
-    "unit" = dead_unit,
-    "log_lik" = dead_log_lik,
-    "id" = dead_id,
-    "evals" = dead_evals,
-    "birth_lik" = dead_birth,
-    "niter" = niter
-  )
-}
-
-#' Merge dead and live samples together
-#'
-#' Combines dead and live sample information into a single data frame list.
-#'
-#' @param dead The list object from `parse_results`.
-#' @param live The log-likelihood, id, and birth_lik vectors from the current
-#' live set.
-#' @param niter Number of iterations used for the run.
-#' @param nlive Number of points in the live set.
-#'
-#' @return A data frame list of vectors, all of length `nlive + niter`.
-#' @noRd
-bind_dead_live <- function(dead, live, nlive, niter) {
-  vctrs::df_list(
-    "log_lik" = vctrs::vec_c(dead$log_lik, live$log_lik, .ptype = double()),
-    "id" = vctrs::vec_c(dead$id, live$id, .ptype = integer()),
-    "points" = vctrs::vec_c(
-      rep(nlive, niter),
-      seq(nlive, 1),
-      .ptype = integer()
-    ),
-    "evals" = vctrs::vec_c(dead$evals, rep(0L, nlive), .ptype = integer()),
-    "birth_lik" = vctrs::vec_c(
-      dead$birth_lik,
-      live$birth_lik,
-      .ptype = double()
-    )
-  )
 }

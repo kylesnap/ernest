@@ -2,15 +2,15 @@
 % Please edit documentation in R/as_draws.R
 \name{as_draws.ernest_run}
 \alias{as_draws.ernest_run}
-\alias{as_draws_matrix.ernest_run}
 \alias{as_draws_rvars.ernest_run}
+\alias{as_draws_matrix.ernest_run}
 \title{Transform nested sampling runs to \code{draws} objects}
 \usage{
-\method{as_draws}{ernest_run}(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+\method{as_draws}{ernest_run}(x, units = c("original", "unit_cube"), ...)
 
-\method{as_draws_matrix}{ernest_run}(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+\method{as_draws_rvars}{ernest_run}(x, units = c("original", "unit_cube"), ...)
 
-\method{as_draws_rvars}{ernest_run}(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+\method{as_draws_matrix}{ernest_run}(x, units = c("original", "unit_cube"), ...)
 }
 \arguments{
 \item{x}{\code{\link[=ernest_run]{[ernest_run]}}\cr Results from a nested sampling run.}
@@ -20,10 +20,6 @@
 \item \code{"original"}: Points are on the scale of the prior space.
 \item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
 }}
-
-\item{radial}{\verb{[logical(1)]}\cr If \code{TRUE}, returns an additional column
-\code{.radial} containing the radial coordinate (i.e., the Euclidean norm) for
-each sampled point.}
 
 \item{...}{These dots are for future extensions and must be empty.}
 }
@@ -48,6 +44,7 @@ data(example_run)
 
 # View importance weights
 dm <- as_draws(example_run)
+str(dm)
 weights(dm) |> head()
 
 # Summarise points after resampling
@@ -55,16 +52,10 @@ dm |>
   resample_draws() |>
   summarize_draws()
 
-# View the radial coordinate in unit space over the run
-dm_rad <- as_draws_rvars(
-  example_run,
-  units = "unit_cube",
-  radial = TRUE
-)
-plot(x = draws_of(dm_rad$.radial))
+# Extract the same coordinates in the unit space coordinates
+dm_unit <- as_draws_rvars(example_run, units = "unit_cube")
+str(dm_unit)
 }
 \seealso{
-\itemize{
-\item \code{\link[posterior:draws]{posterior::as_draws()}} for details on the \code{draws} object.
-}
+\code{\link[posterior:as_draws]{posterior::as_draws()}}
 }

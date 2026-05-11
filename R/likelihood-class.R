@@ -45,9 +45,8 @@
 #' (see `on_nonfinite`). The same parameter also controls behaviour for
 #' non-finite, non-`-Inf` values.
 #'
-#' @seealso See the
-#' [cubature](https://bnaras.github.io/cubature/articles/cubature.html) package
-#' for more examples of scalar and vectorized functions.
+#' @seealso [cubature](https://bnaras.github.io/cubature/articles/cubature.html)
+#' for examples of vectorized and non-vectorized likelihood functions.
 #'
 #' @aliases ernest_likelihood
 #' @example ./data-raw/EXAMPLE_LIKELIHOOD.R
@@ -149,7 +148,7 @@ new_ernest_likelihood <- function(
             stop_input_type(x, "a numeric vector or matrix", call = NULL)
           }
           y <- vectorized_fn(x)
-          y <- vctrs::vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
+          y <- vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
           y_missing <- which(y == Inf | is.nan(y) | is.na(y))
           if (!vctrs::vec_is_empty(y_missing)) {
             !!nonfinite_expr

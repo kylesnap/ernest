@@ -32,18 +32,16 @@
 #' vignettes for more information.
 #'
 #' @note
-#' This package requires the {tidyselect} package to be installed. If
-#' `which = "trace"` is selected, the {ggdist} package is also required.
+#' This function requires \CRANpkg{tidyselect}. If `which = "trace"` is
+#' selected, \CRANpkg{ggdist} is also required.
 #'
 #' @srrstats {G2.3, G2.3a, G2.3b} Uses arg_match() to ensure informative error
 #' messages for invalid `which` values.
 #' @srrstats {BS6.2, BS6.3} Provides plot methods for posterior new points and
 #' sequences of samples.
 #'
-#' @seealso
-#' - [plot()] for diagnostic plots of nested sampling runs.
-#' - [as_draws_rvars()] for extracting posterior samples.
-#'
+#' @seealso [as_draws_rvars()]
+#' @family visualizations
 #' @examples
 #' # Load example run
 #' library(ggdist)
@@ -51,54 +49,44 @@
 #'
 #' # Plot posterior densities for all parameters
 #' visualize(example_run, .which = "density")
-#'
-#' # Plot trace of the radial coordinate in unit-cube scale
-#' visualize(
-#'   example_run,
-#'   .which = "trace",
-#'   .units = "unit_cube",
-#'   .radial = TRUE
-#' )
 #' @export
 visualize.ernest_run <- function(
   x,
   ...,
   .which = c("density", "trace"),
-  .units = c("original", "unit_cube"),
-  .radial = FALSE
+  .units = c("original", "unit_cube")
 ) {
   rlang::check_installed(c("ggdist", "tidyselect"))
   .which <- arg_match(.which)
-  draws <- as_draws_rvars(x, units = .units, radial = .radial)
+  draws <- as_draws_rvars(x, units = .units)
 
   expr <- if (dots_n(...) == 0) {
+    # nocov starts
     if (length(x$prior$names) > 10) {
       cli::cli_abort(c(
         "Cannot automatically plot {length(x$prior$names)} variables.",
         "i" = "Use {.fn tidyselect::everything()} to override this error."
       ))
     }
-    expr(tidyselect::all_of(c(
-      !!x$prior$names,
-      !!(if (.radial) ".radial" else NULL)
-    )))
+    expr(tidyselect::all_of(!!x$prior$names))
   } else {
     if (dots_n(...) > 10) {
       cli::cli_warn("Plots with more than 10 variables may be cluttered.")
     }
     expr(c(...))
-  }
+  } # nocov end
 
   if (.which == "density") {
     check_installed("ggdist", "to create density plots.")
     draws <- posterior::resample_draws(draws)
     pos <- tidyselect::eval_select(expr, data = draws)
+    # nocov start
     selected <- draws[pos]
     visualize_density(selected)
   } else {
     draws_df <- as.data.frame(posterior::as_draws_df(draws))
     pos <- tidyselect::eval_select(expr, data = draws_df, error_call = call)
-    log_vol <- drop(get_logvol(x$nlive, niter = x$niter))
+    log_vol <- get_log_vol(x$rcrd)
     visualize_trace(draws_df, pos, log_vol, stats::weights(draws))
   }
 }
@@ -115,7 +103,10 @@ visualize.ernest_run <- function(
 #' @importFrom ggplot2 facet_grid vars
 #' @noRd
 visualize_density <- function(selected) {
-  tibble(".variable" = names(selected), ".dist" = list_c(selected)) |>
+  data_frame0(
+    ".variable" = names(selected),
+    ".dist" = vec_c(!!!selected)
+  ) |>
     ggplot() +
     ggdist::stat_halfeye(
       mapping = ggplot2::aes(xdist = .data[[".dist"]]),
@@ -145,7 +136,7 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     rbind,
     lapply(pos, \(p) {
       value <- unlist(draws[p], use.names = FALSE)
-      tibble::tibble(
+      data_frame0(
         ".variable" = names(draws)[p],
         ".value" = as.numeric(value),
         "log_volume" = log_volume,
@@ -167,3 +158,5 @@ visualize_trace <- function(draws, pos, log_volume, weights) {
     scale_y_continuous("Value") +
     theme_minimal()
 }
+
+# nocov end

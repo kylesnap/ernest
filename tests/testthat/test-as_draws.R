@@ -1,7 +1,6 @@
 test_that("Fails gracefully with poor input", {
   data(example_run)
   expect_error(as_draws(example_run, units = "unitcube"))
-  expect_error(as_draws(example_run, radial = 3L))
   expect_error(as_draws(example_run, unit_cube = TRUE))
 })
 
@@ -19,7 +18,11 @@ test_that("ernest_run as_draws_matrix", {
 
   expect_equal(
     weights(mat, log = TRUE),
-    example_run$weights$log_weight - example_run$log_evidence
+    if (is.null(example_run$log_weight)) {
+      example_run$log_weight - example_run$log_evidence
+    } else {
+      example_run$log_weight - example_run$log_evidence
+    }
   )
 })
 
@@ -33,34 +36,7 @@ test_that("ernest_run units", {
   expect_true(all(mat[, 1:2] > 0 & mat[, 1:2] < 1))
 })
 
-test_that("ernest_run radial coordinates", {
-  data(example_run)
-  mat <- as_draws_matrix(example_run, radial = TRUE)
-
-  niter <- example_run$niter + example_run$nlive
-
-  expect_equal(dim(mat), c(niter, 5L)) # 3 + Weight, + Radial
-  observed <- drop(mat[, ".radial"])
-  attributes(observed) <- NULL
-  expected <- sqrt(rowSums(mat[, c(1:3)]^2))
-  attributes(expected) <- NULL
-  expect_equal(
-    unclass(observed),
-    expected
-  )
-})
-
-test_that("ernest_run to exported draws formats", {
-  data(example_run)
-
-  expect_s3_class(as_draws(example_run), c("draws_matrix", "draws", "matrix"))
-  expect_s3_class(
-    as_draws_rvars(example_run),
-    c("draws_rvars", "draws", "list")
-  )
-})
-
-test_that("ernest_run to non-exported draws formats", {
+test_that("ernest_run to desired draws formats", {
   data(example_run)
 
   expect_s3_class(as_draws(example_run), c("draws_matrix", "draws", "matrix"))

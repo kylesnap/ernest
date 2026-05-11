@@ -49,6 +49,7 @@
 multi_ellipsoid <- function(
   enlarge = 1.25
 ) {
+  check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
 
   if (enlarge == 1) {
@@ -57,7 +58,7 @@ multi_ellipsoid <- function(
 
   new_multi_ellipsoid(
     unit_log_fn = NULL,
-    n_dim = NULL,
+    nvar = NULL,
     enlarge = enlarge,
     max_loop = getOption("ernest.max_loop", 1e6L)
   )
@@ -74,7 +75,7 @@ format.multi_ellipsoid <- function(x, ...) {
 #' Internal constructor for multi-ellipsoid LRPS objects
 #'
 #' @param unit_log_fn Computes log-likelihood in unit space.
-#' @param n_dim Number of dimensions of the parameter space.
+#' @param nvar Number of dimensions of the parameter space.
 #' @param max_loop Maximum number of proposal attempts (default: 1e6).
 #' @param cache Stores cached ellipsoid decompositions and related state.
 #' @param enlarge Volume enlargement factor for each ellipsoid (must be ≥ 1).
@@ -85,7 +86,7 @@ format.multi_ellipsoid <- function(x, ...) {
 #' @noRd
 new_multi_ellipsoid <- function(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = 1e6L,
   cache = NULL,
   enlarge = 1.0
@@ -99,9 +100,9 @@ new_multi_ellipsoid <- function(
   ))
   req_names <- c("center", "shape", "inv_sqrt_shape", "log_vol", "error")
   valid_ell <- has_ell && all(req_names %in% names(cache$ellipsoid[[1]]))
-  if (!valid_ell && (is_integerish(n_dim) && n_dim > 0)) {
+  if (!valid_ell && (is_integerish(nvar) && nvar > 0)) {
     ell <- MultiBoundingEllipsoids(
-      matrix(double(), nrow = 0, ncol = n_dim),
+      matrix(double(), nrow = 0, ncol = nvar),
       point_log_volume = NA
     )
     env_bind(
@@ -114,7 +115,7 @@ new_multi_ellipsoid <- function(
 
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
-    n_dim = n_dim,
+    nvar = nvar,
     max_loop = max_loop,
     cache = cache,
     enlarge = enlarge,

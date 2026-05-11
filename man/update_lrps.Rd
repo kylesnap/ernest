@@ -24,7 +24,7 @@ update_lrps(x, ...)
 
 \item{...}{Presently ignored.}
 
-\item{unit}{\verb{[matrix(double(), integer(), x$n_dim)]}\cr The current live set
+\item{unit}{\verb{[matrix(double(), integer(), x$nvar)]}\cr The current live set
 stored within the run. Optional; if NULL no LRPS updates based on the state
 of the live set will be made.}
 

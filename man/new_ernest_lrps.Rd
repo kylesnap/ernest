@@ -7,7 +7,7 @@
 \usage{
 new_ernest_lrps(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = getOption("ernest.max_loop", 1000000L),
   cache = NULL,
   ...,
@@ -20,7 +20,7 @@ new_ernest_lrps(
 cube and returns a numeric vector of log-likelihood values. Optional, and
 updated when called by \code{ernest_sampler()}.}
 
-\item{n_dim}{\verb{[integer(1)]}\cr Number of dimensions within the prior space.
+\item{nvar}{\verb{[integer(1)]}\cr Number of dimensions within the prior space.
 Optional, and updated when called by \code{ernest_sampler()}.}
 
 \item{max_loop}{\verb{[integer(1)]}\cr Maximum number of attempts to generate

@@ -45,17 +45,17 @@ the \link{.Random.seed} set within R is preserved and restored after a run.}
 \value{
 \verb{[ernest_sampler]}\cr
 A named list, containing a specification for a nested sampling run. Contains
-the arguments passed to this function as well as an environment \code{run_env},
+the arguments passed to this function as well as an environment \code{live_env},
 which is used to store the live set during sampling.
 }
 \description{
 Initializes an \code{ernest_sampler} object containing the components required to
 perform nested sampling. This object can then be used to build sequences of
-nested samples with \code{\link[=generate]{generate()}}.
+nested samples with \code{\link[=generate.ernest_run]{generate.ernest_run()}}.
 }
 \details{
-The \code{ernest_sampler} object is tested with \code{\link[=compile]{compile()}} before it is
-returned. This helps to catch errors with the likelihood and prior
+The \code{ernest_sampler} object is tested with \code{\link[=compile.ernest_run]{compile.ernest_run()}} before it
+is returned. This helps to catch errors with the likelihood and prior
 specifications. If this compilation step fails, review your \code{log_lik_fn} and
 \code{prior} objects for their compliance.
 }

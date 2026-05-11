@@ -1,30 +1,60 @@
-# calculate works when ndraws = 0
+# calculate / works when ndraws = 0
 
     Code
       calc
-    Message
-      Nested sampling uncertainty estimates:
-      # of Simulated Draws: 0
-      Log-volume: -17 ± NA
-      Log-evidence: -9.1 ± NA
+    Output
+      # A tibble: 10,359 x 4
+         log_lik   log_volume log_weight log_evidence
+           <dbl>   <rvar[1d]> <rvar[1d]>   <rvar[1d]>
+       1   -137.  -0.001 ± NA  -143 ± NA     -143 ± 0
+       2   -132.  -0.002 ± NA  -139 ± NA     -139 ± 0
+       3   -130.  -0.003 ± NA  -137 ± NA     -137 ± 0
+       4   -130.  -0.004 ± NA  -137 ± NA     -136 ± 0
+       5   -129.  -0.005 ± NA  -136 ± NA     -136 ± 0
+       6   -127.  -0.006 ± NA  -134 ± NA     -134 ± 0
+       7   -124.  -0.007 ± NA  -131 ± NA     -131 ± 0
+       8   -123.  -0.008 ± NA  -130 ± NA     -130 ± 0
+       9   -123.  -0.009 ± NA  -130 ± NA     -129 ± 0
+      10   -122.  -0.010 ± NA  -129 ± NA     -129 ± 0
+      # i 10,349 more rows
 
-# calculate works when ndraws = 1
+# calculate / works when ndraws = 1 (default)
 
     Code
       calc
-    Message
-      Nested sampling uncertainty estimates:
-      # of Simulated Draws: 1
-      Log-volume: -20 ± NA
-      Log-evidence: -9.1 ± NA
+    Output
+      # A tibble: 10,359 x 4
+         log_lik      log_volume log_weight log_evidence
+           <dbl>      <rvar[1d]> <rvar[1d]>   <rvar[1d]>
+       1   -137.  -0.000089 ± NA  -146 ± NA    -146 ± NA
+       2   -132.  -0.000154 ± NA  -139 ± NA    -139 ± NA
+       3   -130.  -0.001405 ± NA  -138 ± NA    -137 ± NA
+       4   -130.  -0.001591 ± NA  -138 ± NA    -137 ± NA
+       5   -129.  -0.002035 ± NA  -137 ± NA    -136 ± NA
+       6   -127.  -0.002690 ± NA  -135 ± NA    -134 ± NA
+       7   -124.  -0.002996 ± NA  -131 ± NA    -131 ± NA
+       8   -123.  -0.005001 ± NA  -130 ± NA    -130 ± NA
+       9   -123.  -0.005421 ± NA  -131 ± NA    -129 ± NA
+      10   -122.  -0.005771 ± NA  -130 ± NA    -129 ± NA
+      # i 10,349 more rows
 
-# calculate works when ndraws = 1000 (default)
+# calculate / works when ndraws = 1000 (default)
 
     Code
       calc
-    Message
-      Nested sampling uncertainty estimates:
-      # of Simulated Draws: 1000
-      Log-volume: -17 ± 1.2
-      Log-evidence: -9.1 ± 0.071
+    Output
+      # A tibble: 10,359 x 4
+         log_lik         log_volume   log_weight log_evidence
+           <dbl>         <rvar[1d]>   <rvar[1d]>   <rvar[1d]>
+       1   -137.  -0.00099 ± 0.0010  -144 ± 0.80  -144 ± 0.80
+       2   -132.  -0.00202 ± 0.0015  -139 ± 0.81  -139 ± 0.80
+       3   -130.  -0.00300 ± 0.0018  -137 ± 0.80  -137 ± 0.70
+       4   -130.  -0.00398 ± 0.0020  -137 ± 0.80  -136 ± 0.60
+       5   -129.  -0.00506 ± 0.0023  -136 ± 0.80  -136 ± 0.55
+       6   -127.  -0.00613 ± 0.0026  -134 ± 0.81  -134 ± 0.66
+       7   -124.  -0.00710 ± 0.0027  -132 ± 0.78  -131 ± 0.70
+       8   -123.  -0.00811 ± 0.0029  -130 ± 0.80  -130 ± 0.66
+       9   -123.  -0.00910 ± 0.0031  -130 ± 0.77  -129 ± 0.59
+      10   -122.  -0.01011 ± 0.0032  -130 ± 0.80  -129 ± 0.52
+      # i 10,349 more rows
 

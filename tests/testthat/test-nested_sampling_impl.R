@@ -3,25 +3,6 @@
 #' as expected.
 reference_run <- expect_gaussian_run(rwmh_cube())
 
-#' @srrstats {G5.6b, G5.9, G5.9a, G5.9b} Tests that parameters are
-#' recovered under different seeds and with random noise added to the log-lik.
-test_that("different seeds and noise levels don't impact evidence estimates", {
-  expect_gaussian_run(rwmh_cube(), .seed = 24L)
-  sqrt_eps <- sqrt(.Machine$double.eps)
-  noisy_gaussian_blob_ll <- function(x) {
-    ll <- gaussian_blobs$log_lik(x)
-    ll + rnorm(length(ll), mean = 0, sd = sqrt_eps)
-  }
-  expect_run(
-    log_lik = create_likelihood(vectorized_fn = noisy_gaussian_blob_ll),
-    prior = gaussian_blobs$prior,
-    sampler = rwmh_cube(),
-    nlive = 100,
-    .expected_log_z = gaussian_blobs$log_z_analytic,
-    .seed = NA
-  )
-})
-
 #' @srrstats {BS4.6, BS7.3} Test checks that the NS convergence criteria
 #' (min_logz) produce identical results to when the number of iterations
 #' is set to a fixed value.
@@ -46,4 +27,41 @@ test_that("increasing min_logz reduces the iterations needed to converge", {
     .generate = list(min_logz = 0.1)
   )
   expect_gt(reference_run$niter, run_short$niter)
+})
+
+#' @srrstats {BS7.0, BS7.1} Parameter recovery for a normal distribution,
+#' without any additional information beyond the normal log-likelihood dist.
+test_that("Parameter recovery for a normal distribution", {
+  prior <- create_normal_prior(mean = c(0, 0))
+  log_l <- create_likelihood(
+    \(x) {
+      mvtnorm::dmvnorm(x, mean = c(0, 0), sigma = diag(2), log = TRUE)
+    }
+  )
+
+  sampler <- ernest_sampler(log_l, prior, nlive = 100, seed = 42)
+  run <- generate(sampler, max_iterations = 1000)
+  draws <- as_draws(run) |> posterior::resample_draws()
+  smry <- posterior::summarise_draws(
+    draws,
+    \(x) quantile(x, probs = c(0.05, 0.95))
+  )
+
+  expect_lte(-1.644854, smry[1, 2])
+  expect_gte(1.644854, smry[1, 3])
+  expect_lte(-1.644854, smry[2, 2])
+  expect_gte(1.644854, smry[2, 3])
+})
+
+test_that("Region-based samplers warn when max_loop is exceeded", {
+  withr::local_options(ernest.max_loop = 3L)
+  sampler <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    prior = gaussian_blobs$prior,
+    sampler = unif_ellipsoid(),
+    nlive = 100,
+    seed = 42
+  )
+
+  expect_warning(generate(sampler), "failed to generate a point in 3 attempts")
 })

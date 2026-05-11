@@ -108,9 +108,11 @@ new_ernest_prior <- function(
   .call = caller_env()
 ) {
   check_function(fn, call = .call)
-  n_dim <- length(names)
-  if (n_dim < 1) {
-    cli::cli_abort("`names` must be at least length one, not length {n_dim}.")
+  nvar <- length(names)
+  if (nvar < 1) {
+    cli::cli_abort(
+      "`names` must be at least length one, not length {nvar}."
+    )
   }
   names <- vctrs::vec_as_names(names, repair = .repair, call = .call)
   bounds <- vctrs::vec_recycle_common(
@@ -121,7 +123,7 @@ new_ernest_prior <- function(
       .call = .call
     ),
     ...,
-    .size = n_dim,
+    .size = nvar,
     .call = .call
   )
   if (any(bounds$lower >= bounds$upper)) {
@@ -148,7 +150,7 @@ new_ernest_prior <- function(
       dim(x) <- c(1, length(x))
     }
     y <- batch_fn(x)
-    y <- vctrs::vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
+    y <- vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
     if (any(y == Inf | is.nan(y) | is.na(y))) {
       cli::cli_abort(
         "`{lab}` must return only finite values.",
@@ -159,7 +161,7 @@ new_ernest_prior <- function(
   }
   check_prior(
     catching_fn,
-    n_dim,
+    nvar,
     lower = bounds$lower,
     upper = bounds$upper,
     arg = "prior$fn(x)",
@@ -172,7 +174,7 @@ new_ernest_prior <- function(
       "names" = names,
       !!!bounds
     ),
-    n_dim = n_dim,
+    nvar = nvar,
     body = expr(!!fn),
     interface = interface,
     class = c(.class, "ernest_prior")
@@ -187,7 +189,7 @@ new_ernest_prior <- function(
 #' specified bounds, for both vector and matrix inputs.
 #'
 #' @param fn The prior transformation function.
-#' @param n_dim Dimensionality.
+#' @param nvar Dimensionality.
 #' @param lower,upper Numeric vectors. Expected bounds for the
 #' parameter vectors after hypercube transformation.
 #' @param arg Argument name for error reporting.
@@ -203,36 +205,58 @@ new_ernest_prior <- function(
 #' validated before the NS algorithm is invoked.
 #'
 #' @returns The test matrix if all checks pass.
-#' @importFrom cli cli_warn
 #' @noRd
 check_prior <- function(
   fn,
-  n_dim,
+  nvar,
   lower = -Inf,
   upper = Inf,
   arg = caller_arg(fn),
   call = caller_env()
 ) {
-  test_vector <- rep(0.5, n_dim)
+  # Vector input sanity check (single point)
+  test_vector <- rep(0.5, nvar)
   output_test <- fn(test_vector)
-  output_test <- vctrs::vec_cast(
+  output_test <- vec_cast(
     output_test,
-    matrix(double(), ncol = n_dim),
+    to = matrix(double(), ncol = nvar),
     x_arg = arg,
     call = call
   )
 
-  test_matrix <- matrix(stats::runif(1000 * n_dim), nrow = 1000)
+  # 2) Matrix input sanity check (batched points)
+  test_matrix <- matrix(stats::runif(1000 * nvar), nrow = 1000)
   output_test_mat <- fn(test_matrix)
-  check_matrix(
+  output_test_mat <- vec_cast(
     output_test_mat,
-    nrow = 1000,
-    ncol = n_dim,
-    lower = lower,
-    upper = upper,
-    arg = arg,
+    to = matrix(double(), ncol = nvar),
+    x_arg = arg,
     call = call
   )
+  vctrs::vec_check_size(output_test_mat, size = 1000, arg = arg, call = call)
+  if (any(!is.finite(output_test_mat))) {
+    cli::cli_abort("`{arg}` must return only finite values.", call = call)
+  }
+
+  if (identical(lower, -Inf) && identical(upper, Inf)) {
+    return(output_test_mat)
+  }
+
+  # Bounds checks (inclusive, matching prior check_matrix behavior)
+  bounds <- vctrs::vec_recycle_common(
+    lower = lower,
+    upper = upper,
+    .size = nvar,
+    .call = call
+  )
+  mins <- matrixStats::colMins(output_test_mat)
+  maxes <- matrixStats::colMaxs(output_test_mat)
+  if (any(mins < bounds$lower)) {
+    cli::cli_abort("`{arg}` must respect the lower bounds.", call = call)
+  }
+  if (any(maxes > bounds$upper)) {
+    cli::cli_abort("`{arg}` must respect the upper bounds.", call = call)
+  }
   output_test_mat
 }
 
@@ -245,14 +269,14 @@ check_prior <- function(
   check_class(x, "ernest_prior")
   check_class(y, "ernest_prior")
 
-  n_dim <- c(attr(x, "n_dim"), attr(y, "n_dim"))
+  nvar <- c(attr(x, "nvar"), attr(y, "nvar"))
   bodies <- list(attr(x, "body"), attr(y, "body"))
-  cum_dim <- cumsum(n_dim)
+  cum_dim <- cumsum(nvar)
 
   fn <- new_function(
     exprs(x = ),
     expr({
-      vctrs::vec_c(
+      vec_c(
         (!!bodies[[1]])(x[1:!!cum_dim[1]]),
         (!!bodies[[2]])(x[!!(cum_dim[1] + 1):!!cum_dim[2]])
       )
@@ -273,7 +297,7 @@ check_prior <- function(
 #' Format for ernest_prior
 #'
 #' @param x An object of class 'ernest_prior'.
-#' @param Ignored.
+#' @param ... Ignored.
 #'
 #' @returns A formatted string describing the prior object.
 #' @noRd
@@ -281,14 +305,14 @@ check_prior <- function(
 format.ernest_prior <- function(x, ...) {
   name <- sub("_prior", "", class(x)[[1]])
   cli::format_inline(
-    "{name} prior distribution with {attr(x, 'n_dim')} dimensions ({x$names})"
+    "{name} prior distribution with {attr(x, 'nvar')} dimensions ({x$names})"
   )
 }
 
 #' Print for ernest_prior
 #'
 #' @param x An object of class 'ernest_prior'.
-#' @param Ignored.
+#' @param ... Ignored.
 #'
 #' @returns `x`, invisibly.
 #' @noRd

@@ -16,13 +16,13 @@ namespace vol {
 class Rectangle {
  public:
   // Construct the (0-1) unit hypercube.
-  inline explicit Rectangle(const int n_dim)
-      : n_dim_(n_dim),
-        lower_(Eigen::ArrayXd::Zero(n_dim_)),
-        upper_(Eigen::ArrayXd::Ones(n_dim_)) {};
+  inline explicit Rectangle(const int nvar)
+      : nvar_(nvar),
+        lower_(Eigen::ArrayXd::Zero(nvar_)),
+        upper_(Eigen::ArrayXd::Ones(nvar_)) {};
 
   // Construct a rectangle from initial vectors of boundaries.
-  inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper) : n_dim_(lower.size()) {
+  inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper) : nvar_(lower.size()) {
     Vector low = as_Matrix(lower), up = as_Matrix(upper);
     lower_ = low.cwiseMin(up);
     upper_ = up.cwiseMax(low);
@@ -33,8 +33,8 @@ class Rectangle {
 
   // Generate a uniform sample from the rectangle.
   inline Vector UniformSample() const {
-    Vector sample(n_dim_);
-    for (size_t d = 0; d < n_dim_; d++) {
+    Vector sample(nvar_);
+    for (size_t d = 0; d < nvar_; d++) {
       sample[d] = lower_[d] + (upper_[d] - lower_[d]) * unif_rand();
     }
     return sample;
@@ -42,7 +42,7 @@ class Rectangle {
 
   // Fill `vec` with a uniform sample from the rectangle.
   inline void UniformSample(Ref<Vector> vec) const {
-    if (vec.size() != n_dim_) return;
+    if (vec.size() != nvar_) return;
     vec = std::move(UniformSample());
   }
 
@@ -65,12 +65,12 @@ class Rectangle {
   }
 
   // Getters
-  inline int n_dim() const { return n_dim_; }
+  inline int nvar() const { return nvar_; }
   inline Vector lower() const { return lower_; }
   inline Vector upper() const { return upper_; }
 
  private:
-  int n_dim_;             // Number of dimensions
+  int nvar_;              // Number of dimensions
   Eigen::ArrayXd lower_;  // Lower bounds of the rectangle axes.
   Eigen::ArrayXd upper_;  // Upper bounds of the rectangle axes.
   ern::RandomEngine gen;  // Random number generator.

@@ -12,3 +12,10 @@ skip_extended <- function() {
     "Extended test"
   )
 }
+
+#' Skip snapshotting plots on CRAN, COVR, and CI
+skip_plot_snapshot <- function() {
+  skip_on_cran()
+  skip_on_ci()
+  skip_on_covr()
+}

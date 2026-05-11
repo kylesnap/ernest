@@ -44,6 +44,7 @@ data(example_run)
 
 # View importance weights
 dm <- as_draws(example_run)
+str(dm)
 weights(dm) |> head()
 
 # Summarise points after resampling
@@ -51,14 +52,10 @@ dm |>
   resample_draws() |>
   summarize_draws()
 
-# View the radial coordinate in unit space over the run
-dm_rad <- as_draws_rvars(
-  example_run,
-  units = "unit_cube",
-  radial = TRUE
-)
-plot(x = draws_of(dm_rad$.radial))
+# Extract the same coordinates in the unit space coordinates
+dm_unit <- as_draws_rvars(example_run, units = "unit_cube")
+str(dm_unit)
 }
 \seealso{
-\code{\link[posterior:draws]{posterior::as_draws()}}
+\code{\link[posterior:as_draws]{posterior::as_draws()}}
 }

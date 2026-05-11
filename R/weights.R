@@ -3,7 +3,7 @@
 #' Return the normalised posterior importance weights for the dead points in a
 #' nested sampling run.
 #'
-#' @param x [[ernest_run]]\cr A nested sampling run.
+#' @param object [[ernest_run]]\cr A nested sampling run.
 #' @param log `[logical(1)]`\cr Whether to return the weights on the log
 #' scale.
 #' @inheritParams rlang::args_dots_empty
@@ -29,19 +29,20 @@
 #' data(example_run)
 #' weights(example_run) |> head()
 #' weights(example_run, log = TRUE) |> head()
+#' @importFrom stats weights
 #' @export
-weights.ernest_run <- function(x, log = FALSE, ...) {
+weights.ernest_run <- function(object, log = FALSE, ...) {
   check_dots_empty()
-  weights.ernest_rcrd(x$rcrd, log = log)
+  weights.ernest_rcrd(object$rcrd, log = log)
 }
 
 #' @noRd
 #' @export
-weights.ernest_rcrd <- function(x, log = FALSE, ...) {
+weights.ernest_rcrd <- function(object, log = FALSE, ...) {
   check_dots_empty()
   check_bool(log)
   log_w <- try_fetch(
-    compute_integral(x, truncate = TRUE),
+    compute_integral(object, truncate = TRUE),
     warning = function(cnd) abort("Can't estimate weights.", parent = cnd)
   )
   weights <- drop(log_w$log_weight - log_w$log_evidence)

@@ -19,5 +19,16 @@ Useful links:
 \author{
 \strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
 
+Authors:
+\itemize{
+  \item Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item TJ Mahr [contributor]
+  \item Robert Kubinec [contributor]
+}
+
 }
 \keyword{internal}

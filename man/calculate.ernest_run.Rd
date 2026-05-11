@@ -28,7 +28,8 @@ columns for each point:
 \item \code{log_volume}: \verb{[[posterior::rvar()]]} The log-volume of the prior space
 associated with the point.
 \item \code{log_weight}: \verb{[[posterior::rvar()]]} The estimated contribution of the
-point to the log-evidence estimate.
+point to the log-evidence estimate (i.e., the unnormalized posterior
+log-weight).
 \item \code{log_evidence}: \verb{[[posterior::rvar()]]} The current log-evidence estimate.
 }
 

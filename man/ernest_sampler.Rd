@@ -54,8 +54,8 @@ perform nested sampling. This object can then be used to build sequences of
 nested samples with \code{\link[=generate.ernest_run]{generate.ernest_run()}}.
 }
 \details{
-The \code{ernest_sampler} object is tested with \code{\link[=compile.ernest_run]{compile.ernest_run()}} before it is
-returned. This helps to catch errors with the likelihood and prior
+The \code{ernest_sampler} object is tested with \code{\link[=compile.ernest_run]{compile.ernest_run()}} before it
+is returned. This helps to catch errors with the likelihood and prior
 specifications. If this compilation step fails, review your \code{log_lik_fn} and
 \code{prior} objects for their compliance.
 }

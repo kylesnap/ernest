@@ -68,7 +68,7 @@ visualize(example_run, .which = "density")
 \seealso{
 \code{\link[=as_draws_rvars]{as_draws_rvars()}}
 
-Other visualizations: 
-\code{\link{plot.ernest_estimate}()}
+Other visualizations:
+\code{\link[=plot.ernest_estimate]{plot.ernest_estimate()}}
 }
 \concept{visualizations}

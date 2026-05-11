@@ -246,7 +246,13 @@ The LRPS interface is extensible, allowing advanced users to implement custom sa
 To initialize a sampler, call `ernest_sampler` with the likelihood, prior, and LRPS objects. This creates an `ernest_sampler` object, which contains (among other metadata) an initial live set of points ordered by their likelihood values. Calling this function also tests your likelihood and prior transformation functions and reports unexpected behaviour.
 
 ```{r}
-sampler <- ernest_sampler(epilepsy_log_lik, model_prior, sampler = rwmh_cube(), nlive = 300, seed = 42)
+sampler <- ernest_sampler(
+  epilepsy_log_lik,
+  model_prior,
+  sampler = rwmh_cube(),
+  nlive = 300,
+  seed = 42
+)
 sampler
 ```
 

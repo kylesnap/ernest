@@ -20,7 +20,8 @@
 #' * `log_volume`: `[[posterior::rvar()]]` The log-volume of the prior space
 #' associated with the point.
 #' * `log_weight`: `[[posterior::rvar()]]` The estimated contribution of the
-#' point to the log-evidence estimate.
+#' point to the log-evidence estimate (i.e., the unnormalized posterior
+#' log-weight).
 #' * `log_evidence`: `[[posterior::rvar()]]` The current log-evidence estimate.
 #'
 #' If `ndraws > 0`, `log_volume`, `log_weight`, and `log_evidence` each contain
@@ -31,6 +32,10 @@
 #' from a normal approximation based on analytical variance estimates (see
 #' the package vignetttes for more information). The  number of draws is
 #' controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
+#'
+#' @srrstats {BS4.2} Simulating uncertainty around the log-volume estimates
+#' allows the user to detect instability in the posterior importance weights.
+#' Also see `plot` and `as_draws`.
 #'
 #' @references Higson, E., Handley, W., Hobson, M., & Lasenby, A. (2019).
 #' Nestcheck: Diagnostic Tests for Nested Sampling Calculations. Monthly Notices

@@ -17,8 +17,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{calculate}}, \code{\link[generics]{compile}}, \code{\link[generics]{generate}}, \code{\link[generics]{visualize}}}
+  \item{generics}{\code{\link[generics:calculate]{calculate()}}, \code{\link[generics:compile]{compile()}}, \code{\link[generics:generate]{generate()}}, \code{\link[generics:visualize]{visualize()}}}
 
-  \item{posterior}{\code{\link[posterior:draws]{as_draws}}, \code{\link[posterior:draws_matrix]{as_draws_matrix}}, \code{\link[posterior:draws_rvars]{as_draws_rvars}}}
+  \item{posterior}{\code{\link[posterior:as_draws]{as_draws()}}, \code{\link[posterior:as_draws_matrix]{as_draws_matrix()}}, \code{\link[posterior:as_draws_rvars]{as_draws_rvars()}}}
 }}
 

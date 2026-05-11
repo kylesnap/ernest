@@ -31,8 +31,8 @@
 #' which is used to store the live set during sampling.
 #'
 #' @details
-#' The `ernest_sampler` object is tested with [compile.ernest_run()] before it is
-#' returned. This helps to catch errors with the likelihood and prior
+#' The `ernest_sampler` object is tested with [compile.ernest_run()] before it
+#' is returned. This helps to catch errors with the likelihood and prior
 #' specifications. If this compilation step fails, review your `log_lik_fn` and
 #' `prior` objects for their compliance.
 #'

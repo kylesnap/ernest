@@ -297,7 +297,7 @@ check_prior <- function(
 #' Format for ernest_prior
 #'
 #' @param x An object of class 'ernest_prior'.
-#' @param Ignored.
+#' @param ... Ignored.
 #'
 #' @returns A formatted string describing the prior object.
 #' @noRd
@@ -312,7 +312,7 @@ format.ernest_prior <- function(x, ...) {
 #' Print for ernest_prior
 #'
 #' @param x An object of class 'ernest_prior'.
-#' @param Ignored.
+#' @param ... Ignored.
 #'
 #' @returns `x`, invisibly.
 #' @noRd

@@ -70,7 +70,7 @@ If your prior depends on additional data, provide these using an anonymous
 function (see Examples).
 }
 \note{
-See \link[vctrs:theory-faq-recycling]{vctrs::vector_recycling_rules} for information on how parameters
+See \link[vctrs:vector_recycling_rules]{vctrs::vector_recycling_rules} for information on how parameters
 are recycled to a common length.
 }
 \examples{
@@ -110,7 +110,7 @@ hist(sample[, 2], main = "sd")
 hist(sample[, 3], main = "x")
 }
 \seealso{
-Other priors: 
-\code{\link{create_normal_prior}()}
+Other priors:
+\code{\link[=create_normal_prior]{create_normal_prior()}}
 }
 \concept{priors}

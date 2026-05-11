@@ -3,7 +3,7 @@
 #' Visualizes key diagnostics from nested sampling outputs as functions of
 #' log-prior volume.
 #'
-#' @param x [[ernest_run]] or [[ernest_estimate]]\cr An object containing
+#' @param x,object [[ernest_run]] or [[ernest_estimate]]\cr An object containing
 #' results from nested sampling.
 #' @param which `[character()]`\cr One or more diagnostics to display. Must be
 #' any of `"evidence"`, `"weight"`, and `"likelihood"`.
@@ -85,14 +85,10 @@ plot.ernest_run <- function(
   print(autoplot(obj, which, n = n, ...))
 }
 
-#' @rdname plot.ernest
+#' @rdname plot-ernest
 #'
-#' @param object [[ernest_estimate]]\cr Output from [calculate.ernest_run()].
-#' @param which `[character()]`\cr One or more diagnostics to summarize. Must be
-#' any of `"evidence"`, `"weight"`, and `"likelihood"`.
-#' @param width `[double()]`\cr Vector of probabilities to use that determine
-#' the widths of the resulting intervals, as in [[ggdist::curve_interval]].
-#' Defaults to three widths roughly corresponding to +/- 1, 2, and 3 SD.
+#' @param width `[numeric()]`\cr Numeric vector of widths for uncertainty
+#' intervals. Defaults to the 50%, 80%, and 95% highest mean depth intervals.
 #'
 #' @export
 summary.ernest_estimate <- function(
@@ -206,7 +202,7 @@ summary.ernest_estimate <- function(
 
   # Summarize likelihood diagnostics, which are always point estimates.
   summarize_likelihood <- \() {
-    lik_app <- approx(
+    lik_app <- stats::approx(
       colMeans(log_volume),
       lik,
       xout = knots,

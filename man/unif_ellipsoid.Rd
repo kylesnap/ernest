@@ -68,10 +68,10 @@ Algorithm for Cosmological Model Selection. The Astrophysical Journal,
 638(2), L51. \doi{10.1086/501068}
 }
 \seealso{
-Other ernest_lrps: 
-\code{\link{multi_ellipsoid}()},
-\code{\link{rwmh_cube}()},
-\code{\link{slice_rectangle}()},
-\code{\link{unif_cube}()}
+Other ernest_lrps:
+\code{\link[=multi_ellipsoid]{multi_ellipsoid()}},
+\code{\link[=rwmh_cube]{rwmh_cube()}},
+\code{\link[=slice_rectangle]{slice_rectangle()}},
+\code{\link[=unif_cube]{unif_cube()}}
 }
 \concept{ernest_lrps}

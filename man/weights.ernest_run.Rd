@@ -4,10 +4,10 @@
 \alias{weights.ernest_run}
 \title{Extract the posterior sample weights from a nested sampling run}
 \usage{
-\method{weights}{ernest_run}(x, log = FALSE, ...)
+\method{weights}{ernest_run}(object, log = FALSE, ...)
 }
 \arguments{
-\item{x}{[\link{ernest_run}]\cr A nested sampling run.}
+\item{object}{[\link{ernest_run}]\cr A nested sampling run.}
 
 \item{log}{\verb{[logical(1)]}\cr Whether to return the weights on the log
 scale.}

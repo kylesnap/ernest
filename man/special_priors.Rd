@@ -85,7 +85,7 @@ hist(sample[, 3], main = "x")
 \seealso{
 \code{\link[=create_prior]{create_prior()}}
 
-Other priors: 
-\code{\link{create_prior}()}
+Other priors:
+\code{\link[=create_prior]{create_prior()}}
 }
 \concept{priors}

@@ -44,7 +44,7 @@ and iteration counter during sampling. Optional; if \code{NULL} the global optio
 \code{rlib_message_verbosity} is used to determine whether to show progress.}
 
 \item{...}{
-  Arguments passed on to \code{\link[=compile.ernest_run]{compile.ernest_run}}
+  Arguments passed on to \code{\link{compile.ernest_run}}
   \describe{
     \item{\code{clear}}{\verb{[logical(1)]}\cr If \code{TRUE}, clears results from previous runs
 before compiling. If \code{FALSE}, retains previous results and validates the live

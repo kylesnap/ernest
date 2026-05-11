@@ -59,10 +59,10 @@ Royal Astronomical Society, 493, 3132–3158.
 }
 }
 \seealso{
-Other ernest_lrps: 
-\code{\link{rwmh_cube}()},
-\code{\link{slice_rectangle}()},
-\code{\link{unif_cube}()},
-\code{\link{unif_ellipsoid}()}
+Other ernest_lrps:
+\code{\link[=rwmh_cube]{rwmh_cube()}},
+\code{\link[=slice_rectangle]{slice_rectangle()}},
+\code{\link[=unif_cube]{unif_cube()}},
+\code{\link[=unif_ellipsoid]{unif_ellipsoid()}}
 }
 \concept{ernest_lrps}

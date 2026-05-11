@@ -3,14 +3,23 @@
 \name{plot.ernest_estimate}
 \alias{plot.ernest_estimate}
 \alias{plot.ernest_run}
+\alias{summary.ernest_estimate}
 \title{Plot diagnostics from nested sampling results}
 \usage{
 \method{plot}{ernest_estimate}(x, which = c("evidence", "weight", "likelihood"), n = 512, ...)
 
 \method{plot}{ernest_run}(x, which = c("evidence", "weight", "likelihood"), n = 512, ...)
+
+\method{summary}{ernest_estimate}(
+  object,
+  which = c("evidence", "weight", "likelihood"),
+  n = 512,
+  width = NULL,
+  ...
+)
 }
 \arguments{
-\item{x}{[\link{ernest_run}] or [\link{ernest_estimate}]\cr An object containing
+\item{x, object}{[\link{ernest_run}] or [\link{ernest_estimate}]\cr An object containing
 results from nested sampling.}
 
 \item{which}{\verb{[character()]}\cr One or more diagnostics to display. Must be
@@ -20,6 +29,9 @@ any of \code{"evidence"}, \code{"weight"}, and \code{"likelihood"}.}
 log-volume axis used to summarize each curve.}
 
 \item{...}{These dots are for future extensions and must be empty.}
+
+\item{width}{\verb{[numeric()]}\cr Numeric vector of widths for uncertainty
+intervals. Defaults to the 50\%, 80\%, and 95\% highest mean depth intervals.}
 }
 \value{
 For \code{plot}, the \code{ggplot} object, invisibly. It is also printed as a side
@@ -72,7 +84,7 @@ plot(est)
 \seealso{
 \code{\link[=calculate.ernest_run]{calculate.ernest_run()}}
 
-Other visualizations: 
-\code{\link{visualize.ernest_run}()}
+Other visualizations:
+\code{\link[=visualize.ernest_run]{visualize.ernest_run()}}
 }
 \concept{visualizations}

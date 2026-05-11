@@ -8,14 +8,10 @@ concurrency:
 on:
   # Manually trigger the Action under Actions/pkgcheck
   workflow_dispatch:
-  # Run on every push to main and ropensci_submission
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-      - dev
+  workflow_run:
+    workflows: ["R-CMD-check.yaml"]
+    types: [completed]
+    branches: [main]
 
 jobs:
   pkgcheck:

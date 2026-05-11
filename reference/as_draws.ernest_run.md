@@ -9,20 +9,20 @@ package.
 
 ``` r
 # S3 method for class 'ernest_run'
-as_draws(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+as_draws(x, units = c("original", "unit_cube"), ...)
 
 # S3 method for class 'ernest_run'
-as_draws_matrix(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+as_draws_rvars(x, units = c("original", "unit_cube"), ...)
 
 # S3 method for class 'ernest_run'
-as_draws_rvars(x, units = c("original", "unit_cube"), radial = FALSE, ...)
+as_draws_matrix(x, units = c("original", "unit_cube"), ...)
 ```
 
 ## Arguments
 
 - x:
 
-  [`[ernest_run]`](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)  
+  [`[ernest_run]`](https://kylesnap.github.io/ernest/reference/generate-ernest.md)  
   Results from a nested sampling run.
 
 - units:
@@ -33,12 +33,6 @@ as_draws_rvars(x, units = c("original", "unit_cube"), radial = FALSE, ...)
   - `"original"`: Points are on the scale of the prior space.
 
   - `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
-
-- radial:
-
-  `[logical(1)]`  
-  If `TRUE`, returns an additional column `.radial` containing the
-  radial coordinate (i.e., the Euclidean norm) for each sampled point.
 
 - ...:
 
@@ -61,14 +55,13 @@ to reweigh an object from `as_draws` using its importance weights.
 
 ## See also
 
-- [`posterior::as_draws()`](https://mc-stan.org/posterior/reference/draws.html)
-  for details on the `draws` object.
+[`posterior::as_draws()`](https://mc-stan.org/posterior/reference/draws.html)
 
 ## Examples
 
 ``` r
 library(posterior)
-#> This is posterior version 1.6.1
+#> This is posterior version 1.7.0
 #> 
 #> Attaching package: ‘posterior’
 #> The following objects are masked from ‘package:stats’:
@@ -81,26 +74,34 @@ data(example_run)
 
 # View importance weights
 dm <- as_draws(example_run)
+str(dm)
+#>  'draws_matrix' num [1:10359, 1:4] -8.05 -7.27 9.1 -8.81 -9.44 ...
+#>  - attr(*, "dimnames")=List of 2
+#>   ..$ draw    : chr [1:10359] "1" "2" "3" "4" ...
+#>   ..$ variable: chr [1:4] "x" "y" "z" ".log_weight"
+#>  - attr(*, "nchains")= int 1
 weights(dm) |> head()
-#> [1] 1.319439e-63 5.734565e-61 6.105971e-59 1.221066e-58 8.797702e-58
-#> [6] 2.620611e-56
+#> [1] 4.661608e-59 4.677800e-57 2.152569e-56 3.433589e-56 5.397510e-56
+#> [6] 5.756538e-55
 
 # Summarise points after resampling
 dm |>
   resample_draws() |>
   summarize_draws()
 #> # A tibble: 3 × 10
-#>   variable     mean   median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-#>   <chr>       <dbl>    <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 x        -0.0254  -0.0388  0.964 0.952 -1.63  1.55  1.19    4202.     13.0
-#> 2 y         0.00483  0.00671 0.980 0.974 -1.60  1.60  1.19    4455.     12.6
-#> 3 z         0.0129   0.0320  0.987 0.968 -1.62  1.63  1.19    4113.     12.5
+#>   variable      mean    median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>        <dbl>     <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 x        -0.00681   0.00245  0.974 0.977 -1.62  1.58  1.17    4600.     12.7
+#> 2 y        -0.00957  -0.00775  0.990 1.01  -1.62  1.63  1.20    4221.     12.9
+#> 3 z         0.000411  0.000927 0.977 0.981 -1.58  1.60  1.17    4400.     12.9
 
-# View the radial coordinate in unit space over the run
-dm_rad <- as_draws_rvars(
-  example_run,
-  units = "unit_cube",
-  radial = TRUE
-)
-plot(x = draws_of(dm_rad$.radial))
+# Extract the same coordinates in the unit space coordinates
+dm_unit <- as_draws_rvars(example_run, units = "unit_cube")
+str(dm_unit)
+#> List of 4
+#>  $ x          : rvar<10359>[1]  0.5 ± 0.14
+#>  $ y          : rvar<10359>[1]  0.5 ± 0.14
+#>  $ z          : rvar<10359>[1]  0.5 ± 0.14
+#>  $ .log_weight: rvar<10359>[1]  -18 ± 18
+#>  - attr(*, "class")= chr [1:3] "draws_rvars" "draws" "list"
 ```

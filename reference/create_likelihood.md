@@ -69,9 +69,8 @@ function)[`rlang::as_function()`](https://rlang.r-lib.org/reference/as_function.
 
 ## See also
 
-See the
-[cubature](https://bnaras.github.io/cubature/articles/cubature.html)
-package for more examples of scalar and vectorized functions.
+[cubature](https://bnaras.github.io/cubature/articles/cubature.html) for
+examples of vectorized and non-vectorized likelihood functions.
 
 ## Examples
 

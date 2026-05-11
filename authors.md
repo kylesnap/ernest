@@ -5,6 +5,10 @@
 - **Kyle Dewsnap**. Author, maintainer.
   [](https://orcid.org/0000-0003-2132-8083)
 
+- **TJ Mahr**. Contributor.
+
+- **Robert Kubinec**. Contributor.
+
 ## Citation
 
 Source:

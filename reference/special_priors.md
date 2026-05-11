@@ -65,7 +65,6 @@ points in the unit hypercube and return a matrix of transformed values.
 ## See also
 
 [`create_prior()`](https://kylesnap.github.io/ernest/reference/create_prior.md)
-for more on priors within nested sampling.
 
 Other priors:
 [`create_prior()`](https://kylesnap.github.io/ernest/reference/create_prior.md)

@@ -3,7 +3,7 @@
 Initializes an `ernest_sampler` object containing the components
 required to perform nested sampling. This object can then be used to
 build sequences of nested samples with
-[`generate()`](https://generics.r-lib.org/reference/generate.html).
+[`generate.ernest_run()`](https://kylesnap.github.io/ernest/reference/generate-ernest.md).
 
 ## Usage
 
@@ -73,15 +73,15 @@ ernest_sampler(
 `[ernest_sampler]`  
 A named list, containing a specification for a nested sampling run.
 Contains the arguments passed to this function as well as an environment
-`run_env`, which is used to store the live set during sampling.
+`live_env`, which is used to store the live set during sampling.
 
 ## Details
 
 The `ernest_sampler` object is tested with
-[`compile()`](https://generics.r-lib.org/reference/compile.html) before
-it is returned. This helps to catch errors with the likelihood and prior
-specifications. If this compilation step fails, review your `log_lik_fn`
-and `prior` objects for their compliance.
+[`compile.ernest_run()`](https://kylesnap.github.io/ernest/reference/compile-ernest.md)
+before it is returned. This helps to catch errors with the likelihood
+and prior specifications. If this compilation step fails, review your
+`log_lik_fn` and `prior` objects for their compliance.
 
 ## Verbosity
 
@@ -109,7 +109,7 @@ sampler <- ernest_sampler(ll_fn, prior, nlive = 100)
 sampler
 #> Nested sampling run specification:
 #> * No. points: 100
-#> * Sampling method: 25-step random walk sampling (acceptance target = 50.0%)
+#> * Sampling method: 25-step random walk sampling (acceptance target = 50%)
 #> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
 
 # Use a unit-cube LRPS (not recommended in practice)

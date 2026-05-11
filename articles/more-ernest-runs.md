@@ -1,8 +1,10 @@
 # More Examples with ernest
 
 ``` r
+
 library(ernest)
 library(posterior)
+library(ggplot2)
 ```
 
 This vignette describes the test problems used by ernest to validate its
@@ -22,6 +24,7 @@ provides a good test of ernest’s ability to explore a complicated
 likelihood surface.
 
 ``` r
+
 # Log-likelihood for two Gaussian blobs
 sigma <- 0.1
 mu1 <- c(1, 1)
@@ -47,34 +50,34 @@ blob_sampler <- ernest_sampler(
 blob_result <- generate(blob_sampler, show_progress = FALSE)
 ```
 
-The expected log-evidence, found analytically, is $- 6.679$. We may use
+The expected log-evidence, found analytically, is $`-6.679`$. We may use
 the summary and calculate methods to examine how accurate our results
 from sampling are:
 
 ``` r
+
 summary(blob_result)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 100
-#> * Iterations: 959
-#> * Likelihood evals.: 21252
-#> * Log-evidence: -6.5450 (± 0.2613)
-#> * Information: 5.527
+#> * Iterations: 996
+#> * Likelihood evals.: 22276
+#> * Log-evidence: -6.9222 (± 0.2713)
+#> * Information: 5.974
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 2 × 6
-#>   variable   mean    sd median   q15   q85
-#>   <chr>     <dbl> <dbl>  <dbl> <dbl> <dbl>
-#> 1 A        0.106   1.47  0.602 -1.11  1.12
-#> 2 B        0.0479  1.49  0.615 -1.14  1.09
+#>   variable  mean    sd median   q15   q85
+#>   <chr>    <dbl> <dbl>  <dbl> <dbl> <dbl>
+#> 1 A        0.244  1.48  0.860 -1.09  1.20
+#> 2 B        0.262  1.44  0.879 -1.06  1.21
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -0.0004
-#> * Original parameters: 1.0026 and 0.9990
-calculate(blob_result, ndraws = 500)
-#> Nested sampling uncertainty estimates:
-#> # of Simulated Draws: 500
-#> Log-volume: -15 ± 1.4
-#> Log-evidence: -6.6 ± 0.24
+#> * Log-likelihood: 0
+#> * Original parameters: -1 and -0.9994
+calculate(blob_result, ndraws = 500)$log_evidence |>
+  tail(1)
+#> rvar<500>[1] mean ± sd:
+#> [1] -6.9 ± 0.25
 ```
 
 ## Eggbox Distribution
@@ -87,6 +90,7 @@ ernest’s ability to properly integrate across multimodal likelihood
 surfaces.
 
 ``` r
+
 # Log-likelihood for the eggbox function
 eggbox_loglik <- function(x) {
   tmax <- 5.0 * pi
@@ -102,42 +106,44 @@ eggbox_prior <- create_uniform_prior(names = c("A", "B"))
 ![](more-ernest-runs_files/figure-html/unnamed-chunk-7-1.png)
 
 Analytic results indicate that we should expect a log-evidence of
-$235.895$.
+$`235.895`$.
 
 ``` r
+
 egg_sampler <- ernest_sampler(
   eggbox_loglik,
   eggbox_prior,
   sampler = multi_ellipsoid(),
   seed = 42L
 )
-egg_result <- generate(egg_sampler, show_progress = FALSE)
 #> Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display
 #> Warning: 'rgl.init' failed, will use the null device.
 #> See '?rgl.useNULL' for ways to avoid this warning.
+egg_result <- generate(egg_sampler, show_progress = FALSE)
 summary(egg_result)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 5038
-#> * Likelihood evals.: 11493
-#> * Log-evidence: 235.9478 (± 0.1198)
-#> * Information: 6.038
+#> * Iterations: 4962
+#> * Likelihood evals.: 11532
+#> * Log-evidence: 236.0996 (± 0.1183)
+#> * Information: 5.896
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 2 × 6
 #>   variable  mean    sd median   q15   q85
 #>   <chr>    <dbl> <dbl>  <dbl> <dbl> <dbl>
-#> 1 A        0.512 0.296  0.501 0.103 0.899
-#> 2 B        0.502 0.297  0.500 0.102 0.899
+#> 1 A        0.498 0.292  0.499 0.103 0.899
+#> 2 B        0.489 0.294  0.499 0.102 0.898
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: 242.9999
-#> * Original parameters: 0.9000 and 0.1000
+#> * Log-likelihood: 243
+#> * Original parameters: 0.5 and 0.5
 ```
 
-We can further visualise the multimodal structure of each variable:
+We can further visualize the multimodal structure of each variable:
 
 ``` r
+
 visualize(egg_result, .which = "trace")
 ```
 
@@ -151,16 +157,17 @@ the National Institute of Standards and Technology
 ([NIST](https://www.itl.nist.gov/div898/strd/mcmc/mcmc01.html)).
 
 ``` r
+
 y <- c(0.2, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1) + 1e+08
 ```
 
 The certified posterior quantiles for the mean and standard deviation of
 `y` are:
 
-| Parameter | 2.5%                   | 50.0%                  | 97.5%                  |
-|-----------|------------------------|------------------------|------------------------|
-| mu        | 100000000\.13281908588 | 100000000\.20000000000 | 100000000\.26718091412 |
-| sigma     | 0.069871704416342      | 0.103462818336964      | 0.175493354741336      |
+| Parameter | 2.5% | 50.0% | 97.5% |
+|----|----|----|----|
+| mu | 100000000\.13281908588 | 100000000\.20000000000 | 100000000\.26718091412 |
+| sigma | 0.069871704416342 | 0.103462818336964 | 0.175493354741336 |
 
 To run this model, we must incorporate the data `y` into the likelihood
 function. We do this through a function factory that captures a vector
@@ -169,6 +176,7 @@ computes the log-likelihood of a Gaussian model with parameters mean
 `mu` and standard deviation `sigma`.
 
 ``` r
+
 gaussian_log_lik <- function(data) {
   force(data)
 
@@ -189,11 +197,12 @@ nist_result <- generate(nist_sampler, show_progress = FALSE)
 ```
 
 We rely on the posterior R package to examine the posterior distribution
-by summarising each variable by its quantiles. To better visualise the
+by summarizing each variable by its quantiles. To better visualize the
 correspondence between the expected and actual values, we can plot their
 respective IQRs.
 
 ``` r
+
 post <- as_draws(nist_result) |>
   resample_draws() |>
   summarise_draws(\(x) quantile(x, probs = c(0.025, 0.5, 0.975)))
@@ -202,14 +211,14 @@ post
 #>   variable  `2.5%`         `50%`       `97.5%`
 #>   <chr>      <dbl>         <dbl>         <dbl>
 #> 1 mu       1.00e+8 100000000.    100000000.   
-#> 2 sigma    7.09e-2         0.109         0.194
+#> 2 sigma    7.12e-2         0.110         0.201
 ```
 
     #> # A tibble: 4 × 5
     #>   variable  `2.5%`         `50%`       `97.5%` src  
     #>   <chr>      <dbl>         <dbl>         <dbl> <chr>
     #> 1 mu       1.00e+8 100000000.    100000000.    est  
-    #> 2 sigma    7.09e-2         0.109         0.194 est  
+    #> 2 sigma    7.12e-2         0.110         0.201 est  
     #> 3 mu       1.00e+8 100000000.    100000000.    act  
     #> 4 sigma    6.99e-2         0.103         0.175 act
 

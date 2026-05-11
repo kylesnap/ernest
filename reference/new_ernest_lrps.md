@@ -9,7 +9,7 @@ and used to create new points during a nested sampling run.
 ``` r
 new_ernest_lrps(
   unit_log_fn = NULL,
-  n_dim = NULL,
+  nvar = NULL,
   max_loop = getOption("ernest.max_loop", 1000000L),
   cache = NULL,
   ...,
@@ -27,7 +27,7 @@ new_ernest_lrps(
   of log-likelihood values. Optional, and updated when called by
   [`ernest_sampler()`](https://kylesnap.github.io/ernest/reference/ernest_sampler.md).
 
-- n_dim:
+- nvar:
 
   `[integer(1)]`  
   Number of dimensions within the prior space. Optional, and updated

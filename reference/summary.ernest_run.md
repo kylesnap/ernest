@@ -14,7 +14,7 @@ summary(object, ...)
 
 - object:
 
-  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)\]  
+  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate-ernest.md)\]  
   Results from a nested sampling run.
 
 - ...:
@@ -23,13 +23,14 @@ summary(object, ...)
 
 ## Value
 
-`[summary.ernest_run]` A named list, containing:
+A named list, containing:
 
 - `nlive`: `[integer(1)]` Number of points in the live set.
 
-- `niter`: `[integer(1)]` Number of iterations.
+- `niter`: `[integer(1)]` Number of iterations performed.
 
-- `neval`: `[integer(1)]` Number of likelihood evaluations.
+- `neval`: `[integer(1)]` Number of times the likelihood function was
+  evaluated.
 
 - `log_evidence`: `[numeric(1)]` Log-evidence estimate.
 
@@ -47,22 +48,20 @@ summary(object, ...)
 
   - `log_lik`: `[double(1)]` The maximum log-likelihood value.
 
-  - `original`, `unit_cube`: `[double(n_dim)]` The parameter values at
+  - `original`, `unit_cube`: `[double(nvar)]` The parameter values at
     the MLE, expressed in the original parameter space and within the
     unit cube.
 
-- `posterior`: \[tibble\] with columns for the posterior mean, sd,
-  median, and the 15th and 85th percentiles for each parameter.
+- `posterior`: \[[data.frame](https://rdrr.io/r/base/data.frame.html)\]
+  with columns for the posterior mean, sd, median, and the 15th and 85th
+  percentiles for each parameter.
 
 - `seed`: The RNG seed used.
 
 ## See also
 
-- [`generate()`](https://generics.r-lib.org/reference/generate.html) for
-  details on the `ernest_run` object.
-
-- [`as_draws()`](https://mc-stan.org/posterior/reference/draws.html) for
-  details on how posterior samples are extracted.
+[`generate.ernest_run()`](https://kylesnap.github.io/ernest/reference/generate-ernest.md)
+[`as_draws.ernest_run()`](https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.md)
 
 ## Examples
 
@@ -73,26 +72,26 @@ run_sm
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 1000
-#> * Iterations: 9456
-#> * Likelihood evals.: 207001
-#> * Log-evidence: -9.1176 (± 0.0833)
-#> * Information: 4.930
+#> * Iterations: 9359
+#> * Likelihood evals.: 204831
+#> * Log-evidence: -9.024 (± 0.0825)
+#> * Information: 4.827
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable     mean    sd  median   q15   q85
-#>   <chr>       <dbl> <dbl>   <dbl> <dbl> <dbl>
-#> 1 x        -0.00572  2.79 -0.0174 -1.94  2.00
-#> 2 y         0.0302   2.80  0.0165 -1.91  2.04
-#> 3 z        -0.00378  2.82  0.0192 -1.96  1.97
+#>   variable     mean    sd   median   q15   q85
+#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0272   2.81  0.00462 -2.00  1.89
+#> 2 y        -0.00648  2.82 -0.00202 -1.93  1.97
+#> 3 z         0.0146   2.79  0.00262 -1.93  1.99
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6803
-#> * Original parameters: 0.0097, -0.0096, and -0.0231
+#> * Log-likelihood: -2.6828
+#> * Original parameters: 0.0262, -0.0678, and -0.0166
 run_sm$posterior
 #> # A tibble: 3 × 6
-#>   variable     mean    sd  median   q15   q85
-#>   <chr>       <dbl> <dbl>   <dbl> <dbl> <dbl>
-#> 1 x        -0.00572  2.79 -0.0174 -1.94  2.00
-#> 2 y         0.0302   2.80  0.0165 -1.91  2.04
-#> 3 z        -0.00378  2.82  0.0192 -1.96  1.97
+#>   variable     mean    sd   median   q15   q85
+#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0272   2.81  0.00462 -2.00  1.89
+#> 2 y        -0.00648  2.82 -0.00202 -1.93  1.97
+#> 3 z         0.0146   2.79  0.00262 -1.93  1.99
 ```

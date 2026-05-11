@@ -34,7 +34,7 @@ update_lrps(x, unit = NULL, log_volume = NA, ...)
 
 - unit:
 
-  `[matrix(double(), integer(), x$n_dim)]`  
+  `[matrix(double(), integer(), x$nvar)]`  
   The current live set stored within the run. Optional; if NULL no LRPS
   updates based on the state of the live set will be made.
 

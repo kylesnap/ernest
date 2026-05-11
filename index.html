@@ -76,7 +76,7 @@
 <div class="section level2">
 <h2 id="why-use-ernest">Why use ernest?<a class="anchor" aria-label="anchor" href="#why-use-ernest"></a>
 </h2>
-<p>Often, statisticians are faced with multiple competing models that intend to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called <a href="https://en.wikipedia.org/wiki/Marginal_likelihood" class="external-link">marginal likelihood</a>), found by integrating a model’s likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using <a href="https://en.wikipedia.org/wiki/Bayes_factor" class="external-link">Bayes factors</a>, plays an important role in Bayesian inference.</p>
+<p>Often, statisticians are faced with multiple competing models designed to describe or estimate a given data set. One way to compare these models against each other is by evaluating model evidence (also called <a href="https://en.wikipedia.org/wiki/Marginal_likelihood" class="external-link">marginal likelihood</a>), found by integrating a model’s likelihood function across all possible values of its parameters. In Bayesian inference, evidence represents the parameter-independent probability of the data occurring under a given model—calculating and comparing evidence values across different models, such as through using <a href="https://en.wikipedia.org/wiki/Bayes_factor" class="external-link">Bayes factors</a>, plays an important role in Bayesian inference.</p>
 <p>Calculating evidence directly is challenging, as it requires evaluating a high-dimensional integral over the parameter space. Nested sampling estimates this integral by dividing the space into a series of small volumes. It starts by drawing points from the prior and ranking them by likelihood. The least likely points are discarded and replaced with new samples from more restricted likelihood regions, gradually compressing the search space. Each round of discarding shrinks the explored volume in a predictable way, helping to approximate the integral.</p>
 <p>This approach to estimating evidence offers several advantages over methods like Markov chain Monte Carlo (MCMC):</p>
 <ul>
@@ -98,7 +98,7 @@
 <li>
 <strong>Familiar methods</strong>: Sampler specifications and results are stored in S3 objects. Start or continue an NS run with <code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code>, review results with <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, and simulate estimation error with <code><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate()</a></code>.</li>
 <li>
-<strong>Powerful visualizations</strong>: Plot evidence estimates and analyse posterior distributions using <a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a> and <a href="https://mc-stan.org/posterior/" class="external-link">posterior</a>.</li>
+<strong>Powerful visualizations</strong>: Plot evidence estimates and analyze posterior distributions using <a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a> and <a href="https://mc-stan.org/posterior/" class="external-link">posterior</a>.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -112,11 +112,11 @@
 <span></span>
 <span><span class="co"># Define a log-likelihood function (multivariate normal)</span></span>
 <span><span class="va">log_lik_mvn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">theta</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">n_dim</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
+<span>  <span class="va">nvariables</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
 <span>  <span class="va">sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">0.95</span>, nrow <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="co"># Covariance matrix</span></span>
 <span>  <span class="va">det_sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">det</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">prec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span> <span class="co"># Precision matrix (Sigma^-1)</span></span>
-<span>  <span class="va">log_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">n_dim</span> <span class="op">+</span> <span class="va">det_sigma</span><span class="op">)</span> <span class="co"># Normalization for MVG</span></span>
+<span>  <span class="va">log_norm</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">*</span> <span class="va">nvariables</span> <span class="op">+</span> <span class="va">det_sigma</span><span class="op">)</span> <span class="co"># Normalization</span></span>
 <span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">theta</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">prec</span>, <span class="va">theta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">log_norm</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -134,20 +134,20 @@
 <span><span class="co">#&gt; Summary of nested sampling run:</span></span>
 <span><span class="co">#&gt; ── Run Information ─────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; * No. points: 500</span></span>
-<span><span class="co">#&gt; * Iterations: 4633</span></span>
-<span><span class="co">#&gt; * Likelihood evals.: 101352</span></span>
-<span><span class="co">#&gt; * Log-evidence: -8.9259 (± 0.1137)</span></span>
-<span><span class="co">#&gt; * Information: 4.732</span></span>
+<span><span class="co">#&gt; * Iterations: 4725</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 103301</span></span>
+<span><span class="co">#&gt; * Log-evidence: -9.109 (± 0.1156)</span></span>
+<span><span class="co">#&gt; * Information: 4.895</span></span>
 <span><span class="co">#&gt; ── Posterior Summary ───────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; # A tibble: 3 × 6</span></span>
-<span><span class="co">#&gt;   variable      mean    sd   median   q15   q85</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 x        -0.0472    2.80  0.00714 -2.03  1.85</span></span>
-<span><span class="co">#&gt; 2 y        -0.000385  2.81 -0.00925 -1.89  1.87</span></span>
-<span><span class="co">#&gt; 3 z        -0.111     2.75 -0.0345  -2.01  1.78</span></span>
+<span><span class="co">#&gt;   variable    mean    sd   median   q15   q85</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 x         0.0323  2.83  0.0372  -1.90  2.00</span></span>
+<span><span class="co">#&gt; 2 y        -0.0197  2.82 -0.00308 -2.00  1.93</span></span>
+<span><span class="co">#&gt; 3 z         0.0182  2.75 -0.00572 -1.91  1.98</span></span>
 <span><span class="co">#&gt; ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; * Log-likelihood: -2.6811</span></span>
-<span><span class="co">#&gt; * Original parameters: -0.0116, -0.0448, and -0.0105</span></span>
+<span><span class="co">#&gt; * Log-likelihood: -2.6813</span></span>
+<span><span class="co">#&gt; * Original parameters: 0.0332, 0.0348, and 0.0175</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span>, which <span class="op">=</span> <span class="st">"evidence"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-2-1.png" width="100%"></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -214,6 +214,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Kyle Dewsnap <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2132-8083" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 

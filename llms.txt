@@ -13,6 +13,7 @@ Install the development version of ernest from
 [GitHub](https://github.com/kylesnap/ernest) with:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("kylesnap/ernest")
 ```
@@ -27,10 +28,10 @@ You’ll also need a working C++ compiler. To get it:
 
 ## Why use ernest?
 
-Often, statisticians are faced with multiple competing models that
-intend to describe or estimate a given data set. One way to compare
-these models against each other is by evaluating model evidence (also
-called [marginal
+Often, statisticians are faced with multiple competing models designed
+to describe or estimate a given data set. One way to compare these
+models against each other is by evaluating model evidence (also called
+[marginal
 likelihood](https://en.wikipedia.org/wiki/Marginal_likelihood)), found
 by integrating a model’s likelihood function across all possible values
 of its parameters. In Bayesian inference, evidence represents the
@@ -80,13 +81,14 @@ ernest’s implementation of NS offers R users several benefits:
   [`summary()`](https://rdrr.io/r/base/summary.html), and simulate
   estimation error with
   [`calculate()`](https://generics.r-lib.org/reference/calculate.html).
-- **Powerful visualizations**: Plot evidence estimates and analyse
+- **Powerful visualizations**: Plot evidence estimates and analyze
   posterior distributions using [ggplot2](https://ggplot2.tidyverse.org)
   and [posterior](https://mc-stan.org/posterior/).
 
 ## Example
 
 ``` r
+
 library(ernest)
 
 # Define a prior (i.i.d. multivariate uniform)
@@ -94,11 +96,11 @@ prior <- create_uniform_prior(names = c("x", "y", "z"), lower = -10, upper = 10)
 
 # Define a log-likelihood function (multivariate normal)
 log_lik_mvn <- function(theta) {
-  n_dim <- 3
+  nvariables <- 3
   sigma <- diag(0.95, nrow = 3) # Covariance matrix
   det_sigma <- log(det(sigma))
   prec <- solve(sigma) # Precision matrix (Sigma^-1)
-  log_norm <- -0.5 * (log(2 * pi) * n_dim + det_sigma) # Normalization for MVG
+  log_norm <- -0.5 * (log(2 * pi) * nvariables + det_sigma) # Normalization
 
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }
@@ -116,26 +118,27 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4633
-#> * Likelihood evals.: 101352
-#> * Log-evidence: -8.9259 (± 0.1137)
-#> * Information: 4.732
+#> * Iterations: 4725
+#> * Likelihood evals.: 103301
+#> * Log-evidence: -9.109 (± 0.1156)
+#> * Information: 4.895
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable      mean    sd   median   q15   q85
-#>   <chr>        <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x        -0.0472    2.80  0.00714 -2.03  1.85
-#> 2 y        -0.000385  2.81 -0.00925 -1.89  1.87
-#> 3 z        -0.111     2.75 -0.0345  -2.01  1.78
+#>   variable    mean    sd   median   q15   q85
+#>   <chr>      <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x         0.0323  2.83  0.0372  -1.90  2.00
+#> 2 y        -0.0197  2.82 -0.00308 -2.00  1.93
+#> 3 z         0.0182  2.75 -0.00572 -1.91  1.98
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6811
-#> * Original parameters: -0.0116, -0.0448, and -0.0105
+#> * Log-likelihood: -2.6813
+#> * Original parameters: 0.0332, 0.0348, and 0.0175
 plot(run, which = "evidence")
 ```
 
 ![](reference/figures/README-unnamed-chunk-2-1.png)
 
 ``` r
+
 visualize(run, x, .which = "trace")
 ```
 
@@ -192,8 +195,8 @@ and within function documentation.
 ## All functions
 
 - [`as_draws(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.md)
-  [`as_draws_matrix(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.md)
   [`as_draws_rvars(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.md)
+  [`as_draws_matrix(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.md)
   :
 
   Transform nested sampling runs to `draws` objects
@@ -201,8 +204,8 @@ and within function documentation.
 - [`calculate(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/calculate.ernest_run.md)
   : Estimate Evidence using a Nested Sampling Run
 
-- [`compile(`*`<ernest_sampler>`*`)`](https://kylesnap.github.io/ernest/reference/compile.ernest_run.md)
-  [`compile(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/compile.ernest_run.md)
+- [`compile(`*`<ernest_sampler>`*`)`](https://kylesnap.github.io/ernest/reference/compile-ernest.md)
+  [`compile(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/compile-ernest.md)
   : Compile the live set of points for nested sampling
 
 - [`create_likelihood()`](https://kylesnap.github.io/ernest/reference/create_likelihood.md)
@@ -218,16 +221,17 @@ and within function documentation.
 - [`example_run`](https://kylesnap.github.io/ernest/reference/example_run.md)
   : Example Nested Sampling Run with Ernest
 
-- [`generate(`*`<ernest_sampler>`*`)`](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)
-  [`generate(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)
+- [`generate(`*`<ernest_sampler>`*`)`](https://kylesnap.github.io/ernest/reference/generate-ernest.md)
+  [`generate(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/generate-ernest.md)
   : Run nested sampling to estimate Bayesian evidence
 
 - [`multi_ellipsoid()`](https://kylesnap.github.io/ernest/reference/multi_ellipsoid.md)
   : Generate new points from multiple spanning ellipsoids
 
-- [`plot(`*`<ernest_estimate>`*`)`](https://kylesnap.github.io/ernest/reference/plot.ernest_run.md)
-  [`plot(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/plot.ernest_run.md)
-  : Plot diagnostics for a nested sampling run
+- [`plot(`*`<ernest_estimate>`*`)`](https://kylesnap.github.io/ernest/reference/plot-ernest.md)
+  [`plot(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/plot-ernest.md)
+  [`summary(`*`<ernest_estimate>`*`)`](https://kylesnap.github.io/ernest/reference/plot-ernest.md)
+  : Plot diagnostics from nested sampling results
 
 - [`rwmh_cube()`](https://kylesnap.github.io/ernest/reference/rwmh_cube.md)
   : Generate new points with a random walk
@@ -251,6 +255,9 @@ and within function documentation.
 - [`visualize(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/visualize.ernest_run.md)
   : Visualize posterior distributions or traces from a nested sampling
   run
+
+- [`weights(`*`<ernest_run>`*`)`](https://kylesnap.github.io/ernest/reference/weights.ernest_run.md)
+  : Extract the posterior sample weights from a nested sampling run
 
 # Articles
 

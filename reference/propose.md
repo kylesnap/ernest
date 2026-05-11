@@ -34,7 +34,7 @@ propose(x, original = NULL, criterion = -Inf)
 
 - original:
 
-  `[double(x$n_dim)]`  
+  `[double(x$nvar)]`  
   A parameter vector which can be used to start the proposal process.
   Optional; if `NULL` proposals are generated from sampling the
   unconstrained [unit
@@ -50,7 +50,7 @@ propose(x, original = NULL, criterion = -Inf)
 
 `[list]`, containing at least these named elements:
 
-- `unit`: `[double(x$n_dim)]` The replacement point, expressed in the
+- `unit`: `[double(x$nvar)]` The replacement point, expressed in the
   unit-cube.
 
 - `log_lik`: `[double(1)]` The log-likelihood value at `unit`.

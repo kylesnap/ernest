@@ -9,17 +9,18 @@
 <url><loc>https://kylesnap.github.io/ernest/index.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/as_draws.ernest_run.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/calculate.ernest_run.html</loc></url>
-<url><loc>https://kylesnap.github.io/ernest/reference/compile.ernest_run.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/compile-ernest.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/create_likelihood.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/create_prior.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/ernest-package.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/ernest_rcrd.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/ernest_sampler.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/example_run.html</loc></url>
-<url><loc>https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/generate-ernest.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/index.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/multi_ellipsoid.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/new_ernest_lrps.html</loc></url>
-<url><loc>https://kylesnap.github.io/ernest/reference/plot.ernest_run.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/plot-ernest.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/propose.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/reexports.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/rwmh_cube.html</loc></url>
@@ -30,5 +31,6 @@
 <url><loc>https://kylesnap.github.io/ernest/reference/unif_ellipsoid.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/update_lrps.html</loc></url>
 <url><loc>https://kylesnap.github.io/ernest/reference/visualize.ernest_run.html</loc></url>
+<url><loc>https://kylesnap.github.io/ernest/reference/weights.ernest_run.html</loc></url>
 </urlset>
 

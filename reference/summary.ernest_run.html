@@ -55,7 +55,7 @@ statistics and a description of the posterior distribution.</p>
 
 
 <dl><dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
-<dd><p>[<a href="generate.ernest_sampler.html">ernest_run</a>]<br> Results from a nested sampling run.</p></dd>
+<dd><p>[<a href="generate-ernest.html">ernest_run</a>]<br> Results from a nested sampling run.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -64,10 +64,10 @@ statistics and a description of the posterior distribution.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>[summary.ernest_run]</code>
-A named list, containing:</p><ul><li><p><code>nlive</code>: <code>[integer(1)]</code> Number of points in the live set.</p></li>
-<li><p><code>niter</code>: <code>[integer(1)]</code> Number of iterations.</p></li>
-<li><p><code>neval</code>: <code>[integer(1)]</code> Number of likelihood evaluations.</p></li>
+    <p>A named list, containing:</p><ul><li><p><code>nlive</code>: <code>[integer(1)]</code> Number of points in the live set.</p></li>
+<li><p><code>niter</code>: <code>[integer(1)]</code> Number of iterations performed.</p></li>
+<li><p><code>neval</code>: <code>[integer(1)]</code> Number of times the likelihood function was
+evaluated.</p></li>
 <li><p><code>log_evidence</code>: <code>[numeric(1)]</code> Log-evidence estimate.</p></li>
 <li><p><code>log_evidence_err</code>: <code>[numeric(1)]</code> Standard error of log-evidence.</p></li>
 <li><p><code>information</code>: <code>[numeric(1)]</code> Estimated Kullback-Leibler divergence between
@@ -76,19 +76,16 @@ the prior and posterior.</p></li>
 resampled by normalized weights.</p></li>
 <li><p><code>mle</code>: <code>[list]</code> Maximum likelihood estimate extracted during the run,
 stored in a list with the elements:</p><ul><li><p><code>log_lik</code>: <code>[double(1)]</code> The maximum log-likelihood value.</p></li>
-<li><p><code>original</code>, <code>unit_cube</code>: <code>[double(n_dim)]</code> The parameter values at the
+<li><p><code>original</code>, <code>unit_cube</code>: <code>[double(nvar)]</code> The parameter values at the
 MLE, expressed in the original parameter space and within the unit cube.</p></li>
 </ul></li>
-<li><p><code>posterior</code>: [tibble] with columns for the posterior mean, sd, median,
-and the 15th and 85th percentiles for each parameter.</p></li>
+<li><p><code>posterior</code>: [<a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a>] with columns for the posterior mean, sd,
+median, and the 15th and 85th percentiles for each parameter.</p></li>
 <li><p><code>seed</code>: The RNG seed used.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index">
-<ul><li><p><code><a href="https://generics.r-lib.org/reference/generate.html" class="external-link">generate()</a></code> for details on the <code>ernest_run</code> object.</p></li>
-<li><p><code><a href="https://mc-stan.org/posterior/reference/draws.html" class="external-link">as_draws()</a></code> for details on how posterior samples are extracted.</p></li>
-</ul></div>
+    <div class="dont-index"><p><code><a href="generate-ernest.html">generate.ernest_run()</a></code> <code><a href="as_draws.ernest_run.html">as_draws.ernest_run()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -99,28 +96,28 @@ and the 15th and 85th percentiles for each parameter.</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Summary of nested sampling run:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ── Run Information ─────────────────────────────────────────────────────────────</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> * No. points: 1000</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Iterations: 9456</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Likelihood evals.: 207001</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-evidence: -9.1176 (± 0.0833)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Information: 4.930</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Iterations: 9359</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Likelihood evals.: 204831</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-evidence: -9.024 (± 0.0825)</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Information: 4.827</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> * RNG seed: 42</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ── Posterior Summary ───────────────────────────────────────────────────────────</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   variable     mean    sd  median   q15   q85</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> x        -<span style="color: #BB0000;">0.005</span><span style="color: #BB0000; text-decoration: underline;">72</span>  2.79 -<span style="color: #BB0000;">0.017</span><span style="color: #BB0000; text-decoration: underline;">4</span> -<span style="color: #BB0000;">1.94</span>  2.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> y         0.030<span style="text-decoration: underline;">2</span>   2.80  0.016<span style="text-decoration: underline;">5</span> -<span style="color: #BB0000;">1.91</span>  2.04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> z        -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">78</span>  2.82  0.019<span style="text-decoration: underline;">2</span> -<span style="color: #BB0000;">1.96</span>  1.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable     mean    sd   median   q15   q85</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> x        -<span style="color: #BB0000;">0.027</span><span style="color: #BB0000; text-decoration: underline;">2</span>   2.81  0.004<span style="text-decoration: underline;">62</span> -<span style="color: #BB0000;">2.00</span>  1.89</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> y        -<span style="color: #BB0000;">0.006</span><span style="color: #BB0000; text-decoration: underline;">48</span>  2.82 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">02</span> -<span style="color: #BB0000;">1.93</span>  1.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> z         0.014<span style="text-decoration: underline;">6</span>   2.79  0.002<span style="text-decoration: underline;">62</span> -<span style="color: #BB0000;">1.93</span>  1.99</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-likelihood: -2.6803</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> * Original parameters: 0.0097, -0.0096, and -0.0231</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Log-likelihood: -2.6828</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> * Original parameters: 0.0262, -0.0678, and -0.0166</span>
 <span class="r-in"><span><span class="va">run_sm</span><span class="op">$</span><span class="va">posterior</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   variable     mean    sd  median   q15   q85</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> x        -<span style="color: #BB0000;">0.005</span><span style="color: #BB0000; text-decoration: underline;">72</span>  2.79 -<span style="color: #BB0000;">0.017</span><span style="color: #BB0000; text-decoration: underline;">4</span> -<span style="color: #BB0000;">1.94</span>  2.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> y         0.030<span style="text-decoration: underline;">2</span>   2.80  0.016<span style="text-decoration: underline;">5</span> -<span style="color: #BB0000;">1.91</span>  2.04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> z        -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">78</span>  2.82  0.019<span style="text-decoration: underline;">2</span> -<span style="color: #BB0000;">1.96</span>  1.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable     mean    sd   median   q15   q85</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> x        -<span style="color: #BB0000;">0.027</span><span style="color: #BB0000; text-decoration: underline;">2</span>   2.81  0.004<span style="text-decoration: underline;">62</span> -<span style="color: #BB0000;">2.00</span>  1.89</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> y        -<span style="color: #BB0000;">0.006</span><span style="color: #BB0000; text-decoration: underline;">48</span>  2.82 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">02</span> -<span style="color: #BB0000;">1.93</span>  1.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> z         0.014<span style="text-decoration: underline;">6</span>   2.79  0.002<span style="text-decoration: underline;">62</span> -<span style="color: #BB0000;">1.93</span>  1.99</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

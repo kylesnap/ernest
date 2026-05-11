@@ -1,10 +1,10 @@
-pandoc: 3.1.11
+pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   more-ernest-runs: more-ernest-runs.html
   nested-sampling-with-ernest: nested-sampling-with-ernest.html
-last_built: 2026-02-23T19:24Z
+last_built: 2026-05-11T19:04Z
 urls:
   reference: https://kylesnap.github.io/ernest/reference
   article: https://kylesnap.github.io/ernest/articles

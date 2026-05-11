@@ -11,8 +11,7 @@ visualize(
   x,
   ...,
   .which = c("density", "trace"),
-  .units = c("original", "unit_cube"),
-  .radial = FALSE
+  .units = c("original", "unit_cube")
 )
 ```
 
@@ -20,7 +19,7 @@ visualize(
 
 - x:
 
-  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate.ernest_sampler.md)\]
+  \[[ernest_run](https://kylesnap.github.io/ernest/reference/generate-ernest.md)\]
   The results of a nested sampling run.
 
 - ...:
@@ -43,12 +42,6 @@ visualize(
   - `"original"`: Points are on the scale of the prior space.
 
   - `"unit_cube"`: Points are on the (0, 1) unit hypercube scale.
-
-- .radial:
-
-  `[logical(1)]`  
-  If `TRUE`, returns an additional column `.radial` containing the
-  radial coordinate (i.e., the Euclidean norm) for each sampled point.
 
 ## Value
 
@@ -80,16 +73,17 @@ ernest's vignettes for more information.
 
 ## Note
 
-This package requires the tidyselect package to be installed. If
-`which = "trace"` is selected, the ggdist package is also required.
+This function requires
+[tidyselect](https://CRAN.R-project.org/package=tidyselect). If
+`which = "trace"` is selected,
+[ggdist](https://CRAN.R-project.org/package=ggdist) is also required.
 
 ## See also
 
-- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) for
-  diagnostic plots of nested sampling runs.
+[`as_draws_rvars()`](https://mc-stan.org/posterior/reference/draws_rvars.html)
 
-- [`as_draws_rvars()`](https://mc-stan.org/posterior/reference/draws_rvars.html)
-  for extracting posterior samples.
+Other visualizations:
+[`plot.ernest_estimate()`](https://kylesnap.github.io/ernest/reference/plot-ernest.md)
 
 ## Examples
 
@@ -100,13 +94,4 @@ data(example_run)
 
 # Plot posterior densities for all parameters
 visualize(example_run, .which = "density")
-
-
-# Plot trace of the radial coordinate in unit-cube scale
-visualize(
-  example_run,
-  .which = "trace",
-  .units = "unit_cube",
-  .radial = TRUE
-)
 ```

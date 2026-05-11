@@ -76,7 +76,7 @@ from <code>ernest_lrps</code>.</p>
 
 
 <dt id="arg-original">original<a class="anchor" aria-label="anchor" href="#arg-original"></a></dt>
-<dd><p><code>[double(x$n_dim)]</code><br> A parameter vector which can be used
+<dd><p><code>[double(x$nvar)]</code><br> A parameter vector which can be used
 to start the proposal process. Optional; if <code>NULL</code> proposals are generated
 from sampling the unconstrained <a href="unif_cube.html">unit cube</a>.</p></dd>
 
@@ -88,7 +88,7 @@ the region of prior space to sample from.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>[list]</code>, containing at least these named elements:</p><ul><li><p><code>unit</code>: <code>[double(x$n_dim)]</code> The replacement point, expressed in the
+    <p><code>[list]</code>, containing at least these named elements:</p><ul><li><p><code>unit</code>: <code>[double(x$nvar)]</code> The replacement point, expressed in the
 unit-cube.</p></li>
 <li><p><code>log_lik</code>: <code>[double(1)]</code> The log-likelihood value at <code>unit</code>.</p></li>
 <li><p><code>neval</code>: <code>[integer(1)]</code> The number of evaluations of <code>unit_log_fn</code> needed

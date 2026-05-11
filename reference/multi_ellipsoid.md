@@ -75,6 +75,9 @@ Other ernest_lrps:
 ``` r
 data(example_run)
 lrps <- multi_ellipsoid(enlarge = 1.25)
+#> Warning: RGL: unable to open X11 display
+#> Warning: 'rgl.init' failed, will use the null device.
+#> See '?rgl.useNULL' for ways to avoid this warning.
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #> Nested sampling run specification:

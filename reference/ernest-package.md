@@ -16,3 +16,14 @@ Useful links:
 
 **Maintainer**: Kyle Dewsnap <kyle.dewsnap@ubc.ca>
 ([ORCID](https://orcid.org/0000-0003-2132-8083))
+
+Authors:
+
+- Kyle Dewsnap <kyle.dewsnap@ubc.ca>
+  ([ORCID](https://orcid.org/0000-0003-2132-8083))
+
+Other contributors:
+
+- TJ Mahr \[contributor\]
+
+- Robert Kubinec \[contributor\]

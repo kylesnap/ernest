@@ -11,9 +11,10 @@ Description: Bayesian evidence estimation and posterior inference with the
     nested sampling algorithm, along with S3 methods for simulating
     uncertainty and creating visualisations.
 License: GPL (>= 3)
-URL: https://kylesnap.github.io/ernest/
+URL: https://github.com/kylesnap/ernest,
+    https://kylesnap.github.io/ernest/
 BugReports: https://github.com/kylesnap/ernest/issues/
-Depends: 
+Depends:
     R (>= 3.5)
 Imports:
     cli,
@@ -45,6 +46,7 @@ LinkingTo:
     testthat
 VignetteBuilder: 
     knitr
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/testthat/start-first: nested_sampling_impl, plot
@@ -52,4 +54,3 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE, roclets = c ("namespace", "rd",
     "srr::srr_stats_roclet"))
-Config/roxygen2/version: 8.0.0

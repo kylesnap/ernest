@@ -11,6 +11,7 @@ Bayesian evidence estimation and posterior inference with the nested sampling al
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://github.com/kylesnap/ernest}
   \item \url{https://kylesnap.github.io/ernest/}
   \item Report bugs at \url{https://github.com/kylesnap/ernest/issues/}
 }

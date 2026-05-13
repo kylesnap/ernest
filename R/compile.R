@@ -110,12 +110,8 @@ new_live_set <- function(lrps, nlive, call = caller_env()) {
         ncol = lrps$nvar
       )
       log_lik <- lrps$unit_log_fn(unit)
-      order_logl <- order(log_lik)
-      vctrs::df_list(
-        "unit" = unit[order_logl, , drop = FALSE],
-        "log_lik" = log_lik[order_logl],
-        "birth_lik" = -Inf
-      )
+      #order_logl <- order(log_lik)
+      vctrs::df_list("unit" = unit, "log_lik" = log_lik, "birth_lik" = -Inf)
     },
     error = function(cnd) {
       cli::cli_abort(

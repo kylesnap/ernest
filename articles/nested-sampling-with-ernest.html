@@ -517,8 +517,8 @@ sampling iterations by setting <code>max_iterations</code>:</p>
 <span><span class="co">#&gt; ── Results ─────────────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; * Iterations: 1000</span></span>
 <span><span class="co">#&gt; * Likelihood evals.: 16401</span></span>
-<span><span class="co">#&gt; * Log-evidence: -983.8285 (± 23.0942)</span></span>
-<span><span class="co">#&gt; * Information: 533.3</span></span></code></pre></div>
+<span><span class="co">#&gt; * Log-evidence: -1614.9184 (± 27.7466)</span></span>
+<span><span class="co">#&gt; * Information: 802.4</span></span></code></pre></div>
 <p><code>generate</code> produces an <code>ernest_run</code> object,
 which inherits from <code>ernest_sampler</code> and contains data
 describing the run. It is not recommended to overwrite values within
@@ -633,10 +633,10 @@ We can call <code>generate</code> on the earlier-produced
 <span><span class="co">#&gt; * Prior: normal prior distribution with 5 dimensions (Intercept, zAge, zBase,</span></span>
 <span><span class="co">#&gt; Trt1, and zBase:Trt1)</span></span>
 <span><span class="co">#&gt; ── Results ─────────────────────────────────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; * Iterations: 7977</span></span>
-<span><span class="co">#&gt; * Likelihood evals.: 190826</span></span>
-<span><span class="co">#&gt; * Log-evidence: -883.6069 (± 0.3218)</span></span>
-<span><span class="co">#&gt; * Information: 21.31</span></span></code></pre></div>
+<span><span class="co">#&gt; * Iterations: 7872</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 188201</span></span>
+<span><span class="co">#&gt; * Log-evidence: -883.1998 (± 0.3181)</span></span>
+<span><span class="co">#&gt; * Information: 20.86</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="uncertainty">Uncertainty<a class="anchor" aria-label="anchor" href="#uncertainty"></a>
@@ -675,23 +675,23 @@ log weights at each iteration changed across the run by using the
 <span><span class="co">#&gt; Summary of nested sampling run:</span></span>
 <span><span class="co">#&gt; ── Run Information ─────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; * No. points: 300</span></span>
-<span><span class="co">#&gt; * Iterations: 7977</span></span>
-<span><span class="co">#&gt; * Likelihood evals.: 190826</span></span>
-<span><span class="co">#&gt; * Log-evidence: -883.6069 (± 0.3218)</span></span>
-<span><span class="co">#&gt; * Information: 21.31</span></span>
+<span><span class="co">#&gt; * Iterations: 7872</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 188201</span></span>
+<span><span class="co">#&gt; * Log-evidence: -883.1998 (± 0.3181)</span></span>
+<span><span class="co">#&gt; * Information: 20.86</span></span>
 <span><span class="co">#&gt; * RNG seed: 42</span></span>
 <span><span class="co">#&gt; ── Posterior Summary ───────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 6</span></span></span>
 <span><span class="co">#&gt;   variable      mean    sd  median    q15   q85</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Intercept   1.39   1.23   1.89    0.539 2.01 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> zAge        0.101  0.832  0.149  -<span style="color: #BB0000;">0.178</span> 0.399</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> zBase       0.445  0.842  0.570   0.207 0.779</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Trt1       -<span style="color: #BB0000;">0.157</span>  1.06  -<span style="color: #BB0000;">0.180</span>  -<span style="color: #BB0000;">0.647</span> 0.406</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> zBase:Trt1  0.015<span style="text-decoration: underline;">3</span> 0.870  0.046<span style="text-decoration: underline;">3</span> -<span style="color: #BB0000;">0.293</span> 0.343</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Intercept   1.41   1.22   1.89    0.623 2.01 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> zAge        0.112  0.841  0.151  -<span style="color: #BB0000;">0.155</span> 0.416</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> zBase       0.445  0.832  0.567   0.195 0.768</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Trt1       -<span style="color: #BB0000;">0.184</span>  1.05  -<span style="color: #BB0000;">0.185</span>  -<span style="color: #BB0000;">0.641</span> 0.363</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> zBase:Trt1  0.025<span style="text-decoration: underline;">4</span> 0.856  0.048<span style="text-decoration: underline;">0</span> -<span style="color: #BB0000;">0.263</span> 0.369</span></span>
 <span><span class="co">#&gt; ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; * Log-likelihood: -860.034</span></span>
-<span><span class="co">#&gt; * Original parameters: 1.9441, 0.1469, 0.5751, -0.2006, and 0.0442</span></span>
+<span><span class="co">#&gt; * Log-likelihood: -859.9751</span></span>
+<span><span class="co">#&gt; * Original parameters: 1.9353, 0.1466, 0.5699, -0.196, and 0.05</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">run</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weight"</span>, <span class="st">"likelihood"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>
 <p>Additionally, since the shrinkage in
@@ -704,20 +704,20 @@ to create a bootstrapped statistic. In ernest, we can do this using
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sim_run</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">run</span>, ndraws <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="va">sim_run</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8,277 × 4</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8,172 × 4</span></span></span>
 <span><span class="co">#&gt;     log_lik        log_volume       log_weight     log_evidence</span></span>
 <span><span class="co">#&gt;       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rvar[1d]&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> -<span style="color: #BB0000;">1.36</span><span style="color: #949494;">e</span>21  -0.0034 <span style="color: #949494;">± 0.0033</span>  -1.4e+21 <span style="color: #949494;">± 0.00</span>  -1.4e+21 <span style="color: #949494;">± 0.00</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> -<span style="color: #BB0000;">3.67</span><span style="color: #949494;">e</span>17  -0.0067 <span style="color: #949494;">± 0.0047</span>  -3.7e+17 <span style="color: #949494;">± 0.00</span>  -3.7e+17 <span style="color: #949494;">± 0.00</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> -<span style="color: #BB0000;">2.49</span><span style="color: #949494;">e</span>16  -0.0102 <span style="color: #949494;">± 0.0056</span>  -2.5e+16 <span style="color: #949494;">± 2.63</span>  -2.5e+16 <span style="color: #949494;">± 2.63</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> -<span style="color: #BB0000;">2.62</span><span style="color: #949494;">e</span>15  -0.0136 <span style="color: #949494;">± 0.0065</span>  -2.6e+15 <span style="color: #949494;">± 0.79</span>  -2.6e+15 <span style="color: #949494;">± 0.79</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> -<span style="color: #BB0000;">7.60</span><span style="color: #949494;">e</span>13  -0.0169 <span style="color: #949494;">± 0.0073</span>  -7.6e+13 <span style="color: #949494;">± 0.81</span>  -7.6e+13 <span style="color: #949494;">± 0.81</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> -<span style="color: #BB0000;">5.04</span><span style="color: #949494;">e</span>13  -0.0202 <span style="color: #949494;">± 0.0079</span>  -5.0e+13 <span style="color: #949494;">± 0.77</span>  -5.0e+13 <span style="color: #949494;">± 0.77</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> -<span style="color: #BB0000;">4.45</span><span style="color: #949494;">e</span>13  -0.0238 <span style="color: #949494;">± 0.0087</span>  -4.5e+13 <span style="color: #949494;">± 0.80</span>  -4.5e+13 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> -<span style="color: #BB0000;">1.73</span><span style="color: #949494;">e</span>13  -0.0273 <span style="color: #949494;">± 0.0095</span>  -1.7e+13 <span style="color: #949494;">± 0.80</span>  -1.7e+13 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> -<span style="color: #BB0000;">1.49</span><span style="color: #949494;">e</span>13  -0.0306 <span style="color: #949494;">± 0.0100</span>  -1.5e+13 <span style="color: #949494;">± 0.81</span>  -1.5e+13 <span style="color: #949494;">± 0.81</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> -<span style="color: #BB0000;">2.48</span><span style="color: #949494;">e</span>12  -0.0338 <span style="color: #949494;">± 0.0104</span>  -2.5e+12 <span style="color: #949494;">± 0.80</span>  -2.5e+12 <span style="color: #949494;">± 0.80</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 8,267 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> -<span style="color: #BB0000;">1.36</span><span style="color: #949494;">e</span>21  -0.0034 <span style="color: #949494;">± 0.0034</span>  -1.4e+21 <span style="color: #949494;">± 0.00</span>  -1.4e+21 <span style="color: #949494;">± 0.00</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> -<span style="color: #BB0000;">3.67</span><span style="color: #949494;">e</span>17  -0.0069 <span style="color: #949494;">± 0.0048</span>  -3.7e+17 <span style="color: #949494;">± 0.00</span>  -3.7e+17 <span style="color: #949494;">± 0.00</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> -<span style="color: #BB0000;">2.49</span><span style="color: #949494;">e</span>16  -0.0101 <span style="color: #949494;">± 0.0060</span>  -2.5e+16 <span style="color: #949494;">± 2.73</span>  -2.5e+16 <span style="color: #949494;">± 2.73</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> -<span style="color: #BB0000;">2.62</span><span style="color: #949494;">e</span>15  -0.0134 <span style="color: #949494;">± 0.0066</span>  -2.6e+15 <span style="color: #949494;">± 0.84</span>  -2.6e+15 <span style="color: #949494;">± 0.84</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> -<span style="color: #BB0000;">7.60</span><span style="color: #949494;">e</span>13  -0.0167 <span style="color: #949494;">± 0.0077</span>  -7.6e+13 <span style="color: #949494;">± 0.81</span>  -7.6e+13 <span style="color: #949494;">± 0.81</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> -<span style="color: #BB0000;">5.04</span><span style="color: #949494;">e</span>13  -0.0200 <span style="color: #949494;">± 0.0085</span>  -5.0e+13 <span style="color: #949494;">± 0.81</span>  -5.0e+13 <span style="color: #949494;">± 0.81</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> -<span style="color: #BB0000;">4.45</span><span style="color: #949494;">e</span>13  -0.0232 <span style="color: #949494;">± 0.0092</span>  -4.5e+13 <span style="color: #949494;">± 0.79</span>  -4.5e+13 <span style="color: #949494;">± 0.79</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> -<span style="color: #BB0000;">1.73</span><span style="color: #949494;">e</span>13  -0.0268 <span style="color: #949494;">± 0.0098</span>  -1.7e+13 <span style="color: #949494;">± 0.77</span>  -1.7e+13 <span style="color: #949494;">± 0.77</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> -<span style="color: #BB0000;">1.49</span><span style="color: #949494;">e</span>13  -0.0302 <span style="color: #949494;">± 0.0104</span>  -1.5e+13 <span style="color: #949494;">± 0.83</span>  -1.5e+13 <span style="color: #949494;">± 0.83</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> -<span style="color: #BB0000;">2.48</span><span style="color: #949494;">e</span>12  -0.0337 <span style="color: #949494;">± 0.0110</span>  -2.5e+12 <span style="color: #949494;">± 0.82</span>  -2.5e+12 <span style="color: #949494;">± 0.82</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 8,162 more rows</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sim_run</span>, which <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"weight"</span>, <span class="st">"likelihood"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="700"></p>
 <p>Uncertainty within
@@ -756,11 +756,11 @@ importance weights, we can summarize the posterior using the
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 10</span></span></span>
 <span><span class="co">#&gt;   variable      mean  median     sd    mad        q5     q95  rhat ess_bulk</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Intercept   1.93    1.93   0.037<span style="text-decoration: underline;">0</span> 0.035<span style="text-decoration: underline;">8</span>  1.87      2.00    1.10    <span style="text-decoration: underline;">1</span>594.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> zAge        0.149   0.148  0.025<span style="text-decoration: underline;">6</span> 0.025<span style="text-decoration: underline;">9</span>  0.108     0.192   1.10    <span style="text-decoration: underline;">1</span>294.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> zBase       0.572   0.573  0.023<span style="text-decoration: underline;">2</span> 0.023<span style="text-decoration: underline;">5</span>  0.531     0.606   1.09    <span style="text-decoration: underline;">1</span>669.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Trt1       -<span style="color: #BB0000;">0.194</span>  -<span style="color: #BB0000;">0.192</span>  0.052<span style="text-decoration: underline;">7</span> 0.053<span style="text-decoration: underline;">7</span> -<span style="color: #BB0000;">0.284</span>    -<span style="color: #BB0000;">0.109</span>   1.09    <span style="text-decoration: underline;">1</span>676.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> zBase:Trt1  0.048<span style="text-decoration: underline;">0</span>  0.048<span style="text-decoration: underline;">1</span> 0.027<span style="text-decoration: underline;">7</span> 0.027<span style="text-decoration: underline;">4</span>  0.000<span style="text-decoration: underline;">616</span>  0.094<span style="text-decoration: underline;">3</span>  1.07    <span style="text-decoration: underline;">1</span>726.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Intercept   1.93    1.93   0.036<span style="text-decoration: underline;">8</span> 0.036<span style="text-decoration: underline;">2</span>  1.87      1.99    1.09    <span style="text-decoration: underline;">1</span>629.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> zAge        0.151   0.151  0.024<span style="text-decoration: underline;">9</span> 0.025<span style="text-decoration: underline;">1</span>  0.110     0.192   1.08    <span style="text-decoration: underline;">1</span>776.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> zBase       0.572   0.572  0.024<span style="text-decoration: underline;">2</span> 0.024<span style="text-decoration: underline;">4</span>  0.532     0.613   1.12    <span style="text-decoration: underline;">1</span>670.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Trt1       -<span style="color: #BB0000;">0.193</span>  -<span style="color: #BB0000;">0.195</span>  0.054<span style="text-decoration: underline;">6</span> 0.057<span style="text-decoration: underline;">3</span> -<span style="color: #BB0000;">0.282</span>    -<span style="color: #BB0000;">0.105</span>   1.11    <span style="text-decoration: underline;">1</span>644.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> zBase:Trt1  0.048<span style="text-decoration: underline;">3</span>  0.048<span style="text-decoration: underline;">6</span> 0.029<span style="text-decoration: underline;">0</span> 0.027<span style="text-decoration: underline;">8</span> -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">692</span>  0.097<span style="text-decoration: underline;">1</span>  1.10    <span style="text-decoration: underline;">1</span>727.</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: ess_tail &lt;dbl&gt;</span></span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/visualize.html" class="external-link">visualize</a></span><span class="op">(</span><span class="va">run</span>, .which <span class="op">=</span> <span class="st">"trace"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nested-sampling-with-ernest_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="" width="700"></p>

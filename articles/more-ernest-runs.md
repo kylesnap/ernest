@@ -60,24 +60,24 @@ summary(blob_result)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 100
-#> * Iterations: 996
-#> * Likelihood evals.: 22276
-#> * Log-evidence: -6.9222 (± 0.2713)
-#> * Information: 5.974
+#> * Iterations: 967
+#> * Likelihood evals.: 21526
+#> * Log-evidence: -6.6241 (± 0.2633)
+#> * Information: 5.618
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 2 × 6
-#>   variable  mean    sd median   q15   q85
-#>   <chr>    <dbl> <dbl>  <dbl> <dbl> <dbl>
-#> 1 A        0.244  1.48  0.860 -1.09  1.20
-#> 2 B        0.262  1.44  0.879 -1.06  1.21
+#>   variable   mean    sd median   q15   q85
+#>   <chr>     <dbl> <dbl>  <dbl> <dbl> <dbl>
+#> 1 A        -0.127  1.51 -0.749 -1.15  1.18
+#> 2 B        -0.125  1.48 -0.772 -1.12  1.14
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: 0
-#> * Original parameters: -1 and -0.9994
+#> * Log-likelihood: -9e-04
+#> * Original parameters: -0.996 and -1.0013
 calculate(blob_result, ndraws = 500)$log_evidence |>
   tail(1)
 #> rvar<500>[1] mean ± sd:
-#> [1] -6.9 ± 0.25
+#> [1] -6.6 ± 0.25
 ```
 
 ## Eggbox Distribution
@@ -124,19 +124,19 @@ summary(egg_result)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4962
-#> * Likelihood evals.: 11532
-#> * Log-evidence: 236.0996 (± 0.1183)
-#> * Information: 5.896
+#> * Iterations: 5025
+#> * Likelihood evals.: 11465
+#> * Log-evidence: 235.9742 (± 0.119)
+#> * Information: 5.956
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 2 × 6
 #>   variable  mean    sd median   q15   q85
 #>   <chr>    <dbl> <dbl>  <dbl> <dbl> <dbl>
-#> 1 A        0.498 0.292  0.499 0.103 0.899
-#> 2 B        0.489 0.294  0.499 0.102 0.898
+#> 1 A        0.507 0.300  0.500 0.102 0.899
+#> 2 B        0.479 0.301  0.498 0.101 0.899
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: 243
+#> * Log-likelihood: 242.9998
 #> * Original parameters: 0.5 and 0.5
 ```
 
@@ -211,14 +211,14 @@ post
 #>   variable  `2.5%`         `50%`       `97.5%`
 #>   <chr>      <dbl>         <dbl>         <dbl>
 #> 1 mu       1.00e+8 100000000.    100000000.   
-#> 2 sigma    7.12e-2         0.110         0.201
+#> 2 sigma    7.07e-2         0.110         0.208
 ```
 
     #> # A tibble: 4 × 5
     #>   variable  `2.5%`         `50%`       `97.5%` src  
     #>   <chr>      <dbl>         <dbl>         <dbl> <chr>
     #> 1 mu       1.00e+8 100000000.    100000000.    est  
-    #> 2 sigma    7.12e-2         0.110         0.201 est  
+    #> 2 sigma    7.07e-2         0.110         0.208 est  
     #> 3 mu       1.00e+8 100000000.    100000000.    act  
     #> 4 sigma    6.99e-2         0.103         0.175 act
 

@@ -81,13 +81,13 @@ compile(sampler)
 #> * Sampling method: 25-step random walk sampling (acceptance target = 50%)
 #> * Prior: uniform prior distribution with 2 dimensions (Uniform_1 and Uniform_2)
 head(sampler$live_env$unit)
-#>            [,1]       [,2]
-#> [1,] 0.99724110 0.02244485
-#> [2,] 0.04292853 0.00141855
-#> [3,] 0.02615068 0.03162218
-#> [4,] 0.02893098 0.87858787
-#> [5,] 0.90915703 0.06435642
-#> [6,] 0.10739888 0.06532725
+#>            [,1]      [,2]
+#> [1,] 0.21405726 0.6334646
+#> [2,] 0.35994692 0.9519752
+#> [3,] 0.23487837 0.9404726
+#> [4,] 0.04619817 0.7970183
+#> [5,] 0.18004066 0.3764556
+#> [6,] 0.21099128 0.6172439
 
 # Continue a previous run
 # run <- data(example_run)

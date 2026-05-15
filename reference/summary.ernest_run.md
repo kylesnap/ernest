@@ -72,26 +72,26 @@ run_sm
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 1000
-#> * Iterations: 9359
-#> * Likelihood evals.: 204831
-#> * Log-evidence: -9.024 (± 0.0825)
-#> * Information: 4.827
+#> * Iterations: 9353
+#> * Likelihood evals.: 204731
+#> * Log-evidence: -9.0165 (± 0.0824)
+#> * Information: 4.82
 #> * RNG seed: 42
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable     mean    sd   median   q15   q85
-#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x        -0.0272   2.81  0.00462 -2.00  1.89
-#> 2 y        -0.00648  2.82 -0.00202 -1.93  1.97
-#> 3 z         0.0146   2.79  0.00262 -1.93  1.99
+#>   variable     mean    sd    median   q15   q85
+#>   <chr>       <dbl> <dbl>     <dbl> <dbl> <dbl>
+#> 1 x         0.00123  2.80 -0.00110  -1.88  1.93
+#> 2 y        -0.00750  2.83  0.000403 -1.98  1.97
+#> 3 z        -0.0158   2.80 -0.0233   -1.98  1.91
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6828
-#> * Original parameters: 0.0262, -0.0678, and -0.0166
+#> * Log-likelihood: -2.6825
+#> * Original parameters: -0.0425, 0.0561, and -0.006
 run_sm$posterior
 #> # A tibble: 3 × 6
-#>   variable     mean    sd   median   q15   q85
-#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x        -0.0272   2.81  0.00462 -2.00  1.89
-#> 2 y        -0.00648  2.82 -0.00202 -1.93  1.97
-#> 3 z         0.0146   2.79  0.00262 -1.93  1.99
+#>   variable     mean    sd    median   q15   q85
+#>   <chr>       <dbl> <dbl>     <dbl> <dbl> <dbl>
+#> 1 x         0.00123  2.80 -0.00110  -1.88  1.93
+#> 2 y        -0.00750  2.83  0.000403 -1.98  1.97
+#> 3 z        -0.0158   2.80 -0.0233   -1.98  1.91
 ```

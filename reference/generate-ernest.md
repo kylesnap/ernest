@@ -158,8 +158,8 @@ generate(sampler, max_iterations = 100)
 #> ── Results ─────────────────────────────────────────────────────────────────────
 #> * Iterations: 100
 #> * Likelihood evals.: 155
-#> * Log-evidence: -0.6118 (± 0.1252)
-#> * Information: 0.08528
+#> * Log-evidence: -0.6138 (± 0.1254)
+#> * Information: 0.08514
 
 # Use the default stopping criteria
 if (FALSE)  generate(sampler)  # \dontrun{}

@@ -115,24 +115,24 @@ results from sampling are:</p>
 <span><span class="co">#&gt; Summary of nested sampling run:</span></span>
 <span><span class="co">#&gt; ── Run Information ─────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; * No. points: 100</span></span>
-<span><span class="co">#&gt; * Iterations: 996</span></span>
-<span><span class="co">#&gt; * Likelihood evals.: 22276</span></span>
-<span><span class="co">#&gt; * Log-evidence: -6.9222 (± 0.2713)</span></span>
-<span><span class="co">#&gt; * Information: 5.974</span></span>
+<span><span class="co">#&gt; * Iterations: 967</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 21526</span></span>
+<span><span class="co">#&gt; * Log-evidence: -6.6241 (± 0.2633)</span></span>
+<span><span class="co">#&gt; * Information: 5.618</span></span>
 <span><span class="co">#&gt; * RNG seed: 42</span></span>
 <span><span class="co">#&gt; ── Posterior Summary ───────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
-<span><span class="co">#&gt;   variable  mean    sd median   q15   q85</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A        0.244  1.48  0.860 -<span style="color: #BB0000;">1.09</span>  1.20</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B        0.262  1.44  0.879 -<span style="color: #BB0000;">1.06</span>  1.21</span></span>
+<span><span class="co">#&gt;   variable   mean    sd median   q15   q85</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A        -<span style="color: #BB0000;">0.127</span>  1.51 -<span style="color: #BB0000;">0.749</span> -<span style="color: #BB0000;">1.15</span>  1.18</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B        -<span style="color: #BB0000;">0.125</span>  1.48 -<span style="color: #BB0000;">0.772</span> -<span style="color: #BB0000;">1.12</span>  1.14</span></span>
 <span><span class="co">#&gt; ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; * Log-likelihood: 0</span></span>
-<span><span class="co">#&gt; * Original parameters: -1 and -0.9994</span></span>
+<span><span class="co">#&gt; * Log-likelihood: -9e-04</span></span>
+<span><span class="co">#&gt; * Original parameters: -0.996 and -1.0013</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/calculate.html" class="external-link">calculate</a></span><span class="op">(</span><span class="va">blob_result</span>, ndraws <span class="op">=</span> <span class="fl">500</span><span class="op">)</span><span class="op">$</span><span class="va">log_evidence</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; rvar&lt;500&gt;[1] <span style="color: #949494;">mean ± sd:</span></span></span>
-<span><span class="co">#&gt; [1] -6.9 ± 0.25</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -6.6 ± 0.25</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="eggbox-distribution">Eggbox Distribution<a class="anchor" aria-label="anchor" href="#eggbox-distribution"></a>
@@ -170,19 +170,19 @@ surfaces.</p>
 <span><span class="co">#&gt; Summary of nested sampling run:</span></span>
 <span><span class="co">#&gt; ── Run Information ─────────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; * No. points: 500</span></span>
-<span><span class="co">#&gt; * Iterations: 4962</span></span>
-<span><span class="co">#&gt; * Likelihood evals.: 11532</span></span>
-<span><span class="co">#&gt; * Log-evidence: 236.0996 (± 0.1183)</span></span>
-<span><span class="co">#&gt; * Information: 5.896</span></span>
+<span><span class="co">#&gt; * Iterations: 5025</span></span>
+<span><span class="co">#&gt; * Likelihood evals.: 11465</span></span>
+<span><span class="co">#&gt; * Log-evidence: 235.9742 (± 0.119)</span></span>
+<span><span class="co">#&gt; * Information: 5.956</span></span>
 <span><span class="co">#&gt; * RNG seed: 42</span></span>
 <span><span class="co">#&gt; ── Posterior Summary ───────────────────────────────────────────────────────────</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 6</span></span></span>
 <span><span class="co">#&gt;   variable  mean    sd median   q15   q85</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A        0.498 0.292  0.499 0.103 0.899</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B        0.489 0.294  0.499 0.102 0.898</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> A        0.507 0.300  0.500 0.102 0.899</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> B        0.479 0.301  0.498 0.101 0.899</span></span>
 <span><span class="co">#&gt; ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────</span></span>
-<span><span class="co">#&gt; * Log-likelihood: 243</span></span>
+<span><span class="co">#&gt; * Log-likelihood: 242.9998</span></span>
 <span><span class="co">#&gt; * Original parameters: 0.5 and 0.5</span></span></code></pre></div>
 <p>We can further visualize the multimodal structure of each
 variable:</p>
@@ -265,12 +265,12 @@ can plot their respective IQRs.</p>
 <span><span class="co">#&gt;   variable  `2.5%`         `50%`       `97.5%`</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.12<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.201</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.07<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.208</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 5</span></span></span>
 <span><span class="co">#&gt;   variable  `2.5%`         `50%`       `97.5%` src  </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.    est  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.12<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.201 est  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> sigma    7.07<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.110         0.208 est  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> mu       1.00<span style="color: #949494;">e</span>+8 100<span style="text-decoration: underline;">000</span>000.    100<span style="text-decoration: underline;">000</span>000.    act  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> sigma    6.99<span style="color: #949494;">e</span><span style="color: #BB0000;">-2</span>         0.103         0.175 act</span></span></code></pre>
 <p><img src="more-ernest-runs_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>

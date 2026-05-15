@@ -75,33 +75,33 @@ data(example_run)
 # View importance weights
 dm <- as_draws(example_run)
 str(dm)
-#>  'draws_matrix' num [1:10359, 1:4] -8.05 -7.27 9.1 -8.81 -9.44 ...
+#>  'draws_matrix' num [1:10353, 1:4] -8.05 -7.27 9.1 -8.81 -9.44 ...
 #>  - attr(*, "dimnames")=List of 2
-#>   ..$ draw    : chr [1:10359] "1" "2" "3" "4" ...
+#>   ..$ draw    : chr [1:10353] "1" "2" "3" "4" ...
 #>   ..$ variable: chr [1:4] "x" "y" "z" ".log_weight"
 #>  - attr(*, "nchains")= int 1
 weights(dm) |> head()
-#> [1] 4.661608e-59 4.677800e-57 2.152569e-56 3.433589e-56 5.397510e-56
-#> [6] 5.756538e-55
+#> [1] 4.626832e-59 4.642903e-57 2.136511e-56 3.407974e-56 5.357244e-56
+#> [6] 5.713593e-55
 
 # Summarise points after resampling
 dm |>
   resample_draws() |>
   summarize_draws()
 #> # A tibble: 3 × 10
-#>   variable      mean    median    sd   mad    q5   q95  rhat ess_bulk ess_tail
-#>   <chr>        <dbl>     <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
-#> 1 x        -0.00681   0.00245  0.974 0.977 -1.62  1.58  1.17    4600.     12.7
-#> 2 y        -0.00957  -0.00775  0.990 1.01  -1.62  1.63  1.20    4221.     12.9
-#> 3 z         0.000411  0.000927 0.977 0.981 -1.58  1.60  1.17    4400.     12.9
+#>   variable     mean   median    sd   mad    q5   q95  rhat ess_bulk ess_tail
+#>   <chr>       <dbl>    <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl>    <dbl>
+#> 1 x        -0.00505 -0.0199  0.963 0.962 -1.56  1.61  1.18    4011.     13.2
+#> 2 y         0.00548  0.00914 0.986 0.984 -1.61  1.66  1.18    4176.     13.0
+#> 3 z        -0.0478  -0.0586  0.990 1.01  -1.63  1.57  1.19    3868.     13.1
 
 # Extract the same coordinates in the unit space coordinates
 dm_unit <- as_draws_rvars(example_run, units = "unit_cube")
 str(dm_unit)
 #> List of 4
-#>  $ x          : rvar<10359>[1]  0.5 ± 0.14
-#>  $ y          : rvar<10359>[1]  0.5 ± 0.14
-#>  $ z          : rvar<10359>[1]  0.5 ± 0.14
-#>  $ .log_weight: rvar<10359>[1]  -18 ± 18
+#>  $ x          : rvar<10353>[1]  0.5 ± 0.14
+#>  $ y          : rvar<10353>[1]  0.5 ± 0.14
+#>  $ z          : rvar<10353>[1]  0.5 ± 0.14
+#>  $ .log_weight: rvar<10353>[1]  -18 ± 18
 #>  - attr(*, "class")= chr [1:3] "draws_rvars" "draws" "list"
 ```

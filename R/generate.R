@@ -145,7 +145,11 @@ generate.ernest_run <- function(
     control = control,
     show_progress = show_progress
   )
-  new_ernest_run(x, results)
+  prev_run <- x$rcrd[vctrs::vec_as_location(
+    field(x$rcrd, "neval") != 0L,
+    length(x$rcrd)
+  )]
+  new_ernest_run(x, c(prev_run, results))
 }
 
 #' Generate and validate stopping criteria.

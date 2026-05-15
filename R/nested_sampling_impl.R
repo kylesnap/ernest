@@ -151,7 +151,7 @@ nested_sampling_impl <- function(
     cur_eval <- cur_eval + new_unit$neval
   }
 
-  new_ernest_rcrd(
+  result <- new_ernest_rcrd(
     unit = do.call(rbind, dead_unit),
     log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
     id = vec_c(!!!dead_id, .ptype = double()),
@@ -163,4 +163,5 @@ nested_sampling_impl <- function(
     neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
+  vec_c(result, extract_live_points(live_env))
 }

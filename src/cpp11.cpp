@@ -13,7 +13,7 @@ extern "C" SEXP _ernest_logspace_add_c(SEXP x, SEXP y) {
   END_CPP11
 }
 // exported_utils.cpp
-cpp11::doubles get_points(cpp11::doubles log_lik, int nlive, bool add_live);
+cpp11::integers get_points(cpp11::doubles log_lik, int nlive, bool add_live);
 extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP nlive, SEXP add_live) {
   BEGIN_CPP11
     return cpp11::as_sexp(get_points(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(log_lik), cpp11::as_cpp<cpp11::decay_t<int>>(nlive), cpp11::as_cpp<cpp11::decay_t<bool>>(add_live)));

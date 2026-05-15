@@ -1,58 +1,31 @@
 #' Create a new ernest run object
 #'
-#' @param x An `ernest_sampler` or `ernest_results` object used to produce a run
+#' @param x An `ernest_sampler` object.
+#' @param rcrd An `ernest_rcrd` object.
 #'
-#' @param results The list output from nested_sampling_impl.
+#' @returns A new ernest_run object (documented in generate).
 #'
-#' @returns A new ernest_run object (documented in generate)
 #' @noRd
-new_ernest_run <- function(x, results) {
-  UseMethod("new_ernest_run")
-}
+new_ernest_run <- function(x, rcrd) {
+  # all_samples <- vec_c(parsed, extract_live_points(x$live_env))
+  check_class(x, "ernest_sampler")
+  check_class(rcrd, "ernest_rcrd")
+  rcrd_is_run(rcrd)
+  if (x$lrps$nvar != attr(rcrd, "nvar")) {
+    cli::cli_abort("The number of variables in `x` and `rcrd` do not match.")
+  }
 
-#' @export
-#' @noRd
-new_ernest_run.ernest_sampler <- function(x, results) {
-  new_ernest_run_(x, results)
-}
-
-#' @export
-#' @noRd
-new_ernest_run.ernest_run <- function(x, results) {
-  prev_run <- x$rcrd[vctrs::vec_as_location(
-    field(x$rcrd, "neval") != 0L,
-    length(x$rcrd)
-  )]
-  new_ernest_run_(x, vec_c(prev_run, results))
-}
-
-#' Form the new_ernest_run from samples from the current and previous runs
-#'
-#' Combines parsed results and the live set to construct a new `ernest_run`
-#' object.
-#'
-#' @param x The `ernest_run` or `ernest_sampler` object.
-#' @param parsed A list with the previous dead points from the run.
-#'
-#' @return The object described by generate.
-#' @noRd
-new_ernest_run_ <- function(x, parsed) {
-  all_samples <- vec_c(parsed, extract_live_points(x$live_env))
-  niter <- sum(field(all_samples, "neval") != 0L)
-  integration <- compute_integral(all_samples)
-  unit <- as.list(all_samples)[["unit"]]
-  colnames(unit) <- x$prior$names
-  original <- t(apply(unit, 1, x$prior$fn))
-  colnames(original) <- x$prior$names
+  niter <- sum(field(rcrd, "neval") != 0L)
+  integration <- compute_integral(rcrd)
 
   result_elem <- list(
     "niter" = niter,
-    "neval" = sum(field(all_samples, "neval")),
+    "neval" = sum(field(rcrd, "neval")),
     "log_evidence" = tail(integration$log_evidence, 1L),
     "log_evidence_err" = sqrt(tail(integration$log_evidence_var, 1L)),
     "log_weight" = as.double(integration$log_weight),
     "information" = tail(integration$information, 1L),
-    "rcrd" = all_samples
+    "rcrd" = rcrd
   )
 
   sampler_elem <- list(
@@ -73,6 +46,33 @@ new_ernest_run_ <- function(x, parsed) {
   env_unbind(obj$live_env, env_names(obj$live_env))
   obj
 }
+
+# #' @export
+# #' @noRd
+# new_ernest_run.ernest_sampler <- function(x, results) {
+#   new_ernest_run_(x, results)
+# }
+
+# #' @export
+# #' @noRd
+# new_ernest_run.ernest_run <- function(x, results) {
+#   prev_run <- x$rcrd[vctrs::vec_as_location(
+#     field(x$rcrd, "neval") != 0L,
+#     length(x$rcrd)
+#   )]
+#   new_ernest_run_(x, vec_c(prev_run, results))
+# }
+
+#' Form the new_ernest_run from samples from the current and previous runs
+#'
+#' Combines parsed results and the live set to construct a new `ernest_run`
+#' object.
+#'
+#' @param x The `ernest_run` or `ernest_sampler` object.
+#' @param parsed A list with the previous dead points from the run.
+#'
+#' @return The object described by generate.
+#' @noRd
 
 #' @srrstats {BS6.0} Default print for return object.
 #' @noRd

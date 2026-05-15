@@ -10,8 +10,8 @@ double logspace_add_c(const double x, const double y) {
 // Plateau detection in log-likelihoods to correct log-volume estimation
 // based on Fowlie et. al (2021) https://doi.org/10.1093/mnras/stab590
 [[cpp11::register]]
-cpp11::doubles get_points(cpp11::doubles log_lik, int nlive, bool add_live) {
-  cpp11::writable::doubles result(log_lik.size());
+cpp11::integers get_points(cpp11::doubles log_lik, int nlive, bool add_live) {
+  cpp11::writable::integers result(log_lik.size());
   auto col = result.begin();
   auto cur_lik = log_lik.begin();
   auto next_lik = log_lik.begin();

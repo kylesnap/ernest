@@ -16,7 +16,9 @@
       Error in `ernest_sampler()`:
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
-      ! `live$unit` must have size 500, not size 0.
+      ! Error when creating the live set.
+      Caused by error in `vctrs::df_list()`:
+      ! Can't recycle `unit` (size 500) to match `log_lik` (size 0).
 
 # Fails on character types
 

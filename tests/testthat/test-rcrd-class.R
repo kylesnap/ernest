@@ -43,6 +43,7 @@ test_that("ernest_rcrd orders draws", {
 })
 
 test_that("ernest_rcrd reports dimensional mismatch", {
+  skip_extended()
   run2D <- generate(
     ernest_sampler(
       log_lik = gaussian_blobs$log_lik,
@@ -61,6 +62,58 @@ test_that("ernest_rcrd reports dimensional mismatch", {
   )
   expect_error(
     c(run2D$rcrd, run3D$rcrd),
-    "`variables` attribute must match."
+    "`nvar` attribute must match."
   )
+})
+
+describe("rcrd_is_run", {
+  it("returns TRUE on a valid run", {
+    expect_true(rcrd_is_run(example_run$rcrd))
+  })
+
+  res <- c()
+  it("warns when IDs have a gap", {
+    rcrd <- example_run$rcrd
+    expect_warning(
+      res <<- c(res, rcrd_is_run(rcrd, nlive = 500)),
+      "should contain 500 unique IDs, but has 1000."
+    )
+
+    ids <- field(rcrd, "id")
+    ids[ids == 500L] <- 1001
+    vctrs::field(rcrd, "id") <- ids
+    expect_warning(
+      res <<- c(res, rcrd_is_run(rcrd)),
+      "should contain IDs from 1 to 1000."
+    )
+  })
+
+  it("warns when there are too many/few `neval == 0`", {
+    rcrd <- example_run$rcrd
+    neval <- field(rcrd, "neval")
+    neval[field(rcrd, "id") == 500L] <- 1L
+    vctrs::field(rcrd, "neval") <- neval
+    expect_warning(
+      res <<- c(res, rcrd_is_run(rcrd)),
+      "A single live point with `neval == 0` should be found for each ID."
+    )
+
+    neval[field(rcrd, "id") == 500L] <- 0L
+    vctrs::field(rcrd, "neval") <- neval
+    expect_warning(
+      res <<- c(res, rcrd_is_run(rcrd)),
+      "Only 1000 points should have `neval == 0`, but found \\d+"
+    )
+  })
+
+  it("warns when `x` is scrambled", {
+    withr::local_seed(42)
+    rcrd <- example_run$rcrd
+    rcrd[1:1000] <- rev(rcrd[1:1000])
+    expect_warning(
+      res <<- c(res, rcrd_is_run(rcrd)),
+      "should be sorted in ascending order of log-likelihood."
+    )
+  })
+  expect_all_false(res)
 })

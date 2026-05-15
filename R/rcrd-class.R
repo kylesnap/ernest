@@ -63,22 +63,32 @@ new_ernest_rcrd <- function(
   id = integer(0),
   nlive = integer(0),
   neval = integer(0),
-  birth_lik = double(0),
-  .call = caller_env(0)
+  birth_lik = double(0)
 ) {
-  nvar <- ncol(unit)
+  nvar <- ncol(unit) %||% 0L
+  unit <- vec_cast(unit, to = matrix(double(), ncol = nvar))
+  log_lik <- vec_cast(log_lik, to = double())
+  id <- vec_cast(id, to = integer())
+  if (any(id < 1L)) {
+    cli::cli_abort("`id` must be a positive integer.")
+  }
+  nlive <- vec_cast(nlive, to = integer())
+  if (any(nlive < 0L)) {
+    cli::cli_abort("`nlive` must be a non-negative integer.")
+  }
+  neval <- vec_cast(neval, to = integer())
+  if (any(neval < 0L)) {
+    cli::cli_abort("`neval` must be a non-negative integer.")
+  }
+  birth_lik <- vec_cast(birth_lik, to = double())
   vctrs::new_rcrd(
-    list(
-      unit = vec_cast(
-        unit,
-        to = matrix(double(), ncol = nvar),
-        call = .call
-      ),
-      log_lik = vec_cast(log_lik, to = double(), call = .call),
-      id = vec_cast(id, to = integer(), call = .call),
-      nlive = vec_cast(nlive, to = integer(), call = .call),
-      neval = vec_cast(neval, to = integer(), call = .call),
-      birth_lik = vec_cast(birth_lik, to = double(), call = .call)
+    vctrs::df_list(
+      unit = unit,
+      log_lik = log_lik,
+      id = id,
+      nlive = nlive,
+      neval = neval,
+      birth_lik = birth_lik
     ),
     nvar = as.integer(nvar),
     class = "ernest_rcrd"
@@ -115,7 +125,7 @@ vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ..., call = caller_env()) {
       x_arg = caller_arg(x),
       y_arg = caller_arg(y),
       action = "combine",
-      details = "`variables` attribute must match.",
+      details = "`nvar` attribute must match.",
       call = call
     )
   }
@@ -158,6 +168,77 @@ vec_proxy_compare.ernest_rcrd <- function(x, ...) {
 #' @noRd
 vec_proxy_order.ernest_rcrd <- function(x, ...) {
   field(x, "log_lik")
+}
+
+#' Check that an ernest_rcrd object contains a valid run.
+#'
+#' Valid runs must contain IDs that are `nlive` contiguous integers starting
+#' from `1`. Exactly `nlive` points within the run must have `neval == 0`
+#' (the live points at termination). Finally, the run should be sorted in
+#' ascending order of log-likelihood.
+#'
+#' @param x An `ernest_rcrd` object to validate.
+#' @param nlive The expected number of live points in the run. If NULL, this
+#' is inferred from the maximum `nlive` value.
+#' @param arg The argument name to use in error messages.
+#' @param call The calling environment to use in error messages.
+#'
+#' @returns TRUE if the run meets the described conditions, else FALSE.
+#' @noRd
+rcrd_is_run <- function(
+  x,
+  nlive = NULL,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  vec_cast(x, to = new_ernest_rcrd())
+  nlive <- nlive %||% max(field(x, "nlive"))
+  check_number_whole(nlive, min = 1, arg = caller_arg(nlive), call = call)
+  ids <- vctrs::vec_unique(field(x, "id"))
+  if (length(ids) != nlive) {
+    cli::cli_warn(
+      "`{arg}` should contain {nlive} unique IDs, but has {length(ids)}.",
+      call = call
+    )
+    return(FALSE)
+  }
+  diff <- vctrs::vec_set_symmetric_difference(ids, seq_len(nlive))
+  if (length(diff) > 0) {
+    cli::cli_warn(
+      "`{arg}` should contain IDs from 1 to {nlive}.",
+      call = call
+    )
+    return(FALSE)
+  }
+  last_id <- vapply(
+    vctrs::vec_group_loc(field(x, "id"))$loc,
+    \(x) x[[length(x)]],
+    integer(1)
+  )
+  last_id_eval <- field(x, "neval")[last_id]
+  if (any(last_id_eval != 0L)) {
+    cli::cli_warn(
+      "A single live point with `neval == 0` should be found for each ID.",
+      call = call
+    )
+    return(FALSE)
+  }
+  zero_eval <- sum(field(x, "neval") == 0L)
+  if (zero_eval != nlive) {
+    cli::cli_warn(
+      "Only {nlive} points should have `neval == 0`, but found {zero_eval}.",
+      call = call
+    )
+    return(FALSE)
+  }
+  if (is.unsorted(x)) {
+    cli::cli_warn(
+      "`{arg}` should be sorted in ascending order of log-likelihood.",
+      call = call
+    )
+    return(FALSE)
+  }
+  TRUE
 }
 
 #' Extract live points from the run environment.

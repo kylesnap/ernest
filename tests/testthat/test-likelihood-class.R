@@ -106,7 +106,7 @@ test_that("Missing values in the log-likelihood", {
       prior = gaussian_blobs$prior,
       seed = 42
     ),
-    transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
+    # transform = \(x) gsub("\\d+\\.\\d+", "#\\.#", x),
     error = TRUE
   )
 

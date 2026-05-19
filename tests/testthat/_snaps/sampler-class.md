@@ -37,9 +37,7 @@
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
       ! Error when creating the live set.
-      Caused by error:
-      ! Couldn't calculate the log-lik of #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, ..., #.#, and #.#.
-      Caused by error:
+      Caused by error in `catch_nonfinite()`:
       ! Can't convert `log_lik(x)` <character> to <double>.
 
 # Fails on complex types
@@ -59,9 +57,7 @@
       ! <ernest_sampler> cannot compile.
       Caused by error in `compile()`:
       ! Error when creating the live set.
-      Caused by error:
-      ! Couldn't calculate the log-lik of #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, #.#, ..., #.#, and #.#.
-      Caused by error:
+      Caused by error in `catch_nonfinite()`:
       ! Can't convert `log_lik(x)` <complex> to <double>.
 
 # Ernest fails when ll is flat to begin with

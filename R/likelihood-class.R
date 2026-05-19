@@ -105,70 +105,49 @@ new_ernest_likelihood <- function(
   on_nonfinite <- arg_match(on_nonfinite, call = call)
 
   force(fn)
-  vectorized_fn <- switch(
-    interface,
-    "scalar_fn" = vectorize_function(fn),
-    "vectorized_fn" = function(x) {
-      if (!is.matrix(x)) {
-        dim(x) <- c(1, length(x))
-      }
-      fn(x)
+  vectorized_fn <- function(.fn, x) {
+    if (!is_double(x)) {
+      stop_input_type(x, "a numeric vector or matrix", caller_arg = "x")
     }
-  )
+    if (!is.matrix(x)) {
+      dim(x) <- c(1, length(x))
+    }
+    switch(
+      interface,
+      "scalar_fn" = apply(x, 1, .fn),
+      "vectorized_fn" = .fn(x)
+    )
+  }
 
-  nonfinite_expr <- switch(
-    on_nonfinite,
-    "warn" = expr({
-      cli::cli_warn(
-        "Replacing `{unique(y[y_missing])}` with `-Inf`.",
-        call = NULL
-      )
-      y[y_missing] <- -Inf
-    }),
-    "quiet" = expr(y[y_missing] <- -Inf),
-    "abort" = expr({
-      cli::cli_abort(
-        c(
-          "log-lik. values must be either finite or `-Inf`.",
-          "x" = "Detected non-viable value: `{unique(y[y_missing])}`."
+  catch_nonfinite <- function(y, on_nonfinite) {
+    y <- vctrs::vec_cast(drop(y), double(), x_arg = "log_lik(x)")
+    bad <- which(y == Inf | is.nan(y) | is.na(y))
+    if (length(bad) > 0) {
+      unq_bad <- unique(y[bad])
+      switch(
+        on_nonfinite,
+        "warn" = cli::cli_warn(
+          "Replacing log-lik. values with `-Inf`: {unq_bad}",
+          call = NULL
         ),
-        call = NULL
+        "abort" = cli::cli_abort(
+          "`log_lik` cannot return {unq_bad}.",
+          call = NULL
+        ),
+        NULL
       )
-    })
-  )
+      y[bad] <- -Inf
+    }
+    y
+  }
 
-  x <- NULL
-  lab <- "log_lik(x)"
-  catching_fn <- new_function(
-    exprs(x = ),
-    expr({
-      try_fetch(
-        {
-          if (!is_double(x)) {
-            stop_input_type(x, "a numeric vector or matrix", call = NULL)
-          }
-          y <- vectorized_fn(x)
-          y <- vec_cast(drop(y), to = double(), x_arg = lab, call = NULL)
-          y_missing <- which(y == Inf | is.nan(y) | is.na(y))
-          if (!vctrs::vec_is_empty(y_missing)) {
-            !!nonfinite_expr
-          }
-          y
-        },
-        error = function(cnd) {
-          cli::cli_abort(
-            "Couldn't calculate the log-lik of {x}.",
-            call = NULL,
-            parent = cnd
-          )
-        }
-      )
-    })
-  )
+  safe_fn <- function(x) {
+    catch_nonfinite(vectorized_fn(fn, x), on_nonfinite)
+  }
 
   structure(
-    catching_fn,
-    body = expr(!!fn),
+    safe_fn,
+    body = fn,
     interface = interface,
     on_nonfinite = on_nonfinite,
     class = c("ernest_likelihood", class(fn))
@@ -178,15 +157,11 @@ new_ernest_likelihood <- function(
 #' @noRd
 #' @export
 print.ernest_likelihood <- function(x, ...) {
-  compat_str <- switch(
-    attr(x, "interface"),
-    "scalar_fn" = "Scalar",
-    "vectorized_fn" = "Vectorized"
-  )
-  cli::cli_text("{compat_str} Log-likelihood Function")
-  fn <- attr(x, "body")
-  cli::cli_code({
-    format(fn)
-  })
-  invisible(x)
+  cli::cli_text("{.cls ernest_likelihood}")
+
+  cli::cli_code(expr_deparse(attr(x, "body")), ...)
+  cli::cli_bullets(c(
+    "v" = "Interface: {.val {attr(x, 'interface')}}",
+    "v" = "Non-finite handling: {.val {attr(x, 'on_nonfinite')}}"
+  ))
 }

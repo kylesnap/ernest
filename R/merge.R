@@ -7,7 +7,8 @@
 #' @param y [[ernest_run]]\cr Another nested sampling run to merge with `x`.
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Additional `ernest_run`
 #' objects to merge with `x`. Ignored if `y` is used.
-#' @param .keep [[character(1)]] Strategy for merging the live set of the runs.
+#' @param .keep `[[character(1)]]` Specifies what live points to retain from
+#' merging runs together:
 #' * `"first"`: The live set begins after the worst live point appears in the
 #' run. This is the default, and is the most straightforward way to merge runs
 #' with different numbers of live points.

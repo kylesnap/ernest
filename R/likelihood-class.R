@@ -105,52 +105,64 @@ new_ernest_likelihood <- function(
   on_nonfinite <- arg_match(on_nonfinite, call = call)
 
   force(fn)
-  vectorized_fn <- function(.fn, x) {
-    if (!is_double(x)) {
-      stop_input_type(x, "a numeric vector or matrix", caller_arg = "x")
-    }
-    if (!is.matrix(x)) {
-      dim(x) <- c(1, length(x))
-    }
-    switch(
-      interface,
-      "scalar_fn" = apply(x, 1, .fn),
-      "vectorized_fn" = .fn(x)
-    )
-  }
-
-  catch_nonfinite <- function(y, on_nonfinite) {
-    y <- vctrs::vec_cast(drop(y), double(), x_arg = "log_lik(x)")
-    bad <- which(y == Inf | is.nan(y) | is.na(y))
-    if (length(bad) > 0) {
-      unq_bad <- unique(y[bad])
-      switch(
-        on_nonfinite,
-        "warn" = cli::cli_warn(
-          "Replacing log-lik. values with `-Inf`: {unq_bad}",
-          call = NULL
-        ),
-        "abort" = cli::cli_abort(
-          "`log_lik` cannot return {unq_bad}.",
-          call = NULL
-        ),
-        NULL
-      )
-      y[bad] <- -Inf
-    }
-    y
-  }
-
-  safe_fn <- function(x) {
-    catch_nonfinite(vectorized_fn(fn, x), on_nonfinite)
-  }
-
   structure(
-    safe_fn,
+    \(x) catch_nonfinite(vectorized_fn(fn, x, interface), on_nonfinite),
     body = fn,
     interface = interface,
     on_nonfinite = on_nonfinite,
     class = c("ernest_likelihood", class(fn))
+  )
+}
+
+#' Ensure that the likelihood function returns finite values or `-Inf`.
+#'
+#' @param y A vector of likelihood values to check.
+#' @param on_nonfinite How to handle non-finite values.
+#'
+#' @returns A vector of likelihood values with non-finite values replaced by
+#' `-Inf` and warnings or errors issued as appropriate.
+#'
+#' @noRd
+catch_nonfinite <- function(y, on_nonfinite) {
+  y <- vctrs::vec_cast(drop(y), double(), x_arg = "log_lik(x)")
+  bad <- which(y == Inf | is.nan(y) | is.na(y))
+  if (length(bad) > 0) {
+    unq_bad <- unique(y[bad])
+    switch(
+      on_nonfinite,
+      "warn" = cli::cli_warn(
+        "Replacing log-lik. values with `-Inf`: {unq_bad}",
+        call = NULL
+      ),
+      "abort" = cli::cli_abort(
+        "`log_lik` cannot return {unq_bad}.",
+        call = NULL
+      ),
+      NULL
+    )
+    y[bad] <- -Inf
+  }
+  y
+}
+
+#' Apply the likelihood function to a matrix of parameter vectors.
+#'
+#' @param .fn The likelihood function to apply.
+#' @param x A numeric vector or matrix of parameter values.
+#' @param interface The interface type of the likelihood function.
+#' @return A vector of likelihood values corresponding to each row of `x`.
+#' @noRd
+vectorized_fn <- function(.fn, x, interface) {
+  if (!is_double(x)) {
+    stop_input_type(x, "a numeric vector or matrix", caller_arg = "x")
+  }
+  if (!is.matrix(x)) {
+    dim(x) <- c(1, length(x))
+  }
+  switch(
+    interface,
+    "scalar_fn" = apply(x, 1, .fn),
+    "vectorized_fn" = .fn(x)
   )
 }
 

@@ -28,6 +28,7 @@ Imports:
     withr
 Suggests: 
     brms,
+    carrier,
     distributional,
     extraDistr,
     ggdist,

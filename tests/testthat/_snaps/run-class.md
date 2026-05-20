@@ -6,7 +6,7 @@
       Nested sampling run:
       * No. points: #
       * Sampling method: #-step random walk sampling (acceptance target = #%)
-      * Prior: uniform prior distribution with # dimensions (x, y, and z)
+      * Prior: <uniform_prior/ernest_prior> (# dims.)
       -- Results ---------------------------------------------------------------------
       * Iterations: #
       * Likelihood evals.: #

@@ -135,32 +135,10 @@ new_ernest_prior <- function(
   interface <- arg_match(interface, call = .call)
 
   force(fn)
-  batch_fn <- switch(
-    interface,
-    "point_fn" = vectorize_function(fn),
-    "vectorized_fn" = fn
-  )
+  wrapped_fn <- \(x) vectorized_prior(fn, x, interface, nvar)
 
-  lab <- "prior$fn(x)"
-  catching_fn <- function(x) {
-    if (!is_double(x)) {
-      stop_input_type(x, "a numeric vector or matrix", call = NULL)
-    }
-    if (!is.matrix(x)) {
-      dim(x) <- c(1, length(x))
-    }
-    y <- batch_fn(x)
-    y <- vec_cast(y, to = vctrs::vec_ptype(x), x_arg = lab, call = NULL)
-    if (any(y == Inf | is.nan(y) | is.na(y))) {
-      cli::cli_abort(
-        "`{lab}` must return only finite values.",
-        call = NULL
-      )
-    }
-    y
-  }
   check_prior(
-    catching_fn,
+    wrapped_fn,
     nvar,
     lower = bounds$lower,
     upper = bounds$upper,
@@ -170,15 +148,38 @@ new_ernest_prior <- function(
 
   structure(
     list2(
-      "fn" = catching_fn,
+      "fn" = wrapped_fn,
       "names" = names,
       !!!bounds
     ),
     nvar = nvar,
-    body = expr(!!fn),
+    body = fn,
     interface = interface,
     class = c(.class, "ernest_prior")
   )
+}
+
+#' Apply the prior transformation to a matrix of points in the unit hypercube.
+#'
+#' @param .fn The prior transformation function.
+#' @param x A numeric vector or matrix of points in the unit hypercube.
+#' @param interface The interface type of the prior function.
+#' @param nvar The number of parameters (dimensions).
+#' @return A matrix of transformed points in the original parameter space.
+#' @noRd
+vectorized_prior <- function(.fn, x, interface, nvar) {
+  if (!is_double(x)) {
+    stop_input_type(x, "a numeric vector or matrix", call = NULL)
+  }
+  if (!is.matrix(x)) {
+    dim(x) <- c(1, length(x))
+  }
+  y <- switch(
+    interface,
+    "point_fn" = do.call(rbind, apply(x, 1, .fn, simplify = FALSE)),
+    "vectorized_fn" = .fn(x)
+  )
+  vec_cast(y, to = matrix(double(), nrow = nrow(x), ncol = nvar))
 }
 
 
@@ -217,23 +218,10 @@ check_prior <- function(
   # Vector input sanity check (single point)
   test_vector <- rep(0.5, nvar)
   output_test <- fn(test_vector)
-  output_test <- vec_cast(
-    output_test,
-    to = matrix(double(), ncol = nvar),
-    x_arg = arg,
-    call = call
-  )
 
   # 2) Matrix input sanity check (batched points)
   test_matrix <- matrix(stats::runif(1000 * nvar), nrow = 1000)
   output_test_mat <- fn(test_matrix)
-  output_test_mat <- vec_cast(
-    output_test_mat,
-    to = matrix(double(), ncol = nvar),
-    x_arg = arg,
-    call = call
-  )
-  vctrs::vec_check_size(output_test_mat, size = 1000, arg = arg, call = call)
   if (any(!is.finite(output_test_mat))) {
     cli::cli_abort("`{arg}` must return only finite values.", call = call)
   }
@@ -293,20 +281,13 @@ check_prior <- function(
   )
 }
 
-
-#' Format for ernest_prior
-#'
+#' Pretty formattted string for prior
 #' @param x An object of class 'ernest_prior'.
 #' @param ... Ignored.
-#'
-#' @returns A formatted string describing the prior object.
+#' @returns A string.
 #' @noRd
-#' @export
 format.ernest_prior <- function(x, ...) {
-  name <- sub("_prior", "", class(x)[[1]])
-  cli::format_inline(
-    "{name} prior distribution with {attr(x, 'nvar')} dimensions ({x$names})"
-  )
+  cli::format_inline("{.cls {class(x)}} ({attr(x, 'nvar')} dims.)")
 }
 
 #' Print for ernest_prior
@@ -318,6 +299,12 @@ format.ernest_prior <- function(x, ...) {
 #' @noRd
 #' @export
 print.ernest_prior <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
+  cli::cli_text("{format.ernest_prior(x,...)}")
+
+  cli::cli_code(expr_deparse(attr(x, "body")), ...)
+  cli::cli_bullets(c(
+    "v" = "Names: {.val {x$names}}",
+    "v" = "Interface: {.val {attr(x, 'interface')}}"
+  ))
   invisible(x)
 }

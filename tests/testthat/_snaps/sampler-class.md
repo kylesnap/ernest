@@ -6,7 +6,7 @@
       Nested sampling run specification:
       * No. points: 500
       * Sampling method: 25-step random walk sampling (acceptance target = 50%)
-      * Prior: uniform prior distribution with 2 dimensions (A and B)
+      * Prior: <uniform_prior/ernest_prior> (2 dims.)
 
 # Zero-length likelihood fails
 
@@ -25,8 +25,8 @@
     Code
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error:
-      ! Can't convert `prior$fn(x)` <character[,2]> to <double[,2]>.
+      Error in `vectorized_prior()`:
+      ! Can't convert `y` <character[,2]> to <double[,2]>.
 
 ---
 
@@ -45,8 +45,8 @@
     Code
       create_prior(prior_fn, names = LETTERS[1:2])
     Condition
-      Error:
-      ! Can't convert `prior$fn(x)` <complex[,2]> to <double[,2]>.
+      Error in `vectorized_prior()`:
+      ! Can't convert `y` <complex[,2]> to <double[,2]>.
 
 ---
 

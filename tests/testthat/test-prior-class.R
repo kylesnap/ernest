@@ -54,7 +54,7 @@ describe("create_prior/check_prior", {
       if (!is.matrix(x)) {
         dim(x) <- c(1, length(x))
       }
-      apply(x, 1, fn)
+      t(apply(x, 1, fn))
     }
   }
 
@@ -62,18 +62,27 @@ describe("create_prior/check_prior", {
     short_fn <- \(x) x[1:2]
     msg <- "<double\\[,2\\]> to <double\\[,3\\]>"
     expect_error(create_prior(short_fn, names = LETTERS[1:3]), msg)
-    expect_error(create_prior(matrix_wrap(short_fn), names = LETTERS[1:3]), msg)
+    expect_error(
+      create_prior(vectorized_fn = matrix_wrap(short_fn), names = LETTERS[1:3]),
+      msg
+    )
 
     long_fn <- \(x) c(x, x[1])
     msg <- "<double\\[,3\\]> to <double\\[,2\\]>"
     expect_error(p <- create_prior(long_fn, names = LETTERS[1:2]), msg)
-    expect_error(create_prior(matrix_wrap(long_fn), names = LETTERS[1:2]), msg)
+    expect_error(
+      create_prior(vectorized_fn = matrix_wrap(long_fn), names = LETTERS[1:2]),
+      msg
+    )
   })
 
   it("converts integers into doubles", {
     int_fn <- \(x) as.integer(stats::qnorm(x), mean = c(-1, 0, 1))
     expect_no_message(p <- create_prior(int_fn, names = LETTERS[1:3]))
-    expect_no_message(create_prior(matrix_wrap(int_fn), names = LETTERS[1:3]))
+    expect_no_message(create_prior(
+      vectorized_fn = matrix_wrap(int_fn),
+      names = LETTERS[1:3]
+    ))
     expect_type(p$fn(c(0.5, 0.5, 0.5)), "double")
   })
 

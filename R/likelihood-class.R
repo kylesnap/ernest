@@ -175,4 +175,5 @@ print.ernest_likelihood <- function(x, ...) {
     "v" = "Interface: {.val {attr(x, 'interface')}}",
     "v" = "Non-finite handling: {.val {attr(x, 'on_nonfinite')}}"
   ))
+  invisible(x)
 }

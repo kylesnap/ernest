@@ -7,7 +7,6 @@
 #'
 #' @noRd
 new_ernest_run <- function(x, rcrd) {
-  # all_samples <- vec_c(parsed, extract_live_points(x$live_env))
   check_class(x, "ernest_sampler")
   check_class(rcrd, "ernest_rcrd")
   rcrd_is_run(rcrd)
@@ -46,33 +45,6 @@ new_ernest_run <- function(x, rcrd) {
   env_unbind(obj$live_env, env_names(obj$live_env))
   obj
 }
-
-# #' @export
-# #' @noRd
-# new_ernest_run.ernest_sampler <- function(x, results) {
-#   new_ernest_run_(x, results)
-# }
-
-# #' @export
-# #' @noRd
-# new_ernest_run.ernest_run <- function(x, results) {
-#   prev_run <- x$rcrd[vctrs::vec_as_location(
-#     field(x$rcrd, "neval") != 0L,
-#     length(x$rcrd)
-#   )]
-#   new_ernest_run_(x, vec_c(prev_run, results))
-# }
-
-#' Form the new_ernest_run from samples from the current and previous runs
-#'
-#' Combines parsed results and the live set to construct a new `ernest_run`
-#' object.
-#'
-#' @param x The `ernest_run` or `ernest_sampler` object.
-#' @param parsed A list with the previous dead points from the run.
-#'
-#' @return The object described by generate.
-#' @noRd
 
 #' @srrstats {BS6.0} Default print for return object.
 #' @noRd

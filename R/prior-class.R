@@ -286,6 +286,7 @@ check_prior <- function(
 #' @param ... Ignored.
 #' @returns A string.
 #' @noRd
+#' @export
 format.ernest_prior <- function(x, ...) {
   cli::format_inline("{.cls {class(x)}} ({attr(x, 'nvar')} dims.)")
 }

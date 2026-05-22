@@ -4,7 +4,7 @@ parallel_likelihood <- function(
   ...,
   .on_nonfinite = c("warn", "quiet", "abort")
 ) {
-  check_parallel_support()
+  check_parallel_libs()
   interface <- check_exclusive(scalar_fn, vectorized_fn)
   fn <- switch(
     interface,
@@ -37,7 +37,7 @@ parallel_prior <- function(
     "universal_quiet"
   )
 ) {
-  check_parallel_support()
+  check_parallel_libs()
   interface <- check_exclusive(point_fn, vectorized_fn)
   fn <- switch(
     interface,
@@ -54,14 +54,51 @@ parallel_prior <- function(
     lower = .lower,
     upper = .upper,
     interface = interface,
-    .repair = .repair
+    .repair = .repair,
+    .class = "crated_prior"
   )
 }
 
-check_parallel_support <- function() {
+check_parallel_enabled <- function(sampler, call = caller_env()) {
+  check_parallel_libs(call = call)
+  if (!inherits(sampler$log_lik, "crate")) {
+    cli::cli_abort(
+      c(
+        "`{caller_arg(sampler)}` must contain a portable `log_lik` function.",
+        "i" = "Did you forget to use {.fn ernest::parallel_likelihood}?"
+      ),
+      call = call
+    )
+  }
+  safe_priors <- c("crated_prior", "normal_prior", "uniform_prior")
+  if (!inherits_any(sampler$prior, safe_priors)) {
+    cli::cli_abort(
+      c(
+        "`{caller_arg(sampler)}` must contain a portable `prior` function.",
+        "i" = "Did you forget to use {.fn ernest::parallel_prior}?"
+      ),
+      call = call
+    )
+  }
+  mirai::require_daemons(call = call)
+  m <- mirai::everywhere(library(ernest))
+  first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
+  if (!is.na(first_fail)) {
+    cli::cli_abort(
+      c(
+        "{.pkg mirai} threw an error when trying to load {.pkg ernest}.",
+        "x" = "{m[][[first_fail]]}"
+      ),
+      call = call
+    )
+  }
+  invisible(NULL)
+}
+
+check_parallel_libs <- function(call = caller_env()) {
   check_installed(
     c("mirai", "carrier"),
     reason = "to run parallel nested sampling",
-    call = caller_env()
+    call = call
   )
 }

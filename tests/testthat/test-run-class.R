@@ -30,6 +30,7 @@ describe("ernest_run", {
     )
     expect_identical(attr(example_run$rcrd, "nvar"), 3L)
   })
+  expect_snapshot(glance(example_run))
   expect_snapshot(example_run, transform = \(x) gsub("\\d+", "#", x))
 })
 

@@ -7,6 +7,7 @@
 \alias{compile}
 \alias{generate}
 \alias{visualize}
+\alias{glance}
 \alias{as_draws}
 \alias{as_draws_matrix}
 \alias{as_draws_rvars}
@@ -17,7 +18,7 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics:calculate]{calculate()}}, \code{\link[generics:compile]{compile()}}, \code{\link[generics:generate]{generate()}}, \code{\link[generics:visualize]{visualize()}}}
+  \item{generics}{\code{\link[generics:calculate]{calculate()}}, \code{\link[generics:compile]{compile()}}, \code{\link[generics:generate]{generate()}}, \code{\link[generics:glance]{glance()}}, \code{\link[generics:visualize]{visualize()}}}
 
   \item{posterior}{\code{\link[posterior:as_draws]{as_draws()}}, \code{\link[posterior:as_draws_matrix]{as_draws_matrix()}}, \code{\link[posterior:as_draws_rvars]{as_draws_rvars()}}}
 }}

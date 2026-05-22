@@ -13,6 +13,7 @@ test_that("ernest_rcrd stores the expected information", {
   unit <- field(example_run$rcrd, "unit")
   expect_equal(field(x, "unit"), unit)
   expect_identical(attr(x, "nvar"), 3L)
+  expect_snapshot(glance(example_run$rcrd))
   expect_snapshot(x)
 })
 

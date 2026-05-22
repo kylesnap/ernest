@@ -99,6 +99,7 @@ print.ernest_run <- function(x, ...) {
 #' * `seed`: The RNG seed used.
 #'
 #' @seealso [generate.ernest_run()] [as_draws.ernest_run()]
+#' [glance.ernest_run()]
 #'
 #' @srrstats {BS6.4} Summary method for results object.
 #'
@@ -203,4 +204,35 @@ print.summary.ernest_run <- function(x, ...) {
     "* Original parameters: {round(x$mle$original, 4)}"
   ))
   invisible(x)
+}
+
+#' One-row glance summary for a nested sampling run
+#'
+#' Returns a compact tibble with the key run-level diagnostics.
+#'
+#' @param x [[ernest_run]]\cr A nested sampling run.
+#' @inheritParams rlang::check_dots_empty
+#'
+#' @return A one-row `tibble` with `nlive`, `nvar`, `niter`, `neval`,
+#' `log_evidence`, `log_evidence_err`, `information`, and `seed`.
+#'
+#' @seealso [summary.ernest_run()]
+#' @examples
+#' data(example_run)
+#' glance(example_run)
+#' @export
+glance.ernest_run <- function(x, ...) {
+  check_dots_empty()
+  new_tibble0(
+    data_frame0(
+      nlive = x$nlive,
+      nvar = x$lrps$nvar,
+      niter = x$niter,
+      neval = x$neval,
+      log_evidence = x$log_evidence,
+      log_evidence_err = x$log_evidence_err,
+      information = x$information,
+      seed = attr(x, "seed")
+    )
+  )
 }

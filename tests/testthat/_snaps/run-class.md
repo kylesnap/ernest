@@ -1,6 +1,16 @@
 # ernest_run / Stores run record and valid weights
 
     Code
+      glance(example_run)
+    Output
+      # A tibble: 1 x 8
+        nlive  nvar niter  neval log_evidence log_evidence_err information  seed
+        <int> <int> <int>  <int>        <dbl>            <dbl>       <dbl> <int>
+      1  1000     3  9353 204731        -9.02           0.0824        4.82    42
+
+---
+
+    Code
       example_run
     Message
       Nested sampling run:

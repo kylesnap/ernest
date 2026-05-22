@@ -12,6 +12,7 @@
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  parallel = FALSE,
   ...
 )
 
@@ -21,6 +22,7 @@
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  parallel = FALSE,
   ...
 )
 }

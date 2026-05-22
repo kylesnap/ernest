@@ -1,6 +1,16 @@
 # ernest_rcrd stores the expected information
 
     Code
+      glance(example_run$rcrd)
+    Output
+      # A tibble: 1 x 7
+        nlive  nvar niter  neval log_evidence log_evidence_err information
+        <int> <int> <int>  <int>        <dbl>            <dbl>       <dbl>
+      1  1000     3  9353 204731        -9.02           0.0824        4.82
+
+---
+
+    Code
       x
     Output
       <nested sampling record[10353]>

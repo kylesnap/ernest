@@ -48,4 +48,5 @@ run_sm$posterior
 }
 \seealso{
 \code{\link[=generate.ernest_run]{generate.ernest_run()}} \code{\link[=as_draws.ernest_run]{as_draws.ernest_run()}}
+\code{\link[=glance.ernest_run]{glance.ernest_run()}}
 }

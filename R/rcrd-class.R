@@ -261,3 +261,37 @@ extract_live_points <- function(live_env, .id = NULL) {
     birth_lik = live_env$birth_lik[order_lik]
   )
 }
+
+#' One-row glance summary for a nested sampling record
+#'
+#' Returns the same core run diagnostics as [glance.ernest_run()], derived
+#' from the stored sample record.
+#'
+#' @param x An ernest_rcrd object.
+#' @param ... Must be empty.
+#'
+#' @return A one-row `tibble` with `nlive`, `nvar`, `niter`, `neval`,
+#' `log_evidence`, `log_evidence_err`, and `information`.
+#'
+#' @noRd
+#' @export
+glance.ernest_rcrd <- function(x, ...) {
+  check_dots_empty()
+  rcrd_is_run(x)
+  nlive <- max(field(x, "nlive"))
+  nvar <- ncol(field(x, "unit"))
+  niter <- sum(field(x, "neval") != 0L)
+  neval <- sum(field(x, "neval"))
+  integral <- compute_integral(x)
+  new_tibble0(
+    data_frame0(
+      nlive = nlive,
+      nvar = nvar,
+      niter = niter,
+      neval = neval,
+      log_evidence = tail(integral$log_evidence, 1L),
+      log_evidence_err = sqrt(tail(integral$log_evidence_var, 1L)),
+      information = tail(integral$information, 1L)
+    )
+  )
+}

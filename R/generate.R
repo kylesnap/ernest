@@ -83,6 +83,7 @@ generate.ernest_sampler <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  parallel = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -97,6 +98,9 @@ generate.ernest_sampler <- function(
   x <- compile(x, ...)
   info <- get_sampler_info(x)
 
+  if (!isFALSE(parallel)) {
+    return(pgenerate(x, parallel, control, info, show_progress))
+  }
   results <- nested_sampling_impl(
     live_env = x$live_env,
     lrps = x$lrps,
@@ -118,6 +122,7 @@ generate.ernest_run <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
+  parallel = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -138,6 +143,9 @@ generate.ernest_run <- function(
   )
   info <- get_sampler_info(x)
 
+  if (!isFALSE(parallel)) {
+    return(pgenerate(x, parallel, control, info, show_progress))
+  }
   results <- nested_sampling_impl(
     live_env = x$live_env,
     lrps = x$lrps,

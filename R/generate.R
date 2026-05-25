@@ -168,10 +168,7 @@ generate.ernest_run <- function(
     control = control,
     show_progress = show_progress
   )
-  prev_run <- x$rcrd[vctrs::vec_as_location(
-    field(x$rcrd, "neval") != 0L,
-    length(x$rcrd)
-  )]
+  prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
   new_ernest_run(x, c(prev_run, results))
 }
 

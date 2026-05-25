@@ -43,21 +43,11 @@ describe("write_live_set", {
   make_live <- function(
     unit = matrix(runif(1000), nrow = 500, ncol = 2),
     log_lik = seq(-10, -1, length.out = 500),
-    birth_lik = rep(-Inf, 500)
+    birth_lik = rep(-Inf, 500),
+    id = as.character(seq_len(500))
   ) {
-    list(unit = unit, log_lik = log_lik, birth_lik = birth_lik)
+    list(unit = unit, log_lik = log_lik, birth_lik = birth_lik, id = id)
   }
-
-  it("accepts valid live set and binds to live_env", {
-    live <- make_live()
-    result <- write_live_set(live, sampler)
-    expect_true(exists("unit", envir = result))
-    expect_true(exists("log_lik", envir = result))
-    expect_true(exists("birth_lik", envir = result))
-    expect_equal(nrow(result$unit), 500)
-    expect_equal(length(result$log_lik), 500)
-    expect_equal(length(result$birth_lik), 500)
-  })
 
   it("errors if unit doesn't match nvar", {
     live <- make_live(unit = matrix(runif(1500), nrow = 500, ncol = 3))
@@ -151,6 +141,15 @@ describe("write_live_set", {
       "`birth_lik` must contain only finite values or `-Inf`"
     )
   })
+
+  it("errors if id repeats itself", {
+    live <- make_live()
+    live$id[5] <- 1
+    expect_error(
+      write_live_set(live, sampler),
+      "`id` must contain unique values"
+    )
+  })
 })
 
 test_that("compile initializes the live set", {
@@ -173,4 +172,5 @@ test_that("compile initializes the live set", {
 
   expect_equal(orig_log_lik, expected_log_lik)
   expect_equal(sampler$live_env$birth_lik, rep(-Inf, 500))
+  expect_equal(sampler$live_env$id, as.character(seq_len(500)))
 })

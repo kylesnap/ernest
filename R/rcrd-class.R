@@ -5,26 +5,21 @@
 #' replacements in the live set and each point's contribution to evidence
 #' estimation.
 #'
-#' @section Fields:
-#' \describe{
-#' \item{`unit`}{`[double(nvar)]` The sample's coordinates within the unit
-#' hypercube (prior to transformation via the prior distribution).}
-#' \item{`id`}{`[integer(1)]` A unique identifier for each sample in the
-#' sequence of live points.}
-#' \item{`nlive`}{`[integer(1)]` The number of effective live points remaining
-#' when the sample was removed from the live set. Generally corresponds to the
-#' `nlive` of the `ernest_run`, but can be lower if the sample found within a
-#' plateau in the log-likelihood function (see References) or if the sample is
-#' still in the live set at termination.}
-#' \item{`neval`}{`[integer(1)]` The number of likelihood evaluations
-#' required by the sampler to generate this replacement point, reflecting the
-#' difficulty of sampling from the likelihood-restricted prior. Equal to `0`
-#' for points remaining in the live set at termination.}
-#' \item{`log_lik`}{`[double(1)]` The log-likelihood at the sample.}
-#' \item{`birth_lik`}{`[double(1)]` The log-likelihood threshold that this
-#' sample exceeded; the minimum likelihood constraint applied when generating
-#' it. Equals `-Inf` for samples in the initial live set.}
-#' }
+#' @param unit `[matrix()]`\cr Coordinates in the unit hypercube, with one row
+#' per sample and one column per variable.
+#' @param log_lik `[double()]`\cr Log-likelihood values for each sample.
+#' @param id `[character()]`\cr Unique identifier for each point within a
+#' nested sampler.
+#' @param nlive `[integer()]`\cr The number of live points in the run at the
+#' time each sample was generated.
+#' @param neval `[integer()]`\cr The number of likelihood evaluations performed
+#' to generate each sample.
+#' @param birth_lik `[double()]`\cr The log-likelihood threshold at which
+#' each sample was generated, i.e. the log-likelihood of the worst live point
+#' at the time of replacement.
+#'
+#' @returns An `ernest_rcrd` object, which is a vctrs record class designed to
+#' store the history of samples generated during a nested sampling run.
 #'
 #' @references Fowlie, A., Handley, W., Su, L., Nested Sampling with Plateaus,
 #' Monthly Notices of the Royal Astronomical Society, 503(1), 1199–1205,
@@ -39,7 +34,32 @@
 #'
 #' @name ernest_rcrd
 #' @keywords internal
-NULL
+ernest_rcrd <- function(
+  unit = matrix(double(0)),
+  log_lik = double(0),
+  id = character(0),
+  nlive = integer(0),
+  neval = integer(0),
+  birth_lik = double(0)
+) {
+  nvar <- ncol(unit) %||% 0L
+  unit <- vec_cast(unit, to = matrix(double(), ncol = nvar))
+  log_lik <- vec_cast(log_lik, to = double())
+  id <- vec_cast(id, to = character())
+  nlive <- vec_cast(nlive, to = integer())
+  neval <- vec_cast(neval, to = integer())
+  birth_lik <- vec_cast(birth_lik, to = double())
+  params <- vctrs::vec_recycle_common(
+    unit,
+    log_lik,
+    id,
+    nlive,
+    neval,
+    birth_lik,
+    .size = nrow(unit)
+  )
+  inject(new_ernest_rcrd(!!!params, .nvar = nvar))
+}
 
 #' Create a nested sampling record object
 #'
@@ -53,6 +73,8 @@ NULL
 #' @param neval An integer vector of likelihood evaluation counts.
 #' @param birth_lik A numeric vector of the log-likelihood thresholds at which
 #' each sample was generated
+#' @param .nvar The number of variables in the problem, used to validate the
+#' `unit` matrix.
 #'
 #' @returns An `ernest_rcrd` object (a vctrs record class).
 #' @importFrom vctrs vec_cast vec_ptype_full vec_ptype2
@@ -60,27 +82,28 @@ NULL
 new_ernest_rcrd <- function(
   unit = matrix(double(0)),
   log_lik = double(0),
-  id = integer(0),
+  id = character(0),
   nlive = integer(0),
   neval = integer(0),
-  birth_lik = double(0)
+  birth_lik = double(0),
+  .nvar = 0L
 ) {
-  nvar <- ncol(unit) %||% 0L
-  unit <- vec_cast(unit, to = matrix(double(), ncol = nvar))
-  log_lik <- vec_cast(log_lik, to = double())
-  id <- vec_cast(id, to = integer())
-  if (any(id < 1L)) {
-    cli::cli_abort("`id` must be a positive integer.")
+  vctrs::vec_assert(unit, matrix(double(), ncol = .nvar))
+  vctrs::vec_assert(log_lik, double())
+  vctrs::vec_assert(id, character())
+  vctrs::vec_assert(nlive, integer())
+  vctrs::vec_assert(neval, integer())
+  vctrs::vec_assert(birth_lik, double())
+  if (vctrs::vec_any_missing(id) || any(id == "")) {
+    cli::cli_abort("`id` cannot contain missing or empty values.")
   }
-  nlive <- vec_cast(nlive, to = integer())
   if (any(nlive < 0L)) {
     cli::cli_abort("`nlive` must be a non-negative integer.")
   }
-  neval <- vec_cast(neval, to = integer())
   if (any(neval < 0L)) {
     cli::cli_abort("`neval` must be a non-negative integer.")
   }
-  birth_lik <- vec_cast(birth_lik, to = double())
+
   vctrs::new_rcrd(
     vctrs::df_list(
       unit = unit,
@@ -90,7 +113,7 @@ new_ernest_rcrd <- function(
       neval = neval,
       birth_lik = birth_lik
     ),
-    nvar = as.integer(nvar),
+    nvar = as.integer(.nvar),
     class = "ernest_rcrd"
   )
 }
@@ -129,7 +152,7 @@ vec_ptype2.ernest_rcrd.ernest_rcrd <- function(x, y, ..., call = caller_env()) {
       call = call
     )
   }
-  new_ernest_rcrd(unit = vctrs::vec_ptype(field(x, "unit")))
+  ernest_rcrd(unit = matrix(double(0), ncol = attr(x, "nvar")))
 }
 
 #' @export
@@ -191,42 +214,13 @@ rcrd_is_run <- function(
   arg = caller_arg(x),
   call = caller_env()
 ) {
-  vec_cast(x, to = new_ernest_rcrd())
+  vec_cast(x, to = ernest_rcrd())
   nlive <- nlive %||% max(field(x, "nlive"))
   check_number_whole(nlive, min = 1, arg = caller_arg(nlive), call = call)
   ids <- vctrs::vec_unique(field(x, "id"))
   if (length(ids) != nlive) {
     cli::cli_warn(
       "`{arg}` should contain {nlive} unique IDs, but has {length(ids)}.",
-      call = call
-    )
-    return(FALSE)
-  }
-  diff <- vctrs::vec_set_symmetric_difference(ids, seq_len(nlive))
-  if (length(diff) > 0) {
-    cli::cli_warn(
-      "`{arg}` should contain IDs from 1 to {nlive}.",
-      call = call
-    )
-    return(FALSE)
-  }
-  last_id <- vapply(
-    vctrs::vec_group_loc(field(x, "id"))$loc,
-    \(x) x[[length(x)]],
-    integer(1)
-  )
-  last_id_eval <- field(x, "neval")[last_id]
-  if (any(last_id_eval != 0L)) {
-    cli::cli_warn(
-      "A single live point with `neval == 0` should be found for each ID.",
-      call = call
-    )
-    return(FALSE)
-  }
-  zero_eval <- sum(field(x, "neval") == 0L)
-  if (zero_eval != nlive) {
-    cli::cli_warn(
-      "Only {nlive} points should have `neval == 0`, but found {zero_eval}.",
       call = call
     )
     return(FALSE)
@@ -241,24 +235,71 @@ rcrd_is_run <- function(
   TRUE
 }
 
-#' Extract live points from the run environment.
+#' Extract the live or dead points as a list
+#'
+#' @param x An `ernest_rcrd` object containing the run history.
+#' @param nlive The number of live points in the run. If NULL, this is inferred
+#' from the maximum `nlive` value in the record.
+#'
+#' @returns A list with the elements `unit`, `log_lik`, `birth_lik`, `id`,
+#' for the live points.
+#' @noRd
+get_live_set <- function(x, nlive = NULL) {
+  nlive <- nlive %||% max(field(x, "nlive"))
+  idx_loc <- vctrs::vec_group_loc(field(x, "id"))$loc
+  if ((n <- vctrs::vec_size(idx_loc)) != nlive) {
+    cli::cli_warn(
+      "Expected {nlive} unique IDs in `{caller_arg(x)}`, but found {n}."
+    )
+  }
+  live_idx <- vapply(idx_loc, \(loc) loc[[length(loc)]], integer(1))
+  list(
+    unit = field(x, "unit")[live_idx, , drop = FALSE],
+    log_lik = field(x, "log_lik")[live_idx],
+    birth_lik = field(x, "birth_lik")[live_idx],
+    id = field(x, "id")[live_idx]
+  )
+}
+
+#' Extract the indexes of the dead points from a previous run
+#'
+#' @param x An `ernest_rcrd` object containing the run history.
+#' @param nlive The number of live points in the run. If NULL, this
+#' is inferred from the maximum `nlive` value in the record.
+#' @return An integer vector of indexes corresponding to the dead points in the
+#' run.
+#' @noRd
+get_dead_idx <- function(x, nlive = NULL) {
+  nlive <- nlive %||% max(field(x, "nlive"))
+  idx_loc <- vctrs::vec_group_loc(field(x, "id"))$loc
+  if ((n <- vctrs::vec_size(idx_loc)) != nlive) {
+    cli::cli_warn(
+      "Expected {nlive} unique IDs in `{caller_arg(x)}`, but found {n}."
+    )
+  }
+  vctrs::vec_c(!!!lapply(idx_loc, \(loc) loc[-length(loc)]), integer()) |>
+    sort()
+}
+
+#' Extract the live set from a nested sampling environment
 #'
 #' @param live_env The environment containing the live points.
-#' @param .id An optional identifier for the live points. If NULL, a default
-#' sequence will be used.
 #'
 #' @returns A vctrs record class object containing the live points.
 #' @noRd
-extract_live_points <- function(live_env, .id = NULL) {
-  .id <- if (is.null(.id)) vctrs::vec_seq_along(live_env$unit) else .id
-  order_lik <- order(live_env$log_lik)
-  new_ernest_rcrd(
-    unit = live_env$unit[order_lik, , drop = FALSE],
-    log_lik = live_env$log_lik[order_lik],
-    id = .id[order_lik],
-    nlive = rev(seq_along(live_env$log_lik)),
-    neval = rep(0L, vctrs::vec_size(live_env$unit)),
-    birth_lik = live_env$birth_lik[order_lik]
+env_to_rcrd <- function(live_env) {
+  live_set <- env_get_list(
+    live_env,
+    nms = c("unit", "log_lik", "birth_lik", "id")
+  )
+  order_lik <- order(live_set$log_lik)
+  ernest_rcrd(
+    unit = live_set$unit[order_lik, , drop = FALSE],
+    log_lik = live_set$log_lik[order_lik],
+    id = live_set$id[order_lik],
+    nlive = rev(seq_along(live_set$log_lik)),
+    neval = rep(0L, vctrs::vec_size(live_set$unit)),
+    birth_lik = live_set$birth_lik[order_lik]
   )
 }
 
@@ -280,7 +321,7 @@ glance.ernest_rcrd <- function(x, ...) {
   rcrd_is_run(x)
   nlive <- max(field(x, "nlive"))
   nvar <- ncol(field(x, "unit"))
-  niter <- sum(field(x, "neval") != 0L)
+  niter <- length(x) - nlive
   neval <- sum(field(x, "neval"))
   integral <- compute_integral(x)
   new_tibble0(

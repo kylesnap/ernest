@@ -23,13 +23,13 @@ test_that("compute_integral correctly calculates values", {
   #' Tested against sample run from PolyChord.
   gold <- readRDS(test_path("calculate-gold.rds")) |>
     as.list()
-  rcrd <- new_ernest_rcrd(
+  rcrd <- ernest_rcrd(
     unit = matrix(0, nrow = length(gold$log_lik), ncol = 2),
     log_lik = gold$log_lik,
-    id = c(
+    id = as.character(c(
       rep(seq(250), length.out = length(gold$log_lik) - 250),
       rev(seq(250))
-    ),
+    )),
     nlive = gold$points,
     neval = c(
       rep(1, length.out = length(gold$log_lik) - 250),

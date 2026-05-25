@@ -57,7 +57,7 @@ nested_sampling_impl <- function(
 
   dead_unit <- vctrs::list_of(.ptype = double(lrps$nvar))
   dead_birth <- vctrs::list_of(.ptype = double())
-  dead_id <- vctrs::list_of(.ptype = integer())
+  dead_id <- vctrs::list_of(.ptype = character())
   dead_neval <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
 
@@ -97,7 +97,7 @@ nested_sampling_impl <- function(
     dead_unit[[i]] <- live_env$unit[worst_idx, ]
     dead_log_lik[[i]] <- new_criterion
     dead_birth[[i]] <- live_env$birth_lik[worst_idx]
-    dead_id[[i]] <- worst_idx
+    dead_id[[i]] <- live_env$id[worst_idx]
 
     # 3. Update the integration
     plateau <- if (new_criterion == last_criterion) plateau + 1L else 0L
@@ -151,17 +151,17 @@ nested_sampling_impl <- function(
     cur_eval <- cur_eval + new_unit$neval
   }
 
-  result <- new_ernest_rcrd(
+  result <- ernest_rcrd(
     unit = do.call(rbind, dead_unit),
     log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
-    id = vec_c(!!!dead_id, .ptype = double()),
+    id = vec_c(!!!dead_id, .ptype = character()),
     nlive = get_points(
       vec_c(!!!dead_log_lik, .ptype = double()),
-      nlive,
-      FALSE
+      nlive = nlive,
+      add_live = FALSE
     ),
     neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
-  vec_c(result, extract_live_points(live_env))
+  vec_c(result, env_to_rcrd(live_env))
 }

@@ -10,12 +10,12 @@
 new_ernest_run <- function(x, rcrd, ...) {
   check_class(x, "ernest_sampler")
   check_class(rcrd, "ernest_rcrd")
-  rcrd_is_run(rcrd)
+  rcrd_is_run(rcrd, nlive = x$nlive)
   if (x$lrps$nvar != attr(rcrd, "nvar")) {
     cli::cli_abort("The number of variables in `x` and `rcrd` do not match.")
   }
 
-  niter <- sum(field(rcrd, "neval") != 0L)
+  niter <- length(rcrd) - x$nlive
   integration <- compute_integral(rcrd)
 
   result_elem <- list2(

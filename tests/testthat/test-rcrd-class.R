@@ -73,37 +73,11 @@ describe("rcrd_is_run", {
   })
 
   res <- c()
-  it("warns when IDs have a gap", {
+  it("warns when unique IDs don't match nlive", {
     rcrd <- example_run$rcrd
     expect_warning(
       res <<- c(res, rcrd_is_run(rcrd, nlive = 500)),
       "should contain 500 unique IDs, but has 1000."
-    )
-
-    ids <- field(rcrd, "id")
-    ids[ids == 500L] <- 1001
-    vctrs::field(rcrd, "id") <- ids
-    expect_warning(
-      res <<- c(res, rcrd_is_run(rcrd)),
-      "should contain IDs from 1 to 1000."
-    )
-  })
-
-  it("warns when there are too many/few `neval == 0`", {
-    rcrd <- example_run$rcrd
-    neval <- field(rcrd, "neval")
-    neval[field(rcrd, "id") == 500L] <- 1L
-    vctrs::field(rcrd, "neval") <- neval
-    expect_warning(
-      res <<- c(res, rcrd_is_run(rcrd)),
-      "A single live point with `neval == 0` should be found for each ID."
-    )
-
-    neval[field(rcrd, "id") == 500L] <- 0L
-    vctrs::field(rcrd, "neval") <- neval
-    expect_warning(
-      res <<- c(res, rcrd_is_run(rcrd)),
-      "Only 1000 points should have `neval == 0`, but found \\d+"
     )
   })
 

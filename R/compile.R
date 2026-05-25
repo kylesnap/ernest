@@ -89,8 +89,8 @@ compile.ernest_run <- function(
 
   # Fill live set
   prev <- object$rcrd
-  live <- vctrs::vec_slice(prev, field(prev, "neval") == 0L)
-  write_live_set(as.list(live), object)
+  live <- get_live_set(prev, object$nlive)
+  write_live_set(live, object)
   object
 }
 
@@ -110,8 +110,12 @@ new_live_set <- function(lrps, nlive, call = caller_env()) {
         ncol = lrps$nvar
       )
       log_lik <- lrps$unit_log_fn(unit)
-      #order_logl <- order(log_lik)
-      vctrs::df_list("unit" = unit, "log_lik" = log_lik, "birth_lik" = -Inf)
+      vctrs::df_list(
+        "unit" = unit,
+        "log_lik" = log_lik,
+        "birth_lik" = -Inf,
+        "id" = as.character(seq_len(nlive))
+      )
     },
     error = function(cnd) {
       cli::cli_abort(
@@ -147,10 +151,16 @@ write_live_set <- function(live, object, call = caller_env()) {
   )
   log_lik <- vec_cast(live$log_lik, to = double(), call = call)
   birth_lik <- vec_cast(live$birth_lik, to = double(), call = call)
+  id <- vec_cast(live$id, to = character(), call = call)
 
   # Size Checks
   vctrs::list_check_all_size(
-    list("unit" = unit, "log_lik" = log_lik, "birth_lik" = birth_lik),
+    list(
+      "unit" = unit,
+      "log_lik" = log_lik,
+      "birth_lik" = birth_lik,
+      "id" = id
+    ),
     size = nlive,
     allow_null = FALSE,
     arg = "live",
@@ -170,9 +180,15 @@ write_live_set <- function(live, object, call = caller_env()) {
       call = call
     )
   }
-  if (any(is.na(birth_lik) | is.nan(birth_lik) | log_lik == Inf)) {
+  if (any(is.na(birth_lik) | is.nan(birth_lik) | birth_lik == Inf)) {
     cli::cli_abort(
       "`birth_lik` must contain only finite values or `-Inf`.",
+      call = call
+    )
+  }
+  if (vctrs::vec_duplicate_any(id)) {
+    cli::cli_abort(
+      "`id` must contain unique values.",
       call = call
     )
   }
@@ -201,7 +217,8 @@ write_live_set <- function(live, object, call = caller_env()) {
     object$live_env,
     "unit" = unit,
     "log_lik" = log_lik,
-    "birth_lik" = birth_lik
+    "birth_lik" = birth_lik,
+    "id" = id
   )
   object$live_env
 }

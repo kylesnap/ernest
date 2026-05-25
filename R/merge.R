@@ -5,9 +5,9 @@
 #'
 #' @param x [[ernest_run]]\cr An object containing a nested sampling run.
 #' @param y [[ernest_run]]\cr Another nested sampling run to merge with `x`.
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Additional `ernest_run`
-#' objects to merge with `x`. Ignored if `y` is used.
-#' @param .keep `[[character(1)]]` Specifies what live points to retain from
+#' @param suffix `[[character(2)]]` Suffixes to append to the IDs of `x` and `y`
+#' if there are any duplicate IDs.
+#' @param keep `[[character(1)]]` Specifies what live points to retain from
 #' merging runs together:
 #' * `"first"`: The live set begins after the worst live point appears in the
 #' run. This is the default, and is the most straightforward way to merge runs
@@ -15,63 +15,54 @@
 #' * `"all"`: The live set gets smaller as points die throughout the run. This
 #' is more complicated, but can preserve more information about the live set
 #' if one run ends far earlier than another.
+#' @inheritParams rlang::check_dots_empty
 #'
 #' @returns [[ernest_run]] An object containing the merged nested sampling run.
-#' The `id` field of the [[ernest_rcrd]] component is updated to ensure IDs
-#' range from `1` to the total number of points across all runs.
 #'
 #' @export
-merge.ernest_run <- function(x, y = NULL, ..., .keep = c("first", "all")) {
-  y_arg <- if (!is.null(y)) caller_arg(y) else "`...`"
-  y <- if (is.null(y)) {
-    list2(...)
-  } else {
-    c(list(y), list2(...))
-  }
-
-  # Check that all runs have the expected type and shape
-  for (yi in y) {
-    check_class(yi, "ernest_run", arg = y_arg)
-    if (attr(yi$rcrd, "nvar") != attr(x$rcrd, "nvar")) {
-      cli::cli_abort(
-        "`{y_arg}` must have the same number of variables as `{caller_arg(x)}`."
-      )
-    }
-  }
+merge.ernest_run <- function(
+  x,
+  y,
+  suffix = c(".x", ".y"),
+  keep = c("first", "all"),
+  ...
+) {
+  check_class(y, "ernest_run")
+  check_dots_empty()
 
   # Merge objects together
-  merged_rcrd <- x$rcrd
-  nlive <- 0L
-  for (yi in y) {
-    m <- merge_rcrd(merged_rcrd, yi$rcrd, keep = .keep)
-    nlive <- attr(m, "nlive")
-    merged_rcrd <- m
-  }
+  merged_rcrd <- nlive <- NULL
+  c(merged_rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, keep = keep)
 
   # Update the sampler
   old_nlive <- x$nlive
   x$first_update <- as.integer((x$first_update / old_nlive) * nlive)
   x$update_interval <- as.integer((x$update_interval / old_nlive) * nlive)
   x$nlive <- nlive
-
   new_ernest_run(x, merged_rcrd)
 }
 
 merge_rcrd <- function(
   x,
   y,
+  suffix = c(".x", ".y"),
   keep = c("first", "all"),
   invalid_run = c("error", "warn", "quiet")
 ) {
+  suffix <- vec_cast(suffix, character(2))
   keep <- arg_match(keep)
   invalid_run <- arg_match(invalid_run)
   # Reindex the IDs of each group
-  x_ids <- vctrs::vec_group_id(field(x, "id"))
-  y_ids <- vctrs::vec_group_id(field(y, "id"))
-  nlive <- attr(x_ids, "n") + attr(y_ids, "n")
-  y_ids <- y_ids + attr(x_ids, "n")
-  attributes(x_ids) <- NULL
-  attributes(y_ids) <- NULL
+  x_ids <- field(x, "id")
+  y_ids <- field(y, "id")
+  if (any(vctrs::vec_in(x_ids, y_ids))) {
+    x_ids <- paste0(x_ids, if (!is.na(suffix[1])) suffix[1])
+    y_ids <- paste0(y_ids, if (!is.na(suffix[2])) suffix[2])
+    if (any(vctrs::vec_in(x_ids, y_ids))) {
+      cli::cli_abort("IDs of `x` and `y` must be unique.")
+    }
+  }
+  nlive <- vctrs::vec_unique_count(x_ids) + vctrs::vec_unique_count(y_ids)
   vctrs::field(x, "id") <- x_ids
   vctrs::field(y, "id") <- y_ids
 
@@ -93,10 +84,7 @@ merge_rcrd <- function(
       )
     }
   )
-  structure(
-    vctrs::vec_cast(out, new_ernest_rcrd()),
-    "nlive" = nlive
-  )
+  list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
 }
 
 #' Live set defined by appearance of first dead point.
@@ -110,9 +98,6 @@ merge_rcrd_first <- function(x, nlive) {
     ptype = integer()
   )
   live_pts <- vapply(id_loc$loc, \(idx) idx[idx >= first_live][[1]], integer(1))
-
-  # Reassign `0` neval to the live set
-  vctrs::field(x[live_pts], "neval") <- rep_along(live_pts, 0L)
 
   # Reassign nlive
   x <- x[sort(c(dead_pts, live_pts))]

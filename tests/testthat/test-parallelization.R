@@ -1,84 +1,107 @@
-parallel_lik <- NULL
-parallel_pt <- NULL
-
-test_that("parallel ernest_likelihood works", {
-  parallel_lik <<- parallel_likelihood(
-    vectorized_fn = function(x) {
-      sigma <- 0.1
-      mu1 <- c(1, 1)
-      mu2 <- -c(1, 1)
-      sigma_inv <- diag(2) / 0.1**2
-
-      dx1 <- -0.5 * stats::mahalanobis(x, c(1, 1), sigma_inv, inverted = TRUE)
-      dx2 <- -0.5 * stats::mahalanobis(x, c(-1, -1), sigma_inv, inverted = TRUE)
-      matrixStats::colLogSumExps(rbind(dx1, dx2))
+test_that("Crated func. envs. are attached to the search path", {
+  # Median and qnorm are both in the stats package
+  parallel_lik <- parallel_likelihood(
+    function(x) {
+      median(x)
     }
   )
-  expect_s3_class(parallel_lik, c("ernest_likelihood", "crate"))
-})
+  expect_equal(parallel_lik(c(1, 2, 3)), 2)
 
-test_that("parallel ernest_prior works", {
-  parallel_pt <<- parallel_prior(
-    function(x) {
-      (x * 10) - 5
-    },
-    .names = c("a", "b")
+  parallel_v_prior <- parallel_prior(
+    vectorized_fn = function(x) qnorm(x),
+    .names = c("A", "B", "C")
   )
-  expect_s3_class(parallel_pt, c("crated_prior", "ernest_prior"))
-  expect_s3_class(attr(parallel_pt, "body"), "crate")
+  expect_equal(
+    parallel_v_prior$fn(matrix(c(0.1, 0.5, 0.9), nrow = 1)),
+    matrix(stats::qnorm(c(0.1, 0.5, 0.9)), nrow = 1)
+  )
 })
 
-describe("pgenerate", {
-  it("fails when log_lik is not a crate", {
-    sampler <- ernest_sampler(\(x) sum(x), parallel_pt)
-    expect_error(
-      generate(sampler, parallel = TRUE),
-      "portable `log_lik` function"
-    )
-  })
+# Portable version of the two Gaussian blobs test likelihood
+parallel_lik <- parallel_likelihood(
+  vectorized_fn = function(x) {
+    dx1 <- -0.5 * mahalanobis(x, mu1, sigma_inv, inverted = TRUE)
+    dx2 <- -0.5 * mahalanobis(x, mu2, sigma_inv, inverted = TRUE)
+    matrixStats::colLogSumExps(rbind(dx1, dx2))
+  },
+  sigma = 0.1,
+  mu1 = c(1, 1),
+  mu2 = -c(1, 1),
+  sigma_inv = diag(2) / 0.1**2
+)
 
-  it("fails when prior is not a crate", {
-    sampler <- ernest_sampler(
-      parallel_lik,
-      create_prior(\(x) cumsum(x), names = LETTERS[1:2])
-    )
-    expect_error(
-      generate(sampler, parallel = TRUE),
-      "portable `prior` function"
-    )
-  })
+test_that("parallelization checks for portable functions and daemons", {
+  expect_error(
+    generate(
+      ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior),
+      parallel = TRUE
+    ),
+    "portable `log_lik` function"
+  )
 
-  it("fails when daemons are not set", {
-    sampler <- ernest_sampler(parallel_lik, parallel_pt)
-    expect_error(
-      generate(sampler, parallel = TRUE),
-      "No daemons set."
-    )
-  })
+  expect_error(
+    generate(
+      ernest_sampler(
+        parallel_lik,
+        prior = create_prior(\(x) x * 10 - 5, names = c("A", "B"))
+      ),
+      parallel = TRUE
+    ),
+    "portable `prior` function."
+  )
+
+  sampler <- ernest_sampler(parallel_lik, gaussian_blobs$prior)
+  expect_error(
+    generate(sampler, parallel = TRUE),
+    "No daemons set."
+  )
+})
+
+test_that("default_daemon_nlive is set appropriately", {
+  expect_equal(default_daemon_nlive(500, 2, 2), c(250, 250))
+  expect_equal(default_daemon_nlive(500, 2, 3), c(168, 166, 166))
+  expect_warning(
+    val <- default_daemon_nlive(500, 2, 1000),
+    "4 live points in 125 daemons."
+  )
+  expect_equal(val, rep(4, 125))
 })
 
 describe("generate & mirai", {
   # Set up CRAN-compliant daemons
   mirai::daemons(1, dispatcher = FALSE)
   on.exit(mirai::daemons(0), add = TRUE)
-
   run <- NULL
-  expected_log_z <- log(2.0 * 2.0 * pi * 0.1 * 0.1 / 100)
 
   it("can run a parallel sampler", {
-    sampler <- ernest_sampler(parallel_lik, parallel_pt, nlive = 500, seed = 42)
-    run <<- generate(
-      sampler,
-      parallel = c(250, 250),
-      max_iterations = 1000,
-      min_logz = 0.1
+    run <<- expect_run(
+      log_lik = parallel_lik,
+      prior = gaussian_blobs$prior,
+      nlive = 300,
+      .expected_log_z = gaussian_blobs$log_z_analytic,
+      .generate = list(max_iterations = 1000, parallel = TRUE)
     )
-    print(run$parallel)
-    # log_z <- run$log_evidence
-    # log_z_err <- run$log_evidence_err
-    # delta_log_z <- abs(log_z - expected_log_z)
-    # expect_lte(delta_log_z, 3 * log_z_err)
+    glanced <- glance(run)
+    glanced$seed <- NULL
+    expect_mapequal(run$parallel, glanced)
   })
 
-  it("can run a parallel sampler with existing rcrd", {})
+  it("respects a set seed", {
+    run_cpy <- expect_run(
+      log_lik = parallel_lik,
+      prior = gaussian_blobs$prior,
+      nlive = 300,
+      .expected_log_z = gaussian_blobs$log_z_analytic,
+      .generate = list(max_iterations = 1000, parallel = TRUE)
+    )
+    expect_equal(run$rcrd, run_cpy$rcrd)
+  })
+
+  it("can run a parallel sampler from an ernest_run", {
+    cont_run <- generate(run, max_iterations = 2000, parallel = c(150, 150))
+    expect_equal(
+      field(cont_run$rcrd[1:1000], "log_lik"),
+      field(run$rcrd[1:1000], "log_lik")
+    )
+  })
 })

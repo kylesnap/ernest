@@ -70,12 +70,8 @@ parallel_likelihood <- function(
   interface <- check_exclusive(scalar_fn, vectorized_fn)
   fn <- switch(
     interface,
-    "scalar_fn" = scalar_fn,
-    "vectorized_fn" = vectorized_fn
-  )
-  fn <- carrier::crate(
-    set_env(fn),
-    !!!list2(...)
+    "scalar_fn" = crate_fn(substitute(scalar_fn), ...),
+    "vectorized_fn" = crate_fn(substitute(vectorized_fn), ...)
   )
   new_ernest_likelihood(
     fn,
@@ -105,12 +101,8 @@ parallel_prior <- function(
   interface <- check_exclusive(point_fn, vectorized_fn)
   fn <- switch(
     interface,
-    "point_fn" = point_fn,
-    "vectorized_fn" = vectorized_fn
-  )
-  fn <- carrier::crate(
-    set_env(fn),
-    !!!list2(...)
+    "point_fn" = crate_fn(substitute(point_fn), ...),
+    "vectorized_fn" = crate_fn(substitute(vectorized_fn), ...)
   )
   new_ernest_prior(
     fn,
@@ -120,6 +112,30 @@ parallel_prior <- function(
     interface = interface,
     .repair = .repair,
     .class = "crated_prior"
+  )
+}
+
+#' Wrap `fn` in a crate and attach it to the search path
+#'
+#' @param arg The defused argument to be wrapped in a crate.
+#' @param ... Additional arguments to be captured in the crate's environment.
+#' @param .error_arg The argument to be reported in error messages.
+#' @returns A crate.
+#' @noRd
+crate_fn <- function(
+  arg,
+  ...,
+  .error_arg = caller_arg(arg),
+  .error_call = caller_env()
+) {
+  inject(
+    carrier::crate(
+      !!arg,
+      !!!list(...),
+      .parent_env = global_env(),
+      .error_arg = .error_arg,
+      .error_call = .error_call
+    )
   )
 }
 
@@ -219,16 +235,19 @@ default_daemon_nlive <- function(
   ndaemons = NULL,
   call = caller_env()
 ) {
-  mirai::require_daemons(call = call)
-  ndaemons <- ndaemons %||% mirai::info()[["connections"]]
+  ndaemons <- ndaemons %||%
+    {
+      mirai::require_daemons(call = call)
+      mirai::info()[["connections"]]
+    }
   nlive_per_daemon <- nlive %/% ndaemons
-  if (nlive_per_daemon < (nvar + 1)) {
+  if (nlive_per_daemon < (nvar * 2L)) {
+    nlive_per_daemon <- nvar * 2L
+    ndaemons <- nlive %/% nlive_per_daemon
     cli::cli_warn(
-      "The number of live points per daemon has been set to `nvar + 1`.",
+      "Initializing {nlive_per_daemon} live points in {ndaemons} daemon{?s}.",
       call = call
     )
-    nlive_per_daemon <- nvar + 1
-    ndaemons <- nlive %/% nlive_per_daemon
   }
   daemon_nlive <- rep(nlive_per_daemon, ndaemons)
   daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))

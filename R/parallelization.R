@@ -1,3 +1,65 @@
+#' Parallelization in ernest
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Nested sampling runs can be performed in parallel using \CRANpkg{mirai}.
+#'
+#' To parallelize a run:
+#' - Create a portable likelihood with `parallel_likelihood()`.
+#' - Create a portable prior with `parallel_prior()` or use one of ernest's
+#' [special priors][special_priors].
+#' - Set worker daemons with `mirai::daemons()` and ensure workers can load
+#' ernest.
+#' - Call [`generate()`][generate-ernest] with `parallel` != `FALSE`.
+#'
+#' @param scalar_fn,point_fn,vectorized_fn `[function]`\cr Used identically to
+#' [create_likelihood()] or [create_prior()], but with the additional
+#' requirement that the functions are 'fresh', meaning they should be declared
+#' in the call to `parallel_likelihood()` or `parallel_prior()` rather than
+#' stored in a variable.
+#' @param ... Named arguments that should be captured in the function's
+#' environment and serialized for remote execution.
+#' @inheritParams create_prior
+#' @inheritParams create_likelihood
+#'
+#' @returns
+#' For `parallel_likelihood()`, a [carrier::crate] with the additional class
+#' [ernest_likelihood].
+#'
+#' For `parallel_prior()`, an [ernest_prior] whose transformation function is
+#' a [carrier::crate].
+#'
+#' @section Parallelized nested sampling:
+#' Splitting an initial live set into subruns lets you use many live points
+#' without running a single very large job. Run several smaller nested sampling
+#' jobs concurrently and merge their records to obtain the same statistical
+#' benefits as a single large run.
+#'
+#' When [`generate()`][generate-ernest] is called with `parallel != FALSE`, the resulting run
+#' contains a `parallel` element with per-worker summaries (see
+#' [glance.ernest_run()]) useful for diagnostics.
+#'
+#' @section Daemons:
+#' How parallelization occurs is determined by [mirai::daemons()]. Daemons must
+#' be set prior to calling `generate()` with `parallel != FALSE`, otherwise an
+#' error will be thrown.
+#'
+#' It is usual to set daemons once per session. You can leave them running on
+#' your local machine as they consume almost no resources whilst waiting to
+#' receive tasks. The following sets up 6 daemons locally:
+#'
+#' ```r
+#' mirai::daemons(6)
+#' ```
+#'
+#' @seealso [mirai::daemons()] [carrier::crate()] [generate-ernest]
+#'
+#' @references Documentation adapted from the \CRANpkg{mirai},
+#' \CRANpkg{carrier}, and \CRANpkg{purrr} packages.
+#'
+#' @rdname parallelization
+#' @export
 parallel_likelihood <- function(
   scalar_fn,
   vectorized_fn,
@@ -22,6 +84,8 @@ parallel_likelihood <- function(
   )
 }
 
+#' @rdname parallelization
+#' @export
 parallel_prior <- function(
   point_fn,
   vectorized_fn,
@@ -59,6 +123,20 @@ parallel_prior <- function(
   )
 }
 
+#' Perform parallel nested sampling
+#'
+#' @param x An ernest_sampler/ernest_run object.
+#' @param workers Either `TRUE` to automatically use all available daemons,
+#' or a vector of integers specifying the number of live points to allocate to
+#' each daemon.
+#' @param info,control Arguments controlling the parent run.
+#' @param show_progress If `TRUE`, a progress bar will be displayed for the
+#' parallel execution.
+#'
+#' @returns Same as `generate()`, but with the `parallel` element of the output
+#' containing per-worker glance summaries.
+#'
+#' @noRd
 pgenerate <- function(
   x,
   workers,
@@ -68,20 +146,20 @@ pgenerate <- function(
   call = caller_env()
 ) {
   check_parallel_enabled(x, call)
-  worker_nlive <- if (isTRUE(workers)) {
-    default_worker_nlive(x$nlive, x$lrps$nvar, call = call)
+  daemon_nlive <- if (isTRUE(workers)) {
+    default_daemon_nlive(x$nlive, x$lrps$nvar, call = call)
   } else {
     vctrs::vec_cast(workers, integer())
   }
   nvar <- as.integer(x$lrps$nvar)
-  if (vctrs::vec_any_missing(worker_nlive) || any(worker_nlive < (nvar + 1L))) {
+  if (vctrs::vec_any_missing(daemon_nlive) || any(daemon_nlive < (nvar + 1L))) {
     stop_input_type(
       workers,
       c("`TRUE`/`FALSE`", "a vector of integers each >= nvar + 1"),
       call = call
     )
   }
-  tot_nlive <- sum(worker_nlive) %|% 0L
+  tot_nlive <- sum(daemon_nlive) %|% 0L
   if (tot_nlive != x$nlive) {
     stop_input_type(
       workers,
@@ -91,7 +169,7 @@ pgenerate <- function(
   }
 
   # Break apart the IDS into the appropriate number of workers
-  ids <- vctrs::vec_chop(sample.int(x$nlive), sizes = worker_nlive)
+  ids <- vctrs::vec_chop(sample.int(x$nlive), sizes = daemon_nlive)
   split_x <- partition_run(x, ids, control, info)
   prev_rcrd <- if (is.null(x$rcrd)) {
     NULL
@@ -119,27 +197,54 @@ pgenerate <- function(
 
   opts <- c(".stop", if (show_progress) ".progress" else NULL)
   m_out <- mirai::collect_mirai(m, options = opts)
-  rcrd <- unpartition_runs(m_out, ids, prev_rcrd)
-  new_ernest_run(x, rcrd)
+  combined <- unpartition_runs(m_out, ids, prev_rcrd)
+  new_ernest_run(x, combined$rcrd, parallel = combined$glance)
 }
 
-default_worker_nlive <- function(nlive, nvar, call = caller_env()) {
+#' Default number of live points per daemon
+#'
+#' @param nlive Total number of live points.
+#' @param nvar Number of variables in the problem.
+#' @param ndaemons Number of daemons available. If `NULL`, the number of daemons
+#' will be obtained from `mirai::info()` (used for testing).
+#' @param call The calling environment.
+#'
+#' @returns An integer vector of length `ndaemons` specifying the number of live
+#' points to allocate to each daemon.
+#'
+#' @noRd
+default_daemon_nlive <- function(
+  nlive,
+  nvar,
+  ndaemons = NULL,
+  call = caller_env()
+) {
   mirai::require_daemons(call = call)
-  ndaemons <- mirai::info()[["connections"]]
-  nlive_per_worker <- nlive %/% ndaemons
-  if (nlive_per_worker < (nvar + 1)) {
+  ndaemons <- ndaemons %||% mirai::info()[["connections"]]
+  nlive_per_daemon <- nlive %/% ndaemons
+  if (nlive_per_daemon < (nvar + 1)) {
     cli::cli_warn(
       "The number of live points per daemon has been set to `nvar + 1`.",
       call = call
     )
-    nlive_per_worker <- nvar + 1
+    nlive_per_daemon <- nvar + 1
+    ndaemons <- nlive %/% nlive_per_daemon
   }
-  workers <- rep(nlive_per_worker, ndaemons)
-  workers[[1]] <- workers[[1]] + (nlive - sum(workers))
-  vec_cast(workers, integer())
+  daemon_nlive <- rep(nlive_per_daemon, ndaemons)
+  daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
+  vec_cast(daemon_nlive, integer())
 }
 
-# Split the live set into a series of threads.
+#' Partition a run for parallel execution
+#'
+#' @param x An ernest_sampler/ernest_run object.
+#' @param slices A list of integer vectors specifying the indices of the live
+#' points to allocate to each worker.
+#' @param control,info Arguments controlling the parent run.
+#'
+#' @returns A list of lists containing the data and control parameters for each
+#' worker.
+#' @noRd
 partition_run <- function(x, slices, control, info) {
   x_rcrd <- x$rcrd %||% NULL
   split_info <- function(split_nlive) {
@@ -170,7 +275,17 @@ partition_run <- function(x, slices, control, info) {
   })
 }
 
-# Recombine the results of the threads into a single run.
+#' Recombine per-worker records into a single run
+#'
+#' @param m_out A list of worker outputs, each containing a record of the
+#' worker's nested sampling run.
+#' @param ids A list of integer vectors specifying the indices of the live
+#' points allocated to each worker.
+#' @param prev_rcrd The record of the parent run, if it exists.
+#'
+#' @returns A list containing the combined rcrd and a glance summary of the
+#' each worker's run.
+#' @noRd
 unpartition_runs <- function(m_out, ids, prev_rcrd) {
   run_rcrds <- lapply(
     seq_along(m_out),
@@ -182,6 +297,7 @@ unpartition_runs <- function(m_out, ids, prev_rcrd) {
       c(prev_i, m_out[[i]])
     }
   )
+  glance_df <- vctrs::vec_c(!!!lapply(run_rcrds, glance))
   acc <- NULL
   for (i in seq_along(m_out)) {
     acc <- if (is.null(acc)) {
@@ -190,10 +306,15 @@ unpartition_runs <- function(m_out, ids, prev_rcrd) {
       merge_rcrd(acc, run_rcrds[[i]], keep = "all")
     }
   }
-  acc
+  list("rcrd" = acc, "glance" = glance_df)
 }
 
-# Check that a sampler and R session are properly configured for parallel
+#' Validate parallel configuration and sampler portability
+#'
+#' Ensures `sampler` contains portable `crate`d functions, and that `mirai`
+#' daemons are available.
+#'
+#' @noRd
 check_parallel_enabled <- function(sampler, call = caller_env()) {
   check_parallel_libs(call = call)
   if (!inherits(sampler$log_lik, "crate")) {
@@ -233,7 +354,11 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
   invisible(NULL)
 }
 
-# Check that the necessary parallelization libraries are installed
+#' Ensure parallel packages are available
+#'
+#' Internal helper that validates required packages for parallel execution.
+#'
+#' @noRd
 check_parallel_libs <- function(call = caller_env()) {
   check_installed(
     c("mirai", "carrier"),

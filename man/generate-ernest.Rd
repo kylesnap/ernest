@@ -45,6 +45,10 @@ if set to zero, this criterion is ignored.}
 and iteration counter during sampling. Optional; if \code{NULL} the global option
 \code{rlib_message_verbosity} is used to determine whether to show progress.}
 
+\item{parallel}{\verb{[logical(1)]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Specifies whether the run should be performed in-parallel across multiple
+\code{\link[mirai:daemons]{mirai::daemons()}}. See \link{parallelization} for more details.}
+
 \item{...}{
   Arguments passed on to \code{\link{compile.ernest_run}}
   \describe{

@@ -18,6 +18,9 @@
 #' @param show_progress `[logical(1)]`\cr If `TRUE`, displays a progress spinner
 #' and iteration counter during sampling. Optional; if `NULL` the global option
 #' `rlib_message_verbosity` is used to determine whether to show progress.
+#' @param parallel `[logical(1)]`\cr `r lifecycle::badge("experimental")`
+#' Specifies whether the run should be performed in-parallel across multiple
+#' [mirai::daemons()]. See [parallelization] for more details.
 #'
 #' @returns An `[ernest_run]` object with the nested sampling results.
 #'

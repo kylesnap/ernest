@@ -2,11 +2,12 @@
 #'
 #' @param x An `ernest_sampler` object.
 #' @param rcrd An `ernest_rcrd` object.
+#' @param ... Additional arguments to bind to the run object.
 #'
 #' @returns A new ernest_run object (documented in generate).
 #'
 #' @noRd
-new_ernest_run <- function(x, rcrd) {
+new_ernest_run <- function(x, rcrd, ...) {
   check_class(x, "ernest_sampler")
   check_class(rcrd, "ernest_rcrd")
   rcrd_is_run(rcrd)
@@ -17,7 +18,7 @@ new_ernest_run <- function(x, rcrd) {
   niter <- sum(field(rcrd, "neval") != 0L)
   integration <- compute_integral(rcrd)
 
-  result_elem <- list(
+  result_elem <- list2(
     "niter" = niter,
     "neval" = sum(field(rcrd, "neval")),
     "log_evidence" = tail(integration$log_evidence, 1L),
@@ -40,7 +41,7 @@ new_ernest_run <- function(x, rcrd) {
 
   obj <- do.call(
     new_ernest_sampler,
-    list2(!!!sampler_elem, !!!result_elem, .class = "ernest_run")
+    list2(!!!sampler_elem, !!!result_elem, ..., .class = "ernest_run")
   )
   env_unbind(obj$live_env, env_names(obj$live_env))
   obj

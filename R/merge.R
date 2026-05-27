@@ -1,16 +1,27 @@
-#' Merge `ernest_run` objects together.
+#' Merge nested sampling runs together.
 #'
 #' Combines the samples from a set of nested sampling runs with differing
 #' numbers of live points into a single run.
 #'
 #' @param x [[ernest_run]]\cr An object containing a nested sampling run.
 #' @param y [[ernest_run]]\cr Another nested sampling run to merge with `x`.
-#' @param suffix `[[character(2)]]` Suffixes to append to the IDs of `x` and `y`
-#' if there are any duplicate IDs.
+#' @param suffix `[character(2)]`\cr Suffixes to append to the IDs of `x` and
+#' `y` if there are any duplicate IDs.
 #' @inheritParams rlang::check_dots_empty
 #'
-#' @returns [[ernest_run]] An object containing the merged nested sampling run.
+#' @returns [[ernest_run]] An object containing the merged nested sampling
+#' results. An additional `.merge` is bound to the object, containing the
+#' [[glance.ernest_run]] summary of both `x` and `y`.
 #'
+#' @details
+#' Samples from two well-conditioned nested sampling runs can be merged together
+#' to create a single run with a greater number of live points. This leads to a
+#' more accurate estimate of the evidence and posterior distribution, as well as
+#' a more precise estimate of the uncertainty on the evidence.
+#'
+#' @references Speagle, J. S. (2020). dynesty: A Dynamic Nested Sampling
+#' Package for Estimating Bayesian Posteriors and Evidences. Monthly Notices of
+#' the Royal Astronomical Society, 493, 3132–3158. \doi{10.1093/mnras/staa278}
 #' @export
 merge.ernest_run <- function(
   x,
@@ -26,22 +37,24 @@ merge.ernest_run <- function(
   }
   check_dots_empty()
 
-  # Merge objects together
-  merged <- merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
-  merged_rcrd <- merged$rcrd
-  nlive <- merged$nlive
+  # Get glances of the merged runs
+  glance <- new_tibble0(vctrs::vec_rbind(glance(x), glance(y)))
+
+  # Merge records together
+  merged_rcrd <- nlive <- NULL
+  c(merged_rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
 
   # Update the sampler
   old_nlive <- x$nlive
   x$first_update <- as.integer((x$first_update / old_nlive) * nlive)
   x$update_interval <- as.integer((x$update_interval / old_nlive) * nlive)
   x$nlive <- nlive
-  new_ernest_run(x, merged_rcrd)
+  new_ernest_run(x, merged_rcrd, .merge = glance)
 }
 
 #' Merge two `ernest_rcrd` objects together.
 #'
-#' @params x,y ernest rcrd objects to merge together.
+#' @param x,y ernest rcrd objects to merge together.
 #' @param suffix Suffixes to append to the IDs of `x` and `y`
 #' if there are any duplicate IDs.
 #' @param invalid_run Action to take if the merged rcrd fails validation with
@@ -62,8 +75,8 @@ merge_rcrd <- function(
   x_ids <- field(x, "id")
   y_ids <- field(y, "id")
   if (any(vctrs::vec_in(x_ids, y_ids))) {
-    x_ids <- paste0(x_ids, if (!is.na(suffix[1])) suffix[1])
-    y_ids <- paste0(y_ids, if (!is.na(suffix[2])) suffix[2])
+    x_ids <- paste0(x_ids, suffix[1])
+    y_ids <- paste0(y_ids, suffix[2])
     if (any(vctrs::vec_in(x_ids, y_ids))) {
       cli::cli_abort("IDs of `x` and `y` must be unique.")
     }
@@ -72,28 +85,27 @@ merge_rcrd <- function(
   vctrs::field(x, "id") <- x_ids
   vctrs::field(y, "id") <- y_ids
 
+  # Sort merged run and group by IDs
   out <- sort(vctrs::vec_c(x, y))
   id_loc <- vctrs::vec_group_loc(field(out, "id"))
-  first_live <- min(vapply(
+  first_live_idx <- min(vapply(
     id_loc$loc,
     function(idx) idx[[length(idx)]],
     integer(1)
   ))
 
+  # Sort run into DEAD and LIVE points
   dead_pts <- vctrs::vec_c(
-    !!!lapply(id_loc$loc, function(idx) idx[idx < first_live]),
+    !!!lapply(id_loc$loc, function(idx) idx[idx < first_live_idx]),
     .ptype = integer()
   )
   live_pts <- vapply(
     id_loc$loc,
-    function(idx) idx[idx >= first_live][[1]],
+    function(idx) idx[idx >= first_live_idx][[1]],
     integer(1)
   )
 
-  neval <- field(out, "neval")
-  neval[live_pts] <- 0L
-  vctrs::field(out, "neval") <- neval
-
+  # Remerge and assign new NLIVE
   out <- out[sort(c(dead_pts, live_pts))]
   vctrs::field(out, "nlive") <- get_points(
     field(out, "log_lik"),

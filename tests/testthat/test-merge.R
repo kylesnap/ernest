@@ -33,6 +33,8 @@ test_that("merged run has expected properties", {
   # IDs in the merged rcrd should be unique
   ids <- field(merged$rcrd, "id")
   expect_equal(length(unique(ids)), 300)
+  expect_equal(merged$.merge[1, ], glance(run_a))
+  expect_equal(merged$.merge[2, ], glance(run_b))
 
   # Generate can be called on the merged object.
   run3 <- generate(

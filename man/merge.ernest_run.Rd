@@ -2,7 +2,7 @@
 % Please edit documentation in R/merge.R
 \name{merge.ernest_run}
 \alias{merge.ernest_run}
-\title{Merge \code{ernest_run} objects together.}
+\title{Merge nested sampling runs together.}
 \usage{
 \method{merge}{ernest_run}(x, y, suffix = c(".x", ".y"), ...)
 }
@@ -11,13 +11,26 @@
 
 \item{y}{[\link{ernest_run}]\cr Another nested sampling run to merge with \code{x}.}
 
-\item{suffix}{\verb{[[character(2)]]} Suffixes to append to the IDs of \code{x} and \code{y}
-if there are any duplicate IDs.}
+\item{suffix}{\verb{[character(2)]}\cr Suffixes to append to the IDs of \code{x} and
+\code{y} if there are any duplicate IDs.}
 }
 \value{
-[\link{ernest_run}] An object containing the merged nested sampling run.
+[\link{ernest_run}] An object containing the merged nested sampling
+results. An additional \code{.merge} is bound to the object, containing the
+[\link{glance.ernest_run}] summary of both \code{x} and \code{y}.
 }
 \description{
 Combines the samples from a set of nested sampling runs with differing
 numbers of live points into a single run.
+}
+\details{
+Samples from two well-conditioned nested sampling runs can be merged together
+to create a single run with a greater number of live points. This leads to a
+more accurate estimate of the evidence and posterior distribution, as well as
+a more precise estimate of the uncertainty on the evidence.
+}
+\references{
+Speagle, J. S. (2020). dynesty: A Dynamic Nested Sampling
+Package for Estimating Bayesian Posteriors and Evidences. Monthly Notices of
+the Royal Astronomical Society, 493, 3132–3158. \doi{10.1093/mnras/staa278}
 }

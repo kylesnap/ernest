@@ -4,31 +4,18 @@
 \alias{merge.ernest_run}
 \title{Merge \code{ernest_run} objects together.}
 \usage{
-\method{merge}{ernest_run}(x, y = NULL, ..., .keep = c("first", "all"))
+\method{merge}{ernest_run}(x, y, suffix = c(".x", ".y"), ...)
 }
 \arguments{
 \item{x}{[\link{ernest_run}]\cr An object containing a nested sampling run.}
 
 \item{y}{[\link{ernest_run}]\cr Another nested sampling run to merge with \code{x}.}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Additional \code{ernest_run}
-objects to merge with \code{x}. Ignored if \code{y} is used.}
-
-\item{.keep}{\verb{[[character(1)]]} Specifies what live points to retain from
-merging runs together:
-\itemize{
-\item \code{"first"}: The live set begins after the worst live point appears in the
-run. This is the default, and is the most straightforward way to merge runs
-with different numbers of live points.
-\item \code{"all"}: The live set gets smaller as points die throughout the run. This
-is more complicated, but can preserve more information about the live set
-if one run ends far earlier than another.
-}}
+\item{suffix}{\verb{[[character(2)]]} Suffixes to append to the IDs of \code{x} and \code{y}
+if there are any duplicate IDs.}
 }
 \value{
 [\link{ernest_run}] An object containing the merged nested sampling run.
-The \code{id} field of the [\link{ernest_rcrd}] component is updated to ensure IDs
-range from \code{1} to the total number of points across all runs.
 }
 \description{
 Combines the samples from a set of nested sampling runs with differing

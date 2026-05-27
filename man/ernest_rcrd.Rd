@@ -3,6 +3,39 @@
 \name{ernest_rcrd}
 \alias{ernest_rcrd}
 \title{Storing nested sampling results}
+\usage{
+ernest_rcrd(
+  unit = matrix(double(0)),
+  log_lik = double(0),
+  id = character(0),
+  nlive = integer(0),
+  neval = integer(0),
+  birth_lik = double(0)
+)
+}
+\arguments{
+\item{unit}{\verb{[matrix()]}\cr Coordinates in the unit hypercube, with one row
+per sample and one column per variable.}
+
+\item{log_lik}{\verb{[double()]}\cr Log-likelihood values for each sample.}
+
+\item{id}{\verb{[character()]}\cr Unique identifier for each point within a
+nested sampler.}
+
+\item{nlive}{\verb{[integer()]}\cr The number of live points in the run at the
+time each sample was generated.}
+
+\item{neval}{\verb{[integer()]}\cr The number of likelihood evaluations performed
+to generate each sample.}
+
+\item{birth_lik}{\verb{[double()]}\cr The log-likelihood threshold at which
+each sample was generated, i.e. the log-likelihood of the worst live point
+at the time of replacement.}
+}
+\value{
+An \code{ernest_rcrd} object, which is a vctrs record class designed to
+store the history of samples generated during a nested sampling run.
+}
 \description{
 \code{ernest_rcrd} is a [\link[vctrs:new_rcrd]{vctrs::new_rcrd}] class that stores metadata for all
 samples drawn from the nested sampling algorithm, tracking the history of
@@ -16,29 +49,6 @@ Generally, users will not interact with \code{ernest_rcrd} objects directly, and
 instead will call methods on \code{ernest_run} objects which, internally,
 manipulate the \code{ernest_rcrd} object.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{unit}}{\verb{[double(nvar)]} The sample's coordinates within the unit
-hypercube (prior to transformation via the prior distribution).}
-\item{\code{id}}{\verb{[integer(1)]} A unique identifier for each sample in the
-sequence of live points.}
-\item{\code{nlive}}{\verb{[integer(1)]} The number of effective live points remaining
-when the sample was removed from the live set. Generally corresponds to the
-\code{nlive} of the \code{ernest_run}, but can be lower if the sample found within a
-plateau in the log-likelihood function (see References) or if the sample is
-still in the live set at termination.}
-\item{\code{neval}}{\verb{[integer(1)]} The number of likelihood evaluations
-required by the sampler to generate this replacement point, reflecting the
-difficulty of sampling from the likelihood-restricted prior. Equal to \code{0}
-for points remaining in the live set at termination.}
-\item{\code{log_lik}}{\verb{[double(1)]} The log-likelihood at the sample.}
-\item{\code{birth_lik}}{\verb{[double(1)]} The log-likelihood threshold that this
-sample exceeded; the minimum likelihood constraint applied when generating
-it. Equals \code{-Inf} for samples in the initial live set.}
-}
-}
-
 \references{
 Fowlie, A., Handley, W., Su, L., Nested Sampling with Plateaus,
 Monthly Notices of the Royal Astronomical Society, 503(1), 1199–1205,

@@ -7,14 +7,6 @@
 #' @param y [[ernest_run]]\cr Another nested sampling run to merge with `x`.
 #' @param suffix `[[character(2)]]` Suffixes to append to the IDs of `x` and `y`
 #' if there are any duplicate IDs.
-#' @param keep `[[character(1)]]` Specifies what live points to retain from
-#' merging runs together:
-#' * `"first"`: The live set begins after the worst live point appears in the
-#' run. This is the default, and is the most straightforward way to merge runs
-#' with different numbers of live points.
-#' * `"all"`: The live set gets smaller as points die throughout the run. This
-#' is more complicated, but can preserve more information about the live set
-#' if one run ends far earlier than another.
 #' @inheritParams rlang::check_dots_empty
 #'
 #' @returns [[ernest_run]] An object containing the merged nested sampling run.
@@ -24,15 +16,20 @@ merge.ernest_run <- function(
   x,
   y,
   suffix = c(".x", ".y"),
-  keep = c("first", "all"),
   ...
 ) {
   check_class(y, "ernest_run")
+  if (isTRUE(all.equal(x, y))) {
+    cli::cli_abort(
+      "`{caller_arg(x)}` and `{caller_arg(y)}` cannot be identical."
+    )
+  }
   check_dots_empty()
 
   # Merge objects together
-  merged_rcrd <- nlive <- NULL
-  c(merged_rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, keep = keep)
+  merged <- merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
+  merged_rcrd <- merged$rcrd
+  nlive <- merged$nlive
 
   # Update the sampler
   old_nlive <- x$nlive
@@ -42,15 +39,24 @@ merge.ernest_run <- function(
   new_ernest_run(x, merged_rcrd)
 }
 
+#' Merge two `ernest_rcrd` objects together.
+#'
+#' @params x,y ernest rcrd objects to merge together.
+#' @param suffix Suffixes to append to the IDs of `x` and `y`
+#' if there are any duplicate IDs.
+#' @param invalid_run Action to take if the merged rcrd fails validation with
+#' `rcrd_is_run()`. One of `"error"`, `"warn", or `"quiet"`.
+#'
+#' @returns A list with two elements: `rcrd`, the merged `ernest_rcrd` object,
+#' and `nlive`, the number of live points in the merged run.
+#' @noRd
 merge_rcrd <- function(
   x,
   y,
   suffix = c(".x", ".y"),
-  keep = c("first", "all"),
   invalid_run = c("error", "warn", "quiet")
 ) {
   suffix <- vec_cast(suffix, character(2))
-  keep <- arg_match(keep)
   invalid_run <- arg_match(invalid_run)
   # Reindex the IDs of each group
   x_ids <- field(x, "id")
@@ -66,66 +72,49 @@ merge_rcrd <- function(
   vctrs::field(x, "id") <- x_ids
   vctrs::field(y, "id") <- y_ids
 
-  # Merge the points together and sort them
-  out <- sort(c(x, y))
-  out <- if (keep == "first") {
-    merge_rcrd_first(out, nlive)
-  } else {
-    merge_rcrd_all(out, nlive)
-  }
+  out <- sort(vctrs::vec_c(x, y))
+  id_loc <- vctrs::vec_group_loc(field(out, "id"))
+  first_live <- min(vapply(
+    id_loc$loc,
+    function(idx) idx[[length(idx)]],
+    integer(1)
+  ))
+
+  dead_pts <- vctrs::vec_c(
+    !!!lapply(id_loc$loc, function(idx) idx[idx < first_live]),
+    .ptype = integer()
+  )
+  live_pts <- vapply(
+    id_loc$loc,
+    function(idx) idx[idx >= first_live][[1]],
+    integer(1)
+  )
+
+  neval <- field(out, "neval")
+  neval[live_pts] <- 0L
+  vctrs::field(out, "neval") <- neval
+
+  out <- out[sort(c(dead_pts, live_pts))]
+  vctrs::field(out, "nlive") <- get_points(
+    field(out, "log_lik"),
+    nlive,
+    add_live = TRUE
+  )
+
   try_fetch(
     rcrd_is_run(out, nlive = nlive),
-    warn = \(cnd) {
+    warn = function(cnd) {
       switch(
         invalid_run,
-        "warn" = cli::cli_warn("`merge` produced an invalid run.", cnd),
-        "error" = cli::cli_abort("`merge` failed.", cnd),
+        "warn" = cli::cli_warn(
+          "`merge` produced an invalid run.",
+          parent = cnd
+        ),
+        "error" = cli::cli_abort("`merge` failed.", parent = cnd),
         "quiet" = NULL
       )
     }
   )
+
   list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
-}
-
-#' Live set defined by appearance of first dead point.
-#' @noRd
-merge_rcrd_first <- function(x, nlive) {
-  id_loc <- vctrs::vec_group_loc(field(x, "id"))
-  first_live <- min(vapply(id_loc$loc, \(x) x[[length(x)]], integer(1)))
-
-  dead_pts <- vec_c(
-    !!!lapply(id_loc$loc, \(idx) idx[idx < first_live]),
-    ptype = integer()
-  )
-  live_pts <- vapply(id_loc$loc, \(idx) idx[idx >= first_live][[1]], integer(1))
-
-  # Reassign nlive
-  x <- x[sort(c(dead_pts, live_pts))]
-  vctrs::field(x, "nlive") <- get_points(
-    field(x, "log_lik"),
-    nlive,
-    add_live = TRUE
-  )
-  x
-}
-
-#' Live set gets smaller as points die throughout the run.
-#' @noRd
-merge_rcrd_all <- function(x, nlive) {
-  id_loc <- vctrs::vec_group_loc(field(x, "id"))
-  # Remove `nlive` at the iteration after each point's death
-  death_idx <- vapply(id_loc$loc, \(idx) idx[[length(idx)]], integer(1)) + 1
-  death_idx <- vctrs::num_as_location(death_idx, length(x), oob = "remove")
-  death_nlive <- integer(length(x))
-  death_nlive[death_idx] <- -1L
-  death_nlive <- cumsum(death_nlive)
-
-  # Reassign `0` neval to the live set
-  vctrs::field(x[death_idx - 1], "neval") <- rep_along(death_idx, 0L)
-
-  # Reassign nlive
-  death_nlive <- death_nlive +
-    get_points(field(x, "log_lik"), nlive, add_live = FALSE)
-  vctrs::field(x, "nlive") <- death_nlive
-  x
 }

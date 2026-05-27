@@ -180,7 +180,7 @@ as.list.ernest_rcrd <- function(x, ...) {
 }
 
 #' Comparison operations
-#' @importFrom vctrs field vec_proxy_compare vec_proxy_order
+#' @importFrom vctrs field vec_proxy_compare vec_proxy_order vec_proxy_equal
 #' @export
 #' @noRd
 vec_proxy_compare.ernest_rcrd <- function(x, ...) {
@@ -191,6 +191,16 @@ vec_proxy_compare.ernest_rcrd <- function(x, ...) {
 #' @noRd
 vec_proxy_order.ernest_rcrd <- function(x, ...) {
   field(x, "log_lik")
+}
+
+#' @export
+#' @noRd
+vec_proxy_equal.ernest_rcrd <- function(x, ...) {
+  data_frame0(
+    "unit" = field(x, "unit"),
+    "birth_lik" = field(x, "birth_lik"),
+    "log_lik" = field(x, "log_lik")
+  )
 }
 
 #' Check that an ernest_rcrd object contains a valid run.

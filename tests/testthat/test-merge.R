@@ -1,117 +1,58 @@
-data(example_run)
-skip("CURRENTLY BROKEN")
-
-#' Helper function to subset an `ernest_rcrd` by a set of live point IDs.
-split_run <- function(rcrd, keep_ids) {
-  rcrd[field(rcrd, "id") %in% as.character(keep_ids)]
-}
-
-#' Helper function to subset an `ernest_rcrd` by an iteration.
-split_run_iter <- function(rcrd, indices) {
-  rcrd <- vctrs::vec_slice(
-    rcrd,
-    vctrs::num_as_location(indices, n = length(rcrd))
-  )
-  ids <- vctrs::vec_group_loc(field(rcrd, "id"))
-  nlive <- length(ids$key)
-  last_idx <- vapply(ids$loc, \(i) i[[length(i)]], integer(1))
-  vctrs::field(rcrd, "nlive") <- pmax(field(rcrd, "nlive"), nlive)
-  vctrs::field(rcrd[last_idx], "neval") <- rep(0L, nlive)
-  list("rcrd" = rcrd, "nlive" = nlive)
-}
-
 test_that("merging fails when arguments are poorly specified", {
-  run1 <- example_run
-  run2 <- "example_run"
-
   expect_error(
-    merge(run1, y = run2),
-    "must be an object with class ernest_run"
-  )
-  expect_error(
-    merge(run1, run2),
+    merge(example_run, "example_run"),
     "must be an object with class ernest_run"
   )
 
-  run2 <- example_run
-  run2$rcrd <- split_run(run2$rcrd, seq(501L, 1000L))
-  attr(run2$rcrd, "nvar") <- 2L
-  run2$nlive <- 500L
-  expect_error(merge(run1, run2), "`nvar` attribute must match")
+  expect_error(
+    merge(example_run, example_run),
+    "cannot be identical"
+  )
 })
 
-describe("merge() recreates the example_run when split by `id`", {
-  it("works when the run in split in half", {
-    run1 <- example_run
-    run1$rcrd <- split_run(run1$rcrd, seq_len(500L))
-    run1$nlive <- 500L
+test_that("merged run has expected properties", {
+  run_a <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    gaussian_blobs$prior,
+    nlive = 100,
+    seed = 1
+  ) |>
+    generate()
 
-    run2 <- example_run
-    run2$rcrd <- split_run(run2$rcrd, seq(501L, 1000L))
-    run2$nlive <- 500L
+  run_b <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    gaussian_blobs$prior,
+    nlive = 200,
+    seed = 2
+  ) |>
+    generate()
 
-    merged <- merge(run1, run2)
-    expect_s3_class(merged, c("ernest_run", "ernest_sampler"))
-    expect_equal(merged$rcrd, example_run$rcrd)
+  merged <- merge(run_a, run_b)
+  # nlive should be the sum of unique live counts from each run
+  expect_equal(merged$nlive, 300)
+  # IDs in the merged rcrd should be unique
+  ids <- field(merged$rcrd, "id")
+  expect_equal(length(unique(ids)), 300)
 
-    merged <- merge(run1, run2, keep = "all")
-    expect_s3_class(merged, c("ernest_run", "ernest_sampler"))
-    expect_equal(merged$rcrd, example_run$rcrd)
-  })
-
-  it("works when split in thirds", {
-    run1 <- example_run
-    run1$rcrd <- split_run(run1$rcrd, seq_len(333L))
-    run1$nlive <- 333L
-
-    run2 <- example_run
-    run2$rcrd <- split_run(run2$rcrd, seq(334L, 666L))
-    run2$nlive <- 333L
-
-    run3 <- example_run
-    run3$rcrd <- split_run(run3$rcrd, seq(667L, 1000L))
-    run3$nlive <- 334L
-
-    merged <- merge(run1, merge(run2, run3))
-    expect_equal(merged$nlive, 1000L)
-    expect_equal(merged$rcrd, example_run$rcrd)
-  })
+  # Generate can be called on the merged object.
+  run3 <- generate(
+    merged,
+    max_iterations = merged$niter + 1000L,
+    min_logz = 0
+  )
+  expect_equal(run3$niter, merged$niter + 1000L)
 })
 
-describe("merge() recreates the example_run when split by `iter`", {
-  tot <- length(example_run$rcrd)
-  bp <- tot %/% 2
+test_that("merge_rcrd errors when suffixes still produce duplicate ids", {
+  # craft two minimal rcrd objects that will produce duplicate ids even after
+  # the same suffix is applied
+  data(example_run)
+  x <- example_run$rcrd[1:10]
+  y <- example_run$rcrd[1:10]
 
-  it("works when the run in split in half", {
-    run1 <- example_run
-    spl1 <- split_run_iter(run1$rcrd, seq_len(bp))
-    run1$rcrd <- spl1$rcrd
-    run1$nlive <- spl1$nlive
-
-    run2 <- example_run
-    spl2 <- split_run_iter(run2$rcrd, seq(bp + 1, tot))
-    run2$rcrd <- spl2$rcrd
-    run2$nlive <- spl2$nlive
-
-    merged <- merge(run1, run2)
-    expect_s3_class(merged, c("ernest_run", "ernest_sampler"))
-    expect_setequal(
-      field(merged$rcrd, "id"),
-      c(
-        paste0(field(spl1$rcrd, "id"), ".x"),
-        paste0(field(spl2$rcrd, "id"), ".y")
-      )
-    )
-    print(merged)
-
-    merged <- merge(run1, run2, keep = "all")
-    expect_setequal(
-      field(merged$rcrd, "id"),
-      c(
-        paste0(field(spl1$rcrd, "id"), ".x"),
-        paste0(field(spl2$rcrd, "id"), ".y")
-      )
-    )
-    print(merged)
-  })
+  # using identical suffixes for both sides should trigger the "must be unique" error
+  expect_error(
+    merge_rcrd(x, y, suffix = c(".same", ".same")),
+    "IDs of `x` and `y` must be unique"
+  )
 })

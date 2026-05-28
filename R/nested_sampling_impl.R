@@ -8,7 +8,6 @@
 #'
 #' @param live_env The environment containing the current live set.
 #' @param lrps The likelihood-restricted prior sampler.
-#' @param sampler_info A list containing information about the sampler.
 #' @param control parameters for the nested sampling run, generated from
 #' `set_run_control()`.
 #' @param show_progress Logical. If `TRUE`, displays a progress bar during
@@ -40,16 +39,15 @@
 nested_sampling_impl <- function(
   live_env,
   lrps,
-  sampler_info,
   control,
   show_progress = TRUE
 ) {
-  preserve_seed(sampler_info$seed)
+  preserve_seed(control$seed)
   max_lik <- max(live_env$log_lik)
   log_vol <- control$log_vol
   log_z <- control$log_z
   last_criterion <- control$last_criterion
-  nlive <- sampler_info$nlive
+  nlive <- control$nlive
   plateau <- 0L
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
@@ -110,13 +108,13 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (!initial_update && cur_eval >= sampler_info$first_update) {
+    if (!initial_update && cur_eval >= control$first_update) {
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
       initial_update <- TRUE
     }
     if (
       initial_update &&
-        (lrps$cache$neval %||% 0L) > sampler_info$update_interval
+        (lrps$cache$neval %||% 0L) > control$update_interval
     ) {
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
     }
@@ -126,7 +124,7 @@ nested_sampling_impl <- function(
     if (copy == worst_idx && nlive > 1) {
       copy <- sample.int(nlive, 1)
     }
-    new_unit <- if (cur_eval <= sampler_info$first_update) {
+    new_unit <- if (cur_eval <= control$first_update) {
       propose(lrps, criterion = last_criterion)
     } else {
       propose(

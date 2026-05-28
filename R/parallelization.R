@@ -142,7 +142,6 @@ crate_fn <- function(
 #' Run nested sampling in parallel across multiple daemons
 #'
 #' @param x The ernest_sampler object
-#' @param sampler_info A list containing information about the sampler.
 #' @param control parameters for the nested sampling run, generated from
 #' `set_run_control()`.
 #' @param show_progress Logical. If `TRUE`, displays a progress bar during
@@ -155,7 +154,6 @@ crate_fn <- function(
 #' @noRd
 nested_sampling_parallel <- function(
   x,
-  sampler_info,
   control,
   show_progress,
   parallel
@@ -175,7 +173,6 @@ nested_sampling_parallel <- function(
     live_env,
     ids_by_daemon,
     control,
-    sampler_info,
     x$rcrd
   )
 
@@ -187,7 +184,6 @@ nested_sampling_parallel <- function(
       nested_sampling_impl_(
         live_env = cur_env,
         lrps = lrps_,
-        sampler_info = run$info,
         control = run$control,
         show_progress = FALSE
       )
@@ -231,25 +227,13 @@ allocate_nlive <- function(
 #'
 #' @param live_env An environment containing sampling information.
 #' @param ids Character vectors of IDs.
-#' @param control,info Arguments controlling the parent run.
+#' @param control Arguments controlling the parent run.
 #' @param rcrd ernest_rcrd from the previous run
 #'
 #' @returns A list of lists containing the data and control parameters for each
 #' worker.
 #' @noRd
-partition_run <- function(live_env, ids, control, info, rcrd = NULL) {
-  # Helper to scale the parent run's info for each worker
-  split_info <- \(split_ids) {
-    split_nlive <- length(split_ids)
-    frac_nlive <- split_nlive / info$nlive
-    list(
-      seed = info$seed,
-      nlive = split_nlive,
-      first_update = as.integer(info$first_update * frac_nlive),
-      update_interval = as.integer(info$update_interval * frac_nlive)
-    )
-  }
-
+partition_run <- function(live_env, ids, control, rcrd = NULL) {
   # Helper to split rcrd into runs for each worker
   split_rcrd <- \(split_ids) {
     if (is.null(rcrd)) {
@@ -259,18 +243,25 @@ partition_run <- function(live_env, ids, control, info, rcrd = NULL) {
   }
 
   lapply(ids, \(id_slice) {
-    live_loc <- vctrs::vec_match(env_get(live_env, "id"), id_slice)
+    split_nlive <- length(id_slice)
+    frac_nlive <- split_nlive / control$nlive
+    child_first_update <- as.integer(control$first_update * frac_nlive)
+    child_update_interval <- as.integer(control$update_interval * frac_nlive)
+    live_loc <- which(vctrs::vec_in(env_get(live_env, "id"), id_slice))
     list(
       "unit" = env_get(live_env, "unit")[live_loc, , drop = FALSE],
       "log_lik" = env_get(live_env, "log_lik")[live_loc],
       "birth_lik" = env_get(live_env, "birth_lik")[live_loc],
       "id" = env_get(live_env, "id")[live_loc],
-      "info" = split_info(id_slice),
-      "control" = new_generate_control(
+      "control" = generate_control(
         control$max_iterations,
         control$max_evaluations,
         control$min_logz,
-        prev_run = split_rcrd(id_slice)
+        seed = control$seed,
+        nlive = split_nlive,
+        first_update = child_first_update,
+        update_interval = child_update_interval,
+        rcrd = split_rcrd(id_slice)
       )
     )
   })

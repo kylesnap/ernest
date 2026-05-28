@@ -102,7 +102,6 @@ describe("generate & mirai", {
   })
 
   it("can run a parallel sampler from an ernest_run", {
-    skip("Not working")
     cont_run <- generate(run, max_iterations = 2000, parallel = 2)
     expect_equal(
       field(cont_run$rcrd[1:1000], "log_lik"),

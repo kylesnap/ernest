@@ -95,18 +95,20 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-  control <- new_generate_control(
+  control <- generate_control(
     max_iterations,
     max_evaluations,
-    min_logz
+    min_logz,
+    seed = attr(x, "seed"),
+    nlive = x$nlive,
+    first_update = x$first_update,
+    update_interval = x$update_interval
   )
   x <- compile(x, ...)
-  info <- get_sampler_info(x)
 
   if (!isFALSE(parallel)) {
     results <- nested_sampling_parallel(
       x,
-      sampler_info = info,
       control = control,
       show_progress = show_progress,
       parallel = parallel
@@ -116,7 +118,6 @@ generate.ernest_sampler <- function(
     results <- nested_sampling_impl(
       live_env = x$live_env,
       lrps = x$lrps,
-      sampler_info = info,
       control = control,
       show_progress = show_progress
     )
@@ -148,19 +149,21 @@ generate.ernest_run <- function(
   }
 
   x_rcrd <- x$rcrd
-  control <- new_generate_control(
+  control <- generate_control(
     max_iterations,
     max_evaluations,
     min_logz,
-    prev_run = x_rcrd
+    seed = attr(x, "seed"),
+    nlive = x$nlive,
+    first_update = x$first_update,
+    update_interval = x$update_interval,
+    rcrd = x_rcrd
   )
-  info <- get_sampler_info(x)
   prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
 
   if (!isFALSE(parallel)) {
     results <- nested_sampling_parallel(
       x,
-      sampler_info = info,
       control = control,
       show_progress = show_progress,
       parallel = parallel
@@ -174,7 +177,6 @@ generate.ernest_run <- function(
     results <- nested_sampling_impl(
       live_env = x$live_env,
       lrps = x$lrps,
-      sampler_info = info,
       control = control,
       show_progress = show_progress
     )
@@ -182,29 +184,68 @@ generate.ernest_run <- function(
   }
 }
 
-#' Generate and validate stopping criteria.
+#' Generate a list of control parameters for nested sampling
 #'
-#' @param max_iterations Maximum number of iterations to perform.
-#' @param max_evaluations Maximum number of likelihood function neval.
-#' @param min_logz Minimum log-ratio between current estimated evidence and
-#' remaining evidence.
-#' @param prev_run The points from a previous run; NULL if no points yet
-#' exist.
-#' @param call Environment for error reporting.
+#' @param max_iterations,max_evaluations,min_logz User-requested stopping
+#' parameters.
+#' @param seed,nlive,first_update,update_interval Parameters from the sampler
+#' object.
+#' @param rcrd An optional `ernest_rcrd` object from a previous run, used to
+#' initialize the control parameters if continuing a run.
 #'
-#' @return A named list containing `max_iterations`, `max_evaluations`,
-#' `min_logz`, `last_criterion`, `log_z`, `log_vol`, `cur_iter`, and `cur_eval`.
+#' @return A named list containing:
+#' * Run meta info: `seed`, `nlive`, `first_update`, `update_interval`
+#' * Validated stopping criteria: `max_iterations`, `max_evaluations`,
+#' `min_logz`.
+#' * Run state: `last_criterion`, `log_z`, `log_vol`, `cur_iter`, `cur_eval`.
 #' @noRd
-new_generate_control <- function(
+generate_control <- function(
   max_iterations,
   max_evaluations,
   min_logz,
-  prev_run = NULL,
+  seed,
+  nlive,
+  first_update,
+  update_interval,
+  rcrd = NULL,
   call = caller_env()
 ) {
-  check_number_whole(max_iterations, min = 1, allow_null = TRUE, call = call)
-  check_number_whole(max_evaluations, min = 1, allow_null = TRUE, call = call)
-  check_number_decimal(min_logz, min = 0, call = call)
+  # Initialize control parameters to default.
+  control <- list(
+    seed = seed,
+    nlive = nlive,
+    first_update = first_update,
+    update_interval = update_interval
+  )
+  last_criterion <- -1e300
+  log_vol <- 0
+  log_z <- -1e300
+  cur_iter <- 0L
+  cur_eval <- 0L
+  d_log_z <- Inf
+
+  if (!is.null(rcrd)) {
+    # If nlive > number of unique points, then refactor the rcrd to avoid issues
+    act_nlive <- max(field(rcrd, "nlive"))
+    if (act_nlive > control$nlive) {
+      print("Refactoring rcrd to match nlive...")
+      vctrs::field(rcrd, "nlive") <- get_points(
+        field(rcrd, "log_lik"),
+        control$nlive,
+        TRUE
+      )
+    }
+    prev_integration <- compute_integral(rcrd)
+    cur_iter <- vctrs::vec_size(rcrd) - control$nlive
+    cur_eval <- sum(field(rcrd, "neval"))
+    last_criterion <- prev_integration$log_lik[[cur_iter]]
+    log_z <- prev_integration$log_evidence[[cur_iter]]
+    log_vol <- prev_integration$log_vol[[cur_iter]]
+    max_lik <- max(field(rcrd, "log_lik"))
+    d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
+  }
+
+  # Check stopping criteria
   no_stopping <- all(
     identical(min_logz, 0),
     is.null(max_iterations),
@@ -213,93 +254,43 @@ new_generate_control <- function(
   if (no_stopping) {
     cli::cli_abort(
       c(
-        "Can't perform nested sampling without any stopping criteria.",
-        "i" = "Have you set either `max_iterations` or `max_evaluations`?"
+        "At least one of `max_iterations`, `max_evaluations`, or `min_logz` must",
+        "specify a valid stopping criterion."
       ),
       call = call
     )
   }
-
   max_iterations <- max_iterations %||% .Machine$integer.max
   max_evaluations <- max_evaluations %||% .Machine$integer.max
 
-  if (is.null(prev_run)) {
-    return(list(
-      max_iterations = as.integer(max_iterations),
-      max_evaluations = as.integer(max_evaluations),
-      min_logz = as.double(min_logz),
-      last_criterion = -1e300,
-      log_vol = 0,
-      log_z = -1e300,
-      cur_iter = 0L,
-      cur_eval = 0L
-    ))
-  }
+  check_number_whole(
+    max_iterations,
+    min = cur_iter + 1.0,
+    allow_null = TRUE,
+    call = call
+  )
+  check_number_whole(
+    max_evaluations,
+    min = cur_eval + 1.0,
+    allow_null = TRUE,
+    call = call
+  )
+  check_number_decimal(
+    min_logz,
+    min = 0,
+    max = round(d_log_z, getOption("digits", 7L)),
+    call = call
+  )
 
-  niter <- match(0L, field(prev_run, "neval")) - 1L
-  neval <- sum(field(prev_run, "neval"))
-  prev_integration <- compute_integral(prev_run)
-
-  last_criterion <- prev_integration$log_lik[[niter]]
-  log_z <- prev_integration$log_evidence[[niter]]
-  log_vol <- prev_integration$log_vol[[niter]]
-  max_lik <- max(field(prev_run, "log_lik")[(niter + 1):length(prev_run)])
-  d_logz <- logspace_add_c(0, max_lik + log_vol - log_z)
-
-  if (niter >= max_iterations) {
-    cli::cli_abort(
-      c(
-        "`max_iterations` must be strictly larger than {niter}.",
-        "x" = "`x` already contains previously-generated samples.",
-        "i" = "Should you use `clear` to erase previous samples from `x`?"
-      ),
-      call = call
-    )
-  }
-  if (neval >= max_evaluations) {
-    cli::cli_abort(
-      c(
-        "`max_evaluations` must be strictly larger than {neval}.",
-        "x" = "`x` already contains previously-generated samples.",
-        "i" = "Should you use `clear` to erase previous samples from `x`?"
-      ),
-      call = call
-    )
-  }
-  if (min_logz >= d_logz) {
-    cli::cli_abort(
-      c(
-        "`min_logz` must be strictly smaller than {round(d_logz, digits = 3)}.",
-        "x" = "`x` already contains previously-generated samples.",
-        "i" = "Should you use `clear` to erase previous samples from `x`?"
-      ),
-      call = call
-    )
-  }
-
-  list(
+  list2(
+    !!!control,
     max_iterations = as.integer(max_iterations),
     max_evaluations = as.integer(max_evaluations),
     min_logz = as.double(min_logz),
     last_criterion = as.double(last_criterion),
     log_vol = as.double(log_vol),
     log_z = as.double(log_z),
-    cur_iter = as.integer(niter),
-    cur_eval = as.integer(neval)
-  )
-}
-
-#' Extract sampler information for use in nested sampling.
-#'
-#' @param x An `ernest_sampler` or `ernest_run` object.
-#' @return A named list containing `seed`, `nlive`, `first_update`,
-#' and `update_interval`.
-#' @noRd
-get_sampler_info <- function(x) {
-  list(
-    seed = attr(x, "seed"),
-    nlive = x$nlive,
-    first_update = x$first_update,
-    update_interval = x$update_interval
+    cur_iter = as.integer(cur_iter),
+    cur_eval = as.integer(cur_eval)
   )
 }

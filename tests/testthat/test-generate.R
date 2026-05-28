@@ -1,20 +1,54 @@
 data(example_run)
 
-describe("new_generate_control", {
+describe("generate_control", {
   it("catches invalid or empty criteria", {
     expect_error(
-      new_generate_control(NULL, NULL, 0),
-      "Can't perform nested sampling without any stopping criteria."
+      generate_control(
+        NULL,
+        NULL,
+        0,
+        seed = NA_integer_,
+        nlive = 1L,
+        first_update = 0L,
+        update_interval = 0L
+      ),
+      "At least one of `max_iterations`, `max_evaluations`, or `min_logz` must"
     )
     expect_error(
-      new_generate_control(-1, NULL, 0),
+      generate_control(
+        max_iterations = -1,
+        NULL,
+        0,
+        seed = NA_integer_,
+        nlive = 1L,
+        first_update = 0L,
+        update_interval = 0L
+      ),
       "a whole number larger than or equal to 1 or `NULL`"
     )
   })
 
   it("returns expected defaults", {
+    ctrl <- generate_control(
+      NULL,
+      NULL,
+      0.05,
+      seed = NA_integer_,
+      nlive = 100L,
+      first_update = 0L,
+      update_interval = 0L
+    )
     expect_mapequal(
-      new_generate_control(NULL, NULL, 0.05),
+      ctrl[c(
+        "max_iterations",
+        "max_evaluations",
+        "min_logz",
+        "last_criterion",
+        "log_vol",
+        "log_z",
+        "cur_iter",
+        "cur_eval"
+      )],
       list(
         max_iterations = .Machine$integer.max,
         max_evaluations = .Machine$integer.max,
@@ -26,6 +60,7 @@ describe("new_generate_control", {
         cur_eval = 0L
       )
     )
+    expect_identical(ctrl$nlive, 100L)
   })
 
   x_rcrd <- example_run$rcrd
@@ -34,18 +69,45 @@ describe("new_generate_control", {
     neval <- example_run$neval
 
     expect_error(
-      new_generate_control(niter, neval + 1L, 0, prev_run = x_rcrd),
-      "`max_iterations` must be strictly larger"
+      generate_control(
+        niter,
+        neval + 1L,
+        0,
+        seed = attr(example_run, "seed"),
+        nlive = example_run$nlive,
+        first_update = example_run$first_update,
+        update_interval = example_run$update_interval,
+        rcrd = x_rcrd
+      ),
+      "`max_iterations` must be a whole number larger than or equal to"
     )
 
     expect_error(
-      new_generate_control(niter + 1L, neval, 0, x_rcrd),
-      "`max_evaluations` must be strictly larger"
+      generate_control(
+        niter + 1L,
+        neval,
+        0,
+        seed = attr(example_run, "seed"),
+        nlive = example_run$nlive,
+        first_update = example_run$first_update,
+        update_interval = example_run$update_interval,
+        rcrd = x_rcrd
+      ),
+      "`max_evaluations` must be a whole number larger than or equal to"
     )
 
     expect_error(
-      new_generate_control(niter + 1L, neval + 1L, 0.05, prev_run = x_rcrd),
-      "`min_logz` must be strictly smaller"
+      generate_control(
+        niter + 1L,
+        neval + 1L,
+        0.05,
+        seed = attr(example_run, "seed"),
+        nlive = example_run$nlive,
+        first_update = example_run$first_update,
+        update_interval = example_run$update_interval,
+        rcrd = x_rcrd
+      ),
+      "`min_logz` must be a number between"
     )
   })
 
@@ -53,12 +115,27 @@ describe("new_generate_control", {
     integration <- compute_integral(example_run$rcrd)
     niter <- example_run$niter
 
+    ctrl <- generate_control(
+      NULL,
+      NULL,
+      0.01,
+      seed = attr(example_run, "seed"),
+      nlive = example_run$nlive,
+      first_update = example_run$first_update,
+      update_interval = example_run$update_interval,
+      rcrd = x_rcrd
+    )
+
     expect_mapequal(
-      new_generate_control(NULL, NULL, 0.01, prev_run = x_rcrd),
+      ctrl,
       list(
         max_iterations = .Machine$integer.max,
         max_evaluations = .Machine$integer.max,
         min_logz = 0.01,
+        seed = attr(example_run, "seed"),
+        nlive = example_run$nlive,
+        first_update = example_run$first_update,
+        update_interval = example_run$update_interval,
         last_criterion = integration$log_lik[[niter]],
         log_vol = integration$log_vol[[niter]],
         log_z = integration$log_evidence[[niter]],

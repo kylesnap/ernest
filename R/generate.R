@@ -192,6 +192,9 @@ generate.ernest_run <- function(
 #' object.
 #' @param rcrd An optional `ernest_rcrd` object from a previous run, used to
 #' initialize the control parameters if continuing a run.
+#' @param parallel Signals whether a run is being conducted in parallel,
+#' so that the nlive can be adjusted before recomputing from an already
+#' completed run.
 #'
 #' @return A named list containing:
 #' * Run meta info: `seed`, `nlive`, `first_update`, `update_interval`
@@ -208,6 +211,7 @@ generate_control <- function(
   first_update,
   update_interval,
   rcrd = NULL,
+  parallel = FALSE,
   call = caller_env()
 ) {
   # Initialize control parameters to default.
@@ -227,8 +231,7 @@ generate_control <- function(
   if (!is.null(rcrd)) {
     # If nlive > number of unique points, then refactor the rcrd to avoid issues
     act_nlive <- max(field(rcrd, "nlive"))
-    if (act_nlive > control$nlive) {
-      print("Refactoring rcrd to match nlive...")
+    if (act_nlive < control$nlive && parallel) {
       vctrs::field(rcrd, "nlive") <- get_points(
         field(rcrd, "log_lik"),
         control$nlive,

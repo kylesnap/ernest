@@ -261,7 +261,8 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
         nlive = split_nlive,
         first_update = child_first_update,
         update_interval = child_update_interval,
-        rcrd = split_rcrd(id_slice)
+        rcrd = split_rcrd(id_slice),
+        parallel = TRUE
       )
     )
   })
@@ -311,10 +312,7 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
     )
   }
   mirai::require_daemons(call = call)
-  # TODO: SWAP TO LIBRARY
-  print("USING LOADALL")
-  m <- mirai::everywhere(devtools::load_all("~/Projects/ernest"))
-  # m <- mirai::everywhere(library(ernest))
+  m <- mirai::everywhere(library(ernest))
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
     cli::cli_abort(

@@ -10,3 +10,6 @@
 #' @useDynLib ernest, .registration = TRUE
 ## usethis namespace: end
 NULL
+
+# Globals for parallelization.R
+utils::globalVariables(c("nested_sampling_impl_", "lrps_"))

@@ -63,10 +63,10 @@ new_ernest_lrps <- function(
   )
   env_poke(elem$cache, "neval", 0L)
 
-  new_elem <- list2(...)
-  check_unique_names(elem, new_elem)
+  new_elem <- c(elem, list2(...))
+  vctrs::vec_names2(new_elem, repair = "check_unique")
   structure(
-    c(elem, new_elem),
+    new_elem,
     class = c(.class, "ernest_lrps")
   )
 }

@@ -90,8 +90,7 @@ new_ernest_sampler <- function(
   )
 
   new_elems <- dots_list(..., .homonyms = "error")
-  check_unique_names(c(elems, new_elems))
-
+  vctrs::vec_names2(c(elems, new_elems), repair = "check_unique")
   obj <- structure(
     c(elems, new_elems),
     seed = as.integer(seed),

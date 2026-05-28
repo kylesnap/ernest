@@ -54,66 +54,6 @@ check_class <- function(
   )
 }
 
-#' Check that a list has unique, non-empty names
-#'
-#' Validates that all elements of a list are named and that names are unique.
-#'
-#' @param x A list to check.
-#' @param ... Additional arguments passed to error handlers.
-#' @param arg Argument name for error messages.
-#' @param call Call environment for error messages.
-#'
-#' @return Returns NULL invisibly if all names are unique and non-empty,
-#' otherwise throws an informative error.
-#' @noRd
-check_unique_names <- function(
-  x,
-  ...,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  nms <- vctrs::vec_names(x)
-  if (is.null(nms) != any(nms == "")) {
-    cli::cli_abort(
-      "All elements of `{arg}` must have unique names.",
-      call = call
-    )
-  }
-
-  if (vctrs::vec_duplicate_any(nms)) {
-    idx <- vctrs::vec_duplicate_id(nms) |> unique()
-    cli::cli_abort(
-      c(
-        "All elements of `{arg}` must have unique names.",
-        "x" = "Repeated names: {nms[idx]}"
-      ),
-      call = call
-    )
-  }
-
-  invisible(NULL)
-}
-
-# Helpers for computing and reporting results -----
-#' Vectorize a function
-#'
-#' @param fn A function that accepts a single parameter vector.
-#'
-#' @return A vectorized version of `fn` that accepts a matrix of parameter
-#' vectors.
-#' @noRd
-vectorize_function <- function(fn) {
-  force(fn)
-  function(X) {
-    if (is.vector(X)) {
-      fn(X)
-    } else {
-      Y <- apply(X = X, 1, fn)
-      t(Y)
-    }
-  }
-}
-
 #' Log-space subtraction
 #'
 #' @param a,b Numeric vectors of equal length.

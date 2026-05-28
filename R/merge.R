@@ -77,17 +77,51 @@ merge_rcrd <- function(
   if (any(vctrs::vec_in(x_ids, y_ids))) {
     x_ids <- paste0(x_ids, suffix[1])
     y_ids <- paste0(y_ids, suffix[2])
-    if (any(vctrs::vec_in(x_ids, y_ids))) {
-      cli::cli_abort("IDs of `x` and `y` must be unique.")
-    }
   }
   nlive <- vctrs::vec_unique_count(x_ids) + vctrs::vec_unique_count(y_ids)
   vctrs::field(x, "id") <- x_ids
   vctrs::field(y, "id") <- y_ids
 
-  # Sort merged run and group by IDs
-  out <- sort(vctrs::vec_c(x, y))
-  id_loc <- vctrs::vec_group_loc(field(out, "id"))
+  # Sort merged run and repair nlive.
+  out <- compile_merged_rcrd(sort(vctrs::vec_c(x, y)), nlive)
+  try_fetch(
+    rcrd_is_run(out, nlive = nlive),
+    warn = function(cnd) {
+      switch(
+        invalid_run,
+        "warn" = cli::cli_warn(
+          "`merge` produced an invalid run.",
+          parent = cnd
+        ),
+        "error" = cli::cli_abort("`merge` failed.", parent = cnd),
+        "quiet" = NULL
+      )
+    }
+  )
+
+  list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
+}
+
+#' Repair `nlive` field of a merged run record
+#'
+#' @param rcrd A merged run record with an incorrect `nlive` field.
+#' @param nlive The correct number of live points in the merged run.
+#' @param unique_ids Whether to check that the merged rcrd contains `nlive`
+#' unique IDs. Set to `FALSE` if the merged rcrd is known to contain duplicate
+#' IDs (e.g., when merging resampled runs in `bootstraps()`).
+#' @returns A repaired `ernest_rcrd` object with the correct `nlive` field.
+#' @noRd
+compile_merged_rcrd <- function(rcrd, nlive, unique_ids = TRUE) {
+  if (is.unsorted(rcrd)) {
+    cli::cli_abort("`{caller_arg(rcrd)}` must be sorted by `log_lik`.")
+  }
+  if (unique_ids && vctrs::vec_unique_count(field(rcrd, "id")) != nlive) {
+    cli::cli_abort(c(
+      "`{caller_arg(rcrd)}` must contain {nlive} unique IDs.",
+      "x" = "Actually has {vctrs::vec_unique_count(field(rcrd, 'id'))}"
+    ))
+  }
+  id_loc <- vctrs::vec_group_loc(field(rcrd, "id"))
   first_live_idx <- min(vapply(
     id_loc$loc,
     function(idx) idx[[length(idx)]],
@@ -106,27 +140,11 @@ merge_rcrd <- function(
   )
 
   # Remerge and assign new NLIVE
-  out <- out[sort(c(dead_pts, live_pts))]
+  out <- rcrd[sort(c(dead_pts, live_pts))]
   vctrs::field(out, "nlive") <- get_points(
     field(out, "log_lik"),
     nlive,
     add_live = TRUE
   )
-
-  try_fetch(
-    rcrd_is_run(out, nlive = nlive),
-    warn = function(cnd) {
-      switch(
-        invalid_run,
-        "warn" = cli::cli_warn(
-          "`merge` produced an invalid run.",
-          parent = cnd
-        ),
-        "error" = cli::cli_abort("`merge` failed.", parent = cnd),
-        "quiet" = NULL
-      )
-    }
-  )
-
-  list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
+  out
 }

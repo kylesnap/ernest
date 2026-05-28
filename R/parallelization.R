@@ -139,134 +139,108 @@ crate_fn <- function(
   )
 }
 
-#' Perform parallel nested sampling
+#' Run nested sampling in parallel across multiple daemons
 #'
-#' @param x An ernest_sampler/ernest_run object.
-#' @param workers Either `TRUE` to automatically use all available daemons,
-#' or a vector of integers specifying the number of live points to allocate to
-#' each daemon.
-#' @param info,control Arguments controlling the parent run.
-#' @param show_progress If `TRUE`, a progress bar will be displayed for the
-#' parallel execution.
+#' @param x The ernest_sampler object
+#' @param sampler_info A list containing information about the sampler.
+#' @param control parameters for the nested sampling run, generated from
+#' `set_run_control()`.
+#' @param show_progress Logical. If `TRUE`, displays a progress bar during
+#' sampling.
+#' @param parallel Logical or integer. The number of parallel workers to use,
+#' or `TRUE` to use all available daemons.
 #'
-#' @returns Same as `generate()`, but with the `parallel` element of the output
-#' containing per-worker glance summaries.
-#'
+#' @returns The output of `nested_sampling_impl()`, plus a `parallel` element
+#' containing per-worker glances.
 #' @noRd
-pgenerate <- function(
+nested_sampling_parallel <- function(
   x,
-  workers,
-  info,
+  sampler_info,
   control,
   show_progress,
-  call = caller_env()
+  parallel
 ) {
-  check_parallel_enabled(x, call)
-  daemon_nlive <- if (isTRUE(workers)) {
-    default_daemon_nlive(x$nlive, x$lrps$nvar, call = call)
+  check_parallel_enabled(x, call = caller_env())
+  parallel <- if (isTRUE(parallel)) {
+    mirai::info()[["connections"]]
   } else {
-    vctrs::vec_cast(workers, integer())
+    parallel
   }
-  nvar <- as.integer(x$lrps$nvar)
-  if (vctrs::vec_any_missing(daemon_nlive) || any(daemon_nlive < (nvar + 1L))) {
-    stop_input_type(
-      workers,
-      c("`TRUE`/`FALSE`", "a vector of integers each >= nvar + 1"),
-      call = call
-    )
-  }
-  tot_nlive <- sum(daemon_nlive) %|% 0L
-  if (tot_nlive != x$nlive) {
-    stop_input_type(
-      workers,
-      c("`TRUE`/`FALSE`", "a vector of integers summing to `x$nlive`"),
-      call = call
-    )
-  }
+  live_env <- x$live_env
+  ids <- env_get(live_env, "id")
+  nlive <- x$nlive
 
-  # Break apart the IDS into the appropriate number of workers
-  ids <- vctrs::vec_chop(sample.int(x$nlive), sizes = daemon_nlive)
-  split_x <- partition_run(x, ids, control, info)
-  prev_rcrd <- if (is.null(x$rcrd)) {
-    NULL
-  } else {
-    x$rcrd[vctrs::vec_as_location(field(x$rcrd, "neval") != 0L, length(x$rcrd))]
-  }
+  ids_by_daemon <- allocate_nlive(ids, parallel)
+  parallel_runs <- partition_run(
+    live_env,
+    ids_by_daemon,
+    control,
+    sampler_info,
+    x$rcrd
+  )
 
-  # Run the workers in parallel
-  lrps_ <- x$lrps
+  # Run runs in parallel
   m <- mirai::mirai_map(
-    split_x,
-    \(xi) {
-      cur_env <- list2env(xi[c("unit", "log_lik", "birth_lik")])
+    parallel_runs,
+    \(run) {
+      cur_env <- list2env(run[c("unit", "log_lik", "birth_lik", "id")])
       nested_sampling_impl_(
         live_env = cur_env,
         lrps = lrps_,
-        sampler_info = xi$info,
-        control = xi$control,
+        sampler_info = run$info,
+        control = run$control,
         show_progress = FALSE
       )
     },
     nested_sampling_impl_ = nested_sampling_impl,
     lrps_ = x$lrps
   )
-
   opts <- c(".stop", if (show_progress) ".progress" else NULL)
   m_out <- mirai::collect_mirai(m, options = opts)
-  combined <- unpartition_runs(m_out, ids, prev_rcrd)
-  new_ernest_run(x, combined$rcrd, parallel = combined$glance)
+  combined <- unpartition_runs(m_out, nlive)
+  list("results" = combined$rcrd, ".parallel" = combined$glance)
 }
 
-#' Default number of live points per daemon
+#' Assign IDs to daemons for parallel nested sampling
 #'
-#' @param nlive Total number of live points.
-#' @param nvar Number of variables in the problem.
-#' @param ndaemons Number of daemons available. If `NULL`, the number of daemons
-#' will be obtained from `mirai::info()` (used for testing).
-#' @param call The calling environment.
+#' @param ids Character vector of live point IDs.
+#' @param parallel Integer. The number of parallel workers to use.
+#' @param call The calling environment, used for error reporting.
 #'
-#' @returns An integer vector of length `ndaemons` specifying the number of live
-#' points to allocate to each daemon.
+#' @returns A list of character vectors, where each vector contains the IDs
+#' assigned to a daemon.
 #'
 #' @noRd
-default_daemon_nlive <- function(
-  nlive,
-  nvar,
-  ndaemons = NULL,
+allocate_nlive <- function(
+  ids,
+  parallel,
   call = caller_env()
 ) {
-  ndaemons <- ndaemons %||%
-    {
-      mirai::require_daemons(call = call)
-      mirai::info()[["connections"]]
-    }
-  nlive_per_daemon <- nlive %/% ndaemons
-  if (nlive_per_daemon < (nvar * 2L)) {
-    nlive_per_daemon <- nvar * 2L
-    ndaemons <- nlive %/% nlive_per_daemon
-    cli::cli_warn(
-      "Initializing {nlive_per_daemon} live points in {ndaemons} daemon{?s}.",
-      call = call
-    )
-  }
-  daemon_nlive <- rep(nlive_per_daemon, ndaemons)
+  check_number_whole(parallel, min = 1, call = call)
+  nlive <- vctrs::vec_unique_count(ids)
+  nlive_p_daemon <- max(
+    nlive %/% parallel,
+    getOption("ernest.parallel_min_nlive", 100L)
+  )
+  daemon_nlive <- rep.int(nlive_p_daemon, times = nlive %/% nlive_p_daemon)
   daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
-  vec_cast(daemon_nlive, integer())
+  vctrs::vec_chop(sample(ids), sizes = daemon_nlive)
 }
 
 #' Partition a run for parallel execution
 #'
-#' @param x An ernest_sampler/ernest_run object.
-#' @param slices A list of integer vectors specifying the indices of the live
-#' points to allocate to each worker.
+#' @param live_env An environment containing sampling information.
+#' @param ids Character vectors of IDs.
 #' @param control,info Arguments controlling the parent run.
+#' @param rcrd ernest_rcrd from the previous run
 #'
 #' @returns A list of lists containing the data and control parameters for each
 #' worker.
 #' @noRd
-partition_run <- function(x, slices, control, info) {
-  x_rcrd <- x$rcrd %||% NULL
-  split_info <- function(split_nlive) {
+partition_run <- function(live_env, ids, control, info, rcrd = NULL) {
+  # Helper to scale the parent run's info for each worker
+  split_info <- \(split_ids) {
+    split_nlive <- length(split_ids)
     frac_nlive <- split_nlive / info$nlive
     list(
       seed = info$seed,
@@ -276,19 +250,27 @@ partition_run <- function(x, slices, control, info) {
     )
   }
 
-  lapply(slices, \(slice) {
+  # Helper to split rcrd into runs for each worker
+  split_rcrd <- \(split_ids) {
+    if (is.null(rcrd)) {
+      return(NULL)
+    }
+    vctrs::vec_slice(rcrd, field(rcrd, "id") %in% split_ids)
+  }
+
+  lapply(ids, \(id_slice) {
+    live_loc <- vctrs::vec_match(env_get(live_env, "id"), id_slice)
     list(
-      "unit" = env_get(x$live_env, "unit")[slice, , drop = FALSE],
-      "log_lik" = env_get(x$live_env, "log_lik")[slice],
-      "birth_lik" = env_get(x$live_env, "birth_lik")[slice],
-      "info" = split_info(length(slice)),
+      "unit" = env_get(live_env, "unit")[live_loc, , drop = FALSE],
+      "log_lik" = env_get(live_env, "log_lik")[live_loc],
+      "birth_lik" = env_get(live_env, "birth_lik")[live_loc],
+      "id" = env_get(live_env, "id")[live_loc],
+      "info" = split_info(id_slice),
       "control" = new_generate_control(
         control$max_iterations,
         control$max_evaluations,
         control$min_logz,
-        prev_run = if (!is.null(x_rcrd)) {
-          vctrs::vec_slice(x_rcrd, field(x_rcrd, "id") %in% slice)
-        }
+        prev_run = split_rcrd(id_slice)
       )
     )
   })
@@ -298,34 +280,16 @@ partition_run <- function(x, slices, control, info) {
 #'
 #' @param m_out A list of worker outputs, each containing a record of the
 #' worker's nested sampling run.
-#' @param ids A list of integer vectors specifying the indices of the live
-#' points allocated to each worker.
-#' @param prev_rcrd The record of the parent run, if it exists.
+#' @param nlive The total number of live points.
 #'
 #' @returns A list containing the combined rcrd and a glance summary of the
 #' each worker's run.
 #' @noRd
-unpartition_runs <- function(m_out, ids, prev_rcrd) {
-  run_rcrds <- lapply(
-    seq_along(m_out),
-    \(i) {
-      if (is.null(prev_rcrd)) {
-        return(m_out[[i]])
-      }
-      prev_i <- prev_rcrd[field(prev_rcrd, "id") %in% ids[[i]]]
-      c(prev_i, m_out[[i]])
-    }
-  )
-  glance_df <- vctrs::vec_c(!!!lapply(run_rcrds, glance))
-  acc <- NULL
-  for (i in seq_along(m_out)) {
-    acc <- if (is.null(acc)) {
-      run_rcrds[[i]]
-    } else {
-      merge_rcrd(acc, run_rcrds[[i]], keep = "all")
-    }
-  }
-  list("rcrd" = acc, "glance" = glance_df)
+unpartition_runs <- function(m_out, nlive) {
+  glance_df <- vctrs::vec_c(!!!lapply(m_out, glance))
+  merged_rcrd <- vctrs::vec_c(!!!m_out) |> sort()
+  merged_rcrd <- compile_merged_rcrd(merged_rcrd, nlive)
+  list("rcrd" = merged_rcrd, "glance" = glance_df)
 }
 
 #' Validate parallel configuration and sampler portability

@@ -32,7 +32,6 @@
 #' instead will call methods on `ernest_run` objects which, internally,
 #' manipulate the `ernest_rcrd` object.
 #'
-#' @name ernest_rcrd
 #' @keywords internal
 ernest_rcrd <- function(
   unit = matrix(double(0)),

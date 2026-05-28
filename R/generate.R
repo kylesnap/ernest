@@ -18,9 +18,11 @@
 #' @param show_progress `[logical(1)]`\cr If `TRUE`, displays a progress spinner
 #' and iteration counter during sampling. Optional; if `NULL` the global option
 #' `rlib_message_verbosity` is used to determine whether to show progress.
-#' @param parallel `[logical(1)]`\cr `r lifecycle::badge("experimental")`
-#' Specifies whether the run should be performed in-parallel across multiple
-#' [mirai::daemons()]. See [parallelization] for more details.
+#' @param parallel `[logical(1) or integer(1)]`\cr
+#' `r lifecycle::badge("experimental")` Specifies whether the run should be
+#' performed in-parallel across multiple [mirai::daemons()]. If `TRUE`,
+#' the run is split across the current number of daemons.
+#' See [parallelization] for more details.
 #'
 #' @returns An `[ernest_run]` object with the nested sampling results.
 #'
@@ -102,22 +104,24 @@ generate.ernest_sampler <- function(
   info <- get_sampler_info(x)
 
   if (!isFALSE(parallel)) {
-    return(pgenerate(
-      x = x,
-      workers = parallel,
-      info = info,
+    results <- nested_sampling_parallel(
+      x,
+      sampler_info = info,
+      control = control,
+      show_progress = show_progress,
+      parallel = parallel
+    )
+    new_ernest_run(x, results$results, .parallel = results$.parallel)
+  } else {
+    results <- nested_sampling_impl(
+      live_env = x$live_env,
+      lrps = x$lrps,
+      sampler_info = info,
       control = control,
       show_progress = show_progress
-    ))
+    )
+    new_ernest_run(x, results)
   }
-  results <- nested_sampling_impl(
-    live_env = x$live_env,
-    lrps = x$lrps,
-    sampler_info = info,
-    control = control,
-    show_progress = show_progress
-  )
-  new_ernest_run(x, results)
 }
 
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
@@ -151,25 +155,31 @@ generate.ernest_run <- function(
     prev_run = x_rcrd
   )
   info <- get_sampler_info(x)
+  prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
 
   if (!isFALSE(parallel)) {
-    return(pgenerate(
-      x = x,
-      workers = parallel,
-      info = info,
+    results <- nested_sampling_parallel(
+      x,
+      sampler_info = info,
+      control = control,
+      show_progress = show_progress,
+      parallel = parallel
+    )
+    new_ernest_run(
+      x,
+      c(prev_run, results$results),
+      .parallel = results$.parallel
+    )
+  } else {
+    results <- nested_sampling_impl(
+      live_env = x$live_env,
+      lrps = x$lrps,
+      sampler_info = info,
       control = control,
       show_progress = show_progress
-    ))
+    )
+    new_ernest_run(x, c(prev_run, results))
   }
-  results <- nested_sampling_impl(
-    live_env = x$live_env,
-    lrps = x$lrps,
-    sampler_info = info,
-    control = control,
-    show_progress = show_progress
-  )
-  prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
-  new_ernest_run(x, c(prev_run, results))
 }
 
 #' Generate and validate stopping criteria.

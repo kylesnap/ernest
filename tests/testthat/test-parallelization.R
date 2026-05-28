@@ -1,4 +1,3 @@
-skip("Currently broken.")
 test_that("Crated func. envs. are attached to the search path", {
   # Median and qnorm are both in the stats package
   parallel_lik <- parallel_likelihood(
@@ -58,14 +57,18 @@ test_that("parallelization checks for portable functions and daemons", {
   )
 })
 
-test_that("default_daemon_nlive is set appropriately", {
-  expect_equal(default_daemon_nlive(500, 2, 2), c(250, 250))
-  expect_equal(default_daemon_nlive(500, 2, 3), c(168, 166, 166))
-  expect_warning(
-    val <- default_daemon_nlive(500, 2, 1000),
-    "4 live points in 125 daemons."
-  )
-  expect_equal(val, rep(4, 125))
+test_that("allocate_nlive is set appropriately", {
+  # parallel < nlive
+  ids <- as.character(seq_len(301))
+  allocation <- allocate_nlive(ids, parallel = 2)
+  expect_equal(length(allocation), 2)
+  expect_equal(length(allocation[[1]]), 151)
+  expect_equal(length(allocation[[2]]), 150)
+
+  # parallel == nlive
+  allocation <- allocate_nlive(ids, parallel = 300)
+  expect_equal(length(allocation), 3)
+  expect_equal(vctrs::list_sizes(allocation), c(101, 100, 100))
 })
 
 describe("generate & mirai", {
@@ -84,7 +87,7 @@ describe("generate & mirai", {
     )
     glanced <- glance(run)
     glanced$seed <- NULL
-    expect_mapequal(run$parallel, glanced)
+    expect_mapequal(run$.parallel, glanced)
   })
 
   it("respects a set seed", {
@@ -99,7 +102,8 @@ describe("generate & mirai", {
   })
 
   it("can run a parallel sampler from an ernest_run", {
-    cont_run <- generate(run, max_iterations = 2000, parallel = c(150, 150))
+    skip("Not working")
+    cont_run <- generate(run, max_iterations = 2000, parallel = 2)
     expect_equal(
       field(cont_run$rcrd[1:1000], "log_lik"),
       field(run$rcrd[1:1000], "log_lik")

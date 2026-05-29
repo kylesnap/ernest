@@ -2,55 +2,50 @@
 % Please edit documentation in R/slice_rectangle.R
 \name{slice_rectangle}
 \alias{slice_rectangle}
-\title{Generate new points with slice sampling}
+\title{Slice sampling within a bounding hyperrectangle}
 \usage{
-slice_rectangle(enlarge = 1)
+slice_rectangle(steps = 3L, adaptive = FALSE, max_steps = 100)
 }
 \arguments{
-\item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the
-hyperrectangle's volume before sampling (see Details). Optional, and must be
-greater or equal to 1 if provided; if left \code{NA}, sampling is initially
-bounded by the unit hypercube at each iteration.}
+\item{steps}{\verb{[integer(1)]} Number of reslicing iterations per proposal.}
+
+\item{adaptive}{\verb{[logical(1)]} If TRUE, adapt \code{steps} using the mean
+Mahalanobis distance among live points.}
+
+\item{max_steps}{\verb{[integer(1)]} Maximum \code{steps} allowed when
+\code{adaptive = TRUE}.}
 }
 \value{
-\verb{[slice_rectangle]}, a named list that inherits from
-[\link{ernest_lrps}].
+\verb{[slice_rectangle]} A list inheriting from \code{ernest_lrps}.
 }
 \description{
-Create new samples for the live set by evolving a current point in the set
-through slice sampling within a bounding hyperrectangle, shrinking the
-rectangle when proposals are rejected.
+Propose new live points by evolving an existing live point using slice
+sampling inside a bounding hyperrectangle. The rectangle is shrunk when a
+proposal is rejected.
 }
 \details{
-The slice LRPS generates proposals by uniformly sampling within a bounding
-hyperrectangle that contains regions of the parameter space satisfying the
-likelihood criterion. Sampling begins by selecting a known live point
-\eqn{\theta} that satisfies the criterion. Each iteration proposes
-a new point within this rectangle via uniform sampling and compares it
-against the criterion; if rejected, a new hyperrectangle is drawn such that
-the proposed point is on its boundary and \eqn{\theta} is in its interior.
-This continues until either a valid proposal is found or the rectangle has
-shrunk to the point where no further clamping operations can be performed.
+Sampling starts from a live point that meets the likelihood criterion. Each
+iteration draws a uniform proposal inside the rectangle and accepts it if it
+satisfies the criterion. Rejected proposals cause the rectangle to be
+shrunk so the rejected point lies on the boundary and the original point
+remains inside. The process repeats until a valid proposal is found or the
+rectangle can no longer be reduced.
 
-By default, the hyperrectangle spans the extreme values of the current
-live set in each dimension. This may risk excluding valid regions
-of the parameter space, particularly where the posterior is multimodal or
-highly non-Gaussian. To mitigate this, set \code{enlarge > 1}, which inflates the
-hyperrectagle's volume by the specified factor before sampling. Setting
-\code{enlarge} to \code{NA} disables this behaviour, instead slicing from the unit
-hypercube at each iteration.
+Use \code{steps > 1} to increase exploration. When \code{adaptive = TRUE}, \code{steps} is
+increased or decreased depending on whether proposed moves are closer or
+farther than the mean Mahalanobis distance of the live set.
 }
 \examples{
-# Basic usage with default parameters
 lrps <- slice_rectangle()
-
-# More patient sampler for complex posteriors
-patient_lrps <- slice_rectangle(enlarge = 1.25)
+adaptive_lrps <- slice_rectangle(max_steps = 30, adaptive = TRUE)
 
 }
 \references{
 Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 \doi{10.48550/ARXIV.PHYSICS/0009028}
+Buchner, J. (2021). UltraNest - A Robust, General Purpose Bayesian Inference
+Engine. Journal of Open Source Software, 6(60), 3001.
+\doi{10.21105/joss.03001}
 }
 \seealso{
 Other ernest_lrps:

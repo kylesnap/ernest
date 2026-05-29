@@ -1,66 +1,55 @@
-#' Generate new points with slice sampling
+#' Slice sampling within a bounding hyperrectangle
 #'
-#' Create new samples for the live set by evolving a current point in the set
-#' through slice sampling within a bounding hyperrectangle, shrinking the
-#' rectangle when proposals are rejected.
+#' Propose new live points by evolving an existing live point using slice
+#' sampling inside a bounding hyperrectangle. The rectangle is shrunk when a
+#' proposal is rejected.
 #'
-#' @param enlarge `[double(1)]`\cr Factor by which to inflate the
-#' hyperrectangle's volume before sampling (see Details). Optional, and must be
-#' greater or equal to 1 if provided; if left `NA`, sampling is initially
-#' bounded by the unit hypercube at each iteration.
+#' @param steps `[integer(1)]` Number of reslicing iterations per proposal.
+#' @param adaptive `[logical(1)]` If TRUE, adapt `steps` using the mean
+#'   Mahalanobis distance among live points.
+#' @param max_steps `[integer(1)]` Maximum `steps` allowed when
+#'   `adaptive = TRUE`.
 #'
-#' @returns `[slice_rectangle]`, a named list that inherits from
-#' [[ernest_lrps]].
+#' @returns `[slice_rectangle]` A list inheriting from `ernest_lrps`.
 #'
 #' @details
-#' The slice LRPS generates proposals by uniformly sampling within a bounding
-#' hyperrectangle that contains regions of the parameter space satisfying the
-#' likelihood criterion. Sampling begins by selecting a known live point
-#' \eqn{\theta} that satisfies the criterion. Each iteration proposes
-#' a new point within this rectangle via uniform sampling and compares it
-#' against the criterion; if rejected, a new hyperrectangle is drawn such that
-#' the proposed point is on its boundary and \eqn{\theta} is in its interior.
-#' This continues until either a valid proposal is found or the rectangle has
-#' shrunk to the point where no further clamping operations can be performed.
+#' Sampling starts from a live point that meets the likelihood criterion. Each
+#' iteration draws a uniform proposal inside the rectangle and accepts it if it
+#' satisfies the criterion. Rejected proposals cause the rectangle to be
+#' shrunk so the rejected point lies on the boundary and the original point
+#' remains inside. The process repeats until a valid proposal is found or the
+#' rectangle can no longer be reduced.
 #'
-#' By default, the hyperrectangle spans the extreme values of the current
-#' live set in each dimension. This may risk excluding valid regions
-#' of the parameter space, particularly where the posterior is multimodal or
-#' highly non-Gaussian. To mitigate this, set `enlarge > 1`, which inflates the
-#' hyperrectagle's volume by the specified factor before sampling. Setting
-#' `enlarge` to `NA` disables this behaviour, instead slicing from the unit
-#' hypercube at each iteration.
+#' Use `steps > 1` to increase exploration. When `adaptive = TRUE`, `steps` is
+#' increased or decreased depending on whether proposed moves are closer or
+#' farther than the mean Mahalanobis distance of the live set.
 #'
 #' @references
 #' Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
 #' \doi{10.48550/ARXIV.PHYSICS/0009028}
+#' Buchner, J. (2021). UltraNest - A Robust, General Purpose Bayesian Inference
+#' Engine. Journal of Open Source Software, 6(60), 3001.
+#' \doi{10.21105/joss.03001}
 #'
 #' @examples
-#' # Basic usage with default parameters
 #' lrps <- slice_rectangle()
-#'
-#' # More patient sampler for complex posteriors
-#' patient_lrps <- slice_rectangle(enlarge = 1.25)
+#' adaptive_lrps <- slice_rectangle(max_steps = 30, adaptive = TRUE)
 #'
 #' @family ernest_lrps
 #' @export
-slice_rectangle <- function(enlarge = 1) {
-  check_number_decimal(enlarge, min = 1, allow_na = TRUE)
-  new_slice_rectangle(enlarge = enlarge)
+slice_rectangle <- function(
+  steps = 3L,
+  adaptive = FALSE,
+  max_steps = 100
+) {
+  new_slice_rectangle(steps = steps, adaptive = adaptive, max_steps = max_steps)
 }
 
 #' @noRd
 #' @export
 format.slice_rectangle <- function(x, ...) {
-  enlarge_str <- if (is.na(x$enlarge)) {
-    NULL
-  } else {
-    cli::format_inline(
-      "(enlarged by {x$enlarge})"
-    )
-  }
   cli::format_inline(
-    "Slice Sampling LRPS {enlarge_str}"
+    "Slice Sampling LRPS ({x$steps} Step{?s})"
   )
 }
 
@@ -71,8 +60,12 @@ format.slice_rectangle <- function(x, ...) {
 #' @param unit_log_fn Function for computing log-likelihood in unit space.
 #' @param nvar  Number of dimensions.
 #' @param max_loop  Maximum number of proposal attempts.
-#' @param enlarge Inflate the hyperrectangle's volume before sampling.
+#' @param steps Number of times to resample from the parameter space.
+#' @param adaptive Whether or not to adapt the number of steps.
+#' @param max_steps Maximum number of steps the sampler can reach when
+#' `adaptive = TRUE`.
 #' @param cache Optional cache environment.
+#' @param call Error info.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate inputs.
@@ -84,22 +77,33 @@ new_slice_rectangle <- function(
   unit_log_fn = NULL,
   nvar = NULL,
   max_loop = 1e6L,
-  enlarge = 1.25,
-  cache = NULL
+  steps = 3L,
+  adaptive = FALSE,
+  max_steps = 100L,
+  cache = NULL,
+  call = caller_env()
 ) {
-  check_number_decimal(enlarge, min = 1, allow_na = TRUE)
+  check_number_whole(steps, min = 1, call = call)
+  check_number_whole(max_steps, min = as.double(steps), call = call)
+  check_bool(adaptive, call = call)
   cache <- cache %||% new_environment()
-  env_poke(cache, "n_accept", 0L)
-  if (!is.null(nvar) && nvar >= 1L) {
-    env_cache(cache, "lower", rep(0.0, nvar))
-    env_cache(cache, "upper", rep(1.0, nvar))
+
+  if ((is_integerish(nvar) && nvar > 0)) {
+    if (adaptive) {
+      env_poke(cache, "distances", vctrs::list_of(.ptype = double()))
+      env_cache(cache, "whitening", NA)
+      env_cache(cache, "mean_dist", NaN)
+    }
   }
+
   new_ernest_lrps(
     unit_log_fn = unit_log_fn,
     nvar = nvar,
     max_loop = max_loop,
     cache = cache,
-    enlarge = as.double(enlarge),
+    steps = as.integer(steps),
+    adaptive = adaptive,
+    max_steps = as.integer(max_steps),
     .class = "slice_rectangle"
   )
 }
@@ -114,14 +118,26 @@ propose.slice_rectangle <- function(
   if (is.null(original)) {
     NextMethod(x)
   } else {
-    res <- SliceImpl(
-      original = original,
-      unit_log_fn = x$unit_log_fn,
-      criterion = criterion,
-      lower = env_get(x$cache, "lower", rep(0.0, x$nvar)),
-      upper = env_get(x$cache, "upper", rep(1.0, x$nvar)),
-      max_loop = x$max_loop
-    )
+    res <- if (x$adaptive) {
+      sample <- SliceImplAdaptive(
+        original = original,
+        unit_log_fn = x$unit_log_fn,
+        criterion = criterion,
+        steps = x$steps,
+        max_loop = x$max_loop,
+        whitening = x$cache$whitening
+      )
+      x$cache$distances[[length(x$cache$distances) + 1L]] <- sample$distance
+      sample
+    } else {
+      SliceImpl(
+        original = original,
+        unit_log_fn = x$unit_log_fn,
+        criterion = criterion,
+        steps = x$steps,
+        max_loop = x$max_loop
+      )
+    }
     env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res
   }
@@ -130,18 +146,48 @@ propose.slice_rectangle <- function(
 #' @rdname update_lrps
 #' @export
 update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
-  if (is.null(unit) || is.na(x$enlarge)) {
+  if (!is.matrix(unit) || !x$adaptive) {
     return(do.call(new_slice_rectangle, as.list(x)))
   }
-  lower <- matrixStats::colMins(unit)
-  upper <- matrixStats::colMaxs(unit)
-  if (x$enlarge > 1) {
-    center <- (lower + upper) / 2
-    radius <- (upper - lower) / 2
-    new_radius <- radius * x$enlarge^(1 / x$nvar)
-    lower <- pmax(center - new_radius, 0.0)
-    upper <- pmin(center + new_radius, 1.0)
+
+  if (is.finite(env_cache(x$cache, "mean_dist", NaN))) {
+    if (length(x$cache$distances) < x$steps) {
+      cli::cli_warn("Not enough history to adapt `steps`.")
+      return(do.call(new_slice_rectangle, as.list(x)))
+    }
+    distances <- vctrs::vec_c(
+      !!!env_get(x$cache, "distances"),
+      .ptype = double()
+    )
+    moved_enough <- distances > env_get(x$cache, "mean_dist")
+
+    new_steps <- x$steps
+    for (mv in moved_enough) {
+      if (mv) {
+        new_steps <- min(new_steps - 1L, as.integer(new_steps / 1.1))
+      } else {
+        new_steps <- max(new_steps + 1L, as.integer(new_steps * 1.1))
+      }
+      new_steps <- max(1, min(x$max_steps, new_steps))
+    }
+    # print(sprintf("%d -> %d", x$steps, new_steps))
+    x$steps <- as.integer(new_steps)
   }
-  env_bind(x$cache, lower = lower, upper = upper)
+
+  # Update covariance and mean distance
+  precision <- solve(stats::cov(unit))
+  mean_dist <- mean(stats::mahalanobis(
+    unit,
+    colMeans(unit),
+    precision,
+    inverted = TRUE
+  ))
+  # print(sprintf(
+  #   "Mean Distance: %f -> %f",
+  #   env_get(x$cache, "mean_dist"),
+  #   mean_dist
+  # ))
+  env_poke(x$cache, "whitening", precision)
+  env_poke(x$cache, "mean_dist", mean_dist)
   do.call(new_slice_rectangle, as.list(x))
 }

@@ -29,6 +29,7 @@ Imports:
 Suggests: 
     brms,
     carrier,
+    debugme,
     distributional,
     extraDistr,
     ggdist,

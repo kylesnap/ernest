@@ -170,7 +170,7 @@ update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
       }
       new_steps <- max(1, min(x$max_steps, new_steps))
     }
-    # print(sprintf("%d -> %d", x$steps, new_steps))
+    "!DEBUG steps = `x$steps` -> `new_steps`"
     x$steps <- as.integer(new_steps)
   }
 
@@ -182,11 +182,6 @@ update_lrps.slice_rectangle <- function(x, unit = NULL, ...) {
     precision,
     inverted = TRUE
   ))
-  # print(sprintf(
-  #   "Mean Distance: %f -> %f",
-  #   env_get(x$cache, "mean_dist"),
-  #   mean_dist
-  # ))
   env_poke(x$cache, "whitening", precision)
   env_poke(x$cache, "mean_dist", mean_dist)
   do.call(new_slice_rectangle, as.list(x))

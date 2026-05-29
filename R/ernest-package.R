@@ -11,5 +11,12 @@
 ## usethis namespace: end
 NULL
 
+# Load debug messages
+.onLoad <- function(libname, pkgname) {
+  if (is_installed("debugme")) {
+    debugme::debugme()
+  }
+}
+
 # Globals for parallelization.R
 utils::globalVariables(c("nested_sampling_impl_", "lrps_"))

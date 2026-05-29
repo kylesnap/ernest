@@ -165,6 +165,7 @@ update_lrps.multi_ellipsoid <- function(x, unit = NULL, log_volume = NA, ...) {
       "Multi-ellipsoid fitting returned an error code ({code})."
     )
   }
+  "!DEBUG nellipsoids = `length(splits$ellipsoid)`"
   env_bind(
     x$cache,
     prob = splits$prob,

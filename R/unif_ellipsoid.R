@@ -5,14 +5,15 @@
 #' posteriors.
 #'
 #' @param enlarge `[double(1)]`\cr Factor by which to inflate the bounding
-#' ellipsoid's volume before sampling (see Details). Must be at least 1.0.
+#' ellipsoid's volume before sampling (see Details). Must be at least 1.
 #'
 #' @returns `[unif_ellipsoid]`, a named list that inherits from [[ernest_lrps]].
 #'
 #' @details Nested likelihood contours rarely form perfect ellipses, so sampling
 #' from the spanning ellipsoid without enlargement may exclude valid regions.
 #' This can bias proposals towards the ellipsoid centre and overestimate
-#' evidence. Setting `enlarge = 1` will produce a warning.
+#' evidence. When working with multimodal likelihood surfaces, consider setting
+#' `enlarge > 1` or using [multi_ellipsoid()].
 #'
 #' The covariance matrix of the points is used to estimate the ellipsoid's
 #' shape. In exceptional cases (e.g., perfect collinearity), this matrix may be
@@ -52,16 +53,13 @@
 #' @family ernest_lrps
 #' @examples
 #' data(example_run)
-#' lrps <- unif_ellipsoid(enlarge = 1.25)
+#' lrps <- unif_ellipsoid()
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
-unif_ellipsoid <- function(enlarge = 1.25) {
+unif_ellipsoid <- function(enlarge = 1) {
   check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
-  if (enlarge == 1.0) {
-    cli::cli_warn("`enlarge` is set to 1.0, which is not recommended.")
-  }
   new_unif_ellipsoid(
     unit_log_fn = NULL,
     nvar = NULL,

@@ -4,11 +4,11 @@
 \alias{unif_ellipsoid}
 \title{Generate new points from the spanning ellipsoid}
 \usage{
-unif_ellipsoid(enlarge = 1.25)
+unif_ellipsoid(enlarge = 1)
 }
 \arguments{
 \item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the bounding
-ellipsoid's volume before sampling (see Details). Must be at least 1.0.}
+ellipsoid's volume before sampling (see Details). Must be at least 1.}
 }
 \value{
 \verb{[unif_ellipsoid]}, a named list that inherits from [\link{ernest_lrps}].
@@ -22,7 +22,8 @@ posteriors.
 Nested likelihood contours rarely form perfect ellipses, so sampling
 from the spanning ellipsoid without enlargement may exclude valid regions.
 This can bias proposals towards the ellipsoid centre and overestimate
-evidence. Setting \code{enlarge = 1} will produce a warning.
+evidence. When working with multimodal likelihood surfaces, consider setting
+\code{enlarge > 1} or using \code{\link[=multi_ellipsoid]{multi_ellipsoid()}}.
 
 The covariance matrix of the points is used to estimate the ellipsoid's
 shape. In exceptional cases (e.g., perfect collinearity), this matrix may be
@@ -53,7 +54,7 @@ by S.B. Pope, Cornell University Report FDA 08-01 (2008).
 
 \examples{
 data(example_run)
-lrps <- unif_ellipsoid(enlarge = 1.25)
+lrps <- unif_ellipsoid()
 
 ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 }

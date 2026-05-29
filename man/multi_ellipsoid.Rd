@@ -8,7 +8,7 @@ multi_ellipsoid(enlarge = 1.25)
 }
 \arguments{
 \item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the bounding
-ellipsoid's volume before sampling (see Details). Must be at least 1.0.}
+ellipsoid's volume before sampling (see Details). Must be at least 1.}
 }
 \value{
 \verb{[multi_ellipsoid]}, a named list that inherits from

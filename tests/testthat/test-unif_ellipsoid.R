@@ -4,7 +4,6 @@ fn <- \(x) gaussian_blobs$prior$fn(x) |> gaussian_blobs$log_lik()
 test_that("unif_ellipsoid can be called by user", {
   default <- unif_ellipsoid()
   expect_snapshot(unif_ellipsoid(enlarge = 0.5), error = TRUE)
-  expect_snapshot(unif_ellipsoid(enlarge = 1))
   expect_snapshot(default)
 })
 

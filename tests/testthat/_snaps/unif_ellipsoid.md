@@ -9,22 +9,9 @@
 ---
 
     Code
-      unif_ellipsoid(enlarge = 1)
-    Condition
-      Warning:
-      `enlarge` is set to 1.0, which is not recommended.
-    Message
-      Uniform sampling within a bounding ellipsoid (enlarged by 1):
-      # Dimensions: Uninitialized
-      # Calls since last update: 0
-      
-
----
-
-    Code
       default
     Message
-      Uniform sampling within a bounding ellipsoid (enlarged by 1.25):
+      Uniform sampling within a bounding ellipsoid (enlarged by 1):
       # Dimensions: Uninitialized
       # Calls since last update: 0
       

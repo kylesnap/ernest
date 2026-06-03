@@ -20,10 +20,6 @@ SliceImpl <- function(original, unit_log_fn, criterion, steps, max_loop) {
   .Call(`_ernest_SliceImpl`, original, unit_log_fn, criterion, steps, max_loop)
 }
 
-SliceImplAdaptive <- function(original, unit_log_fn, criterion, steps, max_loop, whitening) {
-  .Call(`_ernest_SliceImplAdaptive`, original, unit_log_fn, criterion, steps, max_loop, whitening)
-}
-
 BoundingEllipsoid <- function(X, point_log_volume) {
   .Call(`_ernest_BoundingEllipsoid`, X, point_log_volume)
 }

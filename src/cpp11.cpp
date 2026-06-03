@@ -40,13 +40,6 @@ extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterio
     return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
   END_CPP11
 }
-// propose-impl.cpp
-cpp11::list SliceImplAdaptive(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, const int max_loop, cpp11::doubles_matrix<> whitening);
-extern "C" SEXP _ernest_SliceImplAdaptive(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP max_loop, SEXP whitening) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(SliceImplAdaptive(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles_matrix<>>>(whitening)));
-  END_CPP11
-}
 // update_lrps-impl.cpp
 cpp11::list BoundingEllipsoid(cpp11::doubles_matrix<> X, double point_log_volume);
 extern "C" SEXP _ernest_BoundingEllipsoid(SEXP X, SEXP point_log_volume) {
@@ -71,7 +64,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               5},
-    {"_ernest_SliceImplAdaptive",       (DL_FUNC) &_ernest_SliceImplAdaptive,       6},
     {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              3},
     {"_ernest_logspace_add_c",          (DL_FUNC) &_ernest_logspace_add_c,          2},
     {"_ernest_logspace_cumsum_mat",     (DL_FUNC) &_ernest_logspace_cumsum_mat,     1},

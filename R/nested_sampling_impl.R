@@ -109,6 +109,7 @@ nested_sampling_impl <- function(
 
     # 4. If required, update the LRPS
     if (!initial_update && cur_eval >= control$first_update) {
+      "!DEBUG Updating at iteration `i`"
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
       initial_update <- TRUE
     }
@@ -116,6 +117,7 @@ nested_sampling_impl <- function(
       initial_update &&
         (lrps$cache$neval %||% 0L) > control$update_interval
     ) {
+      "!DEBUG Updating at iteration `i`"
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
     }
 

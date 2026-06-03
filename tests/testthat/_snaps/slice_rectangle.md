@@ -9,14 +9,6 @@
 ---
 
     Code
-      slice_rectangle(adaptive = TRUE, max_steps = 2)
-    Condition
-      Error in `slice_rectangle()`:
-      ! `max_steps` must be a whole number larger than or equal to 3, not the number 2.
-
----
-
-    Code
       default
     Message
       Slice Sampling LRPS (3 Steps):
@@ -31,6 +23,6 @@
     Message
       Slice Sampling LRPS (3 Steps):
       # Dimensions: 2
-      # Calls since last update: 67
+      # Calls since last update: 201
       
 

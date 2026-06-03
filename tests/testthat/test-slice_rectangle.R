@@ -6,7 +6,6 @@ set.seed(42)
 test_that("slice can be called by user", {
   default <- slice_rectangle()
   expect_snapshot(slice_rectangle(steps = 0), error = TRUE)
-  expect_snapshot(slice_rectangle(adaptive = TRUE, max_steps = 2), error = TRUE)
   expect_equal(default$steps, 3L)
   expect_snapshot(default)
 })
@@ -53,42 +52,4 @@ test_that("slice_rectangle can provide good results", {
   expect_gaussian_run(slice_rectangle())
   expect_3D_run(slice_rectangle())
   expect_eggbox_run(slice_rectangle())
-})
-
-describe("adaptive slice", {
-  obj <- new_slice_rectangle(
-    unit_log_fn = fn,
-    nvar = 2,
-    adaptive = TRUE,
-    steps = 2
-  )
-  obj$cache$whitening <- diag(2)
-  obj$cache$mean_dist <- 0.52
-  original <- c(0, 0)
-
-  it("returns distances", {
-    # Provide minimal whitening/mean_dist so adaptive branch can run
-    res <- propose.slice_rectangle(obj, original = original, criterion = -Inf)
-    expect_true(!is.null(res$distance))
-    expect_type(res$distance, "double")
-  })
-
-  unit <- matrix(rnorm(200), ncol = 2)
-  for (i in seq(100)) {
-    unit[i, ] <- propose.slice_rectangle(
-      obj,
-      original = unit[i, ],
-      criterion = -Inf
-    )$unit
-  }
-
-  it("can be updated", {
-    # Provide a matrix so the adaptive update branch can run
-    new_obj <- update_lrps(obj, unit = unit)
-
-    expect_s3_class(new_obj, "slice_rectangle")
-    # If we got back a slice_rectangle, ensure steps were adjusted within bounds
-    expect_true(new_obj$steps >= 1L && new_obj$steps <= new_obj$max_steps)
-    expect_true(is.numeric(new_obj$cache$mean_dist))
-  })
 })

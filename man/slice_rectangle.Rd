@@ -4,16 +4,10 @@
 \alias{slice_rectangle}
 \title{Slice sampling within a bounding hyperrectangle}
 \usage{
-slice_rectangle(steps = 3L, adaptive = FALSE, max_steps = 100)
+slice_rectangle(steps = 3L)
 }
 \arguments{
 \item{steps}{\verb{[integer(1)]} Number of reslicing iterations per proposal.}
-
-\item{adaptive}{\verb{[logical(1)]} If TRUE, adapt \code{steps} using the mean
-Mahalanobis distance among live points.}
-
-\item{max_steps}{\verb{[integer(1)]} Maximum \code{steps} allowed when
-\code{adaptive = TRUE}.}
 }
 \value{
 \verb{[slice_rectangle]} A list inheriting from \code{ernest_lrps}.
@@ -31,9 +25,10 @@ shrunk so the rejected point lies on the boundary and the original point
 remains inside. The process repeats until a valid proposal is found or the
 rectangle can no longer be reduced.
 
-Use \code{steps > 1} to increase exploration. When \code{adaptive = TRUE}, \code{steps} is
-increased or decreased depending on whether proposed moves are closer or
-farther than the mean Mahalanobis distance of the live set.
+Use \code{steps} to increase how many times a point goes through the slicing
+procedure before being returned as a sample for the live set. One step
+consists of one or more slicing operations, and each slice proceeds until
+a point is found that satisfies the likelihood criterion.
 }
 \examples{
 lrps <- slice_rectangle()

@@ -60,15 +60,17 @@ test_that("parallelization checks for portable functions and daemons", {
 test_that("allocate_nlive is set appropriately", {
   # parallel < nlive
   ids <- as.character(seq_len(301))
-  allocation <- allocate_nlive(ids, parallel = 2)
-  expect_equal(length(allocation), 2)
-  expect_equal(length(allocation[[1]]), 151)
-  expect_equal(length(allocation[[2]]), 150)
+  allocation <- allocate_nlive(ids, parallel = 2, nvar = 3L)
+  lengths <- vctrs::list_sizes(allocation)
+  expect_equal(sum(lengths), 301)
+  expect_equal(lengths[1], 151)
 
   # parallel == nlive
-  allocation <- allocate_nlive(ids, parallel = 300)
-  expect_equal(length(allocation), 3)
-  expect_equal(vctrs::list_sizes(allocation), c(101, 100, 100))
+  allocation <- allocate_nlive(ids, parallel = 301, nvar = 3L)
+  lengths <- vctrs::list_sizes(allocation)
+  expect_equal(sum(lengths), 301)
+  expect_equal(lengths[1], 7)
+  expect_all_equal(lengths[-1], 6)
 })
 
 describe("generate & mirai", {

@@ -195,7 +195,7 @@ write_live_set <- function(live, object, call = caller_env()) {
 
   # Plateau Checks
   n_unique <- vctrs::vec_unique_count(log_lik)
-  if (n_unique == 1L) {
+  if (n_unique == 1L && nlive > 1L) {
     cli::cli_abort(
       c(
         "`log_lik` must contain a range of likelihood values.",

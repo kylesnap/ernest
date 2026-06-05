@@ -39,6 +39,11 @@ describe("new_ernest_sampler", {
       refresh_ernest_sampler(bad_sampler),
       "`nlive` must be a whole number, not `Inf`"
     )
+
+    expect_warning(
+      ernest_sampler(wrapped_lik, gaussian_blobs$prior, nlive = 1L, seed = 42),
+      "`nlive` is small relative to the number of parameters"
+    )
   })
 
   it("catches invalid first_update/update_interval", {

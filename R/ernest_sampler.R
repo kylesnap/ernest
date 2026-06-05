@@ -96,6 +96,15 @@ ernest_sampler <- function(
     seed = seed
   )
 
+  nvar <- attr(obj$prior, "nvar")
+  if (obj$nlive < nvar * 2L) {
+    cli::cli_warn(c(
+      "`nlive` is small relative to the number of parameters ({nvar}).",
+      "!" = "Interpret results with caution.",
+      "i" = "Should you set `nlive` to at least {nvar * 2L}?"
+    ))
+  }
+
   try_fetch(
     {
       compile(obj)

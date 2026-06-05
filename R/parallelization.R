@@ -36,9 +36,10 @@
 #' jobs concurrently and merge their records to obtain the same statistical
 #' benefits as a single large run.
 #'
-#' When [`generate()`][generate-ernest] is called with `parallel != FALSE`, the resulting run
-#' contains a `parallel` element with per-worker summaries (see
-#' [glance.ernest_run()]) useful for diagnostics.
+#' When [`generate()`][generate-ernest] is called with `parallel != FALSE`, the
+#' resulting run contains a `.parallel` element with per-worker summaries (see
+#' [glance.ernest_run()]). Note that each worker must have at least `nvar * 2`
+#' live points, where `nvar` is the number of variables in the parameter space.
 #'
 #' @section Daemons:
 #' How parallelization occurs is determined by [mirai::daemons()]. Daemons must
@@ -168,7 +169,7 @@ nested_sampling_parallel <- function(
   ids <- env_get(live_env, "id")
   nlive <- x$nlive
 
-  ids_by_daemon <- allocate_nlive(ids, parallel)
+  ids_by_daemon <- allocate_nlive(ids, parallel, attr(x$prior, "nvar"))
   parallel_runs <- partition_run(
     live_env,
     ids_by_daemon,
@@ -201,23 +202,17 @@ nested_sampling_parallel <- function(
 #'
 #' @param ids Character vector of live point IDs.
 #' @param parallel Integer. The number of parallel workers to use.
+#' @param nvar The number of variables in the parameter space.
 #' @param call The calling environment, used for error reporting.
 #'
 #' @returns A list of character vectors, where each vector contains the IDs
 #' assigned to a daemon.
 #'
 #' @noRd
-allocate_nlive <- function(
-  ids,
-  parallel,
-  call = caller_env()
-) {
+allocate_nlive <- function(ids, parallel, nvar, call = caller_env()) {
   check_number_whole(parallel, min = 1, call = call)
   nlive <- vctrs::vec_unique_count(ids)
-  nlive_p_daemon <- max(
-    nlive %/% parallel,
-    getOption("ernest.parallel_min_nlive", 100L)
-  )
+  nlive_p_daemon <- max(nlive %/% parallel, nvar * 2L)
   daemon_nlive <- rep.int(nlive_p_daemon, times = nlive %/% nlive_p_daemon)
   daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
   vctrs::vec_chop(sample(ids), sizes = daemon_nlive)

@@ -22,7 +22,7 @@ describe("slice class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_slice_rectangle(fn, nvar = 2)
+    obj <- new_slice_rectangle(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     new_obj <- update_lrps(obj, samples$unit)
 
@@ -37,7 +37,7 @@ describe("slice class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_slice_rectangle(fn, nvar = 2)
+    obj <- new_slice_rectangle(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,

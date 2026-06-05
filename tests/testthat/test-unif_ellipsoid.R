@@ -30,7 +30,7 @@ describe("unif_ellipsoid class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_unif_ellipsoid(fn, nvar = 2)
+    obj <- new_unif_ellipsoid(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_lrps(obj, subclass = "unif_ellipsoid", !!!ptypes)
     original_volume <- obj$cache$log_volume
@@ -46,7 +46,7 @@ describe("unif_ellipsoid class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_unif_ellipsoid(fn, nvar = 2)
+    obj <- new_unif_ellipsoid(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,
@@ -56,7 +56,7 @@ describe("unif_ellipsoid class", {
   })
 
   it("Throws a warning when provided with constant points", {
-    obj <- new_unif_ellipsoid(fn, nvar = 2)
+    obj <- new_unif_ellipsoid(unit_log_fn = fn, nvar = 2)
     live <- matrix(rep(0.5, 500 * 2), nrow = 500)
     expect_warning(
       update_lrps(obj, live),

@@ -32,6 +32,14 @@
 #' To create your own LRPS, subclass `new_ernest_lrps` and provide S3 methods
 #' for [propose()] and [update_lrps()] for your subclass.
 #'
+#' @section Loop safety:
+#' An LRPS may fail to produce a point satisfying the likelihood constraint
+#' (for example, due to rounding errors or poor parameterisation). To avoid
+#' infinite loops during a nested sampling run, `propose()` will terminate a
+#' run if it cannot find a likelihood-restricted point after a maximum number of
+#' calls to the likelihood function. Adjust this limit with the
+#' `ernest.max_loop` option (default: 1e6).
+#'
 #' @aliases ernest_lrps
 #' @keywords internal
 #' @export
@@ -44,6 +52,7 @@ new_ernest_lrps <- function(
   .class = NULL,
   .call = caller_env()
 ) {
+  check_dots_used(env = .call, call = .call)
   check_function(unit_log_fn, allow_null = TRUE, call = .call)
   check_number_whole(nvar, min = 1, allow_null = TRUE, call = .call)
   check_number_whole(

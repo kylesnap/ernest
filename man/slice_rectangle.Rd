@@ -30,6 +30,16 @@ procedure before being returned as a sample for the live set. One step
 consists of one or more slicing operations, and each slice proceeds until
 a point is found that satisfies the likelihood criterion.
 }
+\section{Loop safety}{
+
+An LRPS may fail to produce a point satisfying the likelihood constraint
+(for example, due to rounding errors or poor parameterisation). To avoid
+infinite loops during a nested sampling run, \code{propose()} will terminate a
+run if it cannot find a likelihood-restricted point after a maximum number of
+calls to the likelihood function. Adjust this limit with the
+\code{ernest.max_loop} option (default: 1e6).
+}
+
 \examples{
 lrps <- slice_rectangle()
 adaptive_lrps <- slice_rectangle(max_steps = 30, adaptive = TRUE)

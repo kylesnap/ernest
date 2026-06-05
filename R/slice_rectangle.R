@@ -21,6 +21,7 @@
 #' consists of one or more slicing operations, and each slice proceeds until
 #' a point is found that satisfies the likelihood criterion.
 #'
+#' @inheritSection new_ernest_lrps Loop safety
 #'
 #' @references
 #' Neal, R. M. (2000). Slice Sampling (Version 1). arXiv.
@@ -53,38 +54,18 @@ format.slice_rectangle <- function(x, ...) {
 #'
 #' Internal constructor for the slice sampling LRPS.
 #'
-#' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param nvar  Number of dimensions.
-#' @param max_loop  Maximum number of proposal attempts.
 #' @param steps Number of times to resample from the parameter space.
-#' @param cache Optional cache environment.
-#' @param call Error info.
-#'
-#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
-#' types or error messages for univariate inputs.
+#' @param ... Additional arguments passed to `new_ernest_lrps()`.
 #'
 #' @return An LRPS specification, a list with class
 #' `c("slice_rectangle", "ernest_lrps")`.
 #' @noRd
 new_slice_rectangle <- function(
-  unit_log_fn = NULL,
-  nvar = NULL,
-  max_loop = 1e6L,
   steps = 3L,
-  cache = NULL,
-  call = caller_env()
+  ...
 ) {
-  check_number_whole(steps, min = 1, call = call)
-  cache <- cache %||% new_environment()
-
-  new_ernest_lrps(
-    unit_log_fn = unit_log_fn,
-    nvar = nvar,
-    max_loop = max_loop,
-    cache = cache,
-    steps = as.integer(steps),
-    .class = "slice_rectangle"
-  )
+  check_number_whole(steps, min = 1)
+  new_ernest_lrps(steps = as.integer(steps), ..., .class = "slice_rectangle")
 }
 
 #' @rdname propose

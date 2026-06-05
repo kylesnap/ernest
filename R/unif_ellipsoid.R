@@ -40,6 +40,8 @@
 #' [Algorithms for Ellipsoids](http://tcg.mae.cornell.edu/pubs/Pope_FDA_08.pdf)
 #' by S.B. Pope, Cornell University Report FDA 08-01 (2008).
 #'
+#' @inheritSection new_ernest_lrps Loop safety
+#'
 #' @references
 #' Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
 #' Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
@@ -60,19 +62,14 @@
 unif_ellipsoid <- function(enlarge = 1) {
   check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
-  new_unif_ellipsoid(
-    unit_log_fn = NULL,
-    nvar = NULL,
-    enlarge = enlarge,
-    max_loop = getOption("ernest.max_loop", 1e6L)
-  )
+  new_unif_ellipsoid(enlarge = enlarge)
 }
 
 #' @export
 #' @noRd
 format.unif_ellipsoid <- function(x, ...) {
   cli::format_inline(
-    "Uniform sampling within a bounding ellipsoid (enlarged by {x$enlarge})"
+    "Uniform sampling within a single ellipsoid (enlarged by {x$enlarge})"
   )
 }
 
@@ -80,29 +77,28 @@ format.unif_ellipsoid <- function(x, ...) {
 #'
 #' Internal constructor for uniform ellipsoid LRPS objects.
 #'
-#' @param unit_log_fn Function to compute log-likelihood in unit space.
 #' @param nvar  Number of dimensions.
-#' @param max_loop  Maximum proposal attempts.
+#' @param enlarge Enlargement factor for the ellipsoid.
 #' @param cache Optional cache environment.
+#' @param ... Additional arguments passed to `new_ernest_lrps()`.
 #'
 #' @return An LRPS specification, a list with class
 #' `c("unif_ellipsoid", "ernest_lrps")`.
 #' @noRd
 new_unif_ellipsoid <- function(
-  unit_log_fn = NULL,
   nvar = NULL,
-  max_loop = 1e6L,
-  cache = NULL,
-  enlarge = 1.0
+  enlarge = 1.0,
+  cache = new_environment(),
+  ...
 ) {
+  check_number_whole(nvar, min = 1, allow_null = TRUE)
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
 
-  cache <- cache %||% new_environment()
   has_ell <- all(env_has(
     cache,
     c("center", "shape", "inv_sqrt_shape", "log_volume")
   ))
-  if (!has_ell && (is_integerish(nvar) && nvar > 0)) {
+  if (!has_ell && !is.null(nvar)) {
     ell <- BoundingEllipsoid(matrix(double(), nrow = 0, ncol = nvar), NA)
     env_bind(
       cache,
@@ -114,11 +110,10 @@ new_unif_ellipsoid <- function(
   }
 
   new_ernest_lrps(
-    unit_log_fn = unit_log_fn,
     nvar = nvar,
-    max_loop = max_loop,
     cache = cache,
     enlarge = enlarge,
+    ...,
     .class = "unif_ellipsoid"
   )
 }

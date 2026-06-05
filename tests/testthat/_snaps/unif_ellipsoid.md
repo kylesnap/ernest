@@ -11,7 +11,7 @@
     Code
       default
     Message
-      Uniform sampling within a bounding ellipsoid (enlarged by 1):
+      Uniform sampling within a single ellipsoid (enlarged by 1):
       # Dimensions: Uninitialized
       # Calls since last update: 0
       

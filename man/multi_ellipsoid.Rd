@@ -40,6 +40,16 @@ splits are accepted, updating \eqn{V} to the volume of the currently split
 ellipsoid.
 }
 }
+\section{Loop safety}{
+
+An LRPS may fail to produce a point satisfying the likelihood constraint
+(for example, due to rounding errors or poor parameterisation). To avoid
+infinite loops during a nested sampling run, \code{propose()} will terminate a
+run if it cannot find a likelihood-restricted point after a maximum number of
+calls to the likelihood function. Adjust this limit with the
+\code{ernest.max_loop} option (default: 1e6).
+}
+
 \examples{
 data(example_run)
 lrps <- multi_ellipsoid(enlarge = 1.25)

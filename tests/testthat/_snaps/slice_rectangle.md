@@ -3,7 +3,7 @@
     Code
       slice_rectangle(steps = 0)
     Condition
-      Error in `slice_rectangle()`:
+      Error in `new_slice_rectangle()`:
       ! `steps` must be a whole number larger than or equal to 1, not the number 0.
 
 ---

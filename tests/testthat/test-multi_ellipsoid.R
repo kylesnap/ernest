@@ -29,7 +29,7 @@ describe("multi_ellipsoid class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_multi_ellipsoid(fn, nvar = 2)
+    obj <- new_multi_ellipsoid(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
 
     new_obj <- update_lrps(obj, samples$unit)
@@ -42,7 +42,7 @@ describe("multi_ellipsoid class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_multi_ellipsoid(fn, nvar = 2)
+    obj <- new_multi_ellipsoid(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,
@@ -52,7 +52,7 @@ describe("multi_ellipsoid class", {
   })
 
   it("warns when updated with an poor set of points", {
-    obj <- new_multi_ellipsoid(fn, 2)
+    obj <- new_multi_ellipsoid(unit_log_fn = fn, 2)
     live <- matrix(rep(0.5, 500 * 2), nrow = 500)
     expect_warning(
       update_lrps(obj, live),

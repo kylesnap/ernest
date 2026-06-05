@@ -25,7 +25,7 @@ describe("rwmh_cube class", {
   })
 
   it("Can be updated with a matrix of points", {
-    obj <- new_rwmh_cube(fn, nvar = 2)
+    obj <- new_rwmh_cube(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     acc_ratio <- sum(samples$n_accept) / sum(samples$neval)
     new_eps <- exp((acc_ratio - 0.5) / 2 / 0.5)
@@ -43,7 +43,7 @@ describe("rwmh_cube class", {
   })
 
   it("Can be updated without a matrix", {
-    obj <- new_rwmh_cube(fn, nvar = 2)
+    obj <- new_rwmh_cube(unit_log_fn = fn, nvar = 2)
     samples <- run_sampler(obj)
     expect_idempotent_update(
       obj,

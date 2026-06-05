@@ -13,6 +13,8 @@
 #'
 #' @srrstats {BS4.0} References the software containing the sampling algorithm.
 #'
+#' @inheritSection new_ernest_lrps Loop safety
+#'
 #' @examples
 #' data(example_run)
 #' lrps <- unif_cube()
@@ -21,11 +23,7 @@
 #' @family ernest_lrps
 #' @export
 unif_cube <- function() {
-  new_unif_cube(
-    unit_log_fn = NULL,
-    nvar = NULL,
-    max_loop = getOption("ernest.max_loop", 1e6L)
-  )
+  new_unif_cube()
 }
 
 #' @noRd
@@ -38,30 +36,13 @@ format.unif_cube <- function(x, ...) {
 #'
 #' Internal constructor for the uniform unit cube LRPS.
 #'
-#' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param nvar  Number of dimensions.
-#' @param max_loop  Maximum number of proposal attempts.
-#' @param cache Optional cache environment.
-#'
-#' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
-#' types or error messages for univariate inputs.
+#' @param ... Arguments forwarded to `new_ernest_lrps()`.
 #'
 #' @return An LRPS specification, a list with class
 #' `c("unif_cube", "ernest_lrps")`.
 #' @noRd
-new_unif_cube <- function(
-  unit_log_fn = NULL,
-  nvar = NULL,
-  max_loop = 1e6L,
-  cache = NULL
-) {
-  new_ernest_lrps(
-    unit_log_fn = unit_log_fn,
-    nvar = nvar,
-    max_loop = max_loop,
-    cache = cache,
-    .class = "unif_cube"
-  )
+new_unif_cube <- function(...) {
+  new_ernest_lrps(..., .class = "unif_cube")
 }
 
 #' @rdname propose

@@ -29,6 +29,8 @@
 #' @returns `[multi_ellipsoid]`, a named list that inherits from
 #' [[ernest_lrps]].
 #'
+#' @inheritSection new_ernest_lrps Loop safety
+#'
 #' @references
 #' * Feroz, F., Hobson, M. P., Bridges, M. (2009) MULTINEST: An Efficient and
 #'   Robust Bayesian Inference Tool for Cosmology and Particle Physics. Monthly
@@ -46,61 +48,53 @@
 #'
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
-multi_ellipsoid <- function(
-  enlarge = 1.25
-) {
+multi_ellipsoid <- function(enlarge = 1.25) {
   check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
-
-  if (enlarge == 1) {
+  if (isTRUE(all.equal(enlarge, 1))) {
     cli::cli_warn("`enlarge` is set to 1, which is not recommended.")
   }
-
-  new_multi_ellipsoid(
-    unit_log_fn = NULL,
-    nvar = NULL,
-    enlarge = enlarge,
-    max_loop = getOption("ernest.max_loop", 1e6L)
-  )
+  new_multi_ellipsoid(enlarge = enlarge)
 }
 
 #' @export
 #' @noRd
 format.multi_ellipsoid <- function(x, ...) {
+  nellipsoid <- length(x$cache$ellipsoid)
+  if (nellipsoid == 0L) {
+    nellipsoid <- "multiple"
+  }
   cli::format_inline(
-    "Uniform sampling within bounding ellipsoids (enlarged by {x$enlarge})"
+    "Uniform sampling within {nellipsoid} ellipsoids (enlarged by {x$enlarge})"
   )
 }
 
 #' Internal constructor for multi-ellipsoid LRPS objects
 #'
-#' @param unit_log_fn Computes log-likelihood in unit space.
 #' @param nvar Number of dimensions of the parameter space.
-#' @param max_loop Maximum number of proposal attempts (default: 1e6).
-#' @param cache Stores cached ellipsoid decompositions and related state.
 #' @param enlarge Volume enlargement factor for each ellipsoid (must be ≥ 1).
+#' @param cache Stores cached ellipsoid decompositions and related state.
+#' @param ... Forwarded to `new_ernest_lrps()`.
 #'
 #' @returns An object of class `multi_ellipsoid`.
 #'
 #' @keywords internal
 #' @noRd
 new_multi_ellipsoid <- function(
-  unit_log_fn = NULL,
   nvar = NULL,
-  max_loop = 1e6L,
-  cache = NULL,
-  enlarge = 1.0
+  enlarge = 1.0,
+  cache = new_environment(),
+  ...
 ) {
   check_number_decimal(enlarge, min = 1, allow_infinite = FALSE)
+  check_number_whole(nvar, min = 1, allow_null = TRUE)
+  check_environment(cache)
 
-  cache <- cache %||% new_environment()
-  has_ell <- all(env_has(
-    cache,
-    c("prob", "ellipsoid", "total_log_volume")
-  ))
+  has_ell <- all(env_has(cache, c("prob", "ellipsoid", "total_log_volume")))
   req_names <- c("center", "shape", "inv_sqrt_shape", "log_vol", "error")
   valid_ell <- has_ell && all(req_names %in% names(cache$ellipsoid[[1]]))
-  if (!valid_ell && (is_integerish(nvar) && nvar > 0)) {
+
+  if (!valid_ell && !is.null(nvar)) {
     ell <- MultiBoundingEllipsoids(
       matrix(double(), nrow = 0, ncol = nvar),
       point_log_volume = NA
@@ -114,11 +108,10 @@ new_multi_ellipsoid <- function(
   }
 
   new_ernest_lrps(
-    unit_log_fn = unit_log_fn,
     nvar = nvar,
-    max_loop = max_loop,
     cache = cache,
     enlarge = enlarge,
+    ...,
     .class = "multi_ellipsoid"
   )
 }

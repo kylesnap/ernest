@@ -65,14 +65,8 @@
 #' algorithm.
 #' @family ernest_lrps
 #' @export
-rwmh_cube <- function(
-  steps = 25,
-  target_acceptance = 0.5
-) {
-  new_rwmh_cube(
-    steps = steps,
-    target_acceptance = target_acceptance
-  )
+rwmh_cube <- function(steps = 25, target_acceptance = 0.5) {
+  new_rwmh_cube(steps = steps, target_acceptance = target_acceptance)
 }
 
 #' @noRd
@@ -88,12 +82,9 @@ format.rwmh_cube <- function(x, ...) {
 #'
 #' Internal constructor for the random walk Metropolis-Hastings unit cube LRPS.
 #'
-#' @param unit_log_fn Function for computing log-likelihood in unit space.
-#' @param nvar  Number of dimensions.
-#' @param max_loop  Maximum number of proposal attempts.
-#' @param cache Optional cache environment.
 #' @param steps  Number of steps in the random walk.
 #' @param target_acceptance Numeric. Target acceptance rate for proposals.
+#' @param ... Forwarded to `new_ernest_lrps()`.
 #'
 #' @srrstats {G2.4, G2.4a, G2.4b} Explicit conversion of inputs to expected
 #' types or error messages for univariate inputs.
@@ -104,31 +95,29 @@ format.rwmh_cube <- function(x, ...) {
 #' `c("rwmh_cube", "ernest_lrps")`.
 #' @noRd
 new_rwmh_cube <- function(
-  unit_log_fn = NULL,
-  nvar = NULL,
-  max_loop = 1e6L,
-  cache = NULL,
   steps = 25L,
-  target_acceptance = 0.5
+  target_acceptance = 0.5,
+  cache = new_environment(),
+  ...
 ) {
   check_number_whole(steps, min = 2)
   check_number_decimal(target_acceptance)
+  check_environment(cache)
   if (target_acceptance < (1 / steps)) {
     cli::cli_abort("`target_acceptance` must be at least 1/{steps}.")
   }
   if (target_acceptance >= 1) {
     cli::cli_abort("`target_acceptance` must be smaller than 1.")
   }
-  cache <- cache %||% new_environment()
+
   env_poke(cache, "n_accept", 0L)
   env_cache(cache, "epsilon", 1.0)
+
   new_ernest_lrps(
-    unit_log_fn = unit_log_fn,
-    nvar = nvar,
-    max_loop = max_loop,
-    cache = cache,
     steps = as.integer(steps),
-    target_acceptance = as.double(target_acceptance),
+    target_acceptance = target_acceptance,
+    cache = cache,
+    ...,
     .class = "rwmh_cube"
   )
 }

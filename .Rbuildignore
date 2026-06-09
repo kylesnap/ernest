@@ -13,3 +13,4 @@
 ^codemeta\.json$
 ^data-raw$
 ^codecov\.yml$
+^cran-comments\.md$

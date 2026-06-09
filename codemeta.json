@@ -4,10 +4,11 @@
   "identifier": "ernest",
   "description": "Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.",
   "name": "ernest: A Toolkit for Nested Sampling",
-  "codeRepository": "https://kylesnap.github.io/ernest/",
-  "issueTracker": "https://github.com/kylesnap/ernest/issues/",
+  "relatedLink": "https://docs.ropensci.org/ernest/",
+  "codeRepository": "https://github.com/ropensci/ernest",
+  "issueTracker": "https://github.com/ropensci/ernest/issues/",
   "license": "https://spdx.org/licenses/GPL-3.0",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -21,18 +22,6 @@
       "familyName": "Dewsnap",
       "email": "kyle.dewsnap@ubc.ca",
       "@id": "https://orcid.org/0000-0003-2132-8083"
-    }
-  ],
-  "contributor": [
-    {
-      "@type": "Person",
-      "givenName": "TJ",
-      "familyName": "Mahr"
-    },
-    {
-      "@type": "Person",
-      "givenName": "Robert",
-      "familyName": "Kubinec"
     }
   ],
   "maintainer": [
@@ -208,7 +197,7 @@
       "@type": "SoftwareApplication",
       "identifier": "R",
       "name": "R",
-      "version": ">= 3.5"
+      "version": ">= 4.1.0"
     },
     "2": {
       "@type": "SoftwareApplication",
@@ -321,7 +310,7 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "73879.998KB",
+  "fileSize": "56755.109KB",
   "citation": [
     {
       "@type": "ScholarlyArticle",

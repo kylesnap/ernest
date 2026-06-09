@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/kylesnap/ernest/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
+[![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/ropensci/ernest)
 
 <!-- badges: end -->
 
@@ -19,20 +19,23 @@ environment.
 
 ## Installation
 
-Install the development version of ernest from
-[GitHub](https://github.com/kylesnap/ernest) with:
+Install the released version of ernest:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("kylesnap/ernest")
+install.packages("ernest", repos = c('https://ropensci.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
+Install the development version of ernest from
+[GitHub](https://github.com/ropensci/ernest) with:
+
+``` r
+devtools::install_github("ropensci/ernest")
 ```
 
 You’ll also need a working C++ compiler. To get it:
 
 - On Windows, install [Rtools](#0).
-
 - On Mac, install Xcode from the app store.
-
 - On Linux, `sudo apt-get install r-base-dev` or similar.
 
 ## Why use ernest?
@@ -123,20 +126,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4726
-#> * Likelihood evals.: 103255
-#> * Log-evidence: -9.115 (± 0.116)
-#> * Information: 4.932
+#> * Iterations: 4708
+#> * Likelihood evals.: 102753
+#> * Log-evidence: -9.0783 (± 0.1158)
+#> * Information: 4.922
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable    mean    sd  median   q15   q85
-#>   <chr>      <dbl> <dbl>   <dbl> <dbl> <dbl>
-#> 1 x         0.0156  2.82  0.0224 -1.96  1.97
-#> 2 y        -0.0275  2.85 -0.0211 -1.98  1.90
-#> 3 z        -0.0332  2.86 -0.0312 -2.07  1.96
+#>   variable    mean    sd    median   q15   q85
+#>   <chr>      <dbl> <dbl>     <dbl> <dbl> <dbl>
+#> 1 x        -0.0460  2.87 -0.0211   -2.07  1.98
+#> 2 y        -0.0488  2.80 -0.0258   -2.02  1.87
+#> 3 z         0.0349  2.80 -0.000891 -1.96  1.90
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6832
-#> * Original parameters: 0.0451, 0.0352, and 0.0558
+#> * Log-likelihood: -2.6826
+#> * Original parameters: -0.024, -0.0261, and -0.0622
 plot(run, which = "evidence")
 ```
 
@@ -182,7 +185,7 @@ based on this work.
 When using ernest, please at least include the following citations:
 
 - Dewsnap K. (2025). “ernest: A Toolkit for Nested Sampling.” R package
-  version XXX, \<URL: (<https://kylesnap.github.io/ernest/>)\>
+  version XXX, \<URL: (<https://docs.ropensci.org/ernest/>)\>
 
 - Skilling, J. (2006). Nested Sampling for General Bayesian Computation.
   *Bayesian Analysis*, 1(4), 833–859. \<DOI:

@@ -8,10 +8,6 @@ concurrency:
 on:
   # Manually trigger the Action under Actions/pkgcheck
   workflow_dispatch:
-  workflow_run:
-    workflows: ["R-CMD-check.yaml"]
-    types: [completed]
-    branches: [main]
 
 jobs:
   pkgcheck:

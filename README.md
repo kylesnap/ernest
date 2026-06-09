@@ -6,7 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/ropensci/ernest)
+[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
 
 <!-- badges: end -->
 
@@ -19,22 +19,22 @@ environment.
 
 ## Installation
 
-Install the released version of ernest:
-
 ``` r
+# Install `ernest` from CRAN:
+install.packages("ernest")
+
+# Install `ernest` from R-Universe
 install.packages("ernest", repos = c('https://ropensci.r-universe.dev', 'https://cloud.r-project.org'))
-```
 
-Install the development version of ernest from
-[GitHub](https://github.com/ropensci/ernest) with:
-
-``` r
+# Install the development version of ernest from Github:
 devtools::install_github("ropensci/ernest")
 ```
 
-You’ll also need a working C++ compiler. To get it:
+To install ernest from source, you’ll need a working C++ compiler. To
+get it:
 
-- On Windows, install [Rtools](#0).
+- On Windows, install
+  [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
 - On Mac, install Xcode from the app store.
 - On Linux, `sudo apt-get install r-base-dev` or similar.
 
@@ -126,20 +126,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4708
-#> * Likelihood evals.: 102753
-#> * Log-evidence: -9.0783 (± 0.1158)
-#> * Information: 4.922
+#> * Iterations: 4608
+#> * Likelihood evals.: 101177
+#> * Log-evidence: -8.877 (± 0.1136)
+#> * Information: 4.733
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable    mean    sd    median   q15   q85
-#>   <chr>      <dbl> <dbl>     <dbl> <dbl> <dbl>
-#> 1 x        -0.0460  2.87 -0.0211   -2.07  1.98
-#> 2 y        -0.0488  2.80 -0.0258   -2.02  1.87
-#> 3 z         0.0349  2.80 -0.000891 -1.96  1.90
+#>   variable    mean    sd  median   q15   q85
+#>   <chr>      <dbl> <dbl>   <dbl> <dbl> <dbl>
+#> 1 x         0.0527  2.74  0.0320 -1.75  2.05
+#> 2 y         0.0299  2.77  0.0139 -1.82  2.00
+#> 3 z        -0.0507  2.74 -0.0219 -1.84  1.80
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6826
-#> * Original parameters: -0.024, -0.0261, and -0.0622
+#> * Log-likelihood: -2.6816
+#> * Original parameters: 0.003, -0.0234, and 0.0526
 plot(run, which = "evidence")
 ```
 
@@ -158,7 +158,7 @@ the package vignettes.
 
 NS has been implemented in many languages. This non-exhaustive list of
 popular NS implementations is adapted from [Fowlie
-(2021)](http://arxiv.org/abs/2010.13884):
+(2021)](https://arxiv.org/abs/2010.13884):
 
 - In Python: [nestle](https://github.com/kbarbary/nestle/tree/master)
   and [dynesty](https://github.com/joshspeagle/dynesty)

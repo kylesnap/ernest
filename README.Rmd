@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/ropensci/ernest)
+[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
 
 <!-- badges: end -->
 
@@ -33,19 +33,20 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-Install the released version of ernest:
 ``` r
-install.packages("ernest", repos = c('https://ropensci.r-universe.dev', 'https://cloud.r-project.org'))
-```
+# Install `ernest` from CRAN:
+install.packages("ernest")
 
-Install the development version of ernest from [GitHub](https://github.com/ropensci/ernest) with:
-``` r
+# Install `ernest` from R-Universe
+install.packages("ernest", repos = c('https://ropensci.r-universe.dev', 'https://cloud.r-project.org'))
+
+# Install the development version of ernest from Github:
 devtools::install_github("ropensci/ernest")
 ```
 
-You’ll also need a working C++ compiler. To get it:
+To install ernest from source, you'll need a working C++ compiler. To get it:
 
--   On Windows, install [Rtools](#0).
+-   On Windows, install [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
 -   On Mac, install Xcode from the app store.
 -   On Linux, `sudo apt-get install r-base-dev` or similar.
 
@@ -106,7 +107,7 @@ For advanced usage, including custom priors and hierarchical models, see the pac
 
 ## Prior Work
 
-NS has been implemented in many languages. This non-exhaustive list of popular NS implementations is adapted from [Fowlie (2021)](http://arxiv.org/abs/2010.13884):
+NS has been implemented in many languages. This non-exhaustive list of popular NS implementations is adapted from [Fowlie (2021)](https://arxiv.org/abs/2010.13884):
 
 -   In Python: [nestle](https://github.com/kbarbary/nestle/tree/master) and [dynesty](https://github.com/joshspeagle/dynesty)
 

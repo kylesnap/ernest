@@ -11,24 +11,24 @@ Bayesian evidence estimation and posterior inference with the nested sampling al
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/kylesnap/ernest}
-  \item \url{https://kylesnap.github.io/ernest/}
-  \item Report bugs at \url{https://github.com/kylesnap/ernest/issues/}
+  \item \url{https://github.com/ropensci/ernest}
+  \item \url{https://docs.ropensci.org/ernest/}
+  \item Report bugs at \url{https://github.com/ropensci/ernest/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
+\strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
+  \item Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID}) [copyright holder]
 }
 
 Other contributors:
 \itemize{
-  \item TJ Mahr [contributor]
-  \item Robert Kubinec [contributor]
+  \item TJ Mahr [reviewer]
+  \item Robert Kubinec [reviewer]
 }
 
 }

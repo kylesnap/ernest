@@ -7,7 +7,7 @@ test_that("slice can be called by user", {
   default <- slice_rectangle()
   expect_snapshot(slice_rectangle(enlarge = 0.5), error = TRUE)
   expect_snapshot(slice_rectangle(enlarge = NA))
-  expect_equal(default$enlarge, 1)
+  expect_equal(default$enlarge, na_dbl)
   expect_snapshot(default)
 })
 

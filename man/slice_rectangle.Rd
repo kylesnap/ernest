@@ -4,7 +4,7 @@
 \alias{slice_rectangle}
 \title{Generate new points with slice sampling}
 \usage{
-slice_rectangle(enlarge = 1)
+slice_rectangle(enlarge = NA)
 }
 \arguments{
 \item{enlarge}{\verb{[double(1)]}\cr Factor by which to inflate the

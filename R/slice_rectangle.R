@@ -44,8 +44,7 @@
 #'
 #' @family ernest_lrps
 #' @export
-slice_rectangle <- function(enlarge = 1) {
-  check_number_decimal(enlarge, min = 1, allow_na = TRUE)
+slice_rectangle <- function(enlarge = NA) {
   new_slice_rectangle(enlarge = enlarge)
 }
 
@@ -56,11 +55,11 @@ format.slice_rectangle <- function(x, ...) {
     NULL
   } else {
     cli::format_inline(
-      "(enlarged by {x$enlarge})"
+      " (enlarged by {x$enlarge})"
     )
   }
   cli::format_inline(
-    "Slice Sampling LRPS {enlarge_str}"
+    "Slice Sampling LRPS{enlarge_str}"
   )
 }
 
@@ -84,7 +83,7 @@ new_slice_rectangle <- function(
   unit_log_fn = NULL,
   nvar = NULL,
   max_loop = 1e6L,
-  enlarge = 1.25,
+  enlarge = NA,
   cache = NULL
 ) {
   check_number_decimal(enlarge, min = 1, allow_na = TRUE)

@@ -7,6 +7,7 @@
 
 [![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
+[![](https://badges.ropensci.org/730_status.svg)](https://github.com/ropensci/software-review/issues/730)
 
 <!-- badges: end -->
 
@@ -126,20 +127,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4608
-#> * Likelihood evals.: 101177
-#> * Log-evidence: -8.877 (± 0.1136)
-#> * Information: 4.733
+#> * Iterations: 4663
+#> * Likelihood evals.: 102134
+#> * Log-evidence: -8.9848 (± 0.1147)
+#> * Information: 4.824
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable    mean    sd  median   q15   q85
-#>   <chr>      <dbl> <dbl>   <dbl> <dbl> <dbl>
-#> 1 x         0.0527  2.74  0.0320 -1.75  2.05
-#> 2 y         0.0299  2.77  0.0139 -1.82  2.00
-#> 3 z        -0.0507  2.74 -0.0219 -1.84  1.80
+#>   variable     mean    sd   median   q15   q85
+#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x         0.0179   2.74  0.00257 -1.82  1.93
+#> 2 y         0.00224  2.80  0.0106  -1.87  1.92
+#> 3 z        -0.0329   2.77 -0.00719 -1.91  1.96
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6816
-#> * Original parameters: 0.003, -0.0234, and 0.0526
+#> * Log-likelihood: -2.6812
+#> * Original parameters: -0.013, 0.0448, and 0.0196
 plot(run, which = "evidence")
 ```
 

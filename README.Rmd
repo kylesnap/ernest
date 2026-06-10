@@ -26,6 +26,7 @@ knitr::opts_chunk$set(
 
 [![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
+[![](https://badges.ropensci.org/730_status.svg)](https://github.com/ropensci/software-review/issues/730)
 
 <!-- badges: end -->
 

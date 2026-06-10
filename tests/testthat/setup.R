@@ -5,9 +5,6 @@ withr::local_options(
   .local_envir = teardown_env()
 )
 
-#' Respect two-core limit on CRAN
-withr::local_envvar("OMP_THREAD_LIMIT" = 2, .local_envir = teardown_env())
-
 #' Skip extended tests using the "ERNEST_EXTENDED_TESTS" variable.
 skip_extended <- function() {
   skip_if(

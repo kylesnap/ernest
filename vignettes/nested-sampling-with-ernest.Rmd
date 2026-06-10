@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
 ```
 
 ```{r srr-tags, eval = FALSE, echo = FALSE}

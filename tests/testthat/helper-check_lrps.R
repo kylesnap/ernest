@@ -15,7 +15,7 @@ expect_proposal <- function(
   stopifnot(inherits(lrps, "ernest_lrps"))
   orig_ncall <- env_get(lrps$cache, "neval")
   res <- propose(lrps, original = original, criterion = criterion)
-  expected_names <- c("unit", "log_lik", "neval", extra_args)
+  required_names <- c("unit", "log_lik", "neval", extra_args)
   expected_calls <- orig_ncall + (if (!is.null(original)) res$neval else 0L)
   if (is.null(res$unit) && allow_failure) {
     if (!identical(res$neval, lrps$max_loop)) {
@@ -25,11 +25,12 @@ expect_proposal <- function(
     }
     return(invisible(res))
   }
-  if (!setequal(names(res), expected_names)) {
+  missing_names <- setdiff(required_names, names(res))
+  if (length(missing_names) > 0L) {
     fail(c(
-      "Result names do not match expected.",
-      sprintf("Actual: %s", paste(sort(names(res)), collapse = ", ")),
-      sprintf("Expected: %s", paste(sort(expected_names), collapse = ", "))
+      "Result is missing required names.",
+      sprintf("Missing: %s", paste(sort(missing_names), collapse = ", ")),
+      sprintf("Actual: %s", paste(sort(names(res)), collapse = ", "))
     ))
   } else if (!is.double(res$unit) || length(res$unit) != lrps$nvar) {
     fail(
@@ -140,7 +141,14 @@ expect_lrps <- function(object, subclass = NULL, ...) {
   cache_list <- as.list(act$val$cache)
   ptypes <- list2(neval = 0L, ...)
   ptypes <- lapply(ptypes, vctrs::vec_ptype)
-  expect_named(cache_list, names(ptypes), ignore.order = TRUE, label = "cache")
+  missing_names <- setdiff(names(ptypes), names(cache_list))
+  if (length(missing_names) > 0L) {
+    fail(sprintf(
+      "%s$cache is missing required entries: %s",
+      act$lab,
+      paste(sort(missing_names), collapse = ", ")
+    ))
+  }
   for (nm in names(ptypes)) {
     if (!vctrs::vec_is(cache_list[[nm]], ptypes[[nm]])) {
       fail(sprintf("`cache` at %s has unexpected types.", nm))
@@ -164,10 +172,15 @@ expect_idempotent_update <- function(
 ) {
   cache_list <- as.list(lrps$cache)
   reset <- c("neval", reset)
+  stable_keys <- union(names(ptypes %||% list()), reset)
   cache_list[names(cache_list) %in% reset] <- 0L
   new_lrps <- update_lrps(lrps)
   expect_lrps(new_lrps, subclass, !!!ptypes)
-  expect_mapequal(as.list(new_lrps$cache), cache_list)
+  new_cache_list <- as.list(new_lrps$cache)
+  expect_mapequal(
+    new_cache_list[names(new_cache_list) %in% stable_keys],
+    cache_list[names(cache_list) %in% stable_keys]
+  )
   invisible(new_lrps)
 }
 

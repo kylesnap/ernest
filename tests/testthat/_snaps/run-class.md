@@ -6,7 +6,7 @@
       # A tibble: 1 x 8
         nlive  nvar niter  neval log_evidence log_evidence_err information  seed
         <int> <int> <int>  <int>        <dbl>            <dbl>       <dbl> <int>
-      1  1000     3  9350 204656        -9.01           0.0826        4.84    42
+      1  1000     3  9393 174801        -9.06           0.0827        4.85    42
 
 ---
 
@@ -39,15 +39,15 @@
       -- Posterior Summary -----------------------------------------------------------
     Output
       # A tibble: # x #
-        variable     mean    sd   median   q#   q#
-        <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
-      # x        -#.#  #.# -#.# -#.#  #.#
-      # y        -#.#   #.#  #.# -#.#  #.#
-      # z        -#.#  #.# -#.#  -#.#  #.#
+        variable     mean    sd    median   q#   q#
+        <chr>       <dbl> <dbl>     <dbl> <dbl> <dbl>
+      # x        -#.#   #.# -#.#  -#.#  #.#
+      # y         #.#   #.#  #.#  -#.#  #.#
+      # z        -#.#  #.#  #.# -#.#  #.#
     Message
       -- Maximum Likelihood Estimate (MLE) -------------------------------------------
       * Log-likelihood: -#.#
-      * Original parameters: #.#, -#.#, and #.#
+      * Original parameters: -#.#, #.#, and #.#
 
 # summary.ernest_run returns expected structure and values / has the expected posterior
 

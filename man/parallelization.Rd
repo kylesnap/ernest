@@ -80,9 +80,10 @@ without running a single very large job. Run several smaller nested sampling
 jobs concurrently and merge their records to obtain the same statistical
 benefits as a single large run.
 
-When \code{\link[=generate-ernest]{generate()}} is called with \code{parallel != FALSE}, the resulting run
-contains a \code{parallel} element with per-worker summaries (see
-\code{\link[=glance.ernest_run]{glance.ernest_run()}}) useful for diagnostics.
+When \code{\link[=generate-ernest]{generate()}} is called with \code{parallel != FALSE}, the
+resulting run contains a \code{.parallel} element with per-worker summaries (see
+\code{\link[=glance.ernest_run]{glance.ernest_run()}}). Note that each worker must have at least \code{nvar * 2}
+live points, where \code{nvar} is the number of variables in the parameter space.
 }
 
 \section{Daemons}{

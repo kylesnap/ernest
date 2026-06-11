@@ -10,6 +10,9 @@
 #' Optional, and updated when called by `ernest_sampler()`.
 #' @param max_loop `[integer(1)]`\cr Maximum number of attempts to generate
 #' points. Inferred from the `ernest.max_loop` option.
+#' @param batch_size `[integer(1)]`\cr Number of proposals to generate per
+#' batch for region-based LRPS methods. Inferred from the `ernest.batch_size`
+#' option.
 #' @param cache `[environment]` Environment for caching information required for
 #' the specific LRPS method. Created if left `NULL`.
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Name-value pairs for
@@ -47,6 +50,7 @@ new_ernest_lrps <- function(
   unit_log_fn = NULL,
   nvar = NULL,
   max_loop = getOption("ernest.max_loop", 1e6L),
+  batch_size = getOption("ernest.batch_size", 100L),
   cache = NULL,
   ...,
   .class = NULL,
@@ -62,12 +66,20 @@ new_ernest_lrps <- function(
     arg = "getOption('ernest.max_loop')",
     call = .call
   )
+  check_number_whole(
+    batch_size,
+    min = 1,
+    allow_infinite = FALSE,
+    arg = "getOption('ernest.batch_size')",
+    call = .call
+  )
   check_environment(cache, allow_null = TRUE, call = .call)
 
   elem <- list(
     unit_log_fn = unit_log_fn,
     nvar = if (is.null(nvar)) NULL else as.integer(nvar),
     max_loop = as.integer(max_loop),
+    batch_size = as.integer(batch_size),
     cache = cache %||% new_environment()
   )
   env_poke(elem$cache, "neval", 0L)
@@ -132,16 +144,17 @@ propose.ernest_lrps <- function(
   original = NULL,
   criterion = -Inf
 ) {
-  if (is.null(original)) {
-    propose_cube(
-      unit_log_fn = x$unit_log_fn,
-      criterion = criterion,
-      nvar = x$nvar,
-      max_loop = x$max_loop
-    )
-  } else {
+  if (!is.null(original)) {
     cli::cli_abort("`x` must not be the abstract class {.cls ernest_lrps}.")
   }
+  propose_cube(
+    unit_log_fn = x$unit_log_fn,
+    criterion = criterion,
+    nvar = x$nvar,
+    batch_size = x$batch_size,
+    max_loop = x$max_loop,
+    cache = x$cache
+  )
 }
 
 #' Generate a new point in a unit cube
@@ -150,9 +163,9 @@ propose.ernest_lrps <- function(
 #' @param criterion Double scalar. A log-likelihood value that proposed points
 #' must satisfy.
 #' @param nvar Number of dimensions.
+#' @param batch_size Number of proposals to generate per batch.
 #' @param max_loop Maximum number of attempts to generate a point.
-#' @param n_batch Number of points to propose per iteration. Defaults to the
-#' `ernest.n_batch` option, or 1 if unset.
+#' @param cache Environment for caching points run in batches.
 #'
 #' @returns A list with:
 #' * `unit`: Vector of proposed points in the prior space.
@@ -164,22 +177,23 @@ propose_cube <- function(
   unit_log_fn,
   criterion,
   nvar,
+  batch_size,
   max_loop,
-  n_batch = getOption("ernest.n_batch", 1L)
+  cache
 ) {
-  proposal <- matrix(double(), nrow = n_batch, ncol = nvar)
+  batch <- matrix(NaN, nrow = batch_size, ncol = nvar)
+  log_lik <- double(batch_size)
   for (i in seq_len(max_loop)) {
-    proposal[,] <- stats::runif(n_batch * nvar)
-    log_lik <- unit_log_fn(proposal)
+    batch[,] <- stats::runif(batch_size * nvar)
+    log_lik[] <- NaN
+    log_lik <- unit_log_fn(batch)
     accepted <- match(TRUE, log_lik >= criterion)
     if (!is.na(accepted)) {
-      return(
-        list(
-          unit = proposal[accepted, ],
-          log_lik = log_lik[accepted],
-          neval = i
-        )
-      )
+      return(list(
+        unit = batch[accepted, , drop = TRUE],
+        log_lik = log_lik[[accepted]],
+        neval = i
+      ))
     }
   }
   list(unit = NULL, log_lik = NULL, neval = max_loop)
@@ -221,6 +235,5 @@ update_lrps <- function(x, ...) {
 #' @noRd
 #' @export
 update_lrps.ernest_lrps <- function(x, unit = NULL, ...) {
-  env_poke(x$cache, "neval", 0L)
   do.call(new_ernest_lrps, as.list(x))
 }

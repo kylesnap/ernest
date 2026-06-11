@@ -59,7 +59,9 @@ propose.unif_cube <- function(
       unit_log_fn = x$unit_log_fn,
       criterion = criterion,
       nvar = x$nvar,
-      max_loop = x$max_loop
+      batch_size = x$batch_size,
+      max_loop = x$max_loop,
+      cache = x$cache
     )
     env_poke(x$cache, "neval", x$cache$neval + res$neval)
     res

@@ -35,7 +35,10 @@ describe("unif_cube class", {
   it("Can be updated without a matrix", {
     obj <- new_unif_cube(fn, nvar = 2)
     samples <- run_sampler(obj)
-    expect_idempotent_update(obj, "unif_cube")
+    expect_idempotent_update(
+      obj,
+      "unif_cube"
+    )
   })
 })
 

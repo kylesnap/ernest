@@ -134,6 +134,7 @@ propose.unif_ellipsoid <- function(
       center = x$cache$center,
       inv_sqrt_shape = x$cache$inv_sqrt_shape,
       enlarge = x$enlarge,
+      batch_size = x$batch_size,
       max_loop = x$max_loop
     )
     env_poke(x$cache, "neval", x$cache$neval + res$neval)
@@ -163,22 +164,32 @@ propose_ellipsoid <- function(
   center,
   inv_sqrt_shape,
   enlarge,
+  batch_size,
   max_loop
 ) {
   nvar <- length(center)
   radius <- enlarge^(1 / nvar)
-  proposal <- double(nvar)
+  batch <- matrix(NaN, nrow = batch_size, ncol = nvar + 1)
+  log_lik <- double(batch_size)
+
   for (i in seq_len(max_loop)) {
-    proposal <- uniformly::runif_in_sphere(1, nvar, r = radius)
-    proposal <- drop(tcrossprod(proposal, inv_sqrt_shape)) + center
-    if (any(proposal < 0) || any(proposal > 1)) {
+    # Generate a batch of proposals inside the (enlarged) unit hypersphere
+    batch <- uniformly::runif_in_sphere(batch_size, nvar, r = radius)
+    # Map points from the unit sphere into the ellipsoid and shift by centre
+    batch <- batch %*% t(inv_sqrt_shape)
+    batch <- sweep(batch, 2, center, "+")
+    valid <- rowSums(batch < 0 | batch > 1) == 0
+    if (!any(valid)) {
       next
     }
-    log_lik <- unit_log_fn(proposal)
-    if (log_lik >= criterion) {
+    # Fill valid proposals and evaluate their log-likelihoods
+    log_lik[] <- NaN
+    log_lik[valid] <- unit_log_fn(batch[valid, , drop = FALSE])
+    accepted <- match(TRUE, log_lik >= criterion)
+    if (!is.na(accepted)) {
       return(list(
-        unit = proposal,
-        log_lik = log_lik,
+        unit = batch[accepted, , drop = TRUE],
+        log_lik = log_lik[accepted],
         neval = i
       ))
     }

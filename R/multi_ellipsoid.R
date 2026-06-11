@@ -134,6 +134,7 @@ propose.multi_ellipsoid <- function(
       center = ell$center,
       inv_sqrt_shape = ell$inv_sqrt_shape,
       enlarge = x$enlarge,
+      batch_size = x$batch_size,
       max_loop = x$max_loop
     )
     res <- c(res, ellipsoid_idx = ell_idx)

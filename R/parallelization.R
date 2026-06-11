@@ -307,7 +307,7 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
     )
   }
   mirai::require_daemons(call = call)
-  m <- mirai::everywhere(library(ernest))
+  m <- mirai::everywhere(devtools::load_all(".")) # mirai::everywhere(library(ernest))
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
     cli::cli_abort(

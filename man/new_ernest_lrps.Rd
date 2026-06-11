@@ -9,6 +9,7 @@ new_ernest_lrps(
   unit_log_fn = NULL,
   nvar = NULL,
   max_loop = getOption("ernest.max_loop", 1000000L),
+  batch_size = getOption("ernest.batch_size", 100L),
   cache = NULL,
   ...,
   .class = NULL,
@@ -25,6 +26,10 @@ Optional, and updated when called by \code{ernest_sampler()}.}
 
 \item{max_loop}{\verb{[integer(1)]}\cr Maximum number of attempts to generate
 points. Inferred from the \code{ernest.max_loop} option.}
+
+\item{batch_size}{\verb{[integer(1)]}\cr Number of proposals to generate per
+batch for region-based LRPS methods. Inferred from the \code{ernest.batch_size}
+option.}
 
 \item{cache}{\verb{[environment]} Environment for caching information required for
 the specific LRPS method. Created if left \code{NULL}.}

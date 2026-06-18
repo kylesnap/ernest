@@ -122,7 +122,7 @@ resample_runs <- function(x_rcrd, threads, sample_ids, nlive) {
     sample_idx,
     \(idx) {
       thread_subset <- vctrs::vec_slice(x_rcrd, idx)
-      compile_merged_rcrd(thread_subset, nlive = nlive, unique_ids = FALSE)
+      compile_rcrd(thread_subset)
     }
   )
 }

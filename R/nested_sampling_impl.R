@@ -155,13 +155,9 @@ nested_sampling_impl <- function(
     unit = do.call(rbind, dead_unit),
     log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
     id = vec_c(!!!dead_id, .ptype = character()),
-    nlive = get_points(
-      vec_c(!!!dead_log_lik, .ptype = double()),
-      nlive = nlive,
-      add_live = FALSE
-    ),
+    nlive = rep(nlive, length(dead_log_lik)),
     neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
-  vec_c(result, env_to_rcrd(live_env))
+  compile_rcrd(vec_c(result, env_to_rcrd(live_env)), nlive = nlive)
 }

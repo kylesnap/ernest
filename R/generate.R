@@ -168,9 +168,10 @@ generate.ernest_run <- function(
       show_progress = show_progress,
       parallel = parallel
     )
+    results$rcrd <- sort(vec_c(prev_run, results$results))
     new_ernest_run(
       x,
-      c(prev_run, results$results),
+      compile_rcrd(results$rcrd, control$nlive),
       .parallel = results$.parallel
     )
   } else {
@@ -180,7 +181,10 @@ generate.ernest_run <- function(
       control = control,
       show_progress = show_progress
     )
-    new_ernest_run(x, c(prev_run, results))
+    new_ernest_run(
+      x,
+      compile_rcrd(sort(vec_c(prev_run, results)), control$nlive)
+    )
   }
 }
 

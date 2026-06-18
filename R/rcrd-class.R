@@ -202,48 +202,6 @@ vec_proxy_equal.ernest_rcrd <- function(x, ...) {
   )
 }
 
-#' Check that an ernest_rcrd object contains a valid run.
-#'
-#' Valid runs must contain IDs that are `nlive` contiguous integers starting
-#' from `1`. Exactly `nlive` points within the run must have `neval == 0`
-#' (the live points at termination). Finally, the run should be sorted in
-#' ascending order of log-likelihood.
-#'
-#' @param x An `ernest_rcrd` object to validate.
-#' @param nlive The expected number of live points in the run. If NULL, this
-#' is inferred from the maximum `nlive` value.
-#' @param arg The argument name to use in error messages.
-#' @param call The calling environment to use in error messages.
-#'
-#' @returns TRUE if the run meets the described conditions, else FALSE.
-#' @noRd
-rcrd_is_run <- function(
-  x,
-  nlive = NULL,
-  arg = caller_arg(x),
-  call = caller_env()
-) {
-  vec_cast(x, to = ernest_rcrd())
-  nlive <- nlive %||% max(field(x, "nlive"))
-  check_number_whole(nlive, min = 1, arg = caller_arg(nlive), call = call)
-  ids <- vctrs::vec_unique(field(x, "id"))
-  if (length(ids) != nlive) {
-    cli::cli_warn(
-      "`{arg}` should contain {nlive} unique IDs, but has {length(ids)}.",
-      call = call
-    )
-    return(FALSE)
-  }
-  if (is.unsorted(x)) {
-    cli::cli_warn(
-      "`{arg}` should be sorted in ascending order of log-likelihood.",
-      call = call
-    )
-    return(FALSE)
-  }
-  TRUE
-}
-
 #' Extract the live or dead points as a list
 #'
 #' @param x An `ernest_rcrd` object containing the run history.
@@ -327,7 +285,7 @@ env_to_rcrd <- function(live_env) {
 #' @export
 glance.ernest_rcrd <- function(x, ...) {
   check_dots_empty()
-  rcrd_is_run(x)
+  check_rcrd(x, sorted = TRUE)
   nlive <- max(field(x, "nlive"))
   nvar <- ncol(field(x, "unit"))
   niter <- length(x) - nlive
@@ -344,4 +302,118 @@ glance.ernest_rcrd <- function(x, ...) {
       information = tail(integral$information, 1L)
     )
   )
+}
+
+#' Type predicate for `ernest_rcrd`
+#'
+#' @param x An `ernest_rcrd` object to validate.
+#' @param nlive Expected number of live points in the run.
+#' @param sorted Whether to check that `x` is sorted in ascending order of
+#' log-likelihood, which is required of a rcrd storing a nested sampling run.
+#' @param arg The argument name to use in error messages.
+#' @param call The calling environment to use in error messages.
+#'
+#' @returns TRUE if the run meets the described conditions, else an error
+#' message.
+#' @noRd
+check_rcrd <- function(
+  x,
+  nlive = NULL,
+  sorted = FALSE,
+  arg = caller_arg(x),
+  call = caller_env()
+) {
+  check_class(x, "ernest_rcrd", arg = arg, call = call)
+  check_number_whole(nlive, min = 1, allow_null = TRUE, arg = arg, call = call)
+  if (!is.null(nlive) && vctrs::vec_unique_count(field(x, "id")) != nlive) {
+    cli::cli_abort(
+      c(
+        "`{arg}` must contain {nlive} unique IDs.",
+        "x" = "Actually has {vctrs::vec_unique_count(field(x, 'id'))}"
+      ),
+      class = "ernest_bad_run_rcrd",
+      call = call
+    )
+  }
+  if (sorted && is.unsorted(x)) {
+    cli::cli_abort(
+      "`{arg}` must be sorted by `log_lik`.",
+      call = call,
+      class = "ernest_bad_run_rcrd"
+    )
+  }
+  TRUE
+}
+
+#' Repair `nlive` field of a rcrd storing a run.
+#'
+#' @param rcrd A correctly ordered `ernest_rcrd` object containing the run
+#' history, but with an incorrect `nlive` field.
+#' @param nlive The expected number of live points in the run. If an integer,
+#' this is checked against the number of unique IDs in `rcrd`. If NULL, this is
+#' inferred from the total number of unique IDs in the record and no check is
+#' performed.
+#' @param call The calling environment to use in error messages.
+#' @param arg The argument name to use in error messages.
+#'
+#' @returns A repaired `ernest_rcrd` object with the correct `nlive` field.
+#'
+#' @noRd
+compile_rcrd <- function(
+  rcrd,
+  nlive = NULL,
+  call = caller_env(),
+  arg = caller_arg(rcrd)
+) {
+  if (is.unsorted(rcrd)) {
+    cli::cli_abort("`{arg}` must be sorted by `log_lik`.", call = call)
+  }
+  check_number_whole(nlive, min = 1, allow_null = TRUE, call = call)
+  if (!is.null(nlive) && vctrs::vec_unique_count(field(rcrd, "id")) != nlive) {
+    cli::cli_abort(
+      c(
+        "`{arg}` must contain {nlive} unique IDs.",
+        "x" = "Actually has {vctrs::vec_unique_count(field(rcrd, 'id'))}"
+      ),
+      call = call
+    )
+  } else {
+    nlive <- vctrs::vec_unique_count(field(rcrd, "id"))
+  }
+
+  # Find the indices of the largest log-likelihood value for each ID
+  nsamples <- length(rcrd)
+  live_idx <- vctrs::num_as_location(
+    vapply(
+      vctrs::vec_group_loc(field(rcrd, "id"))$loc,
+      function(idx) idx[[length(idx)]],
+      integer(1)
+    ),
+    n = nsamples
+  )
+  dead_idx <- vctrs::num_as_location(-live_idx, n = nsamples)
+
+  # Find the total number of points for each DEAD point
+  dead_nlive <- live_nlive <- vctrs::vec_init(integer(), nsamples)
+  dead_nlive[dead_idx] <- get_points(
+    field(rcrd[dead_idx], "log_lik"),
+    nlive,
+    FALSE
+  )
+  dead_nlive <- vctrs::vec_fill_missing(dead_nlive, "down")
+
+  # Find the indices where nlive decreases as points leave the live set
+  live_idx <- vctrs::num_as_location(
+    live_idx + 1L,
+    n = nsamples,
+    oob = "remove"
+  )
+  live_nlive[] <- 0L
+  live_nlive[live_idx] <- -1L
+  live_nlive <- cumsum(live_nlive)
+
+  # Overwrite the nlive field and return the repaired rcrd.
+  nlive <- dead_nlive + live_nlive
+  vctrs::field(rcrd, "nlive") <- nlive
+  rcrd
 }

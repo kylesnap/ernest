@@ -41,15 +41,15 @@ merge.ernest_run <- function(
   glance <- new_tibble0(vctrs::vec_rbind(glance(x), glance(y)))
 
   # Merge records together
-  merged_rcrd <- nlive <- NULL
-  c(merged_rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
+  rcrd <- nlive <- NULL
+  c(rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
 
   # Update the sampler
   old_nlive <- x$nlive
   x$first_update <- as.integer((x$first_update / old_nlive) * nlive)
   x$update_interval <- as.integer((x$update_interval / old_nlive) * nlive)
   x$nlive <- nlive
-  new_ernest_run(x, merged_rcrd, .merge = glance)
+  new_ernest_run(x, rcrd, .merge = glance)
 }
 
 #' Merge two `ernest_rcrd` objects together.
@@ -58,7 +58,7 @@ merge.ernest_run <- function(
 #' @param suffix Suffixes to append to the IDs of `x` and `y`
 #' if there are any duplicate IDs.
 #' @param invalid_run Action to take if the merged rcrd fails validation with
-#' `rcrd_is_run()`. One of `"error"`, `"warn", or `"quiet"`.
+#' `check_rcrd()`. One of `"error"`, `"warn", or `"quiet"`.
 #'
 #' @returns A list with two elements: `rcrd`, the merged `ernest_rcrd` object,
 #' and `nlive`, the number of live points in the merged run.
@@ -83,10 +83,10 @@ merge_rcrd <- function(
   vctrs::field(y, "id") <- y_ids
 
   # Sort merged run and repair nlive.
-  out <- compile_merged_rcrd(sort(vctrs::vec_c(x, y)), nlive)
-  try_fetch(
-    rcrd_is_run(out, nlive = nlive),
-    warn = function(cnd) {
+  out <- compile_rcrd(sort(vec_c(x, y)), nlive)
+  tryCatch(
+    check_rcrd(out, nlive = nlive, sorted = TRUE),
+    ernest_bad_run_rcrd = function(cnd) {
       switch(
         invalid_run,
         "warn" = cli::cli_warn(
@@ -100,51 +100,4 @@ merge_rcrd <- function(
   )
 
   list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
-}
-
-#' Repair `nlive` field of a merged run record
-#'
-#' @param rcrd A merged run record with an incorrect `nlive` field.
-#' @param nlive The correct number of live points in the merged run.
-#' @param unique_ids Whether to check that the merged rcrd contains `nlive`
-#' unique IDs. Set to `FALSE` if the merged rcrd is known to contain duplicate
-#' IDs (e.g., when merging resampled runs in `bootstraps()`).
-#' @returns A repaired `ernest_rcrd` object with the correct `nlive` field.
-#' @noRd
-compile_merged_rcrd <- function(rcrd, nlive, unique_ids = TRUE) {
-  if (is.unsorted(rcrd)) {
-    cli::cli_abort("`{caller_arg(rcrd)}` must be sorted by `log_lik`.")
-  }
-  if (unique_ids && vctrs::vec_unique_count(field(rcrd, "id")) != nlive) {
-    cli::cli_abort(c(
-      "`{caller_arg(rcrd)}` must contain {nlive} unique IDs.",
-      "x" = "Actually has {vctrs::vec_unique_count(field(rcrd, 'id'))}"
-    ))
-  }
-  id_loc <- vctrs::vec_group_loc(field(rcrd, "id"))
-  first_live_idx <- min(vapply(
-    id_loc$loc,
-    function(idx) idx[[length(idx)]],
-    integer(1)
-  ))
-
-  # Sort run into DEAD and LIVE points
-  dead_pts <- vctrs::vec_c(
-    !!!lapply(id_loc$loc, function(idx) idx[idx < first_live_idx]),
-    .ptype = integer()
-  )
-  live_pts <- vapply(
-    id_loc$loc,
-    function(idx) idx[idx >= first_live_idx][[1]],
-    integer(1)
-  )
-
-  # Remerge and assign new NLIVE
-  out <- rcrd[sort(c(dead_pts, live_pts))]
-  vctrs::field(out, "nlive") <- get_points(
-    field(out, "log_lik"),
-    nlive,
-    add_live = TRUE
-  )
-  out
 }

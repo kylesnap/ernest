@@ -28,11 +28,9 @@ test_that("merged run has expected properties", {
     generate()
 
   merged <- merge(run_a, run_b)
-  # nlive should be the sum of unique live counts from each run
   expect_equal(merged$nlive, 300)
-  # IDs in the merged rcrd should be unique
-  ids <- field(merged$rcrd, "id")
-  expect_equal(length(unique(ids)), 300)
+  expect_length(merged$rcrd, length(run_a$rcrd) + length(run_b$rcrd))
+  expect_length(unique(field(merged$rcrd, "id")), 300)
   expect_equal(merged$.merge[1, ], glance(run_a))
   expect_equal(merged$.merge[2, ], glance(run_b))
 

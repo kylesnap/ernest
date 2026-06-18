@@ -16,17 +16,31 @@ log_lik_mvn <- function(theta) {
   drop(-0.5 * crossprod(theta, crossprod(prec, theta)) + log_norm)
 }
 
-sampler <- ernest_sampler(
+run1 <- ernest_sampler(
   log_lik_mvn,
   create_uniform_prior(
     lower = -10,
     upper = 10,
     names = c("x", "y", "z")
   ),
-  nlive = 1000,
+  nlive = 100,
+  seed = 24
+) |>
+  generate()
+run2 <- ernest_sampler(
+  log_lik_mvn,
+  create_uniform_prior(
+    lower = -10,
+    upper = 10,
+    names = c("x", "y", "z")
+  ),
+  nlive = 100,
   seed = 42
-)
+) |>
+  generate()
 
-example_run <- generate(sampler)
+merged <- merge(run1, run2)
+merged
 
-usethis::use_data(example_run, overwrite = TRUE)
+run3 <- generate(merged, min_logz = 0.01)
+#usethis::use_data(example_run, overwrite = TRUE)

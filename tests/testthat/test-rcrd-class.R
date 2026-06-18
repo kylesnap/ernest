@@ -67,28 +67,26 @@ test_that("ernest_rcrd reports dimensional mismatch", {
   )
 })
 
-describe("rcrd_is_run", {
+describe("check_rcrd", {
   it("returns TRUE on a valid run", {
-    expect_true(rcrd_is_run(example_run$rcrd))
+    expect_true(check_rcrd(example_run$rcrd))
   })
 
-  res <- c()
-  it("warns when unique IDs don't match nlive", {
+  it("aborts when unique IDs don't match nlive", {
     rcrd <- example_run$rcrd
-    expect_warning(
-      res <<- c(res, rcrd_is_run(rcrd, nlive = 500)),
-      "should contain 500 unique IDs, but has 1000."
+    expect_error(
+      check_rcrd(rcrd, nlive = 500),
+      "must contain 500 unique IDs."
     )
   })
 
-  it("warns when `x` is scrambled", {
+  it("aborts when `x` is scrambled", {
     withr::local_seed(42)
     rcrd <- example_run$rcrd
     rcrd[1:1000] <- rev(rcrd[1:1000])
-    expect_warning(
-      res <<- c(res, rcrd_is_run(rcrd)),
-      "should be sorted in ascending order of log-likelihood."
+    expect_error(
+      check_rcrd(rcrd, sorted = TRUE),
+      "`rcrd` must be sorted by `log_lik`"
     )
   })
-  expect_all_false(res)
 })

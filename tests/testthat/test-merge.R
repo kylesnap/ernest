@@ -52,7 +52,7 @@ test_that("merge_rcrd errors when suffixes still produce duplicate ids", {
 
   # using identical suffixes for both sides should trigger the "must be unique" error
   expect_error(
-    merge_rcrd(x, y, suffix = c(".same", ".same")),
-    "must contain 20 unique IDs"
+    merge_rcrd(".same" = x, ".same" = y),
+    "Multiple arguments named `.same`"
   )
 })

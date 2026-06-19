@@ -274,9 +274,8 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
 #' @noRd
 unpartition_runs <- function(m_out, nlive) {
   glance_df <- vctrs::vec_c(!!!lapply(m_out, glance))
-  merged_rcrd <- vctrs::vec_c(!!!m_out) |> sort()
-  merged_rcrd <- compile_rcrd(merged_rcrd, nlive)
-  list("rcrd" = merged_rcrd, "glance" = glance_df)
+  merged_rcrd <- merge_rcrd(!!!m_out, sep = NULL)
+  list("rcrd" = merged_rcrd$rcrd, "glance" = glance_df)
 }
 
 #' Validate parallel configuration and sampler portability
@@ -307,7 +306,7 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
     )
   }
   mirai::require_daemons(call = call)
-  m <- mirai::everywhere(devtools::load_all(".")) # mirai::everywhere(library(ernest))
+  m <- mirai::everywhere(devtools::load_all("~/Projects/ernest")) # library(ernest))
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
     cli::cli_abort(

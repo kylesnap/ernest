@@ -42,7 +42,9 @@ merge.ernest_run <- function(
 
   # Merge records together
   rcrd <- nlive <- NULL
-  c(rcrd, nlive) %<-% merge_rcrd(x$rcrd, y$rcrd, suffix = suffix)
+  elems <- list(x$rcrd, y$rcrd)
+  names(elems) <- suffix
+  c(rcrd, nlive) %<-% merge_rcrd(!!!elems, sep = "")
 
   # Update the sampler
   old_nlive <- x$nlive
@@ -54,9 +56,9 @@ merge.ernest_run <- function(
 
 #' Merge two `ernest_rcrd` objects together.
 #'
-#' @param x,y ernest rcrd objects to merge together.
-#' @param suffix Suffixes to append to the IDs of `x` and `y`
-#' if there are any duplicate IDs.
+#' @param ... ernest rcrd objects to merge together.
+#' @param sep A character string to separate the ID of each run in `...` from
+#' its name. Leave `NULL` if no renaming should be performed.
 #' @param invalid_run Action to take if the merged rcrd fails validation with
 #' `check_rcrd()`. One of `"error"`, `"warn", or `"quiet"`.
 #'
@@ -64,26 +66,32 @@ merge.ernest_run <- function(
 #' and `nlive`, the number of live points in the merged run.
 #' @noRd
 merge_rcrd <- function(
-  x,
-  y,
-  suffix = c(".x", ".y"),
+  ...,
+  sep = NULL,
   invalid_run = c("error", "warn", "quiet")
 ) {
-  suffix <- vec_cast(suffix, character(2))
+  check_character(sep, allow_null = TRUE)
+  elems <- dots_list(..., .named = !is.null(sep), .homonyms = "error")
   invalid_run <- arg_match(invalid_run)
-  # Reindex the IDs of each group
-  x_ids <- field(x, "id")
-  y_ids <- field(y, "id")
-  if (any(vctrs::vec_in(x_ids, y_ids))) {
-    x_ids <- paste0(x_ids, suffix[1])
-    y_ids <- paste0(y_ids, suffix[2])
-  }
-  nlive <- vctrs::vec_unique_count(x_ids) + vctrs::vec_unique_count(y_ids)
-  vctrs::field(x, "id") <- x_ids
-  vctrs::field(y, "id") <- y_ids
 
-  # Sort merged run and repair nlive.
-  out <- compile_rcrd(sort(vec_c(x, y)), nlive)
+  # Relabel the IDs of each group
+  if (!is.null(sep)) {
+    elems <- .mapply(
+      \(x, nm) {
+        vctrs::field(x, "id") <- paste(field(x, "id"), nm, sep = sep)
+        x
+      },
+      dots = list(elems, names(elems)),
+      MoreArgs = NULL
+    )
+  }
+
+  nlive <- sum(vapply(
+    elems,
+    function(x) vctrs::vec_unique_count(field(x, "id")),
+    integer(1L)
+  ))
+  out <- Reduce(merge_rcrd_exact, elems)
   tryCatch(
     check_rcrd(out, nlive = nlive, sorted = TRUE),
     ernest_bad_run_rcrd = function(cnd) {
@@ -98,6 +106,47 @@ merge_rcrd <- function(
       )
     }
   )
-
   list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
+}
+
+merge_rcrd_exact <- function(x_rcrd, y_rcrd) {
+  x_rcrd <- sort(x_rcrd)
+  y_rcrd <- sort(y_rcrd)
+
+  nx <- length(x_rcrd)
+  ny <- length(y_rcrd)
+  nout <- nx + ny
+
+  x_idx <- integer(nx)
+  y_idx <- integer(ny)
+  nlive <- integer(nout)
+
+  ix <- iy <- io <- 1L
+  while (ix <= nx || iy <= ny) {
+    x_nlive <- if (ix <= nx) field(x_rcrd[[ix]], "nlive") else 0L
+    y_nlive <- if (iy <= ny) field(y_rcrd[[iy]], "nlive") else 0L
+    cur_nlive <- x_nlive + y_nlive
+    nlive[[io]] <- cur_nlive
+
+    x_loglik <- if (ix <= nx) field(x_rcrd[[ix]], "log_lik") else -Inf
+    y_loglik <- if (iy <= ny) field(y_rcrd[[iy]], "log_lik") else -Inf
+    take_x <- iy > ny || (ix <= nx && x_loglik <= y_loglik)
+
+    if (take_x) {
+      x_idx[[ix]] <- io
+      ix <- ix + 1L
+    } else {
+      y_idx[[iy]] <- io
+      iy <- iy + 1L
+    }
+    io <- io + 1L
+  }
+
+  merged_rcrd <- vctrs::list_combine(
+    x = list(x_rcrd, y_rcrd),
+    indices = list(x_idx, y_idx),
+    size = nout
+  )
+  vctrs::field(merged_rcrd, "nlive") <- nlive
+  merged_rcrd
 }

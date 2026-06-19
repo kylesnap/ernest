@@ -49,12 +49,12 @@ ernest_rcrd <- function(
   neval <- vec_cast(neval, to = integer())
   birth_lik <- vec_cast(birth_lik, to = double())
   params <- vctrs::vec_recycle_common(
-    unit,
-    log_lik,
-    id,
-    nlive,
-    neval,
-    birth_lik,
+    "unit" = unit,
+    "log_lik" = log_lik,
+    "id" = id,
+    "nlive" = nlive,
+    "neval" = neval,
+    "birth_lik" = birth_lik,
     .size = nrow(unit)
   )
   inject(new_ernest_rcrd(!!!params, .nvar = nvar))

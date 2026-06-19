@@ -169,6 +169,9 @@ nested_sampling_parallel <- function(
   ids <- env_get(live_env, "id")
   nlive <- x$nlive
 
+  if (show_progress) {
+    cli::cli_progress_step("Splitting live set...")
+  }
   ids_by_daemon <- allocate_nlive(ids, parallel, attr(x$prior, "nvar"))
   parallel_runs <- partition_run(
     live_env,
@@ -177,6 +180,11 @@ nested_sampling_parallel <- function(
     x$rcrd
   )
 
+  if (show_progress) {
+    cli::cli_progress_step(
+      "Performing {length(parallel_runs)} runs in parallel..."
+    )
+  }
   # Run runs in parallel
   m <- mirai::mirai_map(
     parallel_runs,
@@ -192,8 +200,10 @@ nested_sampling_parallel <- function(
     nested_sampling_impl_ = nested_sampling_impl,
     lrps_ = x$lrps
   )
-  opts <- c(".stop", if (show_progress) ".progress" else NULL)
-  m_out <- mirai::collect_mirai(m, options = opts)
+  m_out <- mirai::collect_mirai(m, options = ".stop")
+  if (show_progress) {
+    cli::cli_progress_step("Merging runs together...")
+  }
   combined <- unpartition_runs(m_out, nlive)
   list("results" = combined$rcrd, ".parallel" = combined$glance)
 }

@@ -112,41 +112,24 @@ merge_rcrd <- function(
 merge_rcrd_exact <- function(x_rcrd, y_rcrd) {
   x_rcrd <- sort(x_rcrd)
   y_rcrd <- sort(y_rcrd)
-
   nx <- length(x_rcrd)
   ny <- length(y_rcrd)
   nout <- nx + ny
 
-  x_idx <- integer(nx)
-  y_idx <- integer(ny)
-  nlive <- integer(nout)
-
-  ix <- iy <- io <- 1L
-  while (ix <= nx || iy <= ny) {
-    x_nlive <- if (ix <= nx) field(x_rcrd[[ix]], "nlive") else 0L
-    y_nlive <- if (iy <= ny) field(y_rcrd[[iy]], "nlive") else 0L
-    cur_nlive <- x_nlive + y_nlive
-    nlive[[io]] <- cur_nlive
-
-    x_loglik <- if (ix <= nx) field(x_rcrd[[ix]], "log_lik") else -Inf
-    y_loglik <- if (iy <= ny) field(y_rcrd[[iy]], "log_lik") else -Inf
-    take_x <- iy > ny || (ix <= nx && x_loglik <= y_loglik)
-
-    if (take_x) {
-      x_idx[[ix]] <- io
-      ix <- ix + 1L
-    } else {
-      y_idx[[iy]] <- io
-      iy <- iy + 1L
-    }
-    io <- io + 1L
-  }
-
-  merged_rcrd <- vctrs::list_combine(
-    x = list(x_rcrd, y_rcrd),
-    indices = list(x_idx, y_idx),
-    size = nout
+  merge_ord <- order(c(x_rcrd, y_rcrd))
+  inv_ord <- vctrs::vec_chop(
+    order(merge_ord),
+    sizes = c(nx, ny)
   )
-  vctrs::field(merged_rcrd, "nlive") <- nlive
+
+  x_nlive <- y_nlive <- vctrs::vec_init(NA_integer_, nout)
+  x_nlive[inv_ord[[1]]] <- vctrs::field(x_rcrd, "nlive")
+  y_nlive[inv_ord[[2]]] <- vctrs::field(y_rcrd, "nlive")
+  x_nlive <- vctrs::vec_fill_missing(x_nlive, "up")
+  y_nlive <- vctrs::vec_fill_missing(y_nlive, "up")
+  nlive <- .rowSums(c(x_nlive, y_nlive), nout, 2L, na.rm = TRUE)
+
+  merged_rcrd <- merged_rcrd <- vctrs::vec_c(x_rcrd, y_rcrd)[merge_ord]
+  vctrs::field(merged_rcrd, "nlive") <- as.integer(nlive)
   merged_rcrd
 }

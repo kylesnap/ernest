@@ -61,22 +61,24 @@ nested_sampling_impl <- function(
 
   i <- 1
   if (show_progress) {
-    cli::cli_progress_bar(
-      format = paste0(
-        "{pb_spin} Generating samples | {pb_current} iter. | {cur_eval} ",
-        "log-lik. calls | {signif(d_log_z)} log-evid. remaining"
+    cli::cli_progress_step(
+      msg = paste0(
+        "Generating samples | {pb_current} iter. | {cur_eval} ",
+        "log-lik. calls | {signif(d_log_z, digits = 3)} log-evid. remaining..."
       ),
-      type = "custom"
+      spinner = TRUE
     )
   }
   for (i in seq(1, control$max_iterations - control$cur_iter)) {
     # 1. Check stop conditions
     if (cur_eval > control$max_evaluations) {
+      cli::cli_progress_step("Reached `max_evaluations`.")
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
     if (d_log_z < control$min_logz) {
+      cli::cli_progress_step("Reached `min_logz`.")
       break
     }
     if (show_progress) {

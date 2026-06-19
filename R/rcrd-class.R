@@ -87,12 +87,12 @@ new_ernest_rcrd <- function(
   birth_lik = double(0),
   .nvar = 0L
 ) {
-  vctrs::vec_assert(unit, matrix(double(), ncol = .nvar))
-  vctrs::vec_assert(log_lik, double())
-  vctrs::vec_assert(id, character())
-  vctrs::vec_assert(nlive, integer())
-  vctrs::vec_assert(neval, integer())
-  vctrs::vec_assert(birth_lik, double())
+  unit <- vctrs::vec_cast(unit, matrix(double(), ncol = .nvar))
+  log_lik <- vctrs::vec_cast(log_lik, to = double())
+  id <- vctrs::vec_cast(id, to = character())
+  nlive <- vctrs::vec_cast(nlive, to = integer())
+  neval <- vctrs::vec_cast(neval, to = integer())
+  birth_lik <- vctrs::vec_cast(birth_lik, to = double())
   if (vctrs::vec_any_missing(id) || any(id == "")) {
     cli::cli_abort("`id` cannot contain missing or empty values.")
   }

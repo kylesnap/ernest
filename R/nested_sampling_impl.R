@@ -63,8 +63,12 @@ nested_sampling_impl <- function(
   if (show_progress) {
     cli::cli_progress_step(
       msg = paste0(
-        "Generating samples | {pb_current} iter. | {cur_eval} ",
-        "log-lik. calls | {signif(d_log_z, digits = 3)} log-evid. remaining..."
+        "Sampling... | {pb_current} iter. | {cur_eval} evals | ",
+        "{signif(d_log_z, digits = 3)} log-evid. remaining"
+      ),
+      msg_done = paste0(
+        "Finished sampling | {pb_current} iter. | {cur_eval} evals | ",
+        "{signif(log_z, digits = 3)} log-evid."
       ),
       spinner = TRUE
     )
@@ -72,13 +76,17 @@ nested_sampling_impl <- function(
   for (i in seq(1, control$max_iterations - control$cur_iter)) {
     # 1. Check stop conditions
     if (cur_eval > control$max_evaluations) {
-      cli::cli_progress_step("Reached `max_evaluations`.")
+      cli::cli_progress_step(
+        "Reached `max_evaluations` ({control$max_evaluations})"
+      )
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
     if (d_log_z < control$min_logz) {
-      cli::cli_progress_step("Reached `min_logz`.")
+      cli::cli_progress_step(
+        "Reached `min_logz` ({signif(d_log_z, digits = 3)})."
+      )
       break
     }
     if (show_progress) {
@@ -151,6 +159,11 @@ nested_sampling_impl <- function(
     live_env$unit[worst_idx, ] <- new_unit$unit
     live_env$birth_lik[worst_idx] <- last_criterion
     cur_eval <- cur_eval + new_unit$neval
+  }
+  if (show_progress && i >= (control$max_iterations - control$cur_iter)) {
+    cli::cli_progress_step(
+      "Reached `max_iterations` ({control$max_iterations})"
+    )
   }
 
   result <- ernest_rcrd(

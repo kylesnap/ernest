@@ -73,7 +73,7 @@
 #' generate(sampler, max_iterations = 100)
 #'
 #' # Use the default stopping criteria
-#' \dontrun{ generate(sampler) }
+#' \donttest{generate(sampler)}
 #' @aliases ernest_run
 #' @rdname generate-ernest
 #' @export

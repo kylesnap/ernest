@@ -6,7 +6,7 @@
 \alias{ernest-package}
 \title{ernest: A Toolkit for Nested Sampling}
 \description{
-Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.
+Bayesian evidence estimation and posterior inference with the nested sampling algorithm, described in Skilling (2006) \doi{10.1214/06-BA127} and Buchner (2023) \doi{10.1214/23-SS144}, along with S3 methods for simulating uncertainty and creating visualisations.
 }
 \seealso{
 Useful links:
@@ -29,6 +29,7 @@ Other contributors:
 \itemize{
   \item TJ Mahr [reviewer]
   \item Robert Kubinec [reviewer]
+  \item Michael Hughes [copyright holder]
 }
 
 }

@@ -1,8 +1,11 @@
-## Resubmission
-This is a re-submission. In this version I have:
+This is a re-submission. In this version, I have:
 
-* Addressed a NOTE regarding CPU usage when running tests and vignettes on
-r-devel-linux-x86_64-debian-gcc.
+* Added citations to the DESCRIPTION field.
+* Replaced commented-out code in the documentation of `compile.R` with a 
+`\donttest` block.
+* Replaced a non-necessary `dontrun` block in `generate.R` with a `donttest`
+block.
+* Added Michael C. Hughes to the Authors@R field with the `cph` role.
 
 ## R CMD check results
 

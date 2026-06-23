@@ -2,13 +2,13 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "identifier": "ernest",
-  "description": "Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.",
+  "description": "Bayesian evidence estimation and posterior inference with the nested sampling algorithm, described in Skilling (2006) <doi:10.1214/06-BA127> and Buchner (2023) <doi:10.1214/23-SS144>, along with S3 methods for simulating uncertainty and creating visualisations.",
   "name": "ernest: A Toolkit for Nested Sampling",
   "relatedLink": "https://docs.ropensci.org/ernest/",
   "codeRepository": "https://github.com/ropensci/ernest",
-  "issueTracker": "https://github.com/ropensci/ernest/issues/",
+  "issueTracker": "https://github.com/ropensci/ernest/issues",
   "license": "https://spdx.org/licenses/GPL-3.0",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -22,6 +22,20 @@
       "familyName": "Dewsnap",
       "email": "kyle.dewsnap@ubc.ca",
       "@id": "https://orcid.org/0000-0003-2132-8083"
+    }
+  ],
+  "copyrightHolder": [
+    {
+      "@type": "Person",
+      "givenName": "Kyle",
+      "familyName": "Dewsnap",
+      "email": "kyle.dewsnap@ubc.ca",
+      "@id": "https://orcid.org/0000-0003-2132-8083"
+    },
+    {
+      "@type": "Person",
+      "givenName": "Michael",
+      "familyName": "Hughes"
     }
   ],
   "maintainer": [
@@ -310,7 +324,7 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "56755.109KB",
+  "fileSize": "73881.144KB",
   "citation": [
     {
       "@type": "ScholarlyArticle",

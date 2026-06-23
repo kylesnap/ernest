@@ -103,7 +103,7 @@ sampler
 generate(sampler, max_iterations = 100)
 
 # Use the default stopping criteria
-\dontrun{ generate(sampler) }
+\donttest{generate(sampler)}
 }
 \references{
 Skilling, J. (2006). Nested Sampling for General Bayesian

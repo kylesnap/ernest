@@ -94,9 +94,8 @@ bootstraps <- function(
 #' @param x_rcrd The run record of a nested sampling run, containing the history
 #' of the live points.
 #' @param threads A dataframe with three elements:
-#' * key: The ID of the point
-#' * loc: The location of each point death for the ID
-#' * max_idx: The maximum IDX (i.e., the death iteration) of each ID.
+#' * key: The ID of the point.
+#' * loc: The location of each point death for the ID.
 #' @param sample_ids A list of integer vectors, each containing indices of
 #' threads to include in a resampled run.
 #' @param nlive The number of live points in the original run, used to determine
@@ -106,23 +105,36 @@ bootstraps <- function(
 #' identified in `sample_ids`.
 #' @noRd
 resample_runs <- function(x_rcrd, threads, sample_ids, nlive) {
-  # Get the indices for each resample
+  # Get the unique IDs and indices for each resample
   sample_idx <- lapply(
     sample_ids,
     \(ids) {
-      thread_subset <- vec_c(
+      unique_ids <- vctrs::vec_as_names(
+        threads$key[ids],
+        repair = "unique_quiet"
+      )
+      unique_ids <- vctrs::vec_rep_each(
+        unique_ids,
+        vctrs::list_sizes(vctrs::vec_slice(threads$loc, ids))
+      )
+      locs <- vec_c(
         !!!vctrs::vec_slice(threads$loc, ids),
         to = integer()
       )
-      sort(thread_subset)
+      loc_order <- order(locs)
+      data_frame0(
+        new_id = unique_ids[loc_order],
+        loc = locs[loc_order]
+      )
     }
   )
 
   lapply(
     sample_idx,
     \(idx) {
-      thread_subset <- vctrs::vec_slice(x_rcrd, idx)
-      compile_rcrd(thread_subset)
+      sampled <- vctrs::vec_slice(x_rcrd, idx$loc)
+      vctrs::field(sampled, "id") <- idx$new_id
+      compile_rcrd(sampled)
     }
   )
 }

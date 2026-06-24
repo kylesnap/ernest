@@ -222,7 +222,23 @@ nested_sampling_parallel <- function(
 allocate_nlive <- function(ids, parallel, nvar, call = caller_env()) {
   check_number_whole(parallel, min = 1, call = call)
   nlive <- vctrs::vec_unique_count(ids)
-  nlive_p_daemon <- max(nlive %/% parallel, nvar * 2L)
+  nlive_p_daemon <- nlive %/% parallel
+  min_nlive_per_nvar <- getOption("ernest.min_nlive_per_nvar", 10L)
+  if (nlive_p_daemon < nvar + 1L) {
+    cli::cli_warn(c(
+      "`nlive` has been set to `nvar + 1` ({nvar + 1}) to avoid LRPS issues.",
+      "!" = "Interpret results with caution.",
+      "i" = "Should you decrease the number of `.parallel` workers?"
+    ))
+    nlive_p_daemon <- nvar + 1L
+  } else if (nlive_p_daemon < min_nlive_per_nvar * nvar) {
+    cli::cli_warn(c(
+      "`nlive` per daemon ({nlive_p_daemon}) is small relative to the number of parameters ({nvar}).",
+      "!" = "Interpret results with caution.",
+      "i" = "Should you lower `.parallel`?",
+      "i" = "Should you change {.code getOption('ernest.min_nlive_per_nvar')}?"
+    ))
+  }
   daemon_nlive <- rep.int(nlive_p_daemon, times = nlive %/% nlive_p_daemon)
   daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
   vctrs::vec_chop(sample(ids), sizes = daemon_nlive)
@@ -316,7 +332,7 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
     )
   }
   mirai::require_daemons(call = call)
-  m <- mirai::everywhere(devtools::load_all("~/Projects/ernest")) # library(ernest))
+  m <- mirai::everywhere(library(ernest)) # devtools::load_all("~/Projects/ernest"))
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
     cli::cli_abort(

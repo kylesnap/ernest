@@ -97,11 +97,11 @@ ernest_sampler <- function(
   )
 
   nvar <- attr(obj$prior, "nvar")
-  if (obj$nlive < nvar * 2L) {
+  if (obj$nlive < nvar * getOption("ernest.min_nlive_per_nvar", 10L)) {
     cli::cli_warn(c(
-      "`nlive` is small relative to the number of parameters ({nvar}).",
+      "`nlive` ({nlive}) is small relative to the number of parameters ({nvar}).",
       "!" = "Interpret results with caution.",
-      "i" = "Should you set `nlive` to at least {nvar * 2L}?"
+      "i" = "Should you change {.code getOption('ernest.min_nlive_per_nvar')}?"
     ))
   }
 

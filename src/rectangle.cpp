@@ -17,19 +17,12 @@ bool Rectangle::Clamp(const ConstRef<Vector> inner, const ConstRef<Vector> outer
   if (!Covered(inner) || !Covered(outer) || inner.isApprox(outer)) {
     return false;
   }
+  constexpr double eps = std::numeric_limits<double>::epsilon();
 
   // Clamp dimensions based on relative position of inner and outer.
-  for (size_t d = 0; d < nvar_; d++) {
-    double dist = outer[d] - inner[d];
-    if (ern::isZero(dist)) continue;
-    switch (static_cast<int>(sign(dist))) {
-      case -1:  // LOW -- OUT -- IN -- UP
-        lower_[d] = outer[d];
-        break;
-      case 1:  // LOW -- IN -- OUT -- UP
-        upper_[d] = outer[d];
-        break;
-    }
-  }
+  const Eigen::ArrayXd diff = outer - inner;
+  lower_ = (diff < -eps).select(outer, lower_);
+  upper_ = (diff > eps).select(outer, upper_);
+  width_ = upper_ - lower_;
   return true;
 }

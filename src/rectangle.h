@@ -19,7 +19,8 @@ class Rectangle {
   inline explicit Rectangle(const int nvar)
       : nvar_(nvar),
         lower_(Eigen::ArrayXd::Zero(nvar_)),
-        upper_(Eigen::ArrayXd::Ones(nvar_)) {};
+        upper_(Eigen::ArrayXd::Ones(nvar_)),
+        width_(Eigen::ArrayXd::Ones(nvar_)) {};
 
   // Construct a rectangle from initial vectors of boundaries.
   inline Rectangle(cpp11::doubles& lower, cpp11::doubles& upper) : nvar_(lower.size()) {
@@ -31,19 +32,28 @@ class Rectangle {
     }
   }
 
+  // Clear a rectangle to the (0-1) unit hypercube.
+  inline void Clear() {
+    lower_.setZero();
+    upper_.setOnes();
+    width_.setOnes();
+  };
+
   // Generate a uniform sample from the rectangle.
   inline Vector UniformSample() const {
     Vector sample(nvar_);
     for (size_t d = 0; d < nvar_; d++) {
-      sample[d] = lower_[d] + (upper_[d] - lower_[d]) * unif_rand();
+      sample[d] = lower_[d] + (width_[d] * unif_rand());
     }
     return sample;
   }
 
   // Fill `vec` with a uniform sample from the rectangle.
-  inline void UniformSample(Ref<Vector> vec) const {
+  inline void UniformSample(Eigen::Ref<Vector> vec) const {
     if (vec.size() != nvar_) return;
-    vec = std::move(UniformSample());
+    for (Eigen::Index d = 0; d < nvar_; ++d) {
+      vec[d] = lower_[d] + (width_[d] * unif_rand());
+    }
   }
 
   // Check whether `point` is within the rectangle.
@@ -73,6 +83,7 @@ class Rectangle {
   int nvar_;              // Number of dimensions
   Eigen::ArrayXd lower_;  // Lower bounds of the rectangle axes.
   Eigen::ArrayXd upper_;  // Upper bounds of the rectangle axes.
+  Eigen::ArrayXd width_;  // Widths of the rectangle axes.
   ern::RandomEngine gen;  // Random number generator.
 };
 

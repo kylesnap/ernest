@@ -47,26 +47,34 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
 [[cpp11::register]]
 cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                       double criterion, int steps, const int max_loop) {
-  // Setups
+  // Setup
+  const size_t nvar = original.size();
   Eigen::VectorXd next_draw = as_Matrix(original);
-  Eigen::VectorXd inner = next_draw;
-  vol::Rectangle rect(original.size());
+  Eigen::VectorXd inner(nvar);
+  vol::Rectangle rect(nvar);
 
+  // Helper for evaluating the log-likelihood
+  cpp11::writable::doubles x(nvar);
+  double* x_ptr = REAL(x);
+  auto eval = [&](const Eigen::VectorXd& v) {
+    std::copy(v.data(), v.data() + nvar, x_ptr);
+    return static_cast<double>(unit_log_fn(x));
+  };
+
+  double log_lik = R_NegInf;
   int neval = 0;
-  for (int draw = 0; draw < steps; draw++) {
+  for (int draw = 0; draw < steps && neval < max_loop; ++draw) {
     inner = next_draw;
-    rect = vol::Rectangle(original.size());
-    do {
+    rect.Clear();
+    while (neval < max_loop) {
+      ++neval;
       rect.UniformSample(next_draw);
-      double log_lik = unit_log_fn(as_doubles(next_draw));
-      neval++;
-      if (log_lik >= criterion) break;
+      if ((log_lik = eval(next_draw)) >= criterion) break;
       if (!rect.Clamp(inner, next_draw)) break;
-    } while (neval < max_loop);
+    }
   }
 
   using namespace cpp11::literals;
-  return cpp11::writable::list({"unit"_nm = as_doubles(next_draw),
-                                "log_lik"_nm = unit_log_fn(as_doubles(next_draw)),
-                                "neval"_nm = neval});
+  return cpp11::writable::list(
+      {"unit"_nm = x, "log_lik"_nm = log_lik, "neval"_nm = neval});
 }

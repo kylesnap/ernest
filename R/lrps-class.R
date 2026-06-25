@@ -218,7 +218,7 @@ propose_cube <- function(
 #' @details
 #' During a nested sampling run, you may wish to update the internal parameters
 #' of the LRPS based on sampler performance or other criterion. The frequency of
-#' these updates is set by the `first_update` and `update_interval` arguments of
+#' these updates is set by the `refresh_frac` argument of
 #' [ernest_sampler()].
 #'
 #' If you are creating your own [ernest_lrps] subclass, implement this method to

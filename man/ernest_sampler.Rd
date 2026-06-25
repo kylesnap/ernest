@@ -9,8 +9,9 @@ ernest_sampler(
   prior,
   sampler = rwmh_cube(),
   nlive = 500,
-  first_update = NULL,
-  update_interval = NULL,
+  refresh_frac = 0.8,
+  first_update = deprecated(),
+  update_interval = deprecated(),
   seed = NA
 )
 }
@@ -29,14 +30,12 @@ within the live set.}
 \item{nlive}{\verb{[integer(1)]}\cr The number of points to generate
 within the live set. Strictly positive.}
 
-\item{first_update}{\verb{[integer(1)]}\cr The number of likelihood
-calls to make with the default \link[=unif_cube]{uniform LRPS} method before
-swapping to the technique described by \code{sampler}. Optional; if left \code{NULL}
-this is set to \code{nlive * 2.5}.}
+\item{refresh_frac}{\verb{[double(1)]}\cr The fraction of the
+prior volume to be traversed during sampling before the \code{sampler} object is
+updated with information from the live set (see \code{\link[=update_lrps]{update_lrps()}}).}
 
-\item{update_interval}{\verb{[integer(1)]}\cr The number of likelihood
-calls between updates to the \code{sampler} object. Optional; if left \code{NULL}
-this is set to \code{nlive * 1.5}.}
+\item{first_update, update_interval}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+Control how frequently \code{sampler} is updated with \code{refresh_frac}.}
 
 \item{seed}{\verb{[integer(1)]}\cr Sets the random seed controlling the
 random number generator for nested sampling runs. Optional; if left \code{NA}

@@ -101,8 +101,7 @@ generate.ernest_sampler <- function(
     min_logz,
     seed = attr(x, "seed"),
     nlive = x$nlive,
-    first_update = x$first_update,
-    update_interval = x$update_interval
+    refresh_frac = x$refresh_frac
   )
   x <- compile(x, ...)
 
@@ -155,8 +154,7 @@ generate.ernest_run <- function(
     min_logz,
     seed = attr(x, "seed"),
     nlive = x$nlive,
-    first_update = x$first_update,
-    update_interval = x$update_interval,
+    refresh_frac = x$refresh_frac,
     rcrd = x_rcrd
   )
   prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
@@ -192,7 +190,7 @@ generate.ernest_run <- function(
 #'
 #' @param max_iterations,max_evaluations,min_logz User-requested stopping
 #' parameters.
-#' @param seed,nlive,first_update,update_interval Parameters from the sampler
+#' @param seed,nlive,refresh_frac Parameters from the sampler
 #' object.
 #' @param rcrd An optional `ernest_rcrd` object from a previous run, used to
 #' initialize the control parameters if continuing a run.
@@ -201,7 +199,7 @@ generate.ernest_run <- function(
 #' completed run.
 #'
 #' @return A named list containing:
-#' * Run meta info: `seed`, `nlive`, `first_update`, `update_interval`
+#' * Run meta info: `seed`, `nlive`, `refresh_frac`
 #' * Validated stopping criteria: `max_iterations`, `max_evaluations`,
 #' `min_logz`.
 #' * Run state: `last_criterion`, `log_z`, `log_vol`, `cur_iter`, `cur_eval`.
@@ -212,8 +210,7 @@ generate_control <- function(
   min_logz,
   seed,
   nlive,
-  first_update,
-  update_interval,
+  refresh_frac,
   rcrd = NULL,
   parallel = FALSE,
   call = caller_env()
@@ -222,8 +219,7 @@ generate_control <- function(
   control <- list(
     seed = seed,
     nlive = nlive,
-    first_update = first_update,
-    update_interval = update_interval
+    refresh_frac = refresh_frac
   )
   last_criterion <- -1e300
   log_vol <- 0

@@ -9,8 +9,7 @@ describe("generate_control", {
         0,
         seed = NA_integer_,
         nlive = 1L,
-        first_update = 0L,
-        update_interval = 0L
+        refresh_frac = 0.8
       ),
       "At least one of `max_iterations`, `max_evaluations`, or `min_logz` must"
     )
@@ -21,8 +20,7 @@ describe("generate_control", {
         0,
         seed = NA_integer_,
         nlive = 1L,
-        first_update = 0L,
-        update_interval = 0L
+        refresh_frac = 0.8
       ),
       "a whole number larger than or equal to 1 or `NULL`"
     )
@@ -35,8 +33,7 @@ describe("generate_control", {
       0.05,
       seed = NA_integer_,
       nlive = 100L,
-      first_update = 0L,
-      update_interval = 0L
+      refresh_frac = 0.8
     )
     expect_mapequal(
       ctrl[c(
@@ -75,8 +72,7 @@ describe("generate_control", {
         0,
         seed = attr(example_run, "seed"),
         nlive = example_run$nlive,
-        first_update = example_run$first_update,
-        update_interval = example_run$update_interval,
+        refresh_frac = example_run$refresh_frac,
         rcrd = x_rcrd
       ),
       "`max_iterations` must be a whole number larger than or equal to"
@@ -89,8 +85,7 @@ describe("generate_control", {
         0,
         seed = attr(example_run, "seed"),
         nlive = example_run$nlive,
-        first_update = example_run$first_update,
-        update_interval = example_run$update_interval,
+        refresh_frac = example_run$refresh_frac,
         rcrd = x_rcrd
       ),
       "`max_evaluations` must be a whole number larger than or equal to"
@@ -103,8 +98,7 @@ describe("generate_control", {
         0.05,
         seed = attr(example_run, "seed"),
         nlive = example_run$nlive,
-        first_update = example_run$first_update,
-        update_interval = example_run$update_interval,
+        refresh_frac = example_run$refresh_frac,
         rcrd = x_rcrd
       ),
       "`min_logz` must be a number between"
@@ -121,8 +115,7 @@ describe("generate_control", {
       0.01,
       seed = attr(example_run, "seed"),
       nlive = example_run$nlive,
-      first_update = example_run$first_update,
-      update_interval = example_run$update_interval,
+      refresh_frac = example_run$refresh_frac,
       rcrd = x_rcrd
     )
 
@@ -134,8 +127,7 @@ describe("generate_control", {
         min_logz = 0.01,
         seed = attr(example_run, "seed"),
         nlive = example_run$nlive,
-        first_update = example_run$first_update,
-        update_interval = example_run$update_interval,
+        refresh_frac = 0.8,
         last_criterion = integration$log_lik[[niter]],
         log_vol = integration$log_vol[[niter]],
         log_z = integration$log_evidence[[niter]],

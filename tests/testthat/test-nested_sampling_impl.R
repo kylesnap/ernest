@@ -54,7 +54,7 @@ test_that("Parameter recovery for a normal distribution", {
 })
 
 test_that("Region-based samplers warn when max_loop is exceeded", {
-  withr::local_options(ernest.max_loop = 3L)
+  withr::local_options(ernest.max_loop = 2L)
   sampler <- ernest_sampler(
     gaussian_blobs$log_lik,
     prior = gaussian_blobs$prior,
@@ -63,5 +63,8 @@ test_that("Region-based samplers warn when max_loop is exceeded", {
     seed = 42
   )
 
-  expect_warning(generate(sampler), "failed to generate a point in 3 attempts")
+  expect_warning(
+    generate(sampler),
+    "LRPS failed to generate a point in 2 attempts"
+  )
 })

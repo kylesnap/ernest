@@ -6,8 +6,7 @@ test_that("ernest_sampler initializes correctly", {
     prior = gaussian_blobs$prior,
     lrps = rwmh_cube(),
     nlive = 500,
-    first_update = 200,
-    update_interval = 50
+    refresh_frac = 0.8
   )
   expect_identical(env_depth(sampler$live_env), 1L)
   expect_snapshot(sampler)
@@ -19,8 +18,7 @@ sampler_call <- call2(
   prior = gaussian_blobs$prior,
   lrps = rwmh_cube(),
   nlive = 500,
-  first_update = 200L,
-  update_interval = 50L
+  refresh_frac = 0.8
 )
 
 #' @srrstats {G5.2, G5.2a, G5.2b} Constructors are all tested for informative
@@ -42,32 +40,27 @@ describe("new_ernest_sampler", {
 
     expect_warning(
       ernest_sampler(wrapped_lik, gaussian_blobs$prior, nlive = 1L, seed = 42),
-      "`nlive` is small relative to the number of parameters"
+      "is small relative to the number of parameters"
     )
   })
 
-  it("catches invalid first_update/update_interval", {
-    first_update_call <- call_modify(sampler_call, first_update = -1L)
-    expect_error(
-      eval(first_update_call),
-      "`first_update` must be a whole number larger than or equal to 0"
-    )
-    bad_sampler$first_update <- Inf
-    expect_error(
-      refresh_ernest_sampler(bad_sampler),
-      "`first_update` must be a whole number, not `Inf`"
-    )
+  it("catches depreciated arguments first_update/update_interval", {
+    lifecycle::expect_deprecated(ernest_sampler(
+      log_lik = wrapped_lik,
+      prior = gaussian_blobs$prior,
+      first_update = 10
+    ))
 
-    update_interval_call <- call_modify(sampler_call, update_interval = -1L)
+    lifecycle::expect_deprecated(ernest_sampler(
+      log_lik = wrapped_lik,
+      prior = gaussian_blobs$prior,
+      update_interval = 10
+    ))
+
+    frac_update_call <- call_modify(sampler_call, refresh_frac = 1.1)
     expect_error(
-      eval(update_interval_call),
-      "`update_interval` must be a whole number larger than or equal to 0"
-    )
-    bad_sampler$first_update <- 25L
-    bad_sampler$update_interval <- Inf
-    expect_error(
-      refresh_ernest_sampler(bad_sampler),
-      "`update_interval` must be a whole number, not `Inf`"
+      eval(frac_update_call),
+      "`refresh_frac` must be a number between 0 and 1"
     )
   })
 

@@ -266,8 +266,6 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
   lapply(ids, \(id_slice) {
     split_nlive <- length(id_slice)
     frac_nlive <- split_nlive / control$nlive
-    child_first_update <- as.integer(control$first_update * frac_nlive)
-    child_update_interval <- as.integer(control$update_interval * frac_nlive)
     live_loc <- which(vctrs::vec_in(env_get(live_env, "id"), id_slice))
     list(
       "unit" = env_get(live_env, "unit")[live_loc, , drop = FALSE],
@@ -280,8 +278,7 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
         control$min_logz,
         seed = control$seed,
         nlive = split_nlive,
-        first_update = child_first_update,
-        update_interval = child_update_interval,
+        refresh_frac = control$refresh_frac,
         rcrd = split_rcrd(id_slice),
         parallel = TRUE
       )
@@ -332,7 +329,7 @@ check_parallel_enabled <- function(sampler, call = caller_env()) {
     )
   }
   mirai::require_daemons(call = call)
-  m <- mirai::everywhere(library(ernest)) # devtools::load_all("~/Projects/ernest"))
+  m <- devtools::load_all("~/Projects/ernest")
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
     cli::cli_abort(

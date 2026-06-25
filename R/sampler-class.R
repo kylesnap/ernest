@@ -9,8 +9,7 @@
 #' the sampler.
 #' @param lrps (Optional) An object of class `ernest_lrps`.
 #' @param nlive  Number of points in the live set.
-#' @param first_update  Iteration at which to perform the first update.
-#' @param update_interval  Number of iterations between updates.
+#' @param refresh_frac Fractional reduction in volume before performing updates.
 #' @param live_env (Optional) An environment for storing the live set. If not
 #' provided, a new environment is created.
 #' @param seed  An optional random seed for reproducibility.
@@ -28,8 +27,7 @@ new_ernest_sampler <- function(
   prior = NULL,
   lrps = NULL,
   nlive = NULL,
-  first_update = NULL,
-  update_interval = NULL,
+  refresh_frac = NULL,
   live_env = NULL,
   seed = NA_integer_,
   ...,
@@ -46,18 +44,11 @@ new_ernest_sampler <- function(
     allow_infinite = FALSE,
     call = .call
   )
-  check_number_whole(
-    first_update,
+  check_number_decimal(
+    refresh_frac,
     min = 0,
-    arg = "first_update",
-    allow_infinite = FALSE,
-    call = .call
-  )
-  check_number_whole(
-    update_interval,
-    min = 0,
-    arg = "update_interval",
-    allow_infinite = FALSE,
+    max = 1,
+    arg = "refresh_frac",
     call = .call
   )
   check_environment(live_env, allow_null = TRUE, call = .call)
@@ -84,8 +75,7 @@ new_ernest_sampler <- function(
     prior = prior,
     lrps = lrps,
     nlive = as.integer(nlive),
-    first_update = as.integer(first_update),
-    update_interval = as.integer(update_interval),
+    refresh_frac = as.numeric(refresh_frac),
     live_env = live_env %||% new_environment()
   )
 

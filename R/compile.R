@@ -78,8 +78,7 @@ compile.ernest_run <- function(
       prior = object$prior,
       lrps = object$lrps,
       nlive = object$nlive,
-      first_update = object$first_update,
-      update_interval = object$update_interval,
+      refresh_frac = object$refresh_frac,
       seed = attr(object, "seed")
     )
     object <- do.call(new_ernest_sampler, elem)

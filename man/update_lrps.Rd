@@ -42,7 +42,7 @@ information from a nested sampling run.
 \details{
 During a nested sampling run, you may wish to update the internal parameters
 of the LRPS based on sampler performance or other criterion. The frequency of
-these updates is set by the \code{first_update} and \code{update_interval} arguments of
+these updates is set by the \code{refresh_frac} argument of
 \code{\link[=ernest_sampler]{ernest_sampler()}}.
 
 If you are creating your own \link{ernest_lrps} subclass, implement this method to

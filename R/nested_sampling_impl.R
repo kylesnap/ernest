@@ -40,18 +40,18 @@ nested_sampling_impl <- function(
   live_env,
   lrps,
   control,
-  show_progress = TRUE
+  show_progress = FALSE
 ) {
   preserve_seed(control$seed)
   max_lik <- max(live_env$log_lik)
   log_vol <- control$log_vol
+  update_vol <- log_vol + log(control$refresh_frac)
   log_z <- control$log_z
   last_criterion <- control$last_criterion
   nlive <- control$nlive
   plateau <- 0L
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
-  initial_update <- FALSE
 
   dead_unit <- vctrs::list_of(.ptype = double(lrps$nvar))
   dead_birth <- vctrs::list_of(.ptype = double())
@@ -76,17 +76,21 @@ nested_sampling_impl <- function(
   for (i in seq(1, control$max_iterations - control$cur_iter)) {
     # 1. Check stop conditions
     if (cur_eval > control$max_evaluations) {
-      cli::cli_progress_step(
-        "Reached `max_evaluations` ({control$max_evaluations})"
-      )
+      if (show_progress) {
+        cli::cli_progress_step(
+          "Reached `max_evaluations` ({control$max_evaluations})"
+        )
+      }
       break
     }
     max_lik <- max(live_env$log_lik)
     d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
     if (d_log_z < control$min_logz) {
-      cli::cli_progress_step(
-        "Reached `min_logz` ({signif(d_log_z, digits = 3)})."
-      )
+      if (show_progress) {
+        cli::cli_progress_step(
+          "Reached `min_logz` ({signif(d_log_z, digits = 3)})."
+        )
+      }
       break
     }
     if (show_progress) {
@@ -118,17 +122,10 @@ nested_sampling_impl <- function(
     last_criterion <- new_criterion
 
     # 4. If required, update the LRPS
-    if (!initial_update && cur_eval >= control$first_update) {
+    if (log_vol < update_vol) {
       "!DEBUG Updating at iteration `i`"
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
-      initial_update <- TRUE
-    }
-    if (
-      initial_update &&
-        (lrps$cache$neval %||% 0L) > control$update_interval
-    ) {
-      "!DEBUG Updating at iteration `i`"
-      lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
+      update_vol <- log_vol + log(control$refresh_frac)
     }
 
     # 5. Replace the worst points in live with new points
@@ -136,7 +133,7 @@ nested_sampling_impl <- function(
     if (copy == worst_idx && nlive > 1) {
       copy <- sample.int(nlive, 1)
     }
-    new_unit <- if (cur_eval <= control$first_update) {
+    new_unit <- if (log_vol >= log(control$refresh_frac)) {
       propose(lrps, criterion = last_criterion)
     } else {
       propose(

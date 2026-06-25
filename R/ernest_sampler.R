@@ -14,13 +14,11 @@
 #' within the live set.
 #' @param nlive `[integer(1)]`\cr The number of points to generate
 #' within the live set. Strictly positive.
-#' @param first_update `[integer(1)]`\cr The number of likelihood
-#' calls to make with the default [uniform LRPS][unif_cube()] method before
-#' swapping to the technique described by `sampler`. Optional; if left `NULL`
-#' this is set to `nlive * 2.5`.
-#' @param update_interval `[integer(1)]`\cr The number of likelihood
-#' calls between updates to the `sampler` object. Optional; if left `NULL`
-#' this is set to `nlive * 1.5`.
+#' @param refresh_frac `[double(1)]`\cr The fraction of the
+#' prior volume to be traversed during sampling before the `sampler` object is
+#' updated with information from the live set (see [update_lrps()]).
+#' @param first_update,update_interval `r lifecycle::badge("deprecated")`
+#' Control how frequently `sampler` is updated with `refresh_frac`.
 #' @param seed `[integer(1)]`\cr Sets the random seed controlling the
 #' random number generator for nested sampling runs. Optional; if left `NA`
 #' the [.Random.seed] set within R is preserved and restored after a run.
@@ -79,10 +77,25 @@ ernest_sampler <- function(
   prior,
   sampler = rwmh_cube(),
   nlive = 500,
-  first_update = NULL,
-  update_interval = NULL,
+  refresh_frac = 0.8,
+  first_update = deprecated(),
+  update_interval = deprecated(),
   seed = NA
 ) {
+  if (lifecycle::is_present(first_update)) {
+    lifecycle::deprecate_warn(
+      when = "2.0.0",
+      what = "ernest_sampler(first_update)",
+      with = "ernest_sampler(refresh_frac)"
+    )
+  }
+  if (lifecycle::is_present(update_interval)) {
+    lifecycle::deprecate_warn(
+      when = "2.0.0",
+      what = "ernest_sampler(update_interval)",
+      with = "ernest_sampler(refresh_frac)"
+    )
+  }
   if (!inherits(log_lik, "ernest_likelihood")) {
     log_lik <- create_likelihood(log_lik)
   }
@@ -91,8 +104,7 @@ ernest_sampler <- function(
     prior = prior,
     lrps = sampler,
     nlive = nlive,
-    first_update = first_update %||% as.integer(nlive * 2.5),
-    update_interval = update_interval %||% as.integer(nlive * 1.5),
+    refresh_frac = refresh_frac,
     seed = seed
   )
 

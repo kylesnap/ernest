@@ -33,8 +33,7 @@ new_ernest_run <- function(x, rcrd, ...) {
     prior = x$prior,
     lrps = x$lrps,
     nlive = x$nlive,
-    first_update = x$first_update,
-    update_interval = x$update_interval,
+    refresh_frac = x$refresh_frac,
     live_env = x$live_env,
     seed = attr(x, "seed")
   )

@@ -66,11 +66,14 @@ test_that("allocate_nlive is set appropriately", {
   expect_equal(lengths[1], 151)
 
   # parallel == nlive
-  allocation <- allocate_nlive(ids, parallel = 301, nvar = 3L)
+  expect_warning(
+    allocation <- allocate_nlive(ids, parallel = 301, nvar = 3L),
+    "Should you decrease the number of `.parallel` workers?"
+  )
   lengths <- vctrs::list_sizes(allocation)
   expect_equal(sum(lengths), 301)
-  expect_equal(lengths[1], 7)
-  expect_all_equal(lengths[-1], 6)
+  expect_equal(lengths[1], 5)
+  expect_all_equal(lengths[-1], 4)
 })
 
 describe("generate & mirai", {

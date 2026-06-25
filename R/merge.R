@@ -47,9 +47,6 @@ merge.ernest_run <- function(
   c(rcrd, nlive) %<-% merge_rcrd(!!!elems, sep = "")
 
   # Update the sampler
-  old_nlive <- x$nlive
-  x$first_update <- as.integer((x$first_update / old_nlive) * nlive)
-  x$update_interval <- as.integer((x$update_interval / old_nlive) * nlive)
   x$nlive <- nlive
   new_ernest_run(x, rcrd, .merge = glance)
 }

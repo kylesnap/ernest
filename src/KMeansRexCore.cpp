@@ -81,7 +81,7 @@ void calc_Mu(ExtMat& X, ExtMat& Mu, ExtMat& Z) {
 
 // ======================================================= Overall Lloyd Alg.
 void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
-  double prevDist, totalDist = 0;
+  double prevDist = R_PosInf, totalDist = 0;
   Mat Dist = Mat::Zero(X.rows(), Mu.rows());
 
   for (int iter = 0; iter < Niter; iter++) {

@@ -13,10 +13,10 @@ extern "C" SEXP _ernest_logspace_add_c(SEXP x, SEXP y) {
   END_CPP11
 }
 // exported_utils.cpp
-cpp11::doubles get_points(cpp11::doubles log_lik, int nlive, bool add_live);
-extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP nlive, SEXP add_live) {
+cpp11::doubles get_points(cpp11::doubles log_lik, int init_nlive);
+extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP init_nlive) {
   BEGIN_CPP11
-    return cpp11::as_sexp(get_points(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(log_lik), cpp11::as_cpp<cpp11::decay_t<int>>(nlive), cpp11::as_cpp<cpp11::decay_t<bool>>(add_live)));
+    return cpp11::as_sexp(get_points(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(log_lik), cpp11::as_cpp<cpp11::decay_t<int>>(init_nlive)));
   END_CPP11
 }
 // exported_utils.cpp
@@ -57,14 +57,14 @@ extern "C" SEXP _ernest_MultiBoundingEllipsoids(SEXP X, SEXP point_log_volume) {
 
 extern "C" {
 /* .Call calls */
-extern SEXP run_testthat_tests(void *);
+extern SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       2},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
-    {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              3},
+    {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              2},
     {"_ernest_logspace_add_c",          (DL_FUNC) &_ernest_logspace_add_c,          2},
     {"_ernest_logspace_cumsum_mat",     (DL_FUNC) &_ernest_logspace_cumsum_mat,     1},
     {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,              1},

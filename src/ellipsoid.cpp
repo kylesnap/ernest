@@ -242,7 +242,7 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
     return left_list;
   }
   double cum_log_vol = std::accumulate(
-      left_list.begin()++, left_list.end(), left_list.begin()->log_volume(),
+      std::next(left_list.begin()), left_list.end(), left_list.begin()->log_volume(),
       [](double prev, const Ellipsoid& i) { return logspace_add(prev, i.log_volume()); });
   if (cum_log_vol - log_volume_ <= -log_volume_decrement * (left_list.size() - 1)) {
     return left_list;

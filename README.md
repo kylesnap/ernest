@@ -8,7 +8,8 @@
 [![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
 [![](https://badges.ropensci.org/730_status.svg)](https://github.com/ropensci/software-review/issues/730)
-
+[![CRAN
+status](https://www.r-pkg.org/badges/version/ernest)](https://CRAN.R-project.org/package=ernest)
 <!-- badges: end -->
 
 **ernest** is a comprehensive toolkit for [nested
@@ -127,30 +128,30 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4663
-#> * Likelihood evals.: 102134
-#> * Log-evidence: -8.9848 (± 0.1147)
-#> * Information: 4.824
+#> * Iterations: 4737
+#> * Likelihood evals.: 103830
+#> * Log-evidence: -9.1368 (± 0.115)
+#> * Information: 4.822
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable     mean    sd   median   q15   q85
-#>   <chr>       <dbl> <dbl>    <dbl> <dbl> <dbl>
-#> 1 x         0.0179   2.74  0.00257 -1.82  1.93
-#> 2 y         0.00224  2.80  0.0106  -1.87  1.92
-#> 3 z        -0.0329   2.77 -0.00719 -1.91  1.96
+#>   variable   mean    sd    median   q15   q85
+#>   <chr>     <dbl> <dbl>     <dbl> <dbl> <dbl>
+#> 1 x        0.0233  2.76 -0.000841 -1.96  2.02
+#> 2 y        0.0254  2.78 -0.000344 -1.90  1.96
+#> 3 z        0.0110  2.79 -0.00460  -1.89  1.92
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6812
-#> * Original parameters: -0.013, 0.0448, and 0.0196
+#> * Log-likelihood: -2.6829
+#> * Original parameters: 0.0149, 0.0188, and -0.0715
 plot(run, which = "evidence")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" alt="" width="100%" />
 
 ``` r
 visualize(run, x, .which = "trace")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-2.png" alt="" width="100%" />
 
 For advanced usage, including custom priors and hierarchical models, see
 the package vignettes.

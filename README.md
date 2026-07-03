@@ -128,20 +128,20 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4737
-#> * Likelihood evals.: 103830
-#> * Log-evidence: -9.1368 (± 0.115)
-#> * Information: 4.822
+#> * Iterations: 4591
+#> * Likelihood evals.: 100701
+#> * Log-evidence: -8.8458 (± 0.1134)
+#> * Information: 4.715
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable   mean    sd    median   q15   q85
-#>   <chr>     <dbl> <dbl>     <dbl> <dbl> <dbl>
-#> 1 x        0.0233  2.76 -0.000841 -1.96  2.02
-#> 2 y        0.0254  2.78 -0.000344 -1.90  1.96
-#> 3 z        0.0110  2.79 -0.00460  -1.89  1.92
+#>   variable    mean    sd   median   q15   q85
+#>   <chr>      <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0368  2.78 -0.00244 -2.01  1.88
+#> 2 y         0.0551  2.77  0.00902 -1.90  1.96
+#> 3 z         0.0451  2.79  0.0103  -1.84  1.92
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6829
-#> * Original parameters: 0.0149, 0.0188, and -0.0715
+#> * Log-likelihood: -2.6848
+#> * Original parameters: -0.0316, -0.0908, and -0.0134
 plot(run, which = "evidence")
 ```
 

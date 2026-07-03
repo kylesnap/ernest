@@ -1,3 +1,5 @@
+# ernest 1.2.5
+
 # ernest 1.2.5 (2026-06-03)
 
 * Minor bug fixes addressing failed CRAN checks (memory access, link-time optimization).

@@ -213,7 +213,8 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
   }
 
   // BASE CASE 1: Clusters too small to split
-  if (idx0.size() < 2 * nvar_ || idx1.size() < 2 * nvar_) {
+  unsigned int twice_nvar = 2 * nvar_;
+  if (idx0.size() < twice_nvar || idx1.size() < twice_nvar) {
     return {*this};
   }
 

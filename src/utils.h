@@ -68,7 +68,7 @@ inline bool IsOutsideUnitCube(ConstRef<RowVector> vec) {
 
 // Reflects components of `vec` to ensure all lie within the unit cube [0,1]^d.
 inline void ReflectWithinUnitCube(Ref<RowVector> vec) {
-  for (size_t i = 0; i < vec.size(); ++i) {
+  for (long int i = 0; i < vec.size(); ++i) {
     double val = vec[i];
     bool idx_even = std::fmod(val, 2.0) < 1.0;
     if (idx_even) {

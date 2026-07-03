@@ -27,17 +27,17 @@ extern "C" SEXP _ernest_logspace_cumsum_mat(SEXP x) {
   END_CPP11
 }
 // propose-impl.cpp
-cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, double epsilon);
+cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, unsigned int steps, double epsilon);
 extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP epsilon) {
   BEGIN_CPP11
-    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon)));
+    return cpp11::as_sexp(RandomWalkImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<unsigned int>>(steps), cpp11::as_cpp<cpp11::decay_t<double>>(epsilon)));
   END_CPP11
 }
 // propose-impl.cpp
-cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, cpp11::doubles lower, cpp11::doubles upper, const int max_loop);
+cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, cpp11::doubles lower, cpp11::doubles upper, unsigned int max_loop);
 extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP lower, SEXP upper, SEXP max_loop) {
   BEGIN_CPP11
-    return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(lower), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(upper), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
+    return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(lower), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(upper), cpp11::as_cpp<cpp11::decay_t<unsigned int>>(max_loop)));
   END_CPP11
 }
 // update_lrps-impl.cpp

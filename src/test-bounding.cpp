@@ -75,8 +75,6 @@ context("Ellipsoid class - basic functionality") {
     expect_true(ern::isZero(err_in, 1e-3));
     expect_true(ern::isZero(err_out, 1e-3));
   }
-
-  Eigen::Matrix2d shape = Eigen::Matrix2d::Identity();
 }
 
 context("Ellipsoid class - geometric cases") {

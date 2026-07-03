@@ -14,7 +14,7 @@
 // Proposal: X' ~ N(X_n, ε I).
 [[cpp11::register]]
 cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
-                           double criterion, int steps, double epsilon) {
+                           double criterion, unsigned int steps, double epsilon) {
   const int nvar = original.size();
   ern::RandomEngine rng;
 
@@ -47,7 +47,7 @@ cpp11::list RandomWalkImpl(cpp11::doubles original, cpp11::function unit_log_fn,
 [[cpp11::register]]
 cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn,
                       double criterion, cpp11::doubles lower, cpp11::doubles upper,
-                      const int max_loop) {
+                      unsigned int max_loop) {
   // Setups
   vol::Rectangle rect(lower, upper);
   Eigen::VectorXd next_draw = as_Matrix(original);

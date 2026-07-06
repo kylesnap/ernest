@@ -5,9 +5,11 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kylesnap/ernest/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/kylesnap/ernest/graph/badge.svg?token=6HL8L046Y7)](https://codecov.io/gh/kylesnap/ernest)
-
+[![R-CMD-check](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ropensci/ernest/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/ropensci/ernest/graph/badge.svg?token=6HL8L046Y7)](https://app.codecov.io/gh/ropensci/ernest)
+[![](https://badges.ropensci.org/730_status.svg)](https://github.com/ropensci/software-review/issues/730)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/ernest)](https://CRAN.R-project.org/package=ernest)
 <!-- badges: end -->
 
 **ernest** is a comprehensive toolkit for [nested
@@ -19,20 +21,23 @@ environment.
 
 ## Installation
 
-Install the development version of ernest from
-[GitHub](https://github.com/kylesnap/ernest) with:
-
 ``` r
-# install.packages("devtools")
-devtools::install_github("kylesnap/ernest")
+# Install `ernest` from CRAN:
+install.packages("ernest")
+
+# Install `ernest` from R-Universe
+install.packages("ernest", repos = c('https://ropensci.r-universe.dev', 'https://cloud.r-project.org'))
+
+# Install the development version of ernest from Github:
+devtools::install_github("ropensci/ernest")
 ```
 
-You’ll also need a working C++ compiler. To get it:
+To install ernest from source, you’ll need a working C++ compiler. To
+get it:
 
-- On Windows, install [Rtools](#0).
-
+- On Windows, install
+  [Rtools](https://cran.r-project.org/bin/windows/Rtools/)
 - On Mac, install Xcode from the app store.
-
 - On Linux, `sudo apt-get install r-base-dev` or similar.
 
 ## Why use ernest?
@@ -123,30 +128,30 @@ summary(run)
 #> Summary of nested sampling run:
 #> ── Run Information ─────────────────────────────────────────────────────────────
 #> * No. points: 500
-#> * Iterations: 4726
-#> * Likelihood evals.: 103255
-#> * Log-evidence: -9.115 (± 0.116)
-#> * Information: 4.932
+#> * Iterations: 4591
+#> * Likelihood evals.: 100701
+#> * Log-evidence: -8.8458 (± 0.1134)
+#> * Information: 4.715
 #> ── Posterior Summary ───────────────────────────────────────────────────────────
 #> # A tibble: 3 × 6
-#>   variable    mean    sd  median   q15   q85
-#>   <chr>      <dbl> <dbl>   <dbl> <dbl> <dbl>
-#> 1 x         0.0156  2.82  0.0224 -1.96  1.97
-#> 2 y        -0.0275  2.85 -0.0211 -1.98  1.90
-#> 3 z        -0.0332  2.86 -0.0312 -2.07  1.96
+#>   variable    mean    sd   median   q15   q85
+#>   <chr>      <dbl> <dbl>    <dbl> <dbl> <dbl>
+#> 1 x        -0.0368  2.78 -0.00244 -2.01  1.88
+#> 2 y         0.0551  2.77  0.00902 -1.90  1.96
+#> 3 z         0.0451  2.79  0.0103  -1.84  1.92
 #> ── Maximum Likelihood Estimate (MLE) ───────────────────────────────────────────
-#> * Log-likelihood: -2.6832
-#> * Original parameters: 0.0451, 0.0352, and 0.0558
+#> * Log-likelihood: -2.6848
+#> * Original parameters: -0.0316, -0.0908, and -0.0134
 plot(run, which = "evidence")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" alt="" width="100%" />
 
 ``` r
 visualize(run, x, .which = "trace")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-2.png" alt="" width="100%" />
 
 For advanced usage, including custom priors and hierarchical models, see
 the package vignettes.
@@ -155,7 +160,7 @@ the package vignettes.
 
 NS has been implemented in many languages. This non-exhaustive list of
 popular NS implementations is adapted from [Fowlie
-(2021)](http://arxiv.org/abs/2010.13884):
+(2021)](https://arxiv.org/abs/2010.13884):
 
 - In Python: [nestle](https://github.com/kbarbary/nestle/tree/master)
   and [dynesty](https://github.com/joshspeagle/dynesty)
@@ -182,7 +187,7 @@ based on this work.
 When using ernest, please at least include the following citations:
 
 - Dewsnap K. (2025). “ernest: A Toolkit for Nested Sampling.” R package
-  version XXX, \<URL: (<https://kylesnap.github.io/ernest/>)\>
+  version XXX, \<URL: (<https://docs.ropensci.org/ernest/>)\>
 
 - Skilling, J. (2006). Nested Sampling for General Bayesian Computation.
   *Bayesian Analysis*, 1(4), 833–859. \<DOI:

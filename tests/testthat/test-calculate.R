@@ -1,24 +1,5 @@
 withr::local_seed(42)
 
-test_that("get_points returns expected values", {
-  expect_equal(
-    get_points(c(10, 9, 8, 7, 6, 5, 4), 3, TRUE),
-    c(3, 3, 3, 3, 3, 2, 1)
-  )
-  expect_equal(
-    get_points(c(10, 10, 9, 8, 7, 7, 6), 3, TRUE),
-    c(3, 2, 3, 3, 3, 2, 1)
-  )
-  expect_equal(
-    get_points(c(10, 10, 9, 8, 7, 7, 6), 3, FALSE),
-    c(3, 2, 3, 3, 3, 2, 3)
-  )
-  expect_equal(
-    get_points(c(10, 10, 10, 10, 10, 10, 10), 3, TRUE),
-    c(3, 2, 1, 1, 3, 2, 1)
-  )
-})
-
 test_that("compute_integral correctly calculates values", {
   #' Tested against sample run from PolyChord.
   gold <- readRDS(test_path("calculate-gold.rds")) |>

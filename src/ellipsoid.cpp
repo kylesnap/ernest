@@ -24,7 +24,7 @@ Ellipsoid::Ellipsoid(const ConstRef<Vector> center, const ConstRef<Matrix> shape
   }
   center_ = center;
   shape_ = shape;
-  work_ = Eigen::SelfAdjointEigenSolver<Matrix>(nvar_);
+
   SetShape();
 }
 
@@ -125,11 +125,11 @@ void Ellipsoid::Fit(ConstRef<Matrix> X, double point_log_volume) {
 // all) eigenvalues are zero, they are set to a value such that the resulting
 // precision matrix has log-determinant `log_target`.
 void Ellipsoid::FindAxes(Ref<Matrix> cov, const double log_target) {
-  work_.compute(cov);
-  Eigen::VectorXd eigvals = work_.eigenvalues();
+  Eigen::SelfAdjointEigenSolver<Matrix> work(cov);
+  Eigen::VectorXd eigvals = work.eigenvalues();
   if ((eigvals.array() >= kAlmostZero).all()) {
-    cov = work_.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
-          work_.eigenvectors().adjoint();
+    cov = work.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
+          work.eigenvectors().adjoint();
     return;
   } else if ((eigvals.array() < kAlmostZero).all()) {
     error_ = kNilpotent;
@@ -150,8 +150,8 @@ void Ellipsoid::FindAxes(Ref<Matrix> cov, const double log_target) {
   for (int idx : zero) {
     eigvals[idx] = R_pow_di(exp(log_target - log(nonzero_prod)), 1 / zero.size());
   }
-  cov = work_.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
-        work_.eigenvectors().adjoint();
+  cov = work.eigenvectors() * eigvals.cwiseInverse().asDiagonal() *
+        work.eigenvectors().adjoint();
 }
 
 // Calculates squared mahalanobis distances of points in `X` to the ellipsoid center,
@@ -176,9 +176,9 @@ void vol::Ellipsoid::ScaleAxes(ConstRef<Matrix> X) {
 
 void vol::Ellipsoid::SetShape() {
   log_volume_ = log_volume_sphere() + (log(1 / shape_.determinant()) / 2.0);
-  work_.compute(shape_);
-  axial_lengths_ = work_.eigenvalues().cwiseInverse().cwiseSqrt();
-  inv_sqrt_shape_ = work_.operatorInverseSqrt();
+  Eigen::SelfAdjointEigenSolver<Matrix> work(shape_);
+  axial_lengths_ = work.eigenvalues().cwiseInverse().cwiseSqrt();
+  inv_sqrt_shape_ = work.operatorInverseSqrt();
 }
 
 //// MULTI-ELLIPSOID FITTING
@@ -213,7 +213,8 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
   }
 
   // BASE CASE 1: Clusters too small to split
-  if (idx0.size() < 2 * nvar_ || idx1.size() < 2 * nvar_) {
+  unsigned int twice_nvar = 2 * nvar_;
+  if (idx0.size() < twice_nvar || idx1.size() < twice_nvar) {
     return {*this};
   }
 
@@ -242,7 +243,7 @@ std::list<Ellipsoid> vol::Ellipsoid::Split(const ConstRef<Matrix> X,
     return left_list;
   }
   double cum_log_vol = std::accumulate(
-      left_list.begin()++, left_list.end(), left_list.begin()->log_volume(),
+      std::next(left_list.begin()), left_list.end(), left_list.begin()->log_volume(),
       [](double prev, const Ellipsoid& i) { return logspace_add(prev, i.log_volume()); });
   if (cum_log_vol - log_volume_ <= -log_volume_decrement * (left_list.size() - 1)) {
     return left_list;

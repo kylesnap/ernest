@@ -16,7 +16,7 @@ namespace vol {
 class Rectangle {
  public:
   // Construct the (0-1) unit hypercube.
-  inline explicit Rectangle(const int nvar)
+  inline explicit Rectangle(const unsigned int nvar)
       : nvar_(nvar),
         lower_(Eigen::ArrayXd::Zero(nvar_)),
         upper_(Eigen::ArrayXd::Ones(nvar_)),
@@ -80,7 +80,7 @@ class Rectangle {
   inline Vector upper() const { return upper_; }
 
  private:
-  int nvar_;              // Number of dimensions
+  unsigned int nvar_;     // Number of dimensions
   Eigen::ArrayXd lower_;  // Lower bounds of the rectangle axes.
   Eigen::ArrayXd upper_;  // Upper bounds of the rectangle axes.
   Eigen::ArrayXd width_;  // Widths of the rectangle axes.

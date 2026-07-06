@@ -20,9 +20,19 @@ bool Rectangle::Clamp(const ConstRef<Vector> inner, const ConstRef<Vector> outer
   constexpr double eps = std::numeric_limits<double>::epsilon();
 
   // Clamp dimensions based on relative position of inner and outer.
+<<<<<<< HEAD
   const Eigen::ArrayXd diff = outer - inner;
   lower_ = (diff < -eps).select(outer, lower_);
   upper_ = (diff > eps).select(outer, upper_);
   width_ = upper_ - lower_;
+=======
+  for (size_t d = 0; d < nvar_; d++) {
+    if (outer[d] < inner[d]) {
+      lower_[d] = outer[d];
+    } else if (outer[d] > inner[d]) {
+      upper_[d] = outer[d];
+    }
+  }
+>>>>>>> main
   return true;
 }

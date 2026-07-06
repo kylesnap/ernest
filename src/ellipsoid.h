@@ -110,7 +110,6 @@ class Ellipsoid {
   int nvar_;                      // Number of dimensions.
   Status error_ = kOk;            // Status of most recent operation.
   double log_volume_ = R_NegInf;  // Log volume of the ellipsoid.
-  Eigen::SelfAdjointEigenSolver<Matrix> work_;  // Eigen solver for internal use.
 
   // Mutates `cov` into a precision matrix with zero-valued eigenvalues adjusted to
   // meet `log_target`.

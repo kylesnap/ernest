@@ -1,6 +1,11 @@
 #' @keywords internal
 "_PACKAGE"
 
+.onLoad <- function(libname, pkgname) {
+  # CRAN OMP THREAD LIMIT
+  Sys.setenv("OMP_THREAD_LIMIT" = 2)
+}
+
 ## usethis namespace: start
 #' @import rlang
 #' @importFrom generics generate

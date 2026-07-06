@@ -5,8 +5,14 @@ set.seed(42)
 #' error messages
 test_that("slice can be called by user", {
   default <- slice_rectangle()
+<<<<<<< HEAD
   expect_snapshot(slice_rectangle(steps = 0), error = TRUE)
   expect_equal(default$steps, 3L)
+=======
+  expect_snapshot(slice_rectangle(enlarge = 0.5), error = TRUE)
+  expect_snapshot(slice_rectangle(enlarge = NA))
+  expect_equal(default$enlarge, na_dbl)
+>>>>>>> main
   expect_snapshot(default)
 })
 

@@ -1,34 +1,33 @@
 /* KMeansRexCore.cpp
-A fast, easy-to-read implementation of the K-Means clustering algorithm.
-allowing customized initialization (random samples or plus plus)
-and vectorized execution via the Eigen matrix template library.
+This file includes code modfied under the following license:
+BSD 3-clause license for open-source software.
 
-Intended to be compiled as a shared library which can then be utilized
-from high-level interactive environments, such as Matlab or Python.
+Copyright (c) 2013-2015, Michael C. Hughes
+All rights reserved.
 
-Contains
---------
-Utility Fcns
-* discrete_rand : sampling discrete random variable
-* select_without_replacement : sample without replacement
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
 
-Cluster Location Mu Initialization:
-* sampleRowsRandom : sample rows of X at random (w/out replacement)
-* sampleRowsPlusPlus : sample rows of X via kmeans++ procedure of Arthur et al.
-    see http://en.wikipedia.org/wiki/K-means%2B%2B
+1. Redistributions of source code must retain the above copyright notice, this list of
+conditions and the following disclaimer.
 
-K-Means Algorithm (aka Lloyd's Algorithm)
-* run_lloyd : executes lloyd for specfied number of iterations
+2. Redistributions in binary form must reproduce the above copyright notice, this list of
+conditions and the following disclaimer in the documentation and/or other materials
+provided with the distribution.
 
-External "C" function interfaces (for calling from Python)
-* RunKMeans          : compute cluster centers and assignments via lloyd
-* SampleRowsPlusPlus : get just a plusplus initialization
+3. Neither the name of the copyright holder nor the names of its contributors may be used
+to endorse or promote products derived from this software without specific prior written
+permission.
 
-Author: Mike Hughes (www.michaelchughes.com)
-Date:   2 April 2013
-
-Altered by K Dewsnap (removing unused routines/non-R rng)
-Date: October 8, 2025
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. LICENSED UNDER THE BSD
 */
 // nocov start
 #include "KMeansRexCore.h"
@@ -82,7 +81,7 @@ void calc_Mu(ExtMat& X, ExtMat& Mu, ExtMat& Z) {
 
 // ======================================================= Overall Lloyd Alg.
 void run_lloyd(ExtMat& X, ExtMat& Mu, ExtMat& Z, int Niter) {
-  double prevDist, totalDist = 0;
+  double prevDist = R_PosInf, totalDist = 0;
   Mat Dist = Mat::Zero(X.rows(), Mu.rows());
 
   for (int iter = 0; iter < Niter; iter++) {

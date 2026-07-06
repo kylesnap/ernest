@@ -5,6 +5,9 @@
 #' proposal is rejected.
 #'
 #' @param steps `[integer(1)]` Number of reslicing iterations per proposal.
+#' @param enlarge `r lifecycle::badge("deprecated")` `enlarge` is now always set
+#' to `NA`; sampling regions always begin from the unit hypercube.
+#' Control how frequently `sampler` is updated with `refresh_frac`.
 #'
 #' @returns `[slice_rectangle]` A list inheriting from `ernest_lrps`.
 #'
@@ -32,13 +35,18 @@
 #'
 #' @examples
 #' lrps <- slice_rectangle()
-#' adaptive_lrps <- slice_rectangle(max_steps = 30, adaptive = TRUE)
+#' lrps
 #'
 #' @family ernest_lrps
 #' @export
-slice_rectangle <- function(
-  steps = 3L
-) {
+slice_rectangle <- function(steps = 3L, enlarge = NA) {
+  if (!is.na(enlarge)) {
+    lifecycle::deprecate_warn(
+      when = "2.0.0",
+      what = "slice_rectangle(enlarge)",
+      details = "sampling now always starts from the unit hypercube."
+    )
+  }
   new_slice_rectangle(steps = steps)
 }
 

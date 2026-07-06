@@ -14,12 +14,7 @@
 #' sampling.
 #'
 #' @return
-#' A list containing the dead points and their associated metadata:
-#' * `dead_unit`: Matrix of unit-space coordinates of removed points.
-#' * `dead_log_lik`: Vector of log-likelihood values for removed points.
-#' * `dead_id`: Vector of indices of removed points.
-#' * `dead_neval`: Vector of likelihood evaluations used for each replacement.
-#' * `dead_birth`: Vector of birth log-likelihoods for removed points.
+#' A record of the dead and live points, encapsulated in a `ernest_rcrd` object.
 #'
 #' @srrstats {BS3.1, BS3.2} As a substitute to examining the data for perfect
 #' colinearity, ernest examines whether it has reached a likelihood plateau
@@ -166,8 +161,16 @@ nested_sampling_impl <- function(
   result <- ernest_rcrd(
     unit = do.call(rbind, dead_unit),
     log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
+<<<<<<< HEAD
     id = vec_c(!!!dead_id, .ptype = character()),
     nlive = rep(nlive, length(dead_log_lik)),
+=======
+    id = vec_c(!!!dead_id, .ptype = double()),
+    nlive = get_points(
+      vec_c(!!!dead_log_lik, .ptype = double()),
+      init_nlive = nlive
+    ),
+>>>>>>> main
     neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )

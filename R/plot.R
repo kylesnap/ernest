@@ -53,11 +53,12 @@
 #' # Plot diagnostics from a run (analytical uncertainty for evidence).
 #' data(example_run)
 #' plot(example_run)
-#'
+#' \donttest{
 #' # Plot diagnostics from simulated log-volume trajectories.
 #' set.seed(123)
 #' est <- calculate(example_run, ndraws = 100)
 #' plot(est)
+#' }
 #' @rdname plot-ernest
 #' @export
 plot.ernest_estimate <- function(

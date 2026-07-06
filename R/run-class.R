@@ -9,12 +9,7 @@
 #' @noRd
 new_ernest_run <- function(x, rcrd, ...) {
   check_class(x, "ernest_sampler")
-  check_class(rcrd, "ernest_rcrd")
-  check_rcrd(rcrd, nlive = x$nlive, sorted = TRUE)
-  if (x$lrps$nvar != attr(rcrd, "nvar")) {
-    cli::cli_abort("The number of variables in `x` and `rcrd` do not match.")
-  }
-
+  rcrd <- compile_rcrd(rcrd, nlive = x$nlive)
   niter <- length(rcrd) - x$nlive
   integration <- compute_integral(rcrd)
 

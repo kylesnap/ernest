@@ -60,9 +60,11 @@ compile(sampler)
 head(sampler$live_env$unit)
 
 # Continue a previous run
-# run <- data(example_run)
-# sampler_2 <- compile(example_run)
-# sampler_2
+\donttest{
+data(example_run)
+sampler_2 <- compile(example_run)
+sampler_2
+}
 
 # Make a new sampler from a previous run
 sampler_3 <- compile(example_run, clear = TRUE)

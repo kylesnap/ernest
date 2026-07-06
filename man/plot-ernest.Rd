@@ -75,11 +75,12 @@ Plotting \code{evidence} or \code{weight} diagnostics requires \CRANpkg{ggdist}.
 # Plot diagnostics from a run (analytical uncertainty for evidence).
 data(example_run)
 plot(example_run)
-
+\donttest{
 # Plot diagnostics from simulated log-volume trajectories.
 set.seed(123)
 est <- calculate(example_run, ndraws = 100)
 plot(est)
+}
 }
 \seealso{
 \code{\link[=calculate.ernest_run]{calculate.ernest_run()}}

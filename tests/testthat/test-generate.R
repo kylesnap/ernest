@@ -16,8 +16,8 @@ describe("generate_control", {
     expect_error(
       generate_control(
         max_iterations = -1,
-        NULL,
-        0,
+        max_evaluations = NULL,
+        min_logz = 0.05,
         seed = NA_integer_,
         nlive = 1L,
         refresh_frac = 0.8
@@ -184,7 +184,7 @@ test_that("Reproducing a ernest_sampler saved to disk", {
   )
   run1 <- generate(sampler, max_iterations = 100)
 
-  saveRDS(sampler, "sampler.rds")
+  suppressWarnings(saveRDS(sampler, "sampler.rds"))
   f_sampler <- readRDS("sampler.rds")
   f_run1 <- generate(f_sampler, max_iterations = 100)
   expect_identical(run1$log_volume, f_run1$log_volume)

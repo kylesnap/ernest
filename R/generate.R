@@ -95,6 +95,8 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
+
+  x <- compile(x, ...)
   control <- generate_control(
     max_iterations,
     max_evaluations,
@@ -103,25 +105,13 @@ generate.ernest_sampler <- function(
     nlive = x$nlive,
     refresh_frac = x$refresh_frac
   )
-  x <- compile(x, ...)
-
-  if (!isFALSE(parallel)) {
-    results <- nested_sampling_parallel(
-      x,
-      control = control,
-      show_progress = show_progress,
-      parallel = parallel
-    )
-    new_ernest_run(x, results$results, .parallel = results$.parallel)
-  } else {
-    results <- nested_sampling_impl(
-      live_env = x$live_env,
-      lrps = x$lrps,
-      control = control,
-      show_progress = show_progress
-    )
-    new_ernest_run(x, results)
-  }
+  results <- nested_sampling_impl(
+    live_env = x$live_env,
+    lrps = x$lrps,
+    control = control,
+    show_progress = show_progress
+  )
+  new_ernest_run(x, results)
 }
 
 #' @srrstats {BS2.8} Calling generate on an ernest_run will continue the run
@@ -142,12 +132,14 @@ generate.ernest_run <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
+
   x <- compile(x, ...)
   if (inherits_only(x, "ernest_sampler")) {
+    # Catch case when `x` is cleared
     return(NextMethod())
   }
-
-  x_rcrd <- x$rcrd
+  idx_loc <- rcrd_id_loc(x$rcrd, nlive = x$nlive)
+  dead_rcrd <- vctrs::vec_slice(x$rcrd, -idx_loc)
   control <- generate_control(
     max_iterations,
     max_evaluations,
@@ -155,35 +147,16 @@ generate.ernest_run <- function(
     seed = attr(x, "seed"),
     nlive = x$nlive,
     refresh_frac = x$refresh_frac,
-    rcrd = x_rcrd
+    rcrd = x$rcrd
   )
-  prev_run <- x$rcrd[get_dead_idx(x$rcrd)]
-
-  if (!isFALSE(parallel)) {
-    results <- nested_sampling_parallel(
-      x,
-      control = control,
-      show_progress = show_progress,
-      parallel = parallel
-    )
-    results$rcrd <- sort(vec_c(prev_run, results$results))
-    new_ernest_run(
-      x,
-      compile_rcrd(results$rcrd, control$nlive),
-      .parallel = results$.parallel
-    )
-  } else {
-    results <- nested_sampling_impl(
-      live_env = x$live_env,
-      lrps = x$lrps,
-      control = control,
-      show_progress = show_progress
-    )
-    new_ernest_run(
-      x,
-      compile_rcrd(sort(vec_c(prev_run, results)), control$nlive)
-    )
-  }
+  results <- nested_sampling_impl(
+    live_env = x$live_env,
+    lrps = x$lrps,
+    control = control,
+    show_progress = show_progress
+  )
+  results <- vctrs::vec_sort(vec_c(dead_rcrd, results))
+  new_ernest_run(x, results)
 }
 
 #' Generate a list of control parameters for nested sampling
@@ -212,7 +185,6 @@ generate_control <- function(
   nlive,
   refresh_frac,
   rcrd = NULL,
-  parallel = FALSE,
   call = caller_env()
 ) {
   # Initialize control parameters to default.
@@ -229,15 +201,6 @@ generate_control <- function(
   d_log_z <- Inf
 
   if (!is.null(rcrd)) {
-    # If nlive > number of unique points, then refactor the rcrd to avoid issues
-    act_nlive <- max(field(rcrd, "nlive"))
-    if (act_nlive < control$nlive && parallel) {
-      vctrs::field(rcrd, "nlive") <- get_points(
-        field(rcrd, "log_lik"),
-        control$nlive,
-        TRUE
-      )
-    }
     prev_integration <- compute_integral(rcrd)
     cur_iter <- vctrs::vec_size(rcrd) - control$nlive
     cur_eval <- sum(field(rcrd, "neval"))

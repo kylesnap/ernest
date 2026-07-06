@@ -56,13 +56,14 @@ nested_sampling_impl <- function(
 
   i <- 1
   if (show_progress) {
+    pb_iter <- control$cur_iter
     cli::cli_progress_step(
       msg = paste0(
-        "Sampling... | {pb_current} iter. | {cur_eval} evals | ",
+        "Sampling... | {pb_current + pb_iter} iter. | {cur_eval} evals | ",
         "{signif(d_log_z, digits = 3)} log-evid. remaining"
       ),
       msg_done = paste0(
-        "Finished sampling | {pb_current} iter. | {cur_eval} evals | ",
+        "Done | {pb_current + pb_iter} iter. | {cur_eval} evals | ",
         "{signif(log_z, digits = 3)} log-evid."
       ),
       spinner = TRUE
@@ -161,18 +162,13 @@ nested_sampling_impl <- function(
   result <- ernest_rcrd(
     unit = do.call(rbind, dead_unit),
     log_lik = vec_c(!!!dead_log_lik, .ptype = double()),
-<<<<<<< HEAD
     id = vec_c(!!!dead_id, .ptype = character()),
-    nlive = rep(nlive, length(dead_log_lik)),
-=======
-    id = vec_c(!!!dead_id, .ptype = double()),
     nlive = get_points(
       vec_c(!!!dead_log_lik, .ptype = double()),
       init_nlive = nlive
     ),
->>>>>>> main
     neval = vec_c(!!!dead_neval, .ptype = double()),
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
-  compile_rcrd(vec_c(result, env_to_rcrd(live_env)), nlive = nlive)
+  vec_c(result, env_to_rcrd(live_env))
 }

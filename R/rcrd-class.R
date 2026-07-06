@@ -202,52 +202,6 @@ vec_proxy_equal.ernest_rcrd <- function(x, ...) {
   )
 }
 
-#' Extract the live or dead points as a list
-#'
-#' @param x An `ernest_rcrd` object containing the run history.
-#' @param nlive The number of live points in the run. If NULL, this is inferred
-#' from the maximum `nlive` value in the record.
-#'
-#' @returns A list with the elements `unit`, `log_lik`, `birth_lik`, `id`,
-#' for the live points.
-#' @noRd
-get_live_set <- function(x, nlive = NULL) {
-  nlive <- nlive %||% max(field(x, "nlive"))
-  idx_loc <- vctrs::vec_group_loc(field(x, "id"))$loc
-  if ((n <- vctrs::vec_size(idx_loc)) != nlive) {
-    cli::cli_warn(
-      "Expected {nlive} unique IDs in `{caller_arg(x)}`, but found {n}."
-    )
-  }
-  live_idx <- vapply(idx_loc, \(loc) loc[[length(loc)]], integer(1))
-  list(
-    unit = field(x, "unit")[live_idx, , drop = FALSE],
-    log_lik = field(x, "log_lik")[live_idx],
-    birth_lik = field(x, "birth_lik")[live_idx],
-    id = field(x, "id")[live_idx]
-  )
-}
-
-#' Extract the indexes of the dead points from a previous run
-#'
-#' @param x An `ernest_rcrd` object containing the run history.
-#' @param nlive The number of live points in the run. If NULL, this
-#' is inferred from the maximum `nlive` value in the record.
-#' @return An integer vector of indexes corresponding to the dead points in the
-#' run.
-#' @noRd
-get_dead_idx <- function(x, nlive = NULL) {
-  nlive <- nlive %||% max(field(x, "nlive"))
-  idx_loc <- vctrs::vec_group_loc(field(x, "id"))$loc
-  if ((n <- vctrs::vec_size(idx_loc)) != nlive) {
-    cli::cli_warn(
-      "Expected {nlive} unique IDs in `{caller_arg(x)}`, but found {n}."
-    )
-  }
-  vctrs::vec_c(!!!lapply(idx_loc, \(loc) loc[-length(loc)]), integer()) |>
-    sort()
-}
-
 #' Extract the live set from a nested sampling environment
 #'
 #' @param live_env The environment containing the live points.
@@ -345,7 +299,32 @@ check_rcrd <- function(
   TRUE
 }
 
-#' Repair `nlive` field of a rcrd storing a run.
+#' Get the location of the last time each point was updated in a rcrd.
+#'
+#' @param x The rcrd object
+#' @param nlive,sorted Arguments passed to `check_rcrd`
+#'
+#' @return A named integer vector of length `nlive` with the index of each IDs
+#' last update. An attribute `nlive` is attached to the vector with the number
+#' of live points in the run.
+#' @noRd
+rcrd_id_loc <- function(x, nlive = NULL) {
+  check_rcrd(x, nlive = nlive, sorted = TRUE)
+  group_loc <- vctrs::vec_group_loc(field(x, "id"))
+  locs <- vctrs::num_as_location(
+    vapply(
+      group_loc$loc,
+      function(idx) idx[[length(idx)]],
+      integer(1)
+    ),
+    n = length(x)
+  )
+  vctrs::vec_set_names(locs, group_loc$key)
+  attr(locs, "nlive") <- vctrs::vec_size(group_loc)
+  locs
+}
+
+#' Repair the `nlive` field of a rcrd storing a run.
 #'
 #' @param rcrd A correctly ordered `ernest_rcrd` object containing the run
 #' history, but with an incorrect `nlive` field.
@@ -365,55 +344,28 @@ compile_rcrd <- function(
   call = caller_env(),
   arg = caller_arg(rcrd)
 ) {
-  if (is.unsorted(rcrd)) {
-    cli::cli_abort("`{arg}` must be sorted by `log_lik`.", call = call)
-  }
-  check_number_whole(nlive, min = 1, allow_null = TRUE, call = call)
-  if (!is.null(nlive) && vctrs::vec_unique_count(field(rcrd, "id")) != nlive) {
-    cli::cli_abort(
-      c(
-        "`{arg}` must contain {nlive} unique IDs.",
-        "x" = "Actually has {vctrs::vec_unique_count(field(rcrd, 'id'))}"
-      ),
-      call = call
-    )
-  } else {
-    nlive <- vctrs::vec_unique_count(field(rcrd, "id"))
-  }
+  check_rcrd(rcrd, nlive = nlive, sorted = TRUE, arg = arg, call = call)
 
   # Find the indices of the largest log-likelihood value for each ID
   nsamples <- length(rcrd)
-  live_idx <- vctrs::num_as_location(
-    vapply(
-      vctrs::vec_group_loc(field(rcrd, "id"))$loc,
-      function(idx) idx[[length(idx)]],
-      integer(1)
-    ),
-    n = nsamples
-  )
+  live_idx <- rcrd_id_loc(rcrd, nlive = nlive)
+  nlive <- attr(live_idx, "nlive")
   dead_idx <- vctrs::num_as_location(-live_idx, n = nsamples)
 
   # Find the total number of points for each DEAD point
   dead_nlive <- live_nlive <- vctrs::vec_init(integer(), nsamples)
-  dead_nlive[dead_idx] <- get_points(
-    field(rcrd[dead_idx], "log_lik"),
-    nlive,
-    FALSE
-  )
+  dead_nlive[dead_idx] <- get_points(field(rcrd[dead_idx], "log_lik"), nlive)
   dead_nlive <- vctrs::vec_fill_missing(dead_nlive, "down")
 
   # Find the indices where nlive decreases as points leave the live set
-  live_idx <- vctrs::num_as_location(
-    live_idx + 1L,
-    n = nsamples,
-    oob = "remove"
-  )
+  live_idx <- vctrs::num_as_location(live_idx + 1, n = nsamples, oob = "remove")
   live_nlive[] <- 0L
   live_nlive[live_idx] <- -1L
   live_nlive <- cumsum(live_nlive)
 
   # Overwrite the nlive field and return the repaired rcrd.
-  nlive <- dead_nlive + live_nlive
-  vctrs::field(rcrd, "nlive") <- nlive
+  rcrd_nlive <- dead_nlive + live_nlive
+  # Overwrite zero and negative entries with `1` for safety
+  vctrs::field(rcrd, "nlive") <- as.integer(pmax(1L, rcrd_nlive))
   rcrd
 }

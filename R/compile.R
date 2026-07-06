@@ -89,8 +89,14 @@ compile.ernest_run <- function(
   preserve_seed(attr(object, "seed"))
 
   # Fill live set
-  prev <- object$rcrd
-  live <- get_live_set(prev, object$nlive)
+  idx_loc <- rcrd_id_loc(object$rcrd, nlive = object$nlive)
+  live_rcrd <- vctrs::vec_slice(object$rcrd, idx_loc)
+  live <- list(
+    "unit" = field(live_rcrd, "unit"),
+    "log_lik" = field(live_rcrd, "log_lik"),
+    "birth_lik" = field(live_rcrd, "birth_lik"),
+    "id" = field(live_rcrd, "id")
+  )
   write_live_set(live, object)
   object
 }

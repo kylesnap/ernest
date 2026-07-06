@@ -13,13 +13,8 @@ extern "C" SEXP _ernest_logspace_add_c(SEXP x, SEXP y) {
   END_CPP11
 }
 // exported_utils.cpp
-<<<<<<< HEAD
-cpp11::integers get_points(cpp11::doubles log_lik, int nlive, bool add_live);
-extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP nlive, SEXP add_live) {
-=======
 cpp11::doubles get_points(cpp11::doubles log_lik, int init_nlive);
 extern "C" SEXP _ernest_get_points(SEXP log_lik, SEXP init_nlive) {
->>>>>>> main
   BEGIN_CPP11
     return cpp11::as_sexp(get_points(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(log_lik), cpp11::as_cpp<cpp11::decay_t<int>>(init_nlive)));
   END_CPP11
@@ -39,17 +34,10 @@ extern "C" SEXP _ernest_RandomWalkImpl(SEXP original, SEXP unit_log_fn, SEXP cri
   END_CPP11
 }
 // propose-impl.cpp
-<<<<<<< HEAD
 cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, int steps, const int max_loop);
 extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP steps, SEXP max_loop) {
   BEGIN_CPP11
     return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<int>>(steps), cpp11::as_cpp<cpp11::decay_t<const int>>(max_loop)));
-=======
-cpp11::list SliceImpl(cpp11::doubles original, cpp11::function unit_log_fn, double criterion, cpp11::doubles lower, cpp11::doubles upper, unsigned int max_loop);
-extern "C" SEXP _ernest_SliceImpl(SEXP original, SEXP unit_log_fn, SEXP criterion, SEXP lower, SEXP upper, SEXP max_loop) {
-  BEGIN_CPP11
-    return cpp11::as_sexp(SliceImpl(cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(original), cpp11::as_cpp<cpp11::decay_t<cpp11::function>>(unit_log_fn), cpp11::as_cpp<cpp11::decay_t<double>>(criterion), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(lower), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(upper), cpp11::as_cpp<cpp11::decay_t<unsigned int>>(max_loop)));
->>>>>>> main
   END_CPP11
 }
 // update_lrps-impl.cpp
@@ -75,13 +63,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ernest_BoundingEllipsoid",       (DL_FUNC) &_ernest_BoundingEllipsoid,       2},
     {"_ernest_MultiBoundingEllipsoids", (DL_FUNC) &_ernest_MultiBoundingEllipsoids, 2},
     {"_ernest_RandomWalkImpl",          (DL_FUNC) &_ernest_RandomWalkImpl,          5},
-<<<<<<< HEAD
     {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               5},
-    {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              3},
-=======
-    {"_ernest_SliceImpl",               (DL_FUNC) &_ernest_SliceImpl,               6},
     {"_ernest_get_points",              (DL_FUNC) &_ernest_get_points,              2},
->>>>>>> main
     {"_ernest_logspace_add_c",          (DL_FUNC) &_ernest_logspace_add_c,          2},
     {"_ernest_logspace_cumsum_mat",     (DL_FUNC) &_ernest_logspace_cumsum_mat,     1},
     {"run_testthat_tests",              (DL_FUNC) &run_testthat_tests,              1},

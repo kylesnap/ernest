@@ -6,29 +6,30 @@
 \alias{ernest-package}
 \title{ernest: A Toolkit for Nested Sampling}
 \description{
-Bayesian evidence estimation and posterior inference with the nested sampling algorithm, along with S3 methods for simulating uncertainty and creating visualisations.
+Bayesian evidence estimation and posterior inference with the nested sampling algorithm, described in Skilling (2006) \doi{10.1214/06-BA127} and Buchner (2023) \doi{10.1214/23-SS144}, along with S3 methods for simulating uncertainty and creating visualisations.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/kylesnap/ernest}
-  \item \url{https://kylesnap.github.io/ernest/}
-  \item Report bugs at \url{https://github.com/kylesnap/ernest/issues/}
+  \item \url{https://github.com/ropensci/ernest}
+  \item \url{https://docs.ropensci.org/ernest/}
+  \item Report bugs at \url{https://github.com/ropensci/ernest/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
+\strong{Maintainer}: Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID})
+  \item Kyle Dewsnap \email{kyle.dewsnap@ubc.ca} (\href{https://orcid.org/0000-0003-2132-8083}{ORCID}) [copyright holder]
 }
 
 Other contributors:
 \itemize{
-  \item TJ Mahr [contributor]
-  \item Robert Kubinec [contributor]
+  \item TJ Mahr [reviewer]
+  \item Robert Kubinec [reviewer]
+  \item Michael Hughes [copyright holder]
 }
 
 }

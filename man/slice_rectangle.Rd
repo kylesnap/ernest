@@ -4,10 +4,14 @@
 \alias{slice_rectangle}
 \title{Slice sampling within a bounding hyperrectangle}
 \usage{
-slice_rectangle(steps = 3L)
+slice_rectangle(steps = 3L, enlarge = NA)
 }
 \arguments{
 \item{steps}{\verb{[integer(1)]} Number of reslicing iterations per proposal.}
+
+\item{enlarge}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{enlarge} is now always set
+to \code{NA}; sampling regions always begin from the unit hypercube.
+Control how frequently \code{sampler} is updated with \code{refresh_frac}.}
 }
 \value{
 \verb{[slice_rectangle]} A list inheriting from \code{ernest_lrps}.
@@ -42,7 +46,7 @@ calls to the likelihood function. Adjust this limit with the
 
 \examples{
 lrps <- slice_rectangle()
-adaptive_lrps <- slice_rectangle(max_steps = 30, adaptive = TRUE)
+lrps
 
 }
 \references{

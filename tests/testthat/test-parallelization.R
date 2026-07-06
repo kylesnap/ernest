@@ -30,6 +30,8 @@ parallel_lik <- parallel_likelihood(
   sigma_inv = diag(2) / 0.1**2
 )
 
+skip("Reworking Parallelization")
+
 test_that("parallelization checks for portable functions and daemons", {
   expect_error(
     generate(

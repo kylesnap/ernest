@@ -96,7 +96,11 @@ nested_sampling_impl <- function(
     }
 
     # 2. Identify and log the worst points in the sampler
-    worst_idx <- order(live_env$log_lik)[seq_len(batch_size)]
+    worst_idx <- if (batch_size == 1L) {
+      which.min(live_env$log_lik)
+    } else {
+      order(live_env$log_lik)[seq_len(batch_size)]
+    }
     new_criteria <- live_env$log_lik[worst_idx]
     new_criterion <- new_criteria[[batch_size]]
     if (isTRUE(all.equal(new_criterion, max_lik))) {

@@ -1,39 +1,36 @@
 data(example_run)
 
 describe("generate_control", {
+  fresh_sampler <- ernest_sampler(
+    gaussian_blobs$log_lik,
+    gaussian_blobs$prior,
+    nlive = 100L,
+    seed = NA_integer_
+  )
+
   it("catches invalid or empty criteria", {
     expect_error(
-      generate_control(
-        NULL,
-        NULL,
-        0,
-        seed = NA_integer_,
-        nlive = 1L,
-        refresh_frac = 0.8
-      ),
+      generate_control(fresh_sampler, min_logz = 0),
       "At least one of `max_iterations`, `max_evaluations`, or `min_logz` must"
     )
     expect_error(
-      generate_control(
-        max_iterations = -1,
-        max_evaluations = NULL,
-        min_logz = 0.05,
-        seed = NA_integer_,
-        nlive = 1L,
-        refresh_frac = 0.8
-      ),
-      "a whole number larger than or equal to 1 or `NULL`"
+      generate_control(fresh_sampler, max_iterations = -1),
+      "a whole number larger than or equal to 1"
+    )
+    expect_error(
+      expect_error(
+        generate_control(fresh_sampler, batch_size = 0),
+        "a whole number larger than or equal to 1`"
+      )
     )
   })
 
   it("returns expected defaults", {
     ctrl <- generate_control(
+      fresh_sampler,
       NULL,
       NULL,
-      0.05,
-      seed = NA_integer_,
-      nlive = 100L,
-      refresh_frac = 0.8
+      0.05
     )
     expect_mapequal(
       ctrl[c(
@@ -44,7 +41,9 @@ describe("generate_control", {
         "log_vol",
         "log_z",
         "cur_iter",
-        "cur_eval"
+        "cur_eval",
+        "batch_size",
+        "in_parallel"
       )],
       list(
         max_iterations = .Machine$integer.max,
@@ -54,52 +53,44 @@ describe("generate_control", {
         log_vol = 0,
         log_z = -1e300,
         cur_iter = 0L,
-        cur_eval = 0L
+        cur_eval = 0L,
+        batch_size = 1L,
+        in_parallel = FALSE
       )
     )
     expect_identical(ctrl$nlive, 100L)
   })
 
-  x_rcrd <- example_run$rcrd
   it("fails to set an invalid continuation state", {
     niter <- example_run$niter
     neval <- example_run$neval
 
     expect_error(
       generate_control(
+        example_run,
         niter,
         neval + 1L,
-        0,
-        seed = attr(example_run, "seed"),
-        nlive = example_run$nlive,
-        refresh_frac = example_run$refresh_frac,
-        rcrd = x_rcrd
+        0
       ),
       "`max_iterations` must be a whole number larger than or equal to"
     )
 
     expect_error(
       generate_control(
+        example_run,
         niter + 1L,
         neval,
-        0,
-        seed = attr(example_run, "seed"),
-        nlive = example_run$nlive,
-        refresh_frac = example_run$refresh_frac,
-        rcrd = x_rcrd
+        0
       ),
       "`max_evaluations` must be a whole number larger than or equal to"
     )
 
     expect_error(
       generate_control(
+        example_run,
         niter + 1L,
         neval + 1L,
-        0.05,
-        seed = attr(example_run, "seed"),
-        nlive = example_run$nlive,
-        refresh_frac = example_run$refresh_frac,
-        rcrd = x_rcrd
+        0.05
       ),
       "`min_logz` must be a number between"
     )
@@ -110,13 +101,10 @@ describe("generate_control", {
     niter <- example_run$niter
 
     ctrl <- generate_control(
+      example_run,
       NULL,
       NULL,
-      0.01,
-      seed = attr(example_run, "seed"),
-      nlive = example_run$nlive,
-      refresh_frac = example_run$refresh_frac,
-      rcrd = x_rcrd
+      0.01
     )
 
     expect_mapequal(
@@ -132,7 +120,9 @@ describe("generate_control", {
         log_vol = integration$log_vol[[niter]],
         log_z = integration$log_evidence[[niter]],
         cur_iter = as.integer(niter),
-        cur_eval = as.integer(example_run$neval)
+        cur_eval = as.integer(example_run$neval),
+        batch_size = 1L,
+        in_parallel = FALSE
       )
     )
   })

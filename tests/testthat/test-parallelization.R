@@ -30,89 +30,70 @@ parallel_lik <- parallel_likelihood(
   sigma_inv = diag(2) / 0.1**2
 )
 
-skip("Reworking Parallelization")
+describe("runs_in_parallel", {
+  it("returns FALSE for non-parallelizable samplers", {
+    # Likelihood not crated
+    expect_false(runs_in_parallel(ernest_sampler(
+      gaussian_blobs$log_lik,
+      gaussian_blobs$prior
+    )))
+    # Prior not crated
+    expect_false(runs_in_parallel(ernest_sampler(
+      parallel_lik,
+      prior = create_prior(\(x) x * 10 - 5, names = c("A", "B"))
+    )))
+  })
 
-test_that("parallelization checks for portable functions and daemons", {
-  expect_error(
-    generate(
-      ernest_sampler(gaussian_blobs$log_lik, gaussian_blobs$prior),
-      parallel = TRUE
-    ),
-    "portable `log_lik` function"
+  describe("returns whether daemons are set", {
+    sampler <- ernest_sampler(
+      parallel_lik,
+      gaussian_blobs$prior
+    )
+    expect_false(runs_in_parallel(sampler))
+
+    with(
+      mirai::daemons(1, dispatcher = FALSE),
+      expect_true(runs_in_parallel(sampler))
+    )
+  })
+})
+
+#' Set up CRAN-compliant daemons
+mirai::daemons(1, dispatcher = FALSE)
+on.exit(mirai::daemons(0), add = TRUE)
+
+test_that("ernest_sampler prints messages while in parallel", {
+  sampler <- ernest_sampler(
+    log_lik = parallel_lik,
+    prior = gaussian_blobs$prior,
+    nlive = 300
   )
 
   expect_error(
-    generate(
-      ernest_sampler(
-        parallel_lik,
-        prior = create_prior(\(x) x * 10 - 5, names = c("A", "B"))
-      ),
-      parallel = TRUE
-    ),
-    "portable `prior` function."
+    generate(sampler, max_iterations = 10, batch_size = 301),
+    "`batch_size` must be a whole number between 1 and 300"
   )
 
-  sampler <- ernest_sampler(parallel_lik, gaussian_blobs$prior)
-  expect_error(
-    generate(sampler, parallel = TRUE),
-    "No daemons set."
+  withr::with_options(
+    list(rlib_message_verbosity = "quiet"),
+    expect_message(
+      generate(sampler, max_iterations = 10, batch_size = 1),
+      "set `batch_size` to larger than 1"
+    )
   )
 })
 
-test_that("allocate_nlive is set appropriately", {
-  # parallel < nlive
-  ids <- as.character(seq_len(301))
-  allocation <- allocate_nlive(ids, parallel = 2, nvar = 3L)
-  lengths <- vctrs::list_sizes(allocation)
-  expect_equal(sum(lengths), 301)
-  expect_equal(lengths[1], 151)
-
-  # parallel == nlive
-  expect_warning(
-    allocation <- allocate_nlive(ids, parallel = 301, nvar = 3L),
-    "Should you decrease the number of `.parallel` workers?"
+test_that("ernest_sampler can be run in parallel", {
+  Sys.setenv(DEBUGME = "ernest")
+  run1 <- expect_run(
+    log_lik = parallel_lik,
+    prior = gaussian_blobs$prior,
+    sampler = multi_ellipsoid(),
+    nlive = 300,
+    .expected_log_z = gaussian_blobs$log_z_analytic,
+    .generate = list(min_logz = 0.5, batch_size = 2)
   )
-  lengths <- vctrs::list_sizes(allocation)
-  expect_equal(sum(lengths), 301)
-  expect_equal(lengths[1], 5)
-  expect_all_equal(lengths[-1], 4)
-})
 
-describe("generate & mirai", {
-  # Set up CRAN-compliant daemons
-  mirai::daemons(1, dispatcher = FALSE)
-  on.exit(mirai::daemons(0), add = TRUE)
-  run <- NULL
-
-  it("can run a parallel sampler", {
-    run <<- expect_run(
-      log_lik = parallel_lik,
-      prior = gaussian_blobs$prior,
-      nlive = 300,
-      .expected_log_z = gaussian_blobs$log_z_analytic,
-      .generate = list(max_iterations = 1000, parallel = TRUE)
-    )
-    glanced <- glance(run)
-    glanced$seed <- NULL
-    expect_mapequal(run$.parallel, glanced)
-  })
-
-  it("respects a set seed", {
-    run_cpy <- expect_run(
-      log_lik = parallel_lik,
-      prior = gaussian_blobs$prior,
-      nlive = 300,
-      .expected_log_z = gaussian_blobs$log_z_analytic,
-      .generate = list(max_iterations = 1000, parallel = TRUE)
-    )
-    expect_equal(run$rcrd, run_cpy$rcrd)
-  })
-
-  it("can run a parallel sampler from an ernest_run", {
-    cont_run <- generate(run, max_iterations = 2000, parallel = 2)
-    expect_equal(
-      field(cont_run$rcrd[1:1000], "log_lik"),
-      field(run$rcrd[1:1000], "log_lik")
-    )
-  })
+  run2 <- generate(run1, max_iterations = run1$niter + 1000, batch_size = 2)
+  expect_identical(run1$rcrd[1:run1$niter], run2$rcrd[1:run1$niter])
 })

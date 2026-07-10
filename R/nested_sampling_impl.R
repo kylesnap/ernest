@@ -47,14 +47,16 @@ nested_sampling_impl <- function(
   plateau <- 0L
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
+  batch_size <- control$batch_size
+  if (in_parallel <- control$in_parallel) {
+    load_daemons(lrps, load_all = TRUE)
+  }
 
   dead_unit <- vector("list")
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = character())
   dead_neval <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
-
-  batch_size <- 1L
 
   i <- 1
   if (show_progress) {
@@ -66,7 +68,7 @@ nested_sampling_impl <- function(
       ),
       msg_done = paste0(
         "Done | {pb_current + pb_iter} iter. | {cur_eval} evals | ",
-        "{signif(log_z, digits = 3)} log-evid."
+        "{signif(d_log_z, digits = 3)} log-evid. remains."
       ),
       spinner = TRUE
     )
@@ -86,7 +88,7 @@ nested_sampling_impl <- function(
     if (d_log_z < control$min_logz) {
       if (show_progress) {
         cli::cli_progress_step(
-          "Reached `min_logz` ({signif(d_log_z, digits = 3)})."
+          "Reached `min_logz` ({control$min_logz})."
         )
       }
       break
@@ -132,6 +134,9 @@ nested_sampling_impl <- function(
     if (log_vol < update_vol) {
       "!DEBUG Updating at iteration `i`"
       lrps <- update_lrps(lrps, unit = live_env$unit, log_volume = log_vol)
+      if (in_parallel) {
+        load_daemons(lrps, load_all = FALSE)
+      }
       update_vol <- log_vol + log(control$refresh_frac)
     }
 
@@ -141,18 +146,17 @@ nested_sampling_impl <- function(
       copy <- sample.int(nlive, batch_size)
     }
     new_unit <- if (log_vol >= log(control$refresh_frac)) {
-      replicate(
-        n = batch_size,
-        expr = propose(lrps, criterion = last_criterion),
-        simplify = FALSE
+      propose_from_cube(
+        batch_size,
+        criterion = last_criterion,
+        lrps = if (in_parallel) NULL else lrps
       )
     } else {
-      apply(
-        live_env$unit[copy, , drop = FALSE],
-        MARGIN = 1,
-        FUN = function(x) {
-          propose(lrps, original = x, criterion = last_criterion)
-        }
+      propose_from_live(
+        live_env,
+        copy,
+        last_criterion,
+        lrps = if (in_parallel) NULL else lrps
       )
     }
     batch_neval <- vapply(new_unit, `[[`, double(1), "neval")
@@ -164,18 +168,13 @@ nested_sampling_impl <- function(
           "i" = "Have you tried adjusting the `ernest.max_loop` option?"
         )
       )
-      dead_unit[[i]] <- NULL
-      dead_log_lik[[i]] <- NULL
-      dead_birth[[i]] <- NULL
-      dead_id[[i]] <- NULL
-      dead_neval[[i]] <- NULL
       break
     }
-    live_env$log_lik[worst_idx] <- vapply(new_unit, `[[`, double(1), "log_lik")
     live_env$unit[worst_idx, ] <- do.call(
       rbind,
       lapply(new_unit, `[[`, "unit")
     )
+    live_env$log_lik[worst_idx] <- vapply(new_unit, `[[`, double(1), "log_lik")
     live_env$birth_lik[worst_idx] <- last_criterion
     cur_eval <- cur_eval + sum(batch_neval)
   }
@@ -197,4 +196,42 @@ nested_sampling_impl <- function(
     birth_lik = vec_c(!!!dead_birth, .ptype = double())
   )
   vec_c(result, env_to_rcrd(live_env))
+}
+
+#' @noRd
+propose_from_cube <- function(batch_size, criterion, lrps = NULL) {
+  if (is.null(lrps)) {
+    mirai::mirai_map(
+      .x = seq_len(batch_size),
+      .f = \(...) {
+        propose(lrps__, original = NULL, criterion = criterion)
+      }
+    )[mirai::.stop]
+  } else {
+    replicate(
+      n = batch_size,
+      expr = propose(lrps, criterion = criterion),
+      simplify = FALSE
+    )
+  }
+}
+
+#' @noRd
+propose_from_live <- function(env, copy, criterion, lrps = NULL) {
+  if (is.null(lrps)) {
+    mirai::mirai_map(
+      .x = env$unit[copy, , drop = FALSE],
+      .f = \(...) {
+        propose(lrps__, original = c(...), criterion = criterion)
+      }
+    )[mirai::.stop]
+  } else {
+    apply(
+      env$unit[copy, , drop = FALSE],
+      MARGIN = 1,
+      FUN = function(x) {
+        propose(lrps, original = x, criterion = criterion)
+      }
+    )
+  }
 }

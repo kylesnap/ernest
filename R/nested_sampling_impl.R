@@ -48,13 +48,11 @@ nested_sampling_impl <- function(
   cur_eval <- control$cur_eval
   d_log_z <- matrixStats::logSumExp(0, max_lik + log_vol - log_z)
 
-  dead_unit <- vector("list")
+  dead_unit <- vctrs::list_of(.ptype = double(lrps$nvar))
   dead_birth <- vctrs::list_of(.ptype = double())
   dead_id <- vctrs::list_of(.ptype = character())
   dead_neval <- vctrs::list_of(.ptype = integer())
   dead_log_lik <- vctrs::list_of(.ptype = double())
-
-  batch_size <- 1L
 
   i <- 1
   if (show_progress) {
@@ -96,26 +94,21 @@ nested_sampling_impl <- function(
     }
 
     # 2. Identify and log the worst points in the sampler
-    worst_idx <- order(live_env$log_lik)[seq_len(batch_size)]
-    new_criteria <- live_env$log_lik[worst_idx]
-    new_criterion <- new_criteria[[batch_size]]
+    worst_idx <- which.min(live_env$log_lik)
+    new_criterion <- live_env$log_lik[worst_idx]
     if (isTRUE(all.equal(new_criterion, max_lik))) {
       cli::cli_warn(
         "Stopping run due to a likelihood plateau at {max_lik}."
       )
       break
     }
-    dead_unit[[i]] <- live_env$unit[worst_idx, , drop = FALSE]
-    dead_log_lik[[i]] <- new_criteria
+    dead_unit[[i]] <- live_env$unit[worst_idx, ]
+    dead_log_lik[[i]] <- new_criterion
     dead_birth[[i]] <- live_env$birth_lik[worst_idx]
     dead_id[[i]] <- live_env$id[worst_idx]
 
     # 3. Update the integration
-    plateau <- if (new_criterion == last_criterion) {
-      plateau + 1L
-    } else {
-      batch_size - 1L
-    }
+    plateau <- if (new_criterion == last_criterion) plateau + 1L else 0L
     d_log_vol <- log((nlive + 1 - plateau) / (nlive - plateau))
     log_vol <- log_vol - d_log_vol
     log_d_vol <- log(0.5 * expm1(d_log_vol)) + log_vol
@@ -132,48 +125,33 @@ nested_sampling_impl <- function(
     }
 
     # 5. Replace the worst points in live with new points
-    copy <- sample.int(nlive, batch_size)
-    while (any(vctrs::vec_in(copy, worst_idx)) && nlive > batch_size) {
-      copy <- sample.int(nlive, batch_size)
+    copy <- sample.int(nlive, 1)
+    if (copy == worst_idx && nlive > 1) {
+      copy <- sample.int(nlive, 1)
     }
     new_unit <- if (log_vol >= log(control$refresh_frac)) {
-      replicate(
-        n = batch_size,
-        expr = propose(lrps, criterion = last_criterion),
-        simplify = FALSE
-      )
+      propose(lrps, criterion = last_criterion)
     } else {
-      apply(
-        live_env$unit[copy, , drop = FALSE],
-        MARGIN = 1,
-        FUN = function(x) {
-          propose(lrps, original = x, criterion = last_criterion)
-        }
+      propose(
+        lrps,
+        original = live_env$unit[copy, ],
+        criterion = last_criterion
       )
     }
-    batch_neval <- vapply(new_unit, `[[`, double(1), "neval")
-    dead_neval[[i]] <- batch_neval
-    if (any(vapply(new_unit, \(x) is.null(x[["unit"]]), logical(1)))) {
+    dead_neval[[i]] <- new_unit$neval
+    if (is.null(new_unit$unit)) {
       cli::cli_warn(
         c(
           "LRPS failed to generate a point in {lrps$max_loop} attempts.",
           "i" = "Have you tried adjusting the `ernest.max_loop` option?"
         )
       )
-      dead_unit[[i]] <- NULL
-      dead_log_lik[[i]] <- NULL
-      dead_birth[[i]] <- NULL
-      dead_id[[i]] <- NULL
-      dead_neval[[i]] <- NULL
       break
     }
-    live_env$log_lik[worst_idx] <- vapply(new_unit, `[[`, double(1), "log_lik")
-    live_env$unit[worst_idx, ] <- do.call(
-      rbind,
-      lapply(new_unit, `[[`, "unit")
-    )
+    live_env$log_lik[worst_idx] <- new_unit$log_lik
+    live_env$unit[worst_idx, ] <- new_unit$unit
     live_env$birth_lik[worst_idx] <- last_criterion
-    cur_eval <- cur_eval + sum(batch_neval)
+    cur_eval <- cur_eval + new_unit$neval
   }
   if (show_progress && i >= (control$max_iterations - control$cur_iter)) {
     cli::cli_progress_step(

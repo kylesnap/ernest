@@ -98,12 +98,10 @@ generate.ernest_sampler <- function(
 
   x <- compile(x, ...)
   control <- generate_control(
+    x,
     max_iterations,
     max_evaluations,
-    min_logz,
-    seed = attr(x, "seed"),
-    nlive = x$nlive,
-    refresh_frac = x$refresh_frac
+    min_logz
   )
   results <- nested_sampling_impl(
     live_env = x$live_env,
@@ -141,13 +139,10 @@ generate.ernest_run <- function(
   idx_loc <- rcrd_id_loc(x$rcrd, nlive = x$nlive)
   dead_rcrd <- vctrs::vec_slice(x$rcrd, -idx_loc)
   control <- generate_control(
+    x,
     max_iterations,
     max_evaluations,
-    min_logz,
-    seed = attr(x, "seed"),
-    nlive = x$nlive,
-    refresh_frac = x$refresh_frac,
-    rcrd = x$rcrd
+    min_logz
   )
   results <- nested_sampling_impl(
     live_env = x$live_env,
@@ -177,38 +172,46 @@ generate.ernest_run <- function(
 #' `min_logz`.
 #' * Run state: `last_criterion`, `log_z`, `log_vol`, `cur_iter`, `cur_eval`.
 #' @noRd
+#' Generate a list of control parameters for nested sampling
+#'
+#' @param max_iterations,max_evaluations,min_logz User-requested stopping
+#' parameters.
+#' @param x An `ernest_sampler` or `ernest_run` object.
+#' @param batch_size The number of points to remove from the live set at each
+#' iteration.
+#'
+#' @return A named list containing:
+#' * Run meta info: `seed`, `nlive`, `refresh_frac`
+#' * Validated stopping criteria: `max_iterations`, `max_evaluations`,
+#' `min_logz`.
+#' * Run state: `last_criterion`, `log_z`, `log_vol`, `cur_iter`, `cur_eval`.
+#' @noRd
 generate_control <- function(
-  max_iterations,
-  max_evaluations,
-  min_logz,
-  seed,
-  nlive,
-  refresh_frac,
-  rcrd = NULL,
+  x,
+  max_iterations = NULL,
+  max_evaluations = NULL,
+  min_logz = 0.05,
   call = caller_env()
 ) {
-  # Initialize control parameters to default.
-  control <- list(
-    seed = seed,
-    nlive = nlive,
-    refresh_frac = refresh_frac
-  )
-  last_criterion <- -1e300
-  log_vol <- 0
-  log_z <- -1e300
-  cur_iter <- 0L
-  cur_eval <- 0L
-  d_log_z <- Inf
-
-  if (!is.null(rcrd)) {
-    prev_integration <- compute_integral(rcrd)
-    cur_iter <- vctrs::vec_size(rcrd) - control$nlive
-    cur_eval <- sum(field(rcrd, "neval"))
+  # Run state
+  if (!is.null(x$rcrd)) {
+    prev_integration <- compute_integral(x$rcrd)
+    cur_iter <- vctrs::vec_size(x$rcrd) - x$nlive
     last_criterion <- prev_integration$log_lik[[cur_iter]]
     log_z <- prev_integration$log_evidence[[cur_iter]]
     log_vol <- prev_integration$log_vol[[cur_iter]]
-    max_lik <- max(field(rcrd, "log_lik"))
-    d_log_z <- logspace_add_c(0, max_lik + log_vol - log_z)
+    cur_eval <- sum(field(x$rcrd, "neval"))
+    d_log_z <- logspace_add_c(
+      0,
+      max(field(x$rcrd, "log_lik")) + log_vol - log_z
+    )
+  } else {
+    last_criterion <- -1e300
+    log_z <- -1e300
+    log_vol <- 0
+    cur_iter <- 0L
+    cur_eval <- 0L
+    d_log_z <- Inf
   }
 
   # Check stopping criteria
@@ -229,27 +232,14 @@ generate_control <- function(
   max_iterations <- max_iterations %||% .Machine$integer.max
   max_evaluations <- max_evaluations %||% .Machine$integer.max
 
-  check_number_whole(
-    max_iterations,
-    min = cur_iter + 1.0,
-    allow_null = TRUE,
-    call = call
-  )
-  check_number_whole(
-    max_evaluations,
-    min = cur_eval + 1.0,
-    allow_null = TRUE,
-    call = call
-  )
-  check_number_decimal(
-    min_logz,
-    min = 0,
-    max = round(d_log_z, getOption("digits", 7L)),
-    call = call
-  )
+  check_number_whole(max_iterations, min = cur_iter + 1.0, call = call)
+  check_number_whole(max_evaluations, min = cur_eval + 1.0, call = call)
+  check_number_decimal(min_logz, min = 0, max = d_log_z, call = call)
 
   list2(
-    !!!control,
+    seed = attr(x, "seed"),
+    nlive = x$nlive,
+    refresh_frac = x$refresh_frac,
     max_iterations = as.integer(max_iterations),
     max_evaluations = as.integer(max_evaluations),
     min_logz = as.double(min_logz),

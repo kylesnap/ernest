@@ -208,47 +208,139 @@ nested_sampling_parallel <- function(
   list("results" = combined$rcrd, ".parallel" = combined$glance)
 }
 
+#' Assign IDs to daemons for parallel nested sampling
+#'
+#' @param ids Character vector of live point IDs.
+#' @param parallel Integer. The number of parallel workers to use.
+#' @param nvar The number of variables in the parameter space.
+#' @param call The calling environment, used for error reporting.
+#'
+#' @returns A list of character vectors, where each vector contains the IDs
+#' assigned to a daemon.
+#'
+#' @noRd
+allocate_nlive <- function(ids, parallel, nvar, call = caller_env()) {
+  check_number_whole(parallel, min = 1, call = call)
+  nlive <- vctrs::vec_unique_count(ids)
+  nlive_p_daemon <- nlive %/% parallel
+  min_nlive_per_nvar <- getOption("ernest.min_nlive_per_nvar", 10L)
+  if (nlive_p_daemon < nvar + 1L) {
+    cli::cli_warn(c(
+      "`nlive` has been set to `nvar + 1` ({nvar + 1}) to avoid LRPS issues.",
+      "!" = "Interpret results with caution.",
+      "i" = "Should you decrease the number of `.parallel` workers?"
+    ))
+    nlive_p_daemon <- nvar + 1L
+  } else if (nlive_p_daemon < min_nlive_per_nvar * nvar) {
+    cli::cli_warn(c(
+      "`nlive` per daemon ({nlive_p_daemon}) is small relative to the number of parameters ({nvar}).",
+      "!" = "Interpret results with caution.",
+      "i" = "Should you lower `.parallel`?",
+      "i" = "Should you change {.code getOption('ernest.min_nlive_per_nvar')}?"
+    ))
+  }
+  daemon_nlive <- rep.int(nlive_p_daemon, times = nlive %/% nlive_p_daemon)
+  daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
+  vctrs::vec_chop(sample(ids), sizes = daemon_nlive)
+}
+
+#' Partition a run for parallel execution
+#'
+#' @param live_env An environment containing sampling information.
+#' @param ids Character vectors of IDs.
+#' @param control Arguments controlling the parent run.
+#' @param rcrd ernest_rcrd from the previous run
+#'
+#' @returns A list of lists containing the data and control parameters for each
+#' worker.
+#' @noRd
+partition_run <- function(live_env, ids, control, rcrd = NULL) {
+  # Helper to split rcrd into runs for each worker
+  split_rcrd <- \(split_ids) {
+    if (is.null(rcrd)) {
+      return(NULL)
+    }
+    vctrs::vec_slice(rcrd, field(rcrd, "id") %in% split_ids)
+  }
+
+  lapply(ids, \(id_slice) {
+    split_nlive <- length(id_slice)
+    frac_nlive <- split_nlive / control$nlive
+    live_loc <- which(vctrs::vec_in(env_get(live_env, "id"), id_slice))
+    list(
+      "unit" = env_get(live_env, "unit")[live_loc, , drop = FALSE],
+      "log_lik" = env_get(live_env, "log_lik")[live_loc],
+      "birth_lik" = env_get(live_env, "birth_lik")[live_loc],
+      "id" = env_get(live_env, "id")[live_loc],
+      "control" = generate_control(
+        control$max_iterations,
+        control$max_evaluations,
+        control$min_logz,
+        seed = control$seed,
+        nlive = split_nlive,
+        refresh_frac = control$refresh_frac,
+        rcrd = split_rcrd(id_slice),
+        parallel = TRUE
+      )
+    )
+  })
+}
+
+#' Recombine per-worker records into a single run
+#'
+#' @param m_out A list of worker outputs, each containing a record of the
+#' worker's nested sampling run.
+#' @param nlive The total number of live points.
+#'
+#' @returns A list containing the combined rcrd and a glance summary of the
+#' each worker's run.
+#' @noRd
+unpartition_runs <- function(m_out, nlive) {
+  glance_df <- vctrs::vec_c(!!!lapply(m_out, glance))
+  merged_rcrd <- merge_rcrd(!!!m_out, sep = NULL)
+  list("rcrd" = merged_rcrd$rcrd, "glance" = glance_df)
+}
+
 #' Validate parallel configuration and sampler portability
 #'
 #' Ensures `sampler` contains portable `crate`d functions, and that `mirai`
 #' daemons are available.
 #'
 #' @noRd
-runs_in_parallel <- function(sampler) {
-  is_installed(c("mirai", "carrier")) &&
-    inherits(sampler$log_lik, "crate") &&
-    !inherits(sampler$prior, "custom_prior") &&
-    mirai::daemons_set()
-}
-
-#' Load ernest and an LRPS into the daemons
-#'
-#' @param lrps An ernest_lrps object.
-#' @param call The calling environment.
-#'
-#' @returns TRUE if successful; else fails with a message.
-#' @noRd
-load_daemons <- function(lrps, load_all = TRUE, call = caller_env()) {
-  m <- if (isTRUE(load_all)) {
-    mirai::everywhere(devtools::load_all("~/Projects/ernest"), lrps__ = lrps)
-  } else {
-    mirai::everywhere(rm(lrps__))
-    mirai::everywhere({}, lrps__ = lrps)
-  }
-  first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
-  if (!is.na(first_fail)) {
-    cnd <- m[][[first_fail]]
+check_parallel_enabled <- function(sampler, call = caller_env()) {
+  check_parallel_libs(call = call)
+  if (!inherits(sampler$log_lik, "crate")) {
     cli::cli_abort(
       c(
-        "Can't initialize daemons for nested sampling.",
-        ">" = "Error: {.str {cnd$message}}"
+        "`{caller_arg(sampler)}` must contain a portable `log_lik` function.",
+        "i" = "Did you forget to use {.fn ernest::parallel_likelihood}?"
       ),
-      body = cnd$body,
-      trace = cnd$trace,
       call = call
     )
   }
-  invisible(TRUE)
+  safe_priors <- c("crated_prior", "normal_prior", "uniform_prior")
+  if (!inherits_any(sampler$prior, safe_priors)) {
+    cli::cli_abort(
+      c(
+        "`{caller_arg(sampler)}` must contain a portable `prior` function.",
+        "i" = "Did you forget to use {.fn ernest::parallel_prior}?"
+      ),
+      call = call
+    )
+  }
+  mirai::require_daemons(call = call)
+  m <- devtools::load_all("~/Projects/ernest")
+  first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
+  if (!is.na(first_fail)) {
+    cli::cli_abort(
+      c(
+        "{.pkg mirai} threw an error when trying to load {.pkg ernest}.",
+        "x" = "{m[][[first_fail]]}"
+      ),
+      call = call
+    )
+  }
+  invisible(NULL)
 }
 
 #' Ensure parallel packages are available

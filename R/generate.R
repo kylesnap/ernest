@@ -89,7 +89,7 @@ generate.ernest_sampler <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
-  batch_size = 1,
+  batch_size = 1L,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -98,13 +98,7 @@ generate.ernest_sampler <- function(
   check_bool(show_progress)
 
   x <- compile(x, ...)
-  control <- generate_control(
-    x,
-    max_iterations,
-    max_evaluations,
-    min_logz,
-    batch_size
-  )
+  control <- generate_control(x, max_iterations, max_evaluations, min_logz)
   results <- nested_sampling_impl(
     live_env = x$live_env,
     lrps = x$lrps,
@@ -125,7 +119,7 @@ generate.ernest_run <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   show_progress = NULL,
-  batch_size = 1,
+  parallel = FALSE,
   ...
 ) {
   if (is.null(show_progress)) {
@@ -142,10 +136,9 @@ generate.ernest_run <- function(
   dead_rcrd <- vctrs::vec_slice(x$rcrd, -idx_loc)
   control <- generate_control(
     x,
-    max_iterations,
-    max_evaluations,
-    min_logz,
-    batch_size
+    max_iterations = max_iterations,
+    max_evaluations = max_evaluations,
+    min_logz = min_logz
   )
   results <- nested_sampling_impl(
     live_env = x$live_env,
@@ -177,7 +170,6 @@ generate_control <- function(
   max_evaluations = NULL,
   min_logz = 0.05,
   batch_size = 1L,
-  arg = caller_arg(x),
   call = caller_env()
 ) {
   # Run state
@@ -223,13 +215,7 @@ generate_control <- function(
   check_number_whole(max_evaluations, min = cur_eval + 1.0, call = call)
   check_number_decimal(min_logz, min = 0, max = d_log_z, call = call)
   check_number_whole(batch_size, min = 1, max = as.double(x$nlive), call = call)
-  in_parallel <- runs_in_parallel(x)
-  if (batch_size == 1L && in_parallel) {
-    cli::cli_alert_info(
-      "set `batch_size` to larger than 1 to enable parallelization."
-    )
-    in_parallel <- FALSE
-  }
+  in_parallel <- is_sampler_parallelized(x)
 
   list2(
     seed = attr(x, "seed"),

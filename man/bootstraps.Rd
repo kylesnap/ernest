@@ -7,9 +7,9 @@
 bootstraps(
   x,
   times = 100,
-  units = c("original", "unit_cube"),
+  draws = c("none", "original", "unit_cube"),
   apparent = FALSE,
-  ...
+  in_parallel = FALSE
 )
 }
 \arguments{
@@ -17,27 +17,36 @@ bootstraps(
 
 \item{times}{\verb{[[integer(1)]]}\cr The number of bootstrap resamples to draw.}
 
-\item{units}{\verb{[character(1)]}\cr The scale of the sampled points:
+\item{draws}{\verb{[[character(1)]]}\cr Whether to return a
+\link[posterior:draws_matrix]{posterior::draws_matrix} of the weighted posterior samples for each
+resampled run.
 \itemize{
-\item \code{"original"}: Points are on the scale of the prior space.
-\item \code{"unit_cube"}: Points are on the (0, 1) unit hypercube scale.
+\item \code{"none"}: No samples are returned.
+\item \code{"original"}: Samples are returned and expressed on the original scale of
+the parameter space.
+\item \code{"unit_cube"}: Samples are returned and expressed in the scale of the
+(0, 1) unit hypercube.
 }}
 
 \item{apparent}{\verb{[[logical(1)]]}\cr Whether to include the original run as an
 additional resample.}
 
-\item{...}{These dots are for future extensions and must be empty.}
+\item{in_parallel}{\verb{[[logical(1)]]}\cr \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Whether to run bootstrapping across workers set with \code{\link[mirai:daemons]{mirai::daemons()}}.}
 }
 \value{
 A tibble with one row per resample and these columns:
 \itemize{
 \item \code{id}: the resample identifier.
 \item \code{split}: the sampled thread IDs used to build the resample.
-\item \code{run}: an \link{ernest_rcrd} object containing the resampled run.
+\item The columns from \code{\link[=glance.ernest_run]{glance.ernest_run()}}, summarising the resampled run.
+\item \code{draws}: If \code{draws != "none"}, the draws from the resampled run as a
+\code{\link[posterior:draws_matrix]{posterior::draws_matrix()}} object, with a hidden \code{.weights} column
+containing their importance weights.
 }
 
-If \code{apparent = TRUE}, an additional \code{Apparent} row is included for the
-original run.
+If \code{apparent = TRUE}, an additional \code{Apparent} row is included summarising
+the original run.
 }
 \description{
 Resamples the run's live-point threads with replacement to generate

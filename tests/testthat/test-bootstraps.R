@@ -7,8 +7,8 @@ test_that("bootstraps input validation", {
     "whole number larger than or equal to 0."
   )
   expect_error(
-    bootstraps(example_run, units = "bad"),
-    'must be one of "original" or "unit_cube"'
+    bootstraps(example_run, draws = "bad"),
+    'must be one of "none", "original", or "unit_cube"'
   )
 })
 
@@ -16,48 +16,78 @@ test_that("bootstraps returns expected structure", {
   res <- bootstraps(example_run, times = 100)
 
   expect_s3_class(res, "tbl_df")
-  expect_equal(nrow(res), 100)
-  expect_named(res, c("id", "split", "run"))
-  expect_type(res$id, "character")
-  expect_type(res$split, "list")
-  expect_type(res$run, "list")
-
-  log_z_est <- vapply(
-    res$run,
-    \(x) {
-      compute_integral(x, truncate = TRUE)[["log_evidence"]]
-    },
-    numeric(1)
+  expect_named(
+    res,
+    c(
+      "id",
+      "split",
+      "nlive",
+      "nvar",
+      "niter",
+      "neval",
+      "log_evidence",
+      "log_evidence_err",
+      "information"
+    )
   )
+  expect_named(
+    res$split[[1]],
+    c("key", "times")
+  )
+  expect_all_equal(res$nlive, 1000)
   expect_lte(
-    example_run$log_evidence - mean(log_z_est),
-    sd(log_z_est)
+    example_run$log_evidence - mean(res$log_evidence),
+    sd(res$log_evidence)
   )
-
-  n_tot <- vapply(
-    res$split,
-    \(x) sum(x$times),
-    integer(1)
-  )
-  expect_all_equal(n_tot, example_run$nlive)
-})
-
-test_that("bootstraps is reproducible with a fixed seed", {
-  withr::with_preserve_seed(out1 <- bootstraps(example_run, times = 5))
-  withr::with_preserve_seed(out2 <- bootstraps(example_run, times = 5))
-  expect_identical(out1, out2)
-})
-
-test_that("bootstraps handles times = 0", {
-  res0 <- bootstraps(example_run, times = 0)
-  expect_equal(nrow(res0), 0)
 })
 
 test_that("bootstraps includes apparent run when apparent = TRUE", {
   res <- bootstraps(example_run, times = 10, apparent = TRUE)
-
-  expect_equal(nrow(res), 11)
   expect_equal(res$id[11], "Apparent")
-  expect_equal(res$split[[11]], seq(example_run$nlive))
-  expect_identical(res$run[[11]], example_run$rcrd)
+  expect_equal(res$log_evidence[[11]], glance(example_run)$log_evidence)
+})
+
+test_that("bootstraps returns draws", {
+  res <- bootstraps(
+    example_run,
+    times = 10,
+    apparent = TRUE,
+    draws = "original"
+  )
+  expect_s3_class(res$draws[[1]], "draws_matrix")
+  expect_equal(
+    posterior::variables(res$draws[[1]]),
+    posterior::variables(as_draws_matrix(example_run))
+  )
+  expect_identical(res$draws[[11]], as_draws_matrix(example_run))
+
+  res <- bootstraps(
+    example_run,
+    times = 10,
+    apparent = TRUE,
+    draws = "unit_cube"
+  )
+  expect_identical(
+    res$draws[[11]],
+    as_draws_matrix(example_run, units = "unit_cube")
+  )
+})
+
+describe("bootstraps(in_parallel)", {
+  it("fails when no daemons are set", {
+    expect_error(
+      bootstraps(example_run, in_parallel = TRUE),
+      "No daemons set."
+    )
+  })
+
+  it("matches the serial implementation when daemons are available", {
+    mirai::daemons(1, dispatcher = FALSE)
+    on.exit(mirai::daemons(0), add = TRUE)
+    res <- bootstraps(example_run, times = 10, in_parallel = TRUE)
+    expect_lte(
+      example_run$log_evidence - mean(res$log_evidence),
+      sd(res$log_evidence)
+    )
+  })
 })

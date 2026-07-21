@@ -5,7 +5,7 @@
 \alias{ernest_estimate}
 \title{Estimate Evidence using a Nested Sampling Run}
 \usage{
-\method{calculate}{ernest_run}(x, ndraws = 1000L, ...)
+\method{calculate}{ernest_run}(x, ndraws = 100L, ...)
 }
 \arguments{
 \item{x}{[\link{ernest_run}]\cr Results from a nested sampling run.}

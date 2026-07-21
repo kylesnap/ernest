@@ -81,15 +81,15 @@ describe("calculate", {
 
   it("works when ndraws = 1000 (default)", {
     calc <- calculate(example_run)
-    expect_identical(attr(calc, "ndraws"), 1000L)
+    expect_identical(attr(calc, "ndraws"), 100L)
     expect_null(attr(calc, "log_z_dist"))
 
-    expect_shape_rvar(calc$log_volume, 1000, nsamp)
-    expect_shape_rvar(calc$log_weight, 1000, nsamp)
-    expect_shape_rvar(calc$log_evidence, 1000, nsamp)
+    expect_shape_rvar(calc$log_volume, 100, nsamp)
+    expect_shape_rvar(calc$log_weight, 100, nsamp)
+    expect_shape_rvar(calc$log_evidence, 100, nsamp)
 
     expected <- compute_integral(example_run$rcrd)
-    expect_shape(posterior::draws_of(calc$log_evidence), dim = c(1000, nsamp))
+    expect_shape(posterior::draws_of(calc$log_evidence), dim = c(100, nsamp))
     expect_equal(
       mean(calc$log_evidence),
       expected$log_evidence,

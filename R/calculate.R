@@ -56,7 +56,7 @@
 #'
 #' @aliases ernest_estimate
 #' @export
-calculate.ernest_run <- function(x, ndraws = 1000L, ...) {
+calculate.ernest_run <- function(x, ndraws = 100L, ...) {
   check_dots_empty()
   check_number_whole(ndraws, min = 0)
   x_rcrd <- x$rcrd
@@ -159,14 +159,15 @@ get_log_vol <- function(x_rcrd, ndraws = 0, call = caller_env()) {
       call = call
     )
   }
-  points <- field(x_rcrd, "nlive")
+  inv_points <- 1 / field(x_rcrd, "nlive")
 
   if (ndraws == 0) {
-    vol <- cumsum(-1 * (points^-1))
+    vol <- cumsum(-1 * (inv_points))
     return(vol)
   }
   vol <- matrix(
-    log(stats::runif(ndraws * length(points))) / rep(points, each = ndraws),
+    log(stats::runif(ndraws * length(inv_points))) *
+      rep(inv_points, each = ndraws),
     nrow = ndraws
   )
   matrixStats::rowCumsums(vol)

@@ -30,7 +30,7 @@ merge.ernest_run <- function(
   ...
 ) {
   check_class(y, "ernest_run")
-  if (isTRUE(all.equal(x, y))) {
+  if (isTRUE(all.equal(x$rcrd, y$rcrd))) {
     cli::cli_abort(
       "`{caller_arg(x)}` and `{caller_arg(y)}` cannot be identical."
     )
@@ -44,34 +44,32 @@ merge.ernest_run <- function(
   rcrd <- nlive <- NULL
   elems <- list(x$rcrd, y$rcrd)
   names(elems) <- suffix
-  c(rcrd, nlive) %<-% merge_rcrd(!!!elems, sep = "")
+  c(rcrd, nlive) %<-% merge_rcrds(!!!elems, sep = "")
 
   # Update the sampler
   x$nlive <- nlive
   new_ernest_run(x, rcrd, .merge = glance)
 }
 
-#' Merge two `ernest_rcrd` objects together.
+#' Merge a list of `ernest_rcrd` objects together.
 #'
 #' @param ... ernest rcrd objects to merge together.
 #' @param sep A character string to separate the ID of each run in `...` from
 #' its name. Leave `NULL` if no renaming should be performed.
-#' @param invalid_run Action to take if the merged rcrd fails validation with
-#' `check_rcrd()`. One of `"error"`, `"warn", or `"quiet"`.
 #'
 #' @returns A list with two elements: `rcrd`, the merged `ernest_rcrd` object,
 #' and `nlive`, the number of live points in the merged run.
 #' @noRd
-merge_rcrd <- function(
+merge_rcrds <- function(
   ...,
   sep = NULL,
-  invalid_run = c("error", "warn", "quiet")
+  invalid_run = "error",
+  call = caller_env()
 ) {
+  # Rename IDs if requested
   check_character(sep, allow_null = TRUE)
   elems <- dots_list(..., .named = !is.null(sep), .homonyms = "error")
   invalid_run <- arg_match(invalid_run)
-
-  # Relabel the IDs of each group
   if (!is.null(sep)) {
     elems <- .mapply(
       \(x, nm) {
@@ -88,45 +86,36 @@ merge_rcrd <- function(
     function(x) vctrs::vec_unique_count(field(x, "id")),
     integer(1L)
   ))
-  out <- Reduce(merge_rcrd_exact, elems)
-  tryCatch(
-    check_rcrd(out, nlive = nlive, sorted = TRUE),
-    ernest_bad_run_rcrd = function(cnd) {
-      switch(
-        invalid_run,
-        "warn" = cli::cli_warn(
-          "`merge` produced an invalid run.",
-          parent = cnd
-        ),
-        "error" = cli::cli_abort("`merge` failed.", parent = cnd),
-        "quiet" = NULL
-      )
-    }
-  )
-  list("rcrd" = vctrs::vec_cast(out, ernest_rcrd()), "nlive" = nlive)
+  out <- unchop_rcrds(elems, nlive = nlive)
+  list("rcrd" = out, "nlive" = nlive)
 }
 
-merge_rcrd_exact <- function(x_rcrd, y_rcrd) {
-  x_rcrd <- sort(x_rcrd)
-  y_rcrd <- sort(y_rcrd)
-  nx <- length(x_rcrd)
-  ny <- length(y_rcrd)
-  nout <- nx + ny
+#' Combine a list of `ernest_rcrd` objects into a single object.
+#'
+#' @param rcrds A list of `ernest_rcrd` objects to combine.
+#' @param nlive The total number of live points in the combined object.
+#' @param call The calling environment.
+#' @param arg The argument name for the `rcrds` parameter.
+#' @returns A single `ernest_rcrd` object containing the combined records.
+#' @noRd
+unchop_rcrds <- function(rcrds, nlive) {
+  rcrds <- lapply(rcrds, vctrs::vec_sort)
+  niters <- vctrs::list_sizes(rcrds)
+  nout <- sum(niters)
+  merge_ord <- order(vec_c(!!!rcrds, .ptype = rcrds[[1]]))
+  inv_ord <- vctrs::vec_chop(order(merge_ord), sizes = niters)
 
-  merge_ord <- order(c(x_rcrd, y_rcrd))
-  inv_ord <- vctrs::vec_chop(
-    order(merge_ord),
-    sizes = c(nx, ny)
-  )
+  # Get the number of live points in the merged records
+  nlives <- matrix(NA_integer_, nrow = nout, ncol = length(rcrds))
+  for (i in seq_along(rcrds)) {
+    nlives[inv_ord[[i]], i] <- vctrs::field(rcrds[[i]], "nlive")
+  }
+  nlives <- vctrs::vec_fill_missing(nlives, "up")
 
-  x_nlive <- y_nlive <- vctrs::vec_init(NA_integer_, nout)
-  x_nlive[inv_ord[[1]]] <- vctrs::field(x_rcrd, "nlive")
-  y_nlive[inv_ord[[2]]] <- vctrs::field(y_rcrd, "nlive")
-  x_nlive <- vctrs::vec_fill_missing(x_nlive, "up")
-  y_nlive <- vctrs::vec_fill_missing(y_nlive, "up")
-  nlive <- .rowSums(c(x_nlive, y_nlive), nout, 2L, na.rm = TRUE)
-
-  merged_rcrd <- merged_rcrd <- vctrs::vec_c(x_rcrd, y_rcrd)[merge_ord]
-  vctrs::field(merged_rcrd, "nlive") <- as.integer(nlive)
+  # Merge the records and update the number of live points
+  nlives <- .rowSums(nlives, nout, length(rcrds), na.rm = TRUE)
+  merged_rcrd <- vec_c(!!!rcrds)[merge_ord]
+  vctrs::field(merged_rcrd, "nlive") <- as.integer(nlives)
+  check_rcrd(merged_rcrd, nlive = nlive)
   merged_rcrd
 }

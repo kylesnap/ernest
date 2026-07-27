@@ -25,7 +25,7 @@ test_that("bootstraps returns expected structure", {
       "nvar",
       "niter",
       "neval",
-      "ess"
+      "ess",
       "log_evidence",
       "log_evidence_err",
       "information"

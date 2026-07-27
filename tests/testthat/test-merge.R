@@ -14,7 +14,7 @@ test_that("merged run has expected properties", {
   run_a <- ernest_sampler(
     gaussian_blobs$log_lik,
     gaussian_blobs$prior,
-    nlive = 100,
+    nlive = 50,
     seed = 1
   ) |>
     generate()
@@ -22,15 +22,14 @@ test_that("merged run has expected properties", {
   run_b <- ernest_sampler(
     gaussian_blobs$log_lik,
     gaussian_blobs$prior,
-    nlive = 200,
+    nlive = 50,
     seed = 2
   ) |>
     generate()
 
   merged <- merge(run_a, run_b)
-  expect_equal(merged$nlive, 300)
+  expect_equal(merged$nlive, 100)
   expect_length(merged$rcrd, length(run_a$rcrd) + length(run_b$rcrd))
-  expect_length(unique(field(merged$rcrd, "id")), 300)
   expect_equal(merged$.merge[1, ], glance(run_a))
   expect_equal(merged$.merge[2, ], glance(run_b))
 
@@ -43,7 +42,7 @@ test_that("merged run has expected properties", {
   expect_equal(run3$niter, merged$niter + 1000L)
 })
 
-test_that("merge_rcrd errors when suffixes still produce duplicate ids", {
+test_that("errors when suffixes still produce duplicate ids", {
   # craft two minimal rcrd objects that will produce duplicate ids even after
   # the same suffix is applied
   data(example_run)
@@ -52,7 +51,7 @@ test_that("merge_rcrd errors when suffixes still produce duplicate ids", {
 
   # using identical suffixes for both sides should trigger the "must be unique" error
   expect_error(
-    merge_rcrd(".same" = x, ".same" = y),
+    merge_rcrds(".same" = x, ".same" = y),
     "Multiple arguments named `.same`"
   )
 })

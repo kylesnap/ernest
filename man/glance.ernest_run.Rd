@@ -10,7 +10,7 @@
 \item{x}{[\link{ernest_run}]\cr A nested sampling run.}
 }
 \value{
-A one-row \code{tibble} with \code{nlive}, \code{nvar}, \code{niter}, \code{neval},
+A one-row \code{tibble} with \code{nlive}, \code{nvar}, \code{niter}, \code{neval}, \code{ess},
 \code{log_evidence}, \code{log_evidence_err}, \code{information}, and \code{seed}.
 }
 \description{

@@ -297,7 +297,7 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
 #' @noRd
 unpartition_runs <- function(m_out, nlive) {
   glance_df <- vctrs::vec_c(!!!lapply(m_out, glance))
-  merged_rcrd <- merge_rcrd(!!!m_out, sep = NULL)
+  merged_rcrd <- merge_rcrds(!!!m_out, sep = NULL)
   list("rcrd" = merged_rcrd$rcrd, "glance" = glance_df)
 }
 

@@ -52,3 +52,16 @@ weights.ernest_rcrd <- function(object, log = FALSE, ...) {
     exp(weights)
   }
 }
+
+#' Effective sample size of a nested sampling run
+#'
+#' Uses Kish's formula to estimate the effective sample size of a nested
+#' sampling run from its posterior importance weights.
+#'
+#' @param x A nested sampling rcrd or run.
+#' @returns `[double(1)]` The effective sample size of the run.
+#' @noRd
+run_ess <- function(x) {
+  w <- weights(x, log = FALSE)
+  sum(w)^2 / sum(w^2)
+}

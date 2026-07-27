@@ -18,6 +18,9 @@ A named list, containing:
 \item \code{niter}: \verb{[integer(1)]} Number of iterations performed.
 \item \code{neval}: \verb{[integer(1)]} Number of times the likelihood function was
 evaluated.
+\item \code{ess}: \verb{[numeric(1)]} Effective sample size of the posterior samples,
+calculated using Kish's formula for the posterior importance weights
+\eqn{w_i}: \deqn{ESS = \frac{(\sum_i w_i)^2}{\sum_i w_i^2}}
 \item \code{log_evidence}: \verb{[numeric(1)]} Log-evidence estimate.
 \item \code{log_evidence_err}: \verb{[numeric(1)]} Standard error of log-evidence.
 \item \code{information}: \verb{[numeric(1)]} Estimated Kullback-Leibler divergence between

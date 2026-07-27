@@ -233,7 +233,7 @@ env_to_rcrd <- function(live_env) {
 #' @param ... Must be empty.
 #'
 #' @return A one-row `tibble` with `nlive`, `nvar`, `niter`, `neval`,
-#' `log_evidence`, `log_evidence_err`, and `information`.
+#' `log_evidence`, `log_evidence_err`, `information`, and `ess`.
 #'
 #' @noRd
 #' @export
@@ -251,6 +251,7 @@ glance.ernest_rcrd <- function(x, ...) {
       nvar = nvar,
       niter = niter,
       neval = neval,
+      ess = run_ess(x),
       log_evidence = tail(integral$log_evidence, 1L),
       log_evidence_err = sqrt(tail(integral$log_evidence_var, 1L)),
       information = tail(integral$information, 1L)

@@ -3,10 +3,10 @@
     Code
       glance(example_run$rcrd)
     Output
-      # A tibble: 1 x 7
-        nlive  nvar niter  neval log_evidence log_evidence_err information
-        <int> <int> <int>  <int>        <dbl>            <dbl>       <dbl>
-      1  1000     3  9362 228698        -9.03           0.0827        4.86
+      # A tibble: 1 x 8
+        nlive  nvar niter  neval   ess log_evidence log_evidence_err information
+        <int> <int> <int>  <int> <dbl>        <dbl>            <dbl>       <dbl>
+      1  1000     3  9362 228698 4659.        -9.03           0.0827        4.86
 
 ---
 

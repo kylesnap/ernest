@@ -1,22 +1,3 @@
-test_that("Crated func. envs. are attached to the search path", {
-  # Median and qnorm are both in the stats package
-  parallel_lik <- parallel_likelihood(
-    function(x) {
-      median(x)
-    }
-  )
-  expect_equal(parallel_lik(c(1, 2, 3)), 2)
-
-  parallel_v_prior <- parallel_prior(
-    vectorized_fn = function(x) qnorm(x),
-    .names = c("A", "B", "C")
-  )
-  expect_equal(
-    parallel_v_prior$fn(matrix(c(0.1, 0.5, 0.9), nrow = 1)),
-    matrix(stats::qnorm(c(0.1, 0.5, 0.9)), nrow = 1)
-  )
-})
-
 # Portable version of the two Gaussian blobs test likelihood
 parallel_lik <- parallel_likelihood(
   vectorized_fn = function(x) {
@@ -29,8 +10,6 @@ parallel_lik <- parallel_likelihood(
   mu2 = -c(1, 1),
   sigma_inv = diag(2) / 0.1**2
 )
-
-skip("Reworking Parallelization")
 
 test_that("parallelization checks for portable functions and daemons", {
   expect_error(
@@ -57,35 +36,60 @@ test_that("parallelization checks for portable functions and daemons", {
     generate(sampler, parallel = TRUE),
     "No daemons set."
   )
-})
 
-test_that("allocate_nlive is set appropriately", {
-  # parallel < nlive
-  ids <- as.character(seq_len(301))
-  allocation <- allocate_nlive(ids, parallel = 2, nvar = 3L)
-  lengths <- vctrs::list_sizes(allocation)
-  expect_equal(sum(lengths), 301)
-  expect_equal(lengths[1], 151)
-
-  # parallel == nlive
-  expect_warning(
-    allocation <- allocate_nlive(ids, parallel = 301, nvar = 3L),
-    "Should you decrease the number of `.parallel` workers?"
-  )
-  lengths <- vctrs::list_sizes(allocation)
-  expect_equal(sum(lengths), 301)
-  expect_equal(lengths[1], 5)
-  expect_all_equal(lengths[-1], 4)
-})
-
-describe("generate & mirai", {
   # Set up CRAN-compliant daemons
   mirai::daemons(1, dispatcher = FALSE)
   on.exit(mirai::daemons(0), add = TRUE)
+
+  withr::with_options(
+    list(ernest.dev_path = tempdir()),
+    expect_error(
+      expect_warning(
+        generate(sampler, parallel = TRUE),
+        class = "ernest.on_dev"
+      ),
+      "Could not find a root 'DESCRIPTION' file"
+    )
+  )
+})
+
+mirai::daemons(1, dispatcher = FALSE)
+on.exit(mirai::daemons(0), add = TRUE)
+
+test_that("allocate_nlive is set appropriately", {
+  # nlive / nvar > 10L
+  allocation <- allocate_nlive(nlive = 307, parallel = 5L, nvar = 5L)
+  expect_length(allocation, 5)
+  expect_equal(sum(vctrs::list_sizes(allocation)), 307)
+  expect_all_equal(vctrs::list_sizes(allocation)[1:2], 62)
+
+  # nlive / nvar < 10L
+  expect_warning(
+    allocation <- allocate_nlive(nlive = 307, parallel = 7L, nvar = 5L),
+    "adjusting `parallel` from 7 to 6"
+  )
+  expect_length(allocation, 6)
+  expect_equal(sum(vctrs::list_sizes(allocation)), 307)
+  expect_all_equal(vctrs::list_sizes(allocation)[1], 52)
+
+  # nlive / nvar < 1L
+  expect_error(
+    allocate_nlive(nlive = 311, parallel = 311L, nvar = 5L),
+    "Must have at least one live point within each subrun."
+  )
+})
+
+describe("generate & mirai", {
+  silent_dev_load <- \(...) {
+    suppressWarnings(
+      expect_run(...),
+      class = "ernest.on_dev"
+    )
+  }
   run <- NULL
 
   it("can run a parallel sampler", {
-    run <<- expect_run(
+    run <<- silent_dev_load(
       log_lik = parallel_lik,
       prior = gaussian_blobs$prior,
       nlive = 300,
@@ -98,7 +102,7 @@ describe("generate & mirai", {
   })
 
   it("respects a set seed", {
-    run_cpy <- expect_run(
+    run_cpy <- silent_dev_load(
       log_lik = parallel_lik,
       prior = gaussian_blobs$prior,
       nlive = 300,
@@ -109,7 +113,10 @@ describe("generate & mirai", {
   })
 
   it("can run a parallel sampler from an ernest_run", {
-    cont_run <- generate(run, max_iterations = 2000, parallel = 2)
+    cont_run <- suppressWarnings(
+      generate(run, max_iterations = 2000, parallel = 2),
+      class = "ernest.on_dev"
+    )
     expect_equal(
       field(cont_run$rcrd[1:1000], "log_lik"),
       field(run$rcrd[1:1000], "log_lik")

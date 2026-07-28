@@ -95,8 +95,23 @@ generate.ernest_sampler <- function(
     show_progress <- getOption("rlib_message_verbosity", "default") != "quiet"
   }
   check_bool(show_progress)
-
   x <- compile(x, ...)
+
+  if (!isFALSE(parallel)) {
+    results <- nested_sampling_parallel(
+      x,
+      control = list(
+        max_iterations = max_iterations,
+        max_evaluations = max_evaluations,
+        min_logz = min_logz,
+        seed = attr(x, "seed"),
+        refresh_frac = x$refresh_frac
+      ),
+      show_progress = show_progress,
+      parallel = parallel
+    )
+    return(new_ernest_run(x, results$rcrd, .parallel = results$.parallel))
+  }
   control <- generate_control(
     max_iterations,
     max_evaluations,
@@ -138,8 +153,27 @@ generate.ernest_run <- function(
     # Catch case when `x` is cleared
     return(NextMethod())
   }
+
   idx_loc <- rcrd_id_loc(x$rcrd, nlive = x$nlive)
   dead_rcrd <- vctrs::vec_slice(x$rcrd, -idx_loc)
+  if (!isFALSE(parallel)) {
+    results <- nested_sampling_parallel(
+      x,
+      control = list(
+        max_iterations = max_iterations,
+        max_evaluations = max_evaluations,
+        min_logz = min_logz,
+        seed = attr(x, "seed"),
+        refresh_frac = x$refresh_frac
+      ),
+      show_progress = show_progress,
+      parallel = parallel
+    )
+    results$rcrd <- vctrs::vec_sort(vec_c(dead_rcrd, results$rcrd))
+    return(
+      new_ernest_run(x, results$rcrd, .parallel = results$.parallel)
+    )
+  }
   control <- generate_control(
     max_iterations,
     max_evaluations,

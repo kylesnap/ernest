@@ -109,11 +109,12 @@ ernest_sampler <- function(
   )
 
   nvar <- attr(obj$prior, "nvar")
-  if (obj$nlive < nvar * getOption("ernest.min_nlive_per_nvar", 10L)) {
+  if (obj$nlive < nvar * getOption("ernest.min_nlive_nvar", 10L)) {
     cli::cli_warn(c(
-      "`nlive` ({nlive}) is small relative to the number of parameters ({nvar}).",
+      "Using too few live points may bias likelihood-restricted sampling.",
       "!" = "Interpret results with caution.",
-      "i" = "Should you change {.code getOption('ernest.min_nlive_per_nvar')}?"
+      "i" = "Should you raise `nlive` ({obj$nlive})?",
+      "i" = "Silence this with {.code getOption('ernest.min_nlive_nvar', 0)}."
     ))
   }
 

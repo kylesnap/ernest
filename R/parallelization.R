@@ -159,30 +159,27 @@ nested_sampling_parallel <- function(
   show_progress,
   parallel
 ) {
-  check_parallel_enabled(x, call = caller_env())
-  parallel <- if (isTRUE(parallel)) {
-    mirai::info()[["connections"]]
-  } else {
-    parallel
+  check_parallel_enabled(x)
+  if (isTRUE(parallel)) {
+    parallel <- mirai::info()[["connections"]]
   }
-  live_env <- x$live_env
-  ids <- env_get(live_env, "id")
-  nlive <- x$nlive
+  check_number_whole(parallel, min = 1)
 
-  if (show_progress) {
-    cli::cli_progress_step("Splitting live set...")
-  }
-  ids_by_daemon <- allocate_nlive(ids, parallel, attr(x$prior, "nvar"))
+  # Divide the live set into subruns
+  allocations <- allocate_nlive(x$nlive, parallel, attr(x$prior, "nvar"))
   parallel_runs <- partition_run(
-    live_env,
-    ids_by_daemon,
+    x$live_env,
+    allocations,
     control,
-    x$rcrd
+    rcrd = x$rcrd
   )
 
   if (show_progress) {
+    nruns <- length(allocations)
+    sub_nlive <- vctrs::list_sizes(allocations[[length(allocations)]])
     cli::cli_progress_step(
-      "Performing {length(parallel_runs)} runs in parallel..."
+      "Performing {nruns} run{?s} with at least {sub_nlive} live point{?s}...",
+      spinner = TRUE
     )
   }
   # Run runs in parallel
@@ -204,86 +201,89 @@ nested_sampling_parallel <- function(
   if (show_progress) {
     cli::cli_progress_step("Merging runs together...")
   }
-  combined <- unpartition_runs(m_out, nlive)
-  list("results" = combined$rcrd, ".parallel" = combined$glance)
+  unpartition_runs(m_out, nlive = x$nlive)
 }
 
 #' Assign IDs to daemons for parallel nested sampling
 #'
-#' @param ids Character vector of live point IDs.
-#' @param parallel Integer. The number of parallel workers to use.
+#' @param nlive The number of live points in the live set.
+#' @param parallel The number of parallel workers to use.
 #' @param nvar The number of variables in the parameter space.
-#' @param call The calling environment, used for error reporting.
 #'
 #' @returns A list of character vectors, where each vector contains the IDs
 #' assigned to a daemon.
 #'
 #' @noRd
-allocate_nlive <- function(ids, parallel, nvar, call = caller_env()) {
-  check_number_whole(parallel, min = 1, call = call)
-  nlive <- vctrs::vec_unique_count(ids)
-  nlive_p_daemon <- nlive %/% parallel
-  min_nlive_per_nvar <- getOption("ernest.min_nlive_per_nvar", 10L)
-  if (nlive_p_daemon < nvar + 1L) {
-    cli::cli_warn(c(
-      "`nlive` has been set to `nvar + 1` ({nvar + 1}) to avoid LRPS issues.",
-      "!" = "Interpret results with caution.",
-      "i" = "Should you decrease the number of `.parallel` workers?"
+allocate_nlive <- function(nlive, parallel, nvar) {
+  nlive_parallel <- nlive %/% parallel
+  nlive_parallel_nvar <- nlive_parallel / nvar
+  min_nlive_nvar <- getOption("ernest.min_nlive_nvar", 10L)
+  if (nlive_parallel_nvar < 1L) {
+    cli::cli_abort(c(
+      "Must have at least one live point within each subrun.",
+      "i" = "Should you lower `parallel` or raise `nlive`?"
     ))
-    nlive_p_daemon <- nvar + 1L
-  } else if (nlive_p_daemon < min_nlive_per_nvar * nvar) {
+  } else if (nlive_parallel_nvar < min_nlive_nvar) {
+    new_parallel <- nlive %/% (min_nlive_nvar * nvar)
     cli::cli_warn(c(
-      "`nlive` per daemon ({nlive_p_daemon}) is small relative to the number of parameters ({nvar}).",
-      "!" = "Interpret results with caution.",
-      "i" = "Should you lower `.parallel`?",
-      "i" = "Should you change {.code getOption('ernest.min_nlive_per_nvar')}?"
+      "Automatically adjusting `parallel` from {parallel} to {new_parallel},",
+      "ensuring each worker has {min_nlive_nvar} live points per variable.",
+      "i" = "Override this with {.code getOption('ernest.min_nlive_nvar', 0)}."
     ))
+    parallel <- new_parallel
+    nlive_parallel <- nlive %/% new_parallel
   }
-  daemon_nlive <- rep.int(nlive_p_daemon, times = nlive %/% nlive_p_daemon)
-  daemon_nlive[[1]] <- daemon_nlive[[1]] + (nlive - sum(daemon_nlive))
-  vctrs::vec_chop(sample(ids), sizes = daemon_nlive)
+  sampled_idx <- sample.int(nlive, size = nlive, replace = FALSE)
+  daemon_sizes <- rep.int(nlive_parallel, times = parallel)
+  remaining_nlive <- seq_len(nlive %% nlive_parallel)
+  daemon_sizes[remaining_nlive] <- daemon_sizes[remaining_nlive] + 1
+  vctrs::vec_chop(sampled_idx, sizes = daemon_sizes)
 }
 
-#' Partition a run for parallel execution
+#' Partitions a compiled sampler for parallel execution
 #'
-#' @param live_env An environment containing sampling information.
+#' @param live_env The live set environment from a compiled sampler.
 #' @param ids Character vectors of IDs.
 #' @param control Arguments controlling the parent run.
-#' @param rcrd ernest_rcrd from the previous run
+#' @param rcrd An option ernest_rcrd with previously generated results.
 #'
 #' @returns A list of lists containing the data and control parameters for each
 #' worker.
 #' @noRd
-partition_run <- function(live_env, ids, control, rcrd = NULL) {
-  # Helper to split rcrd into runs for each worker
-  split_rcrd <- \(split_ids) {
-    if (is.null(rcrd)) {
-      return(NULL)
-    }
-    vctrs::vec_slice(rcrd, field(rcrd, "id") %in% split_ids)
-  }
-
-  lapply(ids, \(id_slice) {
-    split_nlive <- length(id_slice)
-    frac_nlive <- split_nlive / control$nlive
-    live_loc <- which(vctrs::vec_in(env_get(live_env, "id"), id_slice))
-    list(
-      "unit" = env_get(live_env, "unit")[live_loc, , drop = FALSE],
-      "log_lik" = env_get(live_env, "log_lik")[live_loc],
-      "birth_lik" = env_get(live_env, "birth_lik")[live_loc],
-      "id" = env_get(live_env, "id")[live_loc],
-      "control" = generate_control(
-        control$max_iterations,
-        control$max_evaluations,
-        control$min_logz,
-        seed = control$seed,
-        nlive = split_nlive,
-        refresh_frac = control$refresh_frac,
-        rcrd = split_rcrd(id_slice),
-        parallel = TRUE
+partition_run <- function(live_env, alloc, control, rcrd = NULL) {
+  lapply(
+    alloc,
+    \(idx) {
+      run_info <- list(
+        "unit" = env_get(live_env, "unit")[idx, , drop = FALSE],
+        "log_lik" = env_get(live_env, "log_lik")[idx],
+        "birth_lik" = env_get(live_env, "birth_lik")[idx],
+        "id" = env_get(live_env, "id")[idx]
       )
-    )
-  })
+      run_info$control <- if (!is.null(rcrd)) {
+        dead_idx <- which(vctrs::vec_in(field(rcrd, "id"), run_info$id))
+        generate_control(
+          control$max_iterations,
+          control$max_evaluations,
+          control$min_logz,
+          seed = control$seed,
+          nlive = length(idx),
+          refresh_frac = control$refresh_frac,
+          rcrd = rcrd[dead_idx],
+        )
+      } else {
+        generate_control(
+          control$max_iterations,
+          control$max_evaluations,
+          control$min_logz,
+          seed = control$seed,
+          nlive = length(idx),
+          refresh_frac = control$refresh_frac
+        )
+      }
+      run_info
+    }
+  )
 }
 
 #' Recombine per-worker records into a single run
@@ -297,46 +297,77 @@ partition_run <- function(live_env, ids, control, rcrd = NULL) {
 #' @noRd
 unpartition_runs <- function(m_out, nlive) {
   glance_df <- vctrs::vec_c(!!!lapply(m_out, glance))
-  merged_rcrd <- merge_rcrds(!!!m_out, sep = NULL)
-  list("rcrd" = merged_rcrd$rcrd, "glance" = glance_df)
+  merged_rcrd <- unchop_rcrds(m_out, nlive = nlive)
+  list("rcrd" = merged_rcrd, ".parallel" = glance_df)
 }
 
-#' Validate parallel configuration and sampler portability
+#' Check if sampling can be performed in parallel
 #'
-#' Ensures `sampler` contains portable `crate`d functions, and that `mirai`
-#' daemons are available.
+#' @param sampler An ernest_sampler object.
+#' @param call The calling environment, used for error reporting.
 #'
+#' @returns Invisibly returns `NULL` if parallelization is possible; otherwise,
+#' throws an error.
 #' @noRd
-check_parallel_enabled <- function(sampler, call = caller_env()) {
+check_parallel_enabled <- function(
+  sampler,
+  call = caller_env(),
+  arg = caller_arg(sampler)
+) {
   check_parallel_libs(call = call)
   if (!inherits(sampler$log_lik, "crate")) {
     cli::cli_abort(
-      c(
-        "`{caller_arg(sampler)}` must contain a portable `log_lik` function.",
-        "i" = "Did you forget to use {.fn ernest::parallel_likelihood}?"
-      ),
+      "`{arg}` must contain a portable `log_lik` function.",
+      class = "ernest_nonportable_sampler",
       call = call
     )
   }
   safe_priors <- c("crated_prior", "normal_prior", "uniform_prior")
   if (!inherits_any(sampler$prior, safe_priors)) {
     cli::cli_abort(
-      c(
-        "`{caller_arg(sampler)}` must contain a portable `prior` function.",
-        "i" = "Did you forget to use {.fn ernest::parallel_prior}?"
-      ),
+      "`{arg}` must contain a portable `prior` function.",
+      class = "ernest_nonportable_sampler",
       call = call
     )
   }
+  preserve_seed(attr(sampler, "seed"), .local_envir = call)
   mirai::require_daemons(call = call)
-  m <- devtools::load_all("~/Projects/ernest")
+  load_ernest_on_daemons(call = call)
+  invisible(NULL)
+}
+
+#' Load ernest onto all daemons (whether ernest is installed or in development)
+#'
+#' @param call The calling environment, used for error reporting.
+#' @returns Invisibly returns `NULL` if ernest is successfully loaded onto all
+#' daemons; otherwise, throws an error.
+#' @noRd
+load_ernest_on_daemons <- function(call = caller_env()) {
+  load_expr <- if (
+    is_installed("pkgload") && pkgload::is_dev_package("ernest")
+  ) {
+    cli::cli_warn(
+      "Loading dev. version of {.pkg ernest} on daemons...",
+      class = "ernest.on_dev"
+    )
+    expr(devtools::load_all(
+      !!(pkgload::pkg_path(path = getOption("ernest.dev_path", default = ".")))
+    ))
+  } else {
+    expr(library(ernest))
+  }
+  mirai::require_daemons(call = call)
+  m <- mirai::everywhere(load_expr)
   first_fail <- match(TRUE, vapply(m[], mirai::is_error_value, logical(1)))
   if (!is.na(first_fail)) {
+    fail <- m[[first_fail]]$data
     cli::cli_abort(
       c(
-        "{.pkg mirai} threw an error when trying to load {.pkg ernest}.",
-        "x" = "{m[][[first_fail]]}"
+        "Couldn't load {.pkg ernest} onto all daemons.",
+        "First failed on daemon #{first_fail}:"
       ),
+      body = fail,
+      trace = attr(fail, "stack.trace"),
       call = call
     )
   }

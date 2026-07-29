@@ -38,8 +38,18 @@
 #'
 #' When [`generate()`][generate-ernest] is called with `parallel != FALSE`, the
 #' resulting run contains a `.parallel` element with per-worker summaries (see
-#' [glance.ernest_run()]). Note that each worker must have at least `nvar * 2`
-#' live points, where `nvar` is the number of variables in the parameter space.
+#' [glance.ernest_run()]). To protect runs from over-parallelization (which
+#' contributes to bias in likelihood-restricted prior sampling), the number of
+#' live points per worker is checked against the number of variables in the
+#' parameter space. If any worker has fewer than
+#' `getOption("ernest.min_nlive_nvar", 10L)` live points per variable, a warning
+#' is issued and the number of workers is automatically reduced.
+#'
+#' Additionally, ernest will warn the user if the parallelization resulted in
+#' subruns with suspiciously low effective sample size; this is evidence that
+#' paralleilzation introduced dependence between the subruns, which may bias
+#' estimation. This warning is configured with
+#' `getOption("ernest.min_ess", 400L)`.
 #'
 #' @section Daemons:
 #' How parallelization occurs is determined by [mirai::daemons()]. Daemons must
@@ -201,7 +211,19 @@ nested_sampling_parallel <- function(
   if (show_progress) {
     cli::cli_progress_step("Merging runs together...")
   }
-  unpartition_runs(m_out, nlive = x$nlive)
+  results <- unpartition_runs(m_out, nlive = x$nlive)
+  if (any(results$.parallel$ess < getOption("ernest.min_ess", 400L))) {
+    cli::cli_warn(
+      c(
+        "Certain subruns have suspiciously low effective sample sizes.",
+        "!" = "Interpret results with caution.",
+        "i" = "Should you increase `nlive` or reduce `parallel`?",
+        "i" = "Ignore this warning with {.code getOption('ernest.min_ess', 0)}."
+      ),
+      class = "ernest.min_ess_warning"
+    )
+  }
+  results
 }
 
 #' Assign IDs to daemons for parallel nested sampling

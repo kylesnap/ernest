@@ -82,8 +82,18 @@ benefits as a single large run.
 
 When \code{\link[=generate-ernest]{generate()}} is called with \code{parallel != FALSE}, the
 resulting run contains a \code{.parallel} element with per-worker summaries (see
-\code{\link[=glance.ernest_run]{glance.ernest_run()}}). Note that each worker must have at least \code{nvar * 2}
-live points, where \code{nvar} is the number of variables in the parameter space.
+\code{\link[=glance.ernest_run]{glance.ernest_run()}}). To protect runs from over-parallelization (which
+contributes to bias in likelihood-restricted prior sampling), the number of
+live points per worker is checked against the number of variables in the
+parameter space. If any worker has fewer than
+\code{getOption("ernest.min_nlive_nvar", 10L)} live points per variable, a warning
+is issued and the number of workers is automatically reduced.
+
+Additionally, ernest will warn the user if the parallelization resulted in
+subruns with suspiciously low effective sample size; this is evidence that
+paralleilzation introduced dependence between the subruns, which may bias
+estimation. This warning is configured with
+\code{getOption("ernest.min_ess", 400L)}.
 }
 
 \section{Daemons}{

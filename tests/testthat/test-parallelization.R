@@ -83,7 +83,7 @@ describe("generate & mirai", {
   silent_dev_load <- \(...) {
     suppressWarnings(
       expect_run(...),
-      class = "ernest.on_dev"
+      class = c("ernest.on_dev", "ernest.min_ess_warning")
     )
   }
   run <- NULL

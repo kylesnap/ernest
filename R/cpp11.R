@@ -8,6 +8,10 @@ get_points <- function(log_lik, init_nlive) {
   .Call(`_ernest_get_points`, log_lik, init_nlive)
 }
 
+get_log_w_cpp <- function(log_lik, log_volume) {
+  .Call(`_ernest_get_log_w_cpp`, log_lik, log_volume)
+}
+
 logspace_cumsum_mat <- function(x) {
   .Call(`_ernest_logspace_cumsum_mat`, x)
 }

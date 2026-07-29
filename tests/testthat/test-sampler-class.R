@@ -40,7 +40,7 @@ describe("new_ernest_sampler", {
 
     expect_warning(
       ernest_sampler(wrapped_lik, gaussian_blobs$prior, nlive = 1L, seed = 42),
-      "is small relative to the number of parameters"
+      "too few live points"
     )
   })
 

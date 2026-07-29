@@ -47,7 +47,7 @@ describe("calculate", {
     expect_equal(calc$log_lik, field(example_run$rcrd, "log_lik"))
     expect_shape_rvar(calc$log_volume, 1, nsamp)
     expect_shape_rvar(calc$log_weight, 1, nsamp)
-    expect_shape_rvar(calc$log_evidence, 1000, nsamp)
+    expect_shape_rvar(calc$log_evidence, 100, nsamp)
 
     expected <- compute_integral(example_run$rcrd)
     expect_equal(

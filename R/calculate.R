@@ -77,7 +77,7 @@ calculate.ernest_run <- function(x, ndraws = 100L, ...) {
     )
     log_z <- posterior::rvar(t(do.call(
       rbind,
-      generate(log_z_dist, times = getOption("posterior.rvar_ndraws", 1000))
+      generate(log_z_dist, times = getOption("posterior.rvar_ndraws", 100))
     )))
     log_volume <- posterior::as_rvar(drop(log_volume))
     log_weight <- posterior::as_rvar(drop(log_weight$log_weight))
@@ -197,36 +197,15 @@ get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
       log_volume,
       .call = call
     )
-  nrow <- nrow(log_lik)
-  ncol <- ncol(log_lik)
-
-  log_dvol <- matrix(0, nrow = nrow, ncol = ncol)
-  log_dvol_lead <- log_volume[, seq(1, ncol - 2), drop = FALSE]
-  log_dvol_lag <- log_volume[, seq(3, ncol), drop = FALSE]
-  log_dvol[, seq(2, ncol - 1)] <- logspace_sub(log_dvol_lead, log_dvol_lag) -
-    log(2)
-
-  log_dvol_lag <- matrixStats::rowLogSumExps(log_volume, cols = c(1, 2)) -
-    log(2)
-  log_dvol[, 1] <- logspace_sub(matrix(0, nrow = nrow(log_dvol)), log_dvol_lag)
-
-  log_dvol[, ncol] <- matrixStats::rowLogSumExps(
-    log_volume,
-    cols = c(ncol - 1, ncol)
-  ) -
-    log(2)
-  log_weight <- log_dvol + log_lik
-
-  log_evidence <- if (cum_z) {
-    logspace_cumsum_mat(log_weight)
-  } else {
-    # na.rm set to ON to allow for efficient recalculations for learn
-    matrixStats::rowLogSumExps(log_weight, na.rm = TRUE)
-  }
+  log_weight <- get_log_w_cpp(log_lik, log_volume)
 
   list(
-    "log_weight" = log_weight,
-    "log_evidence" = log_evidence
+    "log_weight" = log_weight$log_weight,
+    "log_evidence" = if (cum_z) {
+      log_weight$log_z
+    } else {
+      log_weight$log_z[, ncol(log_weight$log_z), drop = TRUE]
+    }
   )
 }
 

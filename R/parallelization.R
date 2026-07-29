@@ -186,7 +186,7 @@ nested_sampling_parallel <- function(
 
   if (show_progress) {
     nruns <- length(allocations)
-    sub_nlive <- vctrs::list_sizes(allocations[[length(allocations)]])
+    sub_nlive <- vctrs::list_sizes(allocations)[[length(allocations)]]
     cli::cli_progress_step(
       "Performing {nruns} run{?s} with at least {sub_nlive} live point{?s}...",
       spinner = TRUE

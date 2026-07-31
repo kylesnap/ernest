@@ -60,7 +60,6 @@
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 unif_ellipsoid <- function(enlarge = 1) {
-  check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
   new_unif_ellipsoid(enlarge = enlarge)
 }
@@ -174,7 +173,7 @@ propose_ellipsoid <- function(
 
   for (i in seq_len(max_loop)) {
     # Generate a batch of proposals inside the (enlarged) unit hypersphere
-    batch <- uniformly::runif_in_sphere(batch_size, nvar, r = radius)
+    batch <- runif_in_sphere(batch_size, nvar, r = radius)
     # Map points from the unit sphere into the ellipsoid and shift by centre
     batch <- batch %*% t(inv_sqrt_shape)
     batch <- sweep(batch, 2, center, "+")

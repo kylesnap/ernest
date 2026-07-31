@@ -65,6 +65,22 @@ logspace_sub <- function(a, b) {
   a + log1p(-exp(b - a))
 }
 
+#' Uniform sampling in a sphere
+#'
+#' @param n number of simulations
+#' @param d dimension of the space
+#' @param r radius of the sphere
+#'
+#' @source `uniformly` package, \doi{10.32614/CRAN.package.uniformly}
+#'
+#' @return The simulations in a \code{n} times \code{d} matrix.
+#' @noRd
+runif_in_sphere <- function(n, d, r = 1) {
+  sims <- matrix(rnorm(n * d), nrow = n, ncol = d)
+  radii <- r * runif(n)^(1 / d)
+  radii * sims / sqrt(apply(sims, 1L, crossprod))
+}
+
 #' Fast data frame creation
 #'
 #' @param ... Columns of the data frame.

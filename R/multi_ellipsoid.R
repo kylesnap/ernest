@@ -49,7 +49,6 @@
 #' ernest_sampler(example_run$log_lik_fn, example_run$prior, sampler = lrps)
 #' @export
 multi_ellipsoid <- function(enlarge = 1.25) {
-  check_installed("uniformly", "for ellipsoidal sampling")
   check_number_decimal(enlarge, min = 1)
   if (isTRUE(all.equal(enlarge, 1))) {
     cli::cli_warn("`enlarge` is set to 1, which is not recommended.")

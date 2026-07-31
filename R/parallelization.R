@@ -172,11 +172,25 @@ nested_sampling_parallel <- function(
   check_parallel_enabled(x)
   if (isTRUE(parallel)) {
     parallel <- mirai::info()[["connections"]]
+    if (parallel < 2L) {
+      cli::cli_abort(c(
+        "Can't split a run into {parallel} subrun{?s}.",
+        "i" = "Should you set `parallel` to a number instead of `TRUE`?"
+      ))
+    }
   }
-  check_number_whole(parallel, min = 1)
+  check_number_whole(parallel, min = 2)
 
   # Divide the live set into subruns
+  if (show_progress) {
+    cli::cli_progress_step(
+      "Dividing {x$nlive} live points across {parallel} subrun{?s}...",
+      msg_done = "Divided sampling into {parallel} subrun{?s}.",
+      spinner = TRUE
+    )
+  }
   allocations <- allocate_nlive(x$nlive, parallel, attr(x$prior, "nvar"))
+  parallel <- length(allocations)
   parallel_runs <- partition_run(
     x$live_env,
     allocations,
@@ -185,10 +199,9 @@ nested_sampling_parallel <- function(
   )
 
   if (show_progress) {
-    nruns <- length(allocations)
-    sub_nlive <- vctrs::list_sizes(allocations)[[length(allocations)]]
     cli::cli_progress_step(
-      "Performing {nruns} run{?s} with at least {sub_nlive} live point{?s}...",
+      "Performing {parallel} subrun{?s} in parallel...",
+      msg_done = "Performed {parallel} subrun{?s}.",
       spinner = TRUE
     )
   }
@@ -209,7 +222,11 @@ nested_sampling_parallel <- function(
   )
   m_out <- mirai::collect_mirai(m, options = ".stop")
   if (show_progress) {
-    cli::cli_progress_step("Merging runs together...")
+    cli::cli_progress_step(
+      "Merging subruns together...",
+      msg_done = "Created a single run with {x$nlive} live points.",
+      spinner = TRUE
+    )
   }
   results <- unpartition_runs(m_out, nlive = x$nlive)
   if (any(results$.parallel$ess < getOption("ernest.min_ess", 400L))) {

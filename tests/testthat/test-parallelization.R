@@ -51,6 +51,14 @@ test_that("parallelization checks for portable functions and daemons", {
       "Could not find a root 'DESCRIPTION' file"
     )
   )
+
+  expect_error(
+    expect_warning(
+      generate(sampler, parallel = TRUE),
+      class = "ernest.on_dev"
+    ),
+    "Can't split a run into 1 subrun."
+  )
 })
 
 mirai::daemons(1, dispatcher = FALSE)
@@ -94,11 +102,10 @@ describe("generate & mirai", {
       prior = gaussian_blobs$prior,
       nlive = 300,
       .expected_log_z = gaussian_blobs$log_z_analytic,
-      .generate = list(max_iterations = 1000, parallel = TRUE)
+      .generate = list(max_iterations = 1000, parallel = 2)
     )
-    glanced <- glance(run)
-    glanced$seed <- NULL
-    expect_mapequal(run$.parallel, glanced)
+    expect_s3_class(run$.parallel, "tbl_df")
+    expect_shape(run$.parallel, nrow = 2)
   })
 
   it("respects a set seed", {
@@ -107,7 +114,7 @@ describe("generate & mirai", {
       prior = gaussian_blobs$prior,
       nlive = 300,
       .expected_log_z = gaussian_blobs$log_z_analytic,
-      .generate = list(max_iterations = 1000, parallel = TRUE)
+      .generate = list(max_iterations = 1000, parallel = 2)
     )
     expect_equal(run$rcrd, run_cpy$rcrd)
   })

@@ -110,16 +110,21 @@ summary.ernest_estimate <- function(
   }
 
   log_volume <- posterior::draws_of(object$log_volume)
-  log_evidence <- posterior::draws_of(object$log_evidence)
+  log_evidence <- if (posterior::is_rvar(object$log_evidence)) {
+    posterior::draws_of(object$log_evidence)
+  } else {
+    NULL
+  }
   log_weight <- posterior::draws_of(object$log_weight)
   weight <- if (nrow(log_weight) == 1) {
     log_z <- matrixStats::logSumExp(drop(log_weight))
     exp(log_weight - log_z)
   } else {
+    log_z <- matrixStats::rowLogSumExps(log_weight, na.rm = TRUE)
     exp(sweep(
       log_weight,
       1,
-      log_evidence[, ncol(log_evidence)],
+      log_z,
       FUN = "-"
     ))
   }
@@ -148,10 +153,10 @@ summary.ernest_estimate <- function(
 
   # Summarize evidence diagnostics, with or without uncertainty intervals.
   summarize_evidence <- \() {
-    if (attr(object, "ndraws") == 0) {
+    if (is.null(log_evidence)) {
       df <- data_frame0(
         "x" = log_volume[1, ],
-        "dist" = attr(object, "log_z_dist")
+        "dist" = object$log_evidence
       )
       df <- df[as.integer(seq(1, to = nrow(df), length.out = n)), ]
       df <- data_frame0(

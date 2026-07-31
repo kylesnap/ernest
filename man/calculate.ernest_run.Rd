@@ -30,17 +30,17 @@ associated with the point.
 \item \code{log_weight}: \verb{[[posterior::rvar()]]} The estimated contribution of the
 point to the log-evidence estimate (i.e., the unnormalized posterior
 log-weight).
-\item \code{log_evidence}: \verb{[[posterior::rvar()]]} The current log-evidence estimate.
+\item \code{log_evidence}: \verb{[[posterior::rvar()]] | [[distributional::dist_normal()]]}
+The current log-evidence estimate.
 }
 
 If \code{ndraws > 0}, \code{log_volume}, \code{log_weight}, and \code{log_evidence} each contain
 \code{ndraws} simulated draws per iteration.
 
 If \code{ndraws = 0}, \code{log_volume} and \code{log_weight} contain a single
-deterministic draw per iteration, and \code{log_evidence} contains draws
-from a normal approximation based on analytical variance estimates (see
-the package vignetttes for more information). The  number of draws is
-controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
+deterministic draw per iteration, and \code{log_evidence} contains a
+\code{\link[distributional:dist_normal]{distributional::dist_normal()}} object representing the log-evidence estimate
+from a normal approximation based on analytical variance estimates.
 }
 \description{
 Computes evidence and related quantities from a nested

@@ -42,28 +42,21 @@ describe("calculate", {
     calc <- calculate(example_run, ndraws = 0)
     expect_s3_class(calc, c("ernest_estimate", "tbl_df"))
     expect_identical(attr(calc, "ndraws"), 0L)
-    expect_s3_class(attr(calc, "log_z_dist"), c("distribution"))
 
     expect_equal(calc$log_lik, field(example_run$rcrd, "log_lik"))
     expect_shape_rvar(calc$log_volume, 1, nsamp)
     expect_shape_rvar(calc$log_weight, 1, nsamp)
-    expect_shape_rvar(calc$log_evidence, 100, nsamp)
+    expect_s3_class(calc$log_evidence, "distribution")
 
     expected <- compute_integral(example_run$rcrd)
     expect_equal(
       unname(drop(posterior::draws_of(calc$log_weight))),
       expected$log_weight
     )
+    expect_equal(mean(calc$log_evidence), expected$log_evidence)
     expect_equal(
-      mean(calc$log_evidence),
-      expected$log_evidence,
-      tolerance = 1e-3
-    )
-    expected_sd <- sqrt(expected$log_evidence_var)
-    observed_sd <- posterior::sd(calc$log_evidence)
-    expect_all_true(
-      # Tolerance around uncertainty.
-      abs(observed_sd - expected_sd) < 2 * expected_sd
+      distributional::variance(calc$log_evidence),
+      expected$log_evidence_var
     )
     expect_snapshot(calc)
   })

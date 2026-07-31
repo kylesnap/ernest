@@ -4,19 +4,20 @@
       calc
     Output
       # A tibble: 10,362 x 4
-         log_lik   log_volume log_weight log_evidence
-           <dbl>   <rvar[1d]> <rvar[1d]>   <rvar[1d]>
-       1   -137.  -0.001 ± NA  -143 ± NA     -143 ± 0
-       2   -132.  -0.002 ± NA  -139 ± NA     -139 ± 0
-       3   -130.  -0.003 ± NA  -137 ± NA     -137 ± 0
-       4   -130.  -0.004 ± NA  -137 ± NA     -136 ± 0
-       5   -129.  -0.005 ± NA  -136 ± NA     -136 ± 0
-       6   -127.  -0.006 ± NA  -134 ± NA     -134 ± 0
-       7   -124.  -0.007 ± NA  -131 ± NA     -131 ± 0
-       8   -123.  -0.008 ± NA  -130 ± NA     -130 ± 0
-       9   -123.  -0.009 ± NA  -130 ± NA     -129 ± 0
-      10   -122.  -0.010 ± NA  -129 ± NA     -128 ± 0
+         log_lik   log_volume log_weight
+           <dbl>   <rvar[1d]> <rvar[1d]>
+       1   -137.  -0.001 ± NA  -143 ± NA
+       2   -132.  -0.002 ± NA  -139 ± NA
+       3   -130.  -0.003 ± NA  -137 ± NA
+       4   -130.  -0.004 ± NA  -137 ± NA
+       5   -129.  -0.005 ± NA  -136 ± NA
+       6   -127.  -0.006 ± NA  -134 ± NA
+       7   -124.  -0.007 ± NA  -131 ± NA
+       8   -123.  -0.008 ± NA  -130 ± NA
+       9   -123.  -0.009 ± NA  -130 ± NA
+      10   -122.  -0.010 ± NA  -129 ± NA
       # i 10,352 more rows
+      # i 1 more variable: log_evidence <dist>
 
 # calculate / works when ndraws = 1 (default)
 

@@ -22,16 +22,16 @@
 #' * `log_weight`: `[[posterior::rvar()]]` The estimated contribution of the
 #' point to the log-evidence estimate (i.e., the unnormalized posterior
 #' log-weight).
-#' * `log_evidence`: `[[posterior::rvar()]]` The current log-evidence estimate.
+#' * `log_evidence`: `[[posterior::rvar()]] | [[distributional::dist_normal()]]`
+#' The current log-evidence estimate.
 #'
 #' If `ndraws > 0`, `log_volume`, `log_weight`, and `log_evidence` each contain
 #' `ndraws` simulated draws per iteration.
 #'
 #' If `ndraws = 0`, `log_volume` and `log_weight` contain a single
-#' deterministic draw per iteration, and `log_evidence` contains draws
-#' from a normal approximation based on analytical variance estimates (see
-#' the package vignetttes for more information). The  number of draws is
-#' controlled with getOption("posterior.rvar_ndraws"), with a default of 1000.
+#' deterministic draw per iteration, and `log_evidence` contains a
+#' [distributional::dist_normal()] object representing the log-evidence estimate
+#' from a normal approximation based on analytical variance estimates.
 #'
 #' @srrstats {BS4.2} Simulating uncertainty around the log-volume estimates
 #' allows the user to detect instability in the posterior importance weights.
@@ -68,21 +68,15 @@ calculate.ernest_run <- function(x, ndraws = 100L, ...) {
   log_weight <- get_log_w(log_lik, log_volume)
 
   if (ndraws == 0) {
-    withr::local_preserve_seed()
     check_installed("distributional", "for evidence error estimation")
     information <- get_information(log_lik, log_volume, log_weight$log_evidence)
-    log_z_dist <- distributional::dist_normal(
+    log_z <- distributional::dist_normal(
       mu = log_weight$log_evidence[1, ],
       sd = sqrt(get_log_zvar(information, log_volume))
     )
-    log_z <- posterior::rvar(t(do.call(
-      rbind,
-      generate(log_z_dist, times = getOption("posterior.rvar_ndraws", 100))
-    )))
     log_volume <- posterior::as_rvar(drop(log_volume))
     log_weight <- posterior::as_rvar(drop(log_weight$log_weight))
   } else {
-    log_z_dist <- NULL
     log_z <- posterior::rvar(log_weight$log_evidence)
     log_volume <- posterior::rvar(log_volume)
     log_weight <- posterior::rvar(log_weight$log_weight)
@@ -97,7 +91,6 @@ calculate.ernest_run <- function(x, ndraws = 100L, ...) {
   new_tibble0(
     x = result,
     ndraws = as.integer(ndraws),
-    log_z_dist = log_z_dist,
     dead_log_vol = dead_log_vol,
     class = "ernest_estimate"
   )
@@ -197,15 +190,36 @@ get_log_w <- function(log_lik, log_volume, cum_z = TRUE, call = caller_env()) {
       log_volume,
       .call = call
     )
-  log_weight <- get_log_w_cpp(log_lik, log_volume)
+  nrow <- nrow(log_lik)
+  ncol <- ncol(log_lik)
+
+  log_dvol <- matrix(0, nrow = nrow, ncol = ncol)
+  log_dvol_lead <- log_volume[, seq(1, ncol - 2), drop = FALSE]
+  log_dvol_lag <- log_volume[, seq(3, ncol), drop = FALSE]
+  log_dvol[, seq(2, ncol - 1)] <- logspace_sub(log_dvol_lead, log_dvol_lag) -
+    log(2)
+
+  log_dvol_lag <- matrixStats::rowLogSumExps(log_volume, cols = c(1, 2)) -
+    log(2)
+  log_dvol[, 1] <- logspace_sub(matrix(0, nrow = nrow(log_dvol)), log_dvol_lag)
+
+  log_dvol[, ncol] <- matrixStats::rowLogSumExps(
+    log_volume,
+    cols = c(ncol - 1, ncol)
+  ) -
+    log(2)
+  log_weight <- log_dvol + log_lik
+
+  log_evidence <- if (cum_z) {
+    logspace_cumsum_mat(log_weight)
+  } else {
+    # na.rm set to ON to allow for efficient recalculations for learn
+    matrixStats::rowLogSumExps(log_weight, na.rm = TRUE)
+  }
 
   list(
-    "log_weight" = log_weight$log_weight,
-    "log_evidence" = if (cum_z) {
-      log_weight$log_z
-    } else {
-      log_weight$log_z[, ncol(log_weight$log_z), drop = TRUE]
-    }
+    "log_weight" = log_weight,
+    "log_evidence" = log_evidence
   )
 }
 

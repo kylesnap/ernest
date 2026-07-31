@@ -22,48 +22,6 @@ cpp11::doubles get_points(cpp11::doubles log_lik, int init_nlive) {
 }
 
 [[cpp11::register]]
-cpp11::list get_log_w_cpp(cpp11::doubles_matrix<> log_lik,
-                          cpp11::doubles_matrix<> log_volume) {
-  const int draws = log_lik.nrow();
-  const int iter = log_lik.ncol();
-  cpp11::writable::doubles_matrix<> log_weight(draws, iter);
-  cpp11::writable::doubles_matrix<> log_z(draws, iter);
-
-  auto logspace_qadd = [](double logx, double logy) {
-    double diff = logx - logy;
-    if (diff > 35) {
-      return logx;
-    } else if (diff < -35) {
-      return logy;
-    } else {
-      return logspace_add(logx, logy);
-    }
-  };
-
-  for (int i = 0; i < draws; ++i) {
-    double avg = logspace_qadd(log_volume(i, 0), log_volume(i, 1)) - M_LN2;
-    double w = logspace_sub(0.0, avg) + log_lik(i, 0);
-    log_weight(i, 0) = w;
-    double cur_log_z = w;
-    log_z(i, 0) = cur_log_z;
-    for (int j = 1; j < iter - 1; ++j) {
-      w = logspace_sub(log_volume(i, j - 1), log_volume(i, j + 1)) - M_LN2;
-      w += log_lik(i, j);
-      log_weight(i, j) = w;
-      cur_log_z = logspace_qadd(cur_log_z, w);
-      log_z(i, j) = cur_log_z;
-    }
-    w = logspace_qadd(log_volume(i, iter - 2), log_volume(i, iter - 1)) - M_LN2;
-    w += log_lik(i, iter - 1);
-    log_weight(i, iter - 1) = w;
-    cur_log_z = logspace_qadd(cur_log_z, w);
-    log_z(i, iter - 1) = cur_log_z;
-  }
-  using namespace cpp11::literals;
-  return cpp11::list({"log_weight"_nm = log_weight, "log_z"_nm = log_z});
-}
-
-[[cpp11::register]]
 cpp11::doubles_matrix<cpp11::by_row> logspace_cumsum_mat(
     cpp11::doubles_matrix<cpp11::by_row> x) {
   cpp11::writable::doubles_matrix<cpp11::by_row> result(x.nrow(), x.ncol());

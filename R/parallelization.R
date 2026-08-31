@@ -1,4 +1,5 @@
-#' Parallelization in ernest
+#' @name ernest-parallelization
+#' @title Parallelization in `ernest`
 #'
 #' @description
 #' `r lifecycle::badge("experimental")`
@@ -13,27 +14,10 @@
 #' ernest.
 #' - Call [`generate()`][generate-ernest] with `parallel` != `FALSE`.
 #'
-#' @param scalar_fn,point_fn,vectorized_fn `[function]`\cr Used identically to
-#' [create_likelihood()] or [create_prior()], but with the additional
-#' requirement that the functions are 'fresh', meaning they should be declared
-#' in the call to `parallel_likelihood()` or `parallel_prior()` rather than
-#' stored in a variable.
-#' @param ... Named arguments that should be captured in the function's
-#' environment and serialized for remote execution.
-#' @inheritParams create_prior
-#' @inheritParams create_likelihood
-#'
-#' @returns
-#' For `parallel_likelihood()`, a [carrier::crate] with the additional class
-#' [ernest_likelihood].
-#'
-#' For `parallel_prior()`, an [ernest_prior] whose transformation function is
-#' a [carrier::crate].
-#'
 #' @section Parallelized nested sampling:
 #' Splitting an initial live set into subruns lets you use many live points
-#' without running a single very large job. Run several smaller nested sampling
-#' jobs concurrently and merge their records to obtain the same statistical
+#' without running a single large job. Run multiple smaller nested sampling
+#' jobs concurrently and merge their records to achieve the same statistical
 #' benefits as a single large run.
 #'
 #' When [`generate()`][generate-ernest] is called with `parallel != FALSE`, the
@@ -46,15 +30,16 @@
 #' is issued and the number of workers is automatically reduced.
 #'
 #' Additionally, ernest will warn the user if the parallelization resulted in
-#' subruns with suspiciously low effective sample size; this is evidence that
-#' paralleilzation introduced dependence between the subruns, which may bias
-#' estimation. This warning is configured with
-#' `getOption("ernest.min_ess", 400L)`.
+#' subruns with suspiciously low effective sample size relative to the total
+#' ESS in the post-merged run; this indicates parallelization may have
+#' introduced dependence between the subruns, potentially biasing estimation.
+#' Use `getOption("ernest.max_ess_loss")` to adjust the threshold for this
+#' warning (default: 5% relative difference between the total ESS and the sum of
+#' subrun ESS).
 #'
 #' @section Daemons:
-#' How parallelization occurs is determined by [mirai::daemons()]. Daemons must
-#' be set prior to calling `generate()` with `parallel != FALSE`, otherwise an
-#' error will be thrown.
+#' Daemons must be set with [mirai::daemons()] prior to calling `generate()`
+#' with `parallel != FALSE`; otherwise an error will be thrown.
 #'
 #' It is usual to set daemons once per session. You can leave them running on
 #' your local machine as they consume almost no resources whilst waiting to
@@ -69,7 +54,19 @@
 #' @references Documentation adapted from the \CRANpkg{mirai},
 #' \CRANpkg{carrier}, and \CRANpkg{purrr} packages.
 #'
-#' @rdname parallelization
+#' @example data-raw/EXAMPLE_PARALLEL.R
+NULL
+
+#' @param scalar_fn,vectorized_fn `[function]`\cr A fresh log-likelihood
+#' function (see [create_likelihood]). "Fresh" here means that the function
+#' should be declared in the call to `parallel_likelihood()`.
+#' @param ... Named arguments to declare in the environment of the function.
+#' @inheritParams create_likelihood
+#'
+#' @returns For `parallel_likelihood()`, a [carrier::crate] with the
+#' additional class [ernest_likelihood].
+#'
+#' @rdname ernest-parallelization
 #' @export
 parallel_likelihood <- function(
   scalar_fn,
@@ -91,7 +88,15 @@ parallel_likelihood <- function(
   )
 }
 
-#' @rdname parallelization
+#' @param point_fn,vectorized_fn `[function]`\cr A fresh prior function (see
+#' [create_prior]). "Fresh" here means that the function should be declared in
+#' the call to `parallel_prior()`.
+#' @inheritParams create_prior
+#'
+#' @returns For `parallel_prior()`, an `ernest_prior` object with additional
+#' subclass `crated_prior`.
+#'
+#' @rdname ernest-parallelization
 #' @export
 parallel_prior <- function(
   point_fn,
@@ -229,17 +234,7 @@ nested_sampling_parallel <- function(
     )
   }
   results <- unpartition_runs(m_out, nlive = x$nlive)
-  if (any(results$.parallel$ess < getOption("ernest.min_ess", 400L))) {
-    cli::cli_warn(
-      c(
-        "Certain subruns have suspiciously low effective sample sizes.",
-        "!" = "Interpret results with caution.",
-        "i" = "Should you increase `nlive` or reduce `parallel`?",
-        "i" = "Ignore this warning with {.code getOption('ernest.min_ess', 0)}."
-      ),
-      class = "ernest.min_ess_warning"
-    )
-  }
+  check_merge_quality(observed = results$rcrd, actual = results$.parallel)
   results
 }
 

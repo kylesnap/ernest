@@ -88,16 +88,16 @@ test_that("allocate_nlive is set appropriately", {
 })
 
 describe("generate & mirai", {
-  silent_dev_load <- \(...) {
+  silence_eval <- \(...) {
     suppressWarnings(
       expect_run(...),
-      class = c("ernest.on_dev", "ernest.min_ess_warning")
+      class = c("ernest.on_dev", "ernest.poor_quality_merge")
     )
   }
   run <- NULL
 
   it("can run a parallel sampler", {
-    run <<- silent_dev_load(
+    run <<- silence_eval(
       log_lik = parallel_lik,
       prior = gaussian_blobs$prior,
       nlive = 300,
@@ -109,7 +109,7 @@ describe("generate & mirai", {
   })
 
   it("respects a set seed", {
-    run_cpy <- silent_dev_load(
+    run_cpy <- silence_eval(
       log_lik = parallel_lik,
       prior = gaussian_blobs$prior,
       nlive = 300,

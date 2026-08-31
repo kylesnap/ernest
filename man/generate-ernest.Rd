@@ -49,7 +49,7 @@ and iteration counter during sampling. Optional; if \code{NULL} the global optio
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Specifies whether the run should be
 performed in-parallel across multiple \code{\link[mirai:daemons]{mirai::daemons()}}. If \code{TRUE},
 the run is split across the current number of daemons.
-See \link{parallelization} for more details.}
+See \link{ernest-parallelization} for more details.}
 
 \item{...}{
   Arguments passed on to \code{\link{compile.ernest_run}}

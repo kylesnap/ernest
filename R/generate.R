@@ -22,7 +22,7 @@
 #' `r lifecycle::badge("experimental")` Specifies whether the run should be
 #' performed in-parallel across multiple [mirai::daemons()]. If `TRUE`,
 #' the run is split across the current number of daemons.
-#' See [parallelization] for more details.
+#' See [ernest-parallelization] for more details.
 #'
 #' @returns An `[ernest_run]` object with the nested sampling results.
 #'

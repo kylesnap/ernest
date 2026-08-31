@@ -81,6 +81,45 @@ runif_in_sphere <- function(n, d, r = 1) {
   radii * sims / sqrt(apply(sims, 1L, crossprod))
 }
 
+#' Helper to check merge quality for `merge` and parallel sampling
+#'
+#' @param observed A single `ernest_rcrd` object.
+#' @param actual A tibble of rows from `glance` of the pre-merged runs.
+#' @param loss_ess The max loss of ESS allowed between expected and observed
+#' as a proportion of the expected ESS. Default is -0.05 (5% loss).
+#' @param call Call environment for error messages.
+#'
+#' @return A warning is issued if the merged results may be biased due to
+#' autocorrelation within subruns.
+#' @noRd
+check_merge_quality <- function(
+  observed,
+  actual,
+  loss_ess = getOption("ernest.max_ess_loss", 0.05),
+  call = caller_env()
+) {
+  observed_ess <- run_ess(observed)
+  actual_ess <- sum(actual$ess)
+  rel_diff <- (observed_ess - actual_ess) / actual_ess
+  loss_ess <- abs(loss_ess)
+  if (isTRUE(rel_diff > loss_ess)) {
+    observed_ess <- formatC(observed_ess)
+    actual_ess <- formatC(actual_ess)
+    cli::cli_warn(
+      c(
+        "Merged results may be biased due to autocorrelation within subruns.",
+        "!" = "Total ESS: {observed_ess}; Sum of sub-run ESS: {actual_ess}.",
+        "i" = "Should you increase `nlive` within each sub-run?"
+      ),
+      call = call,
+      class = "ernest.poor_quality_merge"
+    )
+  }
+  invisible(NULL)
+}
+
+#' sum_ess <- sum(results$.parallel$ess)
+
 #' Fast data frame creation
 #'
 #' @param ... Columns of the data frame.
